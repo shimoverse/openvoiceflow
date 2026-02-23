@@ -1,12 +1,14 @@
 #!/bin/bash
 # Build OpenVoiceFlow.dmg — a drag-to-Applications installer for macOS
 #
-# This creates:
-#   1. A self-contained .app bundle with embedded Python + all dependencies
-#   2. A DMG with the app + Applications symlink for drag-to-install
+# Creates a THIN .app bundle that:
+#   - Contains only source code + launcher script
+#   - Auto-installs Python dependencies on first launch (native to user's Mac)
+#   - Works on both Intel and Apple Silicon (no Rosetta needed)
+#   - Works on macOS 12+ (Monterey and later)
 #
 # Usage: bash build-dmg.sh
-# Output: dist/OpenVoiceFlow.dmg
+# Output: dist/OpenVoiceFlow-VERSION.dmg
 
 set -e
 
@@ -32,109 +34,24 @@ if [[ "$(uname)" != "Darwin" ]]; then
     exit 1
 fi
 
-# --- Setup build environment ---
-BUILD_DIR="$SCRIPT_DIR/build"
+# --- Setup ---
 DIST_DIR="$SCRIPT_DIR/dist"
 APP_DIR="$DIST_DIR/${APP_NAME}.app"
 DMG_DIR="$DIST_DIR/dmg-staging"
 
-rm -rf "$BUILD_DIR" "$DIST_DIR"
-mkdir -p "$BUILD_DIR" "$DIST_DIR"
-
-# --- Create venv for bundling ---
-echo "📦 Creating build environment..."
-VENV="$BUILD_DIR/venv"
-python3 -m venv "$VENV"
-"$VENV/bin/pip" install -q --upgrade pip
-"$VENV/bin/pip" install -q sounddevice numpy pynput rumps
-
-# Verify
-"$VENV/bin/python3" -c "import sounddevice, numpy, pynput, rumps; print('  ✅ All dependencies installed')"
-
-# --- Get Python info ---
-PYTHON_VERSION=$("$VENV/bin/python3" -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-SITE_PACKAGES="$VENV/lib/python${PYTHON_VERSION}/site-packages"
-PYTHON_BIN=$(python3 -c "import sys; print(sys.executable)")
-echo "  Python: $PYTHON_VERSION"
-echo "  Site-packages: $SITE_PACKAGES"
+rm -rf "$DIST_DIR"
+mkdir -p "$DIST_DIR"
 
 # --- Build .app bundle ---
-echo ""
 echo "🔨 Building ${APP_NAME}.app..."
 
 mkdir -p "$APP_DIR/Contents/MacOS"
-mkdir -p "$APP_DIR/Contents/Resources/voiceflow"
 mkdir -p "$APP_DIR/Contents/Resources/voiceflow/llm"
-mkdir -p "$APP_DIR/Contents/Resources/lib"
 
 # Copy source code
 cp "$SCRIPT_DIR/voiceflow/"*.py "$APP_DIR/Contents/Resources/voiceflow/"
 cp "$SCRIPT_DIR/voiceflow/llm/"*.py "$APP_DIR/Contents/Resources/voiceflow/llm/"
 echo "  ✅ Source code copied"
-
-# Copy site-packages (only what we need)
-for pkg in sounddevice.py sounddevice_data numpy pynput _sounddevice_data _cffi_backend* cffi _cffi* objc PyObjCTools rumps; do
-    if [[ -e "$SITE_PACKAGES/$pkg" ]]; then
-        cp -R "$SITE_PACKAGES/$pkg" "$APP_DIR/Contents/Resources/lib/" 2>/dev/null || true
-    fi
-done
-# Copy everything from site-packages that's needed (simpler approach)
-cp -R "$SITE_PACKAGES"/* "$APP_DIR/Contents/Resources/lib/" 2>/dev/null || true
-echo "  ✅ Dependencies bundled"
-
-# Copy PortAudio dylib
-PA_LIB=$(python3 -c "
-import ctypes.util
-p = ctypes.util.find_library('portaudio')
-if p: print(p)
-" 2>/dev/null || true)
-if [[ -n "$PA_LIB" && -f "$PA_LIB" ]]; then
-    cp "$PA_LIB" "$APP_DIR/Contents/Resources/lib/"
-    echo "  ✅ PortAudio bundled"
-elif [[ -f "/opt/homebrew/lib/libportaudio.dylib" ]]; then
-    cp /opt/homebrew/lib/libportaudio.dylib "$APP_DIR/Contents/Resources/lib/"
-    echo "  ✅ PortAudio bundled (Homebrew)"
-fi
-
-# Create launcher Python script
-cat > "$APP_DIR/Contents/Resources/launch.py" << 'PYLAUNCH'
-#!/usr/bin/env python3
-"""OpenVoiceFlow launcher — sets up paths and runs the app."""
-import sys
-import os
-from pathlib import Path
-
-# Add bundled libraries to path
-resources = Path(__file__).parent
-lib_dir = resources / "lib"
-sys.path.insert(0, str(lib_dir))
-sys.path.insert(0, str(resources))
-
-# Set library path for PortAudio
-os.environ["DYLD_LIBRARY_PATH"] = str(lib_dir)
-
-# Check if first run (no config) — launch onboarding
-config_dir = Path.home() / ".openvoiceflow"
-config_path = config_dir / "config.json"
-
-if not config_path.exists():
-    # First run — try GUI onboarding
-    try:
-        from voiceflow.onboarding import run_onboarding
-        config = run_onboarding()
-        if not config:
-            sys.exit(0)
-    except Exception as e:
-        print(f"Onboarding error: {e}")
-
-# Start the menu bar app (or CLI if rumps unavailable)
-try:
-    from voiceflow.menubar import run_menubar
-    run_menubar()
-except ImportError:
-    from voiceflow.app import OpenVoiceFlow
-    OpenVoiceFlow().run()
-PYLAUNCH
 
 # Create Info.plist
 cat > "$APP_DIR/Contents/Info.plist" << PLIST
@@ -158,49 +75,154 @@ cat > "$APP_DIR/Contents/Info.plist" << PLIST
 </dict>
 </plist>
 PLIST
+echo "  ✅ Info.plist created"
 
-# Create the executable shell launcher
+# Create the bootstrap launcher script
 cat > "$APP_DIR/Contents/MacOS/${APP_NAME}" << 'LAUNCHER'
 #!/bin/bash
-DIR="$(cd "$(dirname "$0")/../Resources" && pwd)"
-export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
-export DYLD_LIBRARY_PATH="$DIR/lib:$DYLD_LIBRARY_PATH"
+#
+# OpenVoiceFlow Launcher
+#
+# On first run:
+#   1. Checks for Homebrew (offers to install if missing)
+#   2. Checks for whisper-cpp (installs via brew)
+#   3. Creates Python venv at ~/.openvoiceflow/venv/
+#   4. Installs Python packages natively (no Rosetta, no version issues)
+#   5. Downloads whisper model
+#   6. Launches GUI onboarding wizard
+#
+# On subsequent runs:
+#   - Updates source code and launches immediately
+#
 
-# Use system Python (guaranteed on macOS)
-exec /usr/bin/python3 "$DIR/launch.py" "$@"
+APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+RESOURCES="$APP_DIR/Resources"
+VOICEFLOW_HOME="$HOME/.openvoiceflow"
+VENV_DIR="$VOICEFLOW_HOME/venv"
+LOG_DIR="$HOME/OpenVoiceFlow"
+LOG_FILE="$LOG_DIR/voiceflow.log"
+PYTHON="$VENV_DIR/bin/python3"
+
+# Ensure directories
+mkdir -p "$LOG_DIR" "$VOICEFLOW_HOME"
+
+# --- macOS dialog helpers ---
+show_dialog() {
+    osascript -e "display dialog \"$1\" with title \"OpenVoiceFlow\" buttons {\"$2\"} default button \"$2\" with icon note" 2>/dev/null
+}
+
+show_error() {
+    osascript -e "display dialog \"$1\" with title \"OpenVoiceFlow\" buttons {\"OK\"} default button \"OK\" with icon stop" 2>/dev/null
+}
+
+show_progress() {
+    osascript -e "display notification \"$1\" with title \"OpenVoiceFlow\"" 2>/dev/null
+}
+
+# --- Source Homebrew ---
+source_brew() {
+    if [[ -f "/opt/homebrew/bin/brew" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -f "/usr/local/bin/brew" ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+}
+
+source_brew
+
+# --- Step 1: Check Python 3 ---
+if ! command -v python3 &>/dev/null; then
+    show_error "Python 3 is required.\n\nInstall it by running in Terminal:\n  xcode-select --install"
+    exit 1
+fi
+
+# --- Step 2: Check/Install Homebrew ---
+if ! command -v brew &>/dev/null; then
+    show_dialog "OpenVoiceFlow needs Homebrew to install the speech engine.\n\nThis is a one-time setup." "Install Homebrew"
+
+    osascript << 'EOF'
+tell application "Terminal"
+    activate
+    do script "echo '🔧 Installing Homebrew...' && /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo '' && echo '✅ Homebrew installed! Now close this window and reopen OpenVoiceFlow.' && echo ''"
+end tell
+EOF
+    show_dialog "After Homebrew finishes installing in Terminal, relaunch OpenVoiceFlow from Applications." "OK"
+    exit 0
+fi
+
+# --- Step 3: Check/Install whisper-cpp ---
+if ! command -v whisper-cli &>/dev/null && ! command -v whisper-cpp &>/dev/null; then
+    show_progress "Installing whisper-cpp (speech engine)..."
+    brew install whisper-cpp >>"$LOG_FILE" 2>&1
+
+    if [[ $? -ne 0 ]]; then
+        show_error "Failed to install whisper-cpp.\n\nTry manually in Terminal:\n  brew install whisper-cpp\n\nLog: $LOG_FILE"
+        exit 1
+    fi
+    show_progress "whisper-cpp installed!"
+fi
+
+# --- Step 4: Create/update Python venv ---
+if [[ ! -f "$PYTHON" ]]; then
+    show_progress "Setting up OpenVoiceFlow (first run)..."
+
+    # Create venv
+    python3 -m venv "$VENV_DIR" >>"$LOG_FILE" 2>&1
+
+    # Install dependencies (builds natively — no Rosetta needed)
+    "$VENV_DIR/bin/pip" install --upgrade pip -q >>"$LOG_FILE" 2>&1
+    "$VENV_DIR/bin/pip" install sounddevice numpy pynput rumps -q >>"$LOG_FILE" 2>&1
+
+    if [[ $? -ne 0 ]]; then
+        show_error "Failed to install Python packages.\n\nLog: $LOG_FILE"
+        exit 1
+    fi
+
+    mkdir -p "$VOICEFLOW_HOME/models"
+    mkdir -p "$LOG_DIR/logs"
+fi
+
+# Always sync latest source code into the venv
+SITE_PKG=$("$PYTHON" -c "import site; print(site.getsitepackages()[0])" 2>/dev/null)
+if [[ -n "$SITE_PKG" ]]; then
+    rm -rf "$SITE_PKG/voiceflow" 2>/dev/null
+    cp -R "$RESOURCES/voiceflow" "$SITE_PKG/" 2>/dev/null
+fi
+
+# --- Step 5: Download whisper model if missing ---
+MODEL_FILE="$VOICEFLOW_HOME/models/ggml-base.en.bin"
+if [[ ! -f "$MODEL_FILE" ]]; then
+    show_progress "Downloading speech model (one-time, ~142 MB)..."
+    mkdir -p "$VOICEFLOW_HOME/models"
+    curl -L -o "$MODEL_FILE" \
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin" >>"$LOG_FILE" 2>&1
+fi
+
+# --- Step 6: Launch ---
+CONFIG_FILE="$VOICEFLOW_HOME/config.json"
+
+# First run — show onboarding wizard
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    "$PYTHON" -c "
+from voiceflow.onboarding import run_onboarding
+run_onboarding()
+" >>"$LOG_FILE" 2>&1
+fi
+
+# Start menu bar app (or CLI fallback)
+exec "$PYTHON" -c "
+try:
+    from voiceflow.menubar import run_menubar
+    run_menubar()
+except Exception as e:
+    print(f'Menu bar failed: {e}, falling back to CLI')
+    from voiceflow.app import OpenVoiceFlow
+    OpenVoiceFlow().run()
+" >>"$LOG_FILE" 2>&1
 LAUNCHER
 chmod +x "$APP_DIR/Contents/MacOS/${APP_NAME}"
-
+echo "  ✅ Bootstrap launcher created"
 echo "  ✅ ${APP_NAME}.app built"
-
-# --- Create a simple icon (optional) ---
-echo ""
-echo "🎨 Creating app icon..."
-# Use Python to generate a simple icon via sips
-python3 << 'ICONSCRIPT' 2>/dev/null || true
-import subprocess, tempfile, os
-
-# Create a simple 512x512 icon using HTML canvas
-html = '''<html><body style="margin:0;background:transparent">
-<canvas id="c" width="512" height="512"></canvas>
-<script>
-var c=document.getElementById('c').getContext('2d');
-// Background circle
-c.beginPath();c.arc(256,256,240,0,Math.PI*2);
-c.fillStyle='#0f89ff';c.fill();
-// Microphone shape
-c.fillStyle='white';
-c.beginPath();c.roundRect(206,120,100,200,50);c.fill();
-c.fillStyle='white';c.fillRect(236,320,40,80);
-c.beginPath();c.arc(256,420,60,0,Math.PI);c.fill();
-// Waves
-c.strokeStyle='white';c.lineWidth=12;c.lineCap='round';
-c.beginPath();c.arc(256,240,130,0.8,2.3);c.stroke();
-c.beginPath();c.arc(256,240,170,0.9,2.2);c.stroke();
-</script></body></html>'''
-# Skip icon generation if no webkit tools available
-print("  (Using default macOS icon)")
-ICONSCRIPT
 
 # --- Build DMG ---
 echo ""
@@ -208,36 +230,19 @@ echo "📀 Creating DMG..."
 
 mkdir -p "$DMG_DIR"
 cp -R "$APP_DIR" "$DMG_DIR/"
-
-# Create Applications symlink for drag-to-install
 ln -s /Applications "$DMG_DIR/Applications"
 
-# Create a background readme
-cat > "$DMG_DIR/.README.txt" << 'DMGREADME'
-OpenVoiceFlow — Free Voice Dictation for macOS
-
-Drag OpenVoiceFlow.app to Applications to install.
-
-After launching:
-1. Grant Accessibility permission when prompted
-2. Grant Microphone permission when prompted
-3. Hold Right Command → Speak → Release → Text appears at cursor
-
-Config: ~/.openvoiceflow/config.json
-Logs:   ~/OpenVoiceFlow/logs/
-
-https://github.com/mohitjain/openvoiceflow
-DMGREADME
-
-# Create the DMG
 DMG_PATH="$DIST_DIR/${APP_NAME}-${VERSION}.dmg"
-DMG_TEMP="$BUILD_DIR/temp.dmg"
 
-# Create DMG using hdiutil
 hdiutil create -volname "$APP_NAME" \
     -srcfolder "$DMG_DIR" \
     -ov -format UDBZ \
     "$DMG_PATH"
+
+DMG_SIZE=$(du -h "$DMG_PATH" | cut -f1)
+
+# Cleanup
+rm -rf "$DMG_DIR"
 
 echo ""
 echo -e "${GREEN}================================================${NC}"
@@ -245,18 +250,17 @@ echo -e "${GREEN}✅ Build complete!${NC}"
 echo -e "${GREEN}================================================${NC}"
 echo ""
 echo "  DMG: $DMG_PATH"
-echo "  Size: $(du -h "$DMG_PATH" | cut -f1)"
+echo "  Size: $DMG_SIZE"
 echo ""
-echo "  To install:"
-echo "    1. Open the DMG"
-echo "    2. Drag OpenVoiceFlow to Applications"
-echo "    3. Open OpenVoiceFlow from Applications"
-echo "    4. Grant Accessibility + Microphone permissions"
+echo "  ✅ No Rosetta needed (deps built natively on user's Mac)"
+echo "  ✅ Works on macOS 12+ (Monterey and later)"
+echo "  ✅ Works on Intel and Apple Silicon"
+echo "  ✅ Auto-installs everything on first launch"
 echo ""
-echo "  To distribute:"
-echo "    Upload ${APP_NAME}-${VERSION}.dmg to GitHub Releases"
+echo "  Upload to GitHub:"
+echo "    gh release delete v${VERSION} -y 2>/dev/null"
+echo "    gh release create v${VERSION} \"$DMG_PATH\" \\"
+echo "      --title \"OpenVoiceFlow v${VERSION}\" \\"
+echo "      --notes \"Download, drag to Applications, launch. Everything installs automatically.\""
 echo ""
-
-# Cleanup
-rm -rf "$DMG_DIR"
 echo "Done! 🎉"

@@ -14,4 +14,3 @@ env/
 *.log
 .DS_Store
 .openvoiceflow/
-.DS_Store

@@ -32,5 +32,5 @@ all = ["rumps>=0.4"]
 openvoiceflow = "voiceflow.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/mohitjain/openvoiceflow"
-Issues = "https://github.com/mohitjain/openvoiceflow/issues"
+Homepage = "https://github.com/shimoverse-ops/openvoiceflow"
+Issues = "https://github.com/shimoverse-ops/openvoiceflow/issues"

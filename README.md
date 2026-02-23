@@ -27,12 +27,12 @@ OpenVoiceFlow combines **local** speech-to-text (whisper.cpp) with **LLM-powered
 
 ### Option 1: DMG Installer (easiest)
 
-Download the latest `.dmg` from [Releases](https://github.com/mohitjain/openvoiceflow/releases), open it, and drag **OpenVoiceFlow** to your Applications folder. On first launch, a setup wizard guides you through choosing your AI backend and entering an API key.
+Download the latest `.dmg` from [Releases](https://github.com/shimoverse-ops/openvoiceflow/releases), open it, and drag **OpenVoiceFlow** to your Applications folder. On first launch, a setup wizard guides you through choosing your AI backend and entering an API key.
 
 ### Option 2: Quick Install (terminal)
 
 ```bash
-git clone https://github.com/mohitjain/openvoiceflow.git
+git clone https://github.com/shimoverse-ops/openvoiceflow.git
 cd openvoiceflow
 bash install.sh
 ```
@@ -44,7 +44,7 @@ bash install.sh
 brew install whisper-cpp
 
 # 2. Clone and set up
-git clone https://github.com/mohitjain/openvoiceflow.git
+git clone https://github.com/shimoverse-ops/openvoiceflow.git
 cd openvoiceflow
 python3 -m venv ~/.openvoiceflow/venv
 ~/.openvoiceflow/venv/bin/pip install -e ".[all]"

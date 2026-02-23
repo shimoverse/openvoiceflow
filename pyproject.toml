@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "openvoiceflow"
+version = "0.1.0"
+description = "Free, open-source voice dictation for macOS — local transcription + LLM cleanup"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Mohit Jain"}]
+requires-python = ">=3.9"
+keywords = ["voice", "dictation", "speech-to-text", "whisper", "macos", "openvoiceflow"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+dependencies = [
+    "sounddevice>=0.4",
+    "numpy>=1.20",
+    "pynput>=1.7",
+]
+
+[project.optional-dependencies]
+menubar = ["rumps>=0.4"]
+all = ["rumps>=0.4"]
+
+[project.scripts]
+openvoiceflow = "voiceflow.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/mohitjain/openvoiceflow"
+Issues = "https://github.com/mohitjain/openvoiceflow/issues"

@@ -81,19 +81,40 @@ echo "  ✅ Info.plist created"
 cat > "$APP_DIR/Contents/MacOS/${APP_NAME}" << 'LAUNCHER'
 #!/bin/bash
 #
-# OpenVoiceFlow Launcher
+# OpenVoiceFlow Launcher — Universal (Intel + Apple Silicon)
 #
 # On first run:
 #   1. Checks for Homebrew (offers to install if missing)
 #   2. Checks for whisper-cpp (installs via brew)
 #   3. Creates Python venv at ~/.openvoiceflow/venv/
-#   4. Installs Python packages natively (no Rosetta, no version issues)
+#   4. Installs Python packages natively
 #   5. Downloads whisper model
 #   6. Launches GUI onboarding wizard
 #
 # On subsequent runs:
 #   - Updates source code and launches immediately
 #
+
+# --- Force native execution on Apple Silicon ---
+# macOS .app bundles sometimes launch under Rosetta. Detect and re-exec natively.
+if [[ "$(uname -m)" == "x86_64" ]] && [[ "$(sysctl -n machdep.cpu.brand_string 2>/dev/null)" == *"Apple"* ]]; then
+    exec arch -arm64 "$0" "$@"
+fi
+
+# --- Architecture-aware command wrapper ---
+# On Apple Silicon: prefix commands with arch -arm64 (in case Rosetta leaks through)
+# On Intel: run commands directly
+if [[ "$(uname -m)" == "arm64" ]]; then
+    run() { "$@"; }
+else
+    # Check if this is Apple Silicon running under Rosetta
+    if [[ "$(sysctl -n sysctl.proc_translated 2>/dev/null)" == "1" ]]; then
+        run() { arch -arm64 "$@"; }
+    else
+        # Genuine Intel Mac
+        run() { "$@"; }
+    fi
+fi
 
 APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 RESOURCES="$APP_DIR/Resources"
@@ -153,9 +174,9 @@ fi
 # --- Step 3: Check/Install whisper-cpp ---
 if ! command -v whisper-cli &>/dev/null && ! command -v whisper-cpp &>/dev/null; then
     show_progress "Installing whisper-cpp (speech engine)..."
-    brew install whisper-cpp >>"$LOG_FILE" 2>&1
+    run brew install whisper-cpp >>"$LOG_FILE" 2>&1
 
-    if [[ $? -ne 0 ]]; then
+    if ! command -v whisper-cli &>/dev/null && ! command -v whisper-cpp &>/dev/null; then
         show_error "Failed to install whisper-cpp.\n\nTry manually in Terminal:\n  brew install whisper-cpp\n\nLog: $LOG_FILE"
         exit 1
     fi
@@ -166,12 +187,12 @@ fi
 if [[ ! -f "$PYTHON" ]]; then
     show_progress "Setting up OpenVoiceFlow (first run)..."
 
-    # Create venv
-    python3 -m venv "$VENV_DIR" >>"$LOG_FILE" 2>&1
+    # Create venv natively
+    run python3 -m venv "$VENV_DIR" >>"$LOG_FILE" 2>&1
 
-    # Install dependencies (builds natively — no Rosetta needed)
-    "$VENV_DIR/bin/pip" install --upgrade pip -q >>"$LOG_FILE" 2>&1
-    "$VENV_DIR/bin/pip" install sounddevice numpy pynput rumps -q >>"$LOG_FILE" 2>&1
+    # Install dependencies
+    run "$VENV_DIR/bin/pip" install --upgrade pip -q >>"$LOG_FILE" 2>&1
+    run "$VENV_DIR/bin/pip" install sounddevice numpy pynput rumps -q >>"$LOG_FILE" 2>&1
 
     if [[ $? -ne 0 ]]; then
         show_error "Failed to install Python packages.\n\nLog: $LOG_FILE"
@@ -183,7 +204,7 @@ if [[ ! -f "$PYTHON" ]]; then
 fi
 
 # Always sync latest source code into the venv
-SITE_PKG=$("$PYTHON" -c "import site; print(site.getsitepackages()[0])" 2>/dev/null)
+SITE_PKG=$(run "$PYTHON" -c "import site; print(site.getsitepackages()[0])" 2>/dev/null)
 if [[ -n "$SITE_PKG" ]]; then
     rm -rf "$SITE_PKG/voiceflow" 2>/dev/null
     cp -R "$RESOURCES/voiceflow" "$SITE_PKG/" 2>/dev/null
@@ -203,14 +224,14 @@ CONFIG_FILE="$VOICEFLOW_HOME/config.json"
 
 # First run — show onboarding wizard
 if [[ ! -f "$CONFIG_FILE" ]]; then
-    "$PYTHON" -c "
+    run "$PYTHON" -c "
 from voiceflow.onboarding import run_onboarding
 run_onboarding()
 " >>"$LOG_FILE" 2>&1
 fi
 
 # Start menu bar app (or CLI fallback)
-exec "$PYTHON" -c "
+run "$PYTHON" -c "
 try:
     from voiceflow.menubar import run_menubar
     run_menubar()

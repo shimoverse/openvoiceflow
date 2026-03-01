@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -e ".[all]" ruff
+      - name: Lint
+        run: ruff check voiceflow/
+      - name: Import check
+        run: python3 -c "import voiceflow; print('✅ imports ok')"
+      - name: Config validation test
+        run: python3 -c "
+from voiceflow.config import DEFAULTS, validate_config
+errors = validate_config(DEFAULTS)
+assert errors == [], f'Default config has errors: {errors}'
+print('✅ config defaults valid')
+"

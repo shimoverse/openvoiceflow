@@ -1,95 +1,85 @@
-"""Configuration management for OpenVoiceFlow."""
+"""OpenVoiceFlow configuration management."""
 import json
-from pathlib import Path
+import os
 
-CONFIG_DIR = Path.home() / ".openvoiceflow"
-CONFIG_PATH = CONFIG_DIR / "config.json"
-MODELS_DIR = CONFIG_DIR / "models"
-LOG_DIR = Path.home() / "OpenVoiceFlow" / "logs"
+CONFIG_DIR = os.path.expanduser("~/.openvoiceflow")
+CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
 
-DEFAULT_CONFIG = {
-    # Hotkey
-    "hotkey": "right_cmd",  # right_cmd, right_alt, left_alt, f5, f6, etc.
-
-    # Whisper (local transcription)
-    "whisper_model": "base.en",  # tiny.en, base.en, small.en, medium.en, large-v3
-    "whisper_cpp_path": "",  # auto-detected if empty
-
-    # LLM backend for cleanup
-    "llm_backend": "gemini",  # gemini, openai, anthropic, groq, ollama, none
-    "llm_model": "",  # auto-selected per backend if empty
-
-    # API keys (per backend)
-    "gemini_api_key": "",
-    "openai_api_key": "",
-    "anthropic_api_key": "",
-    "groq_api_key": "",
-
-    # Ollama settings
-    "ollama_url": "http://localhost:11434",
-    "ollama_model": "llama3.2",
-
-    # Cleanup prompt
-    "cleanup_prompt": (
-        "Clean up this voice dictation transcript. "
-        "Remove filler words (um, uh, like, you know), "
-        "fix grammar and punctuation, "
-        "handle corrections (e.g. 'no wait' means discard what came before), "
-        "and make it read naturally. "
-        "Keep the speaker's intent and tone. "
-        "Output ONLY the cleaned text, nothing else."
-    ),
-
-    # Behavior
+DEFAULTS = {
+    "hotkey": "right_cmd",
+    "whisper_model": "base.en",
+    "whisper_cpp_path": None,
+    "llm_backend": "gemini",
+    "gemini_api_key": None,
+    "openai_api_key": None,
+    "anthropic_api_key": None,
+    "groq_api_key": None,
     "sound_feedback": True,
     "auto_paste": True,
     "log_transcripts": True,
-    "language": "en",
-
-    # Audio
     "sample_rate": 16000,
     "channels": 1,
+    "llm_prompt": None,  # Custom cleanup prompt; None = use default
 }
 
+VALID_HOTKEYS = [
+    "right_cmd", "left_cmd", "right_alt", "left_alt", "right_ctrl",
+    "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
+]
 
-def ensure_dirs():
-    """Create all required directories."""
-    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
+VALID_MODELS = ["tiny.en", "base.en", "small.en", "medium.en", "large"]
+VALID_BACKENDS = ["gemini", "openai", "anthropic", "groq", "ollama", "none"]
 
 
 def load_config() -> dict:
-    """Load config, creating default if needed."""
-    ensure_dirs()
-    if CONFIG_PATH.exists():
-        with open(CONFIG_PATH) as f:
-            saved = json.load(f)
-        return {**DEFAULT_CONFIG, **saved}
-    else:
-        config = DEFAULT_CONFIG.copy()
-        save_config(config)
-        return config
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    if not os.path.exists(CONFIG_PATH):
+        save_config(DEFAULTS)
+        return dict(DEFAULTS)
+    with open(CONFIG_PATH) as f:
+        stored = json.load(f)
+    # Merge with defaults so new fields are always present
+    config = dict(DEFAULTS)
+    config.update(stored)
+    return config
 
 
 def save_config(config: dict):
-    """Save config to disk."""
-    ensure_dirs()
+    os.makedirs(CONFIG_DIR, exist_ok=True)
     with open(CONFIG_PATH, "w") as f:
         json.dump(config, f, indent=2)
 
 
-def get_api_key(config: dict) -> str:
-    """Get the API key for the active LLM backend."""
-    import os
-    backend = config["llm_backend"]
+def get_api_key(config: dict, backend: str) -> str | None:
     key_map = {
-        "gemini": ("gemini_api_key", "GEMINI_API_KEY"),
-        "openai": ("openai_api_key", "OPENAI_API_KEY"),
-        "anthropic": ("anthropic_api_key", "ANTHROPIC_API_KEY"),
-        "groq": ("groq_api_key", "GROQ_API_KEY"),
+        "gemini": "gemini_api_key",
+        "openai": "openai_api_key",
+        "anthropic": "anthropic_api_key",
+        "groq": "groq_api_key",
     }
-    if backend in key_map:
-        config_key, env_key = key_map[backend]
-        return config.get(config_key) or os.environ.get(env_key, "")
-    return ""
+    field = key_map.get(backend)
+    if not field:
+        return None
+    # Config file takes priority, then env var
+    val = config.get(field)
+    if val:
+        return val
+    env_map = {
+        "gemini_api_key": "GEMINI_API_KEY",
+        "openai_api_key": "OPENAI_API_KEY",
+        "anthropic_api_key": "ANTHROPIC_API_KEY",
+        "groq_api_key": "GROQ_API_KEY",
+    }
+    return os.environ.get(env_map.get(field, ""), None)
+
+
+def validate_config(config: dict) -> list[str]:
+    """Return a list of validation errors (empty = valid)."""
+    errors = []
+    if config.get("hotkey") not in VALID_HOTKEYS:
+        errors.append(f"Invalid hotkey '{config.get('hotkey')}'. Valid: {VALID_HOTKEYS}")
+    if config.get("whisper_model") not in VALID_MODELS:
+        errors.append(f"Invalid model '{config.get('whisper_model')}'. Valid: {VALID_MODELS}")
+    if config.get("llm_backend") not in VALID_BACKENDS:
+        errors.append(f"Invalid backend '{config.get('llm_backend')}'. Valid: {VALID_BACKENDS}")
+    return errors

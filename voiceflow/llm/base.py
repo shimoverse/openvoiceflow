@@ -12,9 +12,17 @@ DEFAULT_PROMPT = (
 
 
 class LLMBackend(ABC):
+    name = ""
+    default_model = ""
+
     def __init__(self, config: dict):
         self.config = config
         self.prompt = config.get("llm_prompt") or DEFAULT_PROMPT
+        self.model = config.get(f"{self.name}_model", self.default_model)
+
+    def _make_prompt(self, text: str) -> str:
+        """Build the full prompt string combining system prompt and transcript."""
+        return f"{self.prompt}\n\nTranscript: {text}"
 
     @abstractmethod
     def cleanup(self, text: str) -> str:

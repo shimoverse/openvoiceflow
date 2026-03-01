@@ -126,6 +126,27 @@ if [[ ! -f "\$MODEL" ]]; then
 fi
 
 "\$PY" -c "
+import json, os
+
+# BUG-007 fix: trigger onboarding for new DMG users
+cfg_path = os.path.expanduser('~/.openvoiceflow/config.json')
+needs_setup = True
+if os.path.exists(cfg_path):
+    try:
+        cfg = json.load(open(cfg_path))
+        backend = cfg.get('llm_backend', '')
+        has_key = any(cfg.get(f'{b}_api_key') for b in ['gemini','openai','anthropic','groq'])
+        needs_setup = not (has_key or backend in ['ollama','none'])
+    except Exception:
+        needs_setup = True
+
+if needs_setup:
+    try:
+        from voiceflow.onboarding import run_onboarding
+        run_onboarding()
+    except Exception as e:
+        print(f'Onboarding error: {e}')
+
 try:
     from voiceflow.menubar import run_menubar
     run_menubar()

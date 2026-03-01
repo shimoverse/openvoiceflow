@@ -1,5 +1,5 @@
 #!/bin/bash
-# OpenOpenVoiceFlow Installer
+# OpenVoiceFlow Installer
 # Run: curl -fsSL https://raw.githubusercontent.com/shimoverse/openvoiceflow/main/install.sh | bash
 #   OR: bash install.sh
 
@@ -22,17 +22,20 @@ if [[ "$(uname)" != "Darwin" ]]; then
     exit 1
 fi
 
-# --- Homebrew ---
+# --- Homebrew (BUG-015 fix: support both arm64 and Intel Homebrew paths) ---
+[[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+[[ -f /usr/local/bin/brew ]] && eval "$(/usr/local/bin/brew shellenv)"
+
 if ! command -v brew &>/dev/null; then
     echo "📦 Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+    [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+    [[ -f /usr/local/bin/brew ]] && eval "$(/usr/local/bin/brew shellenv)"
 fi
 
 # --- whisper.cpp ---
 if ! command -v whisper-cli &>/dev/null && ! command -v whisper-cpp &>/dev/null; then
     echo "📦 Installing whisper.cpp..."
-    eval "$(/opt/homebrew/bin/brew shellenv)"
     brew install whisper-cpp
 fi
 echo -e "${GREEN}✅ whisper.cpp installed${NC}"
@@ -40,7 +43,7 @@ echo -e "${GREEN}✅ whisper.cpp installed${NC}"
 # --- Python venv ---
 VOICEFLOW_HOME="$HOME/.openvoiceflow"
 VENV_DIR="$VOICEFLOW_HOME/venv"
-mkdir -p "$VOICEFLOW_HOME/models" "$HOME/OpenVoiceFlow/logs"
+mkdir -p "$VOICEFLOW_HOME/models" "$VOICEFLOW_HOME/logs"
 
 if [[ ! -d "$VENV_DIR" ]]; then
     echo "🐍 Creating Python environment..."
@@ -52,9 +55,18 @@ echo "📦 Installing Python packages..."
 "$VENV_DIR/bin/pip" install -q sounddevice numpy pynput rumps
 echo -e "${GREEN}✅ Python environment ready${NC}"
 
-# --- Install OpenVoiceFlow ---
+# --- Install OpenVoiceFlow (BUG-006 fix: clone repo if running via curl-pipe) ---
 echo "📥 Installing OpenVoiceFlow..."
-"$VENV_DIR/bin/pip" install -q .
+if [[ -f "$(dirname "$0")/pyproject.toml" ]] 2>/dev/null; then
+    # Running from cloned repo directory
+    "$VENV_DIR/bin/pip" install -q .
+else
+    # Running via curl-pipe — no source directory available; clone first
+    REPO_DIR="$(mktemp -d)/openvoiceflow"
+    git clone --depth=1 https://github.com/shimoverse/openvoiceflow.git "$REPO_DIR"
+    cd "$REPO_DIR"
+    "$VENV_DIR/bin/pip" install -q .
+fi
 echo -e "${GREEN}✅ OpenVoiceFlow installed${NC}"
 
 # --- Download whisper model ---
@@ -86,6 +98,7 @@ if [[ ":$PATH:" != *":$BINDIR:"* ]]; then
 fi
 
 # --- Setup wizard ---
+# BUG-014 fix: check if ANY backend key is set, or if backend is ollama/none
 echo ""
 echo "================================================"
 echo "🔧 Quick Setup"
@@ -93,7 +106,27 @@ echo "================================================"
 echo ""
 
 CONFIG_FILE="$VOICEFLOW_HOME/config.json"
-if [[ ! -f "$CONFIG_FILE" ]] || ! python3 -c "import json; assert json.load(open('$CONFIG_FILE')).get('gemini_api_key')" 2>/dev/null; then
+needs_setup=true
+
+if [[ -f "$CONFIG_FILE" ]]; then
+    # Check if any API key is set OR backend is ollama/none
+    if python3 -c "
+import json, sys
+try:
+    cfg = json.load(open('$CONFIG_FILE'))
+    backend = cfg.get('llm_backend', '')
+    has_key = any(cfg.get(f'{b}_api_key') for b in ['gemini','openai','anthropic','groq'])
+    if has_key or backend in ['ollama','none']:
+        sys.exit(0)
+    sys.exit(1)
+except Exception:
+    sys.exit(1)
+" 2>/dev/null; then
+        needs_setup=false
+    fi
+fi
+
+if [[ "$needs_setup" == "true" ]]; then
     echo "OpenVoiceFlow needs an LLM API key for transcript cleanup."
     echo ""
     echo "  FREE options:"

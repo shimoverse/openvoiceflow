@@ -16,9 +16,6 @@ class GeminiBackend(LLMBackend):
             config.get("gemini_api_key")
             or os.environ.get("GEMINI_API_KEY", "")
         )
-        # Support legacy config where llm_model is empty
-        if not self.model or self.model == self.default_model:
-            self.model = config.get("gemini_model", self.default_model)
 
     def validate(self) -> tuple[bool, str]:
         if not self.api_key:

@@ -8,7 +8,7 @@ from .base import LLMBackend
 
 class AnthropicBackend(LLMBackend):
     name = "anthropic"
-    default_model = "claude-sonnet-4-5-20250929"
+    default_model = "claude-3-5-haiku-20241022"
 
     def __init__(self, config: dict):
         super().__init__(config)

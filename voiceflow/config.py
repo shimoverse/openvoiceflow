@@ -1,9 +1,13 @@
 """OpenVoiceFlow configuration management."""
 import json
 import os
+from pathlib import Path
 
 CONFIG_DIR = os.path.expanduser("~/.openvoiceflow")
 CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
+
+LOG_DIR = Path(CONFIG_DIR) / "logs"
+MODELS_DIR = Path(CONFIG_DIR) / "models"
 
 DEFAULTS = {
     "hotkey": "right_cmd",

@@ -1,27 +1,27 @@
-"""Abstract base class for LLM backends."""
+"""Abstract base class for LLM cleanup backends."""
 from abc import ABC, abstractmethod
+
+DEFAULT_PROMPT = (
+    "You are a voice dictation cleanup assistant. "
+    "Fix grammar, remove filler words (um, uh, like, you know), "
+    "handle corrections (phrases like 'no wait', 'I mean', 'actually'), "
+    "and return ONLY the cleaned text — no explanations, no quotes. "
+    "Preserve the original meaning and tone. "
+    "If the input is already clean, return it unchanged."
+)
 
 
 class LLMBackend(ABC):
-    """Base class for all LLM cleanup backends."""
-
-    name: str = "base"
-    default_model: str = ""
-
     def __init__(self, config: dict):
         self.config = config
-        self.prompt = config.get("cleanup_prompt", "")
-        self.model = config.get("llm_model") or self.default_model
+        self.prompt = config.get("llm_prompt") or DEFAULT_PROMPT
 
     @abstractmethod
-    def cleanup(self, raw_text: str) -> str:
-        """Clean up raw transcript text. Returns cleaned text."""
+    def cleanup(self, text: str) -> str:
+        """Clean up transcribed text. Returns cleaned string."""
         ...
 
     @abstractmethod
     def validate(self) -> tuple[bool, str]:
         """Validate the backend is configured. Returns (ok, message)."""
         ...
-
-    def _make_prompt(self, raw_text: str) -> str:
-        return f"{self.prompt}\n\nTranscript:\n{raw_text}"

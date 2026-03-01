@@ -12,6 +12,7 @@ class OllamaBackend(LLMBackend):
     def __init__(self, config: dict):
         super().__init__(config)
         self.base_url = config.get("ollama_url", "http://localhost:11434")
+        # ollama uses ollama_model key specifically; override base class model
         self.model = config.get("ollama_model", self.default_model)
 
     def validate(self) -> tuple[bool, str]:

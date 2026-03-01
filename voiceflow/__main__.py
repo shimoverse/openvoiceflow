@@ -5,6 +5,7 @@ from .config import (
     load_config, save_config, get_api_key,
     VALID_HOTKEYS, VALID_MODELS, VALID_BACKENDS, validate_config
 )
+from . import __version__
 
 
 def main():
@@ -12,8 +13,13 @@ def main():
         prog="openvoiceflow",
         description="🎙️ OpenVoiceFlow — Free voice dictation for macOS",
     )
+    # BUG-019 fix: add --version flag
+    parser.add_argument(
+        "--version", action="version",
+        version=f"%(prog)s {__version__}",
+    )
     parser.add_argument("--menubar", action="store_true", help="Run as menu bar app")
-    parser.add_argument("--onboarding", "--setup", action="store_true", help="Run setup wizard")
+    parser.add_argument("--onboarding", "--setup", dest="onboarding", action="store_true", help="Run setup wizard")
     parser.add_argument("--test", action="store_true", help="Test pipeline with microphone")
     parser.add_argument("--hotkey", choices=VALID_HOTKEYS, help="Set hotkey")
     parser.add_argument("--model", choices=VALID_MODELS, help="Set whisper model")

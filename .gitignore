@@ -14,3 +14,6 @@ env/
 *.log
 .DS_Store
 .openvoiceflow/
+.pytest_cache/
+.playwright-sessions/
+*.pyo

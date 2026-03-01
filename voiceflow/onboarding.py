@@ -477,7 +477,7 @@ class OnboardingWizard:
             "language": "en",
             "sample_rate": 16000,
             "channels": 1,
-            "cleanup_prompt": (
+            "llm_prompt": (
                 "Clean up this voice dictation transcript. "
                 "Remove filler words (um, uh, like, you know), "
                 "fix grammar and punctuation, "

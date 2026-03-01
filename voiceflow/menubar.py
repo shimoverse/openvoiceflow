@@ -35,31 +35,19 @@ def run_menubar():
             self.status_item.set_callback(None)
 
             # Backend submenu
-            backend_menu = rumps.MenuItem("LLM Backend")
-            current_backend = self.config.get("llm_backend", "gemini")
-            for name in list(BACKENDS.keys()) + ["none"]:
-                item = rumps.MenuItem(
-                    f"{'✓ ' if name == current_backend else '  '}{name}",
-                    callback=lambda sender, n=name: self.set_backend(sender, n),
-                )
-                backend_menu.add(item)
+            self.backend_menu = rumps.MenuItem("LLM Backend")
+            self._build_backend_menu()
 
             # Hotkey submenu
-            hotkey_menu = rumps.MenuItem("Hotkey")
-            current_hotkey = self.config.get("hotkey", "right_cmd")
-            for hk in ["right_cmd", "right_alt", "left_alt", "f5", "f6", "f7", "f8"]:
-                item = rumps.MenuItem(
-                    f"{'✓ ' if hk == current_hotkey else '  '}{hk}",
-                    callback=lambda sender, h=hk: self.set_hotkey(sender, h),
-                )
-                hotkey_menu.add(item)
+            self.hotkey_menu = rumps.MenuItem("Hotkey")
+            self._build_hotkey_menu()
 
             self.menu = [
                 self.start_stop_item,
                 self.status_item,
                 None,  # separator
-                backend_menu,
-                hotkey_menu,
+                self.backend_menu,
+                self.hotkey_menu,
                 None,
                 rumps.MenuItem("Open Config", callback=self.open_config),
                 rumps.MenuItem("View Logs", callback=self.open_logs),
@@ -69,6 +57,29 @@ def run_menubar():
 
             # Auto-start
             self.start_listening()
+
+        def _build_backend_menu(self):
+            """(Re)build backend submenu with current checkmarks."""
+            # Clear existing items
+            self.backend_menu.clear()
+            current_backend = self.config.get("llm_backend", "gemini")
+            for name in list(BACKENDS.keys()) + ["none"]:
+                item = rumps.MenuItem(
+                    f"{'✓ ' if name == current_backend else '  '}{name}",
+                    callback=lambda sender, n=name: self.set_backend(sender, n),
+                )
+                self.backend_menu.add(item)
+
+        def _build_hotkey_menu(self):
+            """(Re)build hotkey submenu with current checkmarks."""
+            self.hotkey_menu.clear()
+            current_hotkey = self.config.get("hotkey", "right_cmd")
+            for hk in ["right_cmd", "right_alt", "left_alt", "f5", "f6", "f7", "f8"]:
+                item = rumps.MenuItem(
+                    f"{'✓ ' if hk == current_hotkey else '  '}{hk}",
+                    callback=lambda sender, h=hk: self.set_hotkey(sender, h),
+                )
+                self.hotkey_menu.add(item)
 
         def start_listening(self):
             self.vf = OpenVoiceFlow()
@@ -108,6 +119,8 @@ def run_menubar():
         def set_backend(self, sender, name):
             self.config["llm_backend"] = name
             save_config(self.config)
+            # BUG-016 fix: rebuild backend menu to update checkmarks
+            self._build_backend_menu()
             # Restart if running
             if self._running:
                 self.stop_listening()
@@ -117,6 +130,8 @@ def run_menubar():
         def set_hotkey(self, sender, hotkey):
             self.config["hotkey"] = hotkey
             save_config(self.config)
+            # BUG-016 fix: rebuild hotkey menu to update checkmarks
+            self._build_hotkey_menu()
             if self._running:
                 self.stop_listening()
                 self.start_listening()

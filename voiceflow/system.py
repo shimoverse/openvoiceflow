@@ -13,10 +13,20 @@ def paste_text(text: str):
     process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
     process.communicate(text.encode("utf-8"))
     time.sleep(0.05)
-    subprocess.run([
-        "osascript", "-e",
-        'tell application "System Events" to keystroke "v" using command down',
-    ])
+    # BUG-009 fix: capture return code and report Accessibility errors clearly
+    result = subprocess.run(
+        [
+            "osascript", "-e",
+            'tell application "System Events" to keystroke "v" using command down',
+        ],
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        play_sound("error")
+        print(
+            "❌ Auto-paste failed. Grant Accessibility access: "
+            "System Settings → Privacy & Security → Accessibility → Terminal"
+        )
 
 
 def play_sound(sound_type: str = "start"):
@@ -37,6 +47,7 @@ def log_transcript(raw: str, cleaned: str, config: dict):
     if not config.get("log_transcripts"):
         return
 
+    # BUG-020 fix: ensure log directory exists before writing
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     now = datetime.now()
 

@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "openvoiceflow"
@@ -32,5 +32,5 @@ all = ["rumps>=0.4"]
 openvoiceflow = "voiceflow.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/shimoverse-ops/openvoiceflow"
-Issues = "https://github.com/shimoverse-ops/openvoiceflow/issues"
+Homepage = "https://github.com/shimoverse/openvoiceflow"
+Issues = "https://github.com/shimoverse/openvoiceflow/issues"

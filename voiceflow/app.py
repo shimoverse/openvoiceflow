@@ -22,7 +22,9 @@ class OpenVoiceFlow:
         )
         self.is_recording = False
         self.processing = False
-        self._last_action_time = 0
+        # BUG-005 fix: use separate timestamps for press and release
+        self._last_press_time = 0
+        self._last_release_time = 0
 
     def validate_setup(self) -> bool:
         """Check that all dependencies are ready."""
@@ -108,10 +110,11 @@ class OpenVoiceFlow:
             pass
 
     def start_recording(self):
+        """Start recording — debounced to prevent double-press."""
         now = time.time()
-        if now - self._last_action_time < 0.5:
+        if now - self._last_press_time < 0.5:
             return
-        self._last_action_time = now
+        self._last_press_time = now
         self.is_recording = True
         self.recorder.start()
         if self.config["sound_feedback"]:
@@ -119,10 +122,7 @@ class OpenVoiceFlow:
         print("🔴 Recording...")
 
     def stop_and_process(self):
-        now = time.time()
-        if now - self._last_action_time < 0.3:
-            return
-        self._last_action_time = now
+        """Stop recording and process — no debounce, use press timestamp for duration check."""
         self.is_recording = False
         self.recorder.stop()
         if self.config["sound_feedback"]:
@@ -131,8 +131,9 @@ class OpenVoiceFlow:
         duration = self.recorder.duration
         print(f"⏹️  Stopped ({duration:.1f}s)")
 
+        # BUG-005 fix: warn on short recordings but do NOT silently drop
         if duration < 0.3:
-            print("⚠️  Too short, skipping.")
+            print("⚠️  Recording too short (< 0.3s). Skipping — hold the key longer next time.")
             return
 
         self.processing = True
@@ -144,7 +145,11 @@ class OpenVoiceFlow:
         try:
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                 temp_path = f.name
-            self.recorder.save_wav(temp_path)
+
+            # BUG-008 fix: check save_wav() return value
+            if not self.recorder.save_wav(temp_path):
+                print("⚠️ No audio captured.")
+                return
 
             print("🔄 Transcribing...")
             t0 = time.time()

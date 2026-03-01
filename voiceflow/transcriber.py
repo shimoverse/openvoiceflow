@@ -5,14 +5,38 @@ from pathlib import Path
 from .config import MODELS_DIR
 
 
+def _is_whisper_cpp(binary: str) -> bool:
+    """Check if the found binary is actually whisper.cpp (not Python openai-whisper)."""
+    try:
+        result = subprocess.run(
+            [binary, "--help"],
+            capture_output=True, text=True, timeout=5,
+        )
+        output = (result.stdout + result.stderr).lower()
+        # whisper.cpp help output contains ggml or whisper-cpp references
+        return "ggml" in output or "whisper-cpp" in output or "whisper.cpp" in output
+    except Exception:
+        return False
+
+
 def find_whisper_cpp() -> str | None:
-    """Auto-detect whisper.cpp binary location."""
-    for name in ["whisper-cli", "whisper-cpp", "whisper"]:
+    """Auto-detect whisper.cpp binary location.
+
+    BUG-017 fix: prefer whisper-cli and whisper-cpp names first.
+    Only accept a binary named 'whisper' if it actually outputs whisper.cpp-style help
+    (contains 'ggml' or 'whisper.cpp'), to avoid false detection of the openai-whisper
+    Python CLI.
+    """
+    # Check explicit whisper.cpp names first (these are never the Python CLI)
+    for name in ["whisper-cli", "whisper-cpp"]:
         result = subprocess.run(["which", name], capture_output=True, text=True)
         if result.returncode == 0:
-            return result.stdout.strip()
+            path = result.stdout.strip()
+            if path:
+                return path
 
-    paths = [
+    # Explicit known paths for whisper.cpp (not Python whisper)
+    explicit_paths = [
         "/opt/homebrew/bin/whisper-cli",
         "/opt/homebrew/bin/whisper-cpp",
         "/usr/local/bin/whisper-cli",
@@ -20,9 +44,17 @@ def find_whisper_cpp() -> str | None:
         os.path.expanduser("~/whisper.cpp/main"),
         os.path.expanduser("~/whisper.cpp/build/bin/whisper-cli"),
     ]
-    for p in paths:
+    for p in explicit_paths:
         if os.path.isfile(p) and os.access(p, os.X_OK):
             return p
+
+    # Fall back to 'whisper' only if it is actually whisper.cpp
+    result = subprocess.run(["which", "whisper"], capture_output=True, text=True)
+    if result.returncode == 0:
+        path = result.stdout.strip()
+        if path and _is_whisper_cpp(path):
+            return path
+
     return None
 
 

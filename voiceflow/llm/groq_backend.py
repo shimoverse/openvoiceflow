@@ -8,7 +8,7 @@ from .base import LLMBackend
 
 class GroqBackend(LLMBackend):
     name = "groq"
-    default_model = "llama-3.3-70b-versatile"
+    default_model = "llama-3.1-8b-instant"
 
     def __init__(self, config: dict):
         super().__init__(config)

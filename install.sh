@@ -1,6 +1,6 @@
 #!/bin/bash
 # OpenOpenVoiceFlow Installer
-# Run: curl -fsSL https://raw.githubusercontent.com/shimoverse-ops/openvoiceflow/main/install.sh | bash
+# Run: curl -fsSL https://raw.githubusercontent.com/shimoverse/openvoiceflow/main/install.sh | bash
 #   OR: bash install.sh
 
 set -e

@@ -155,6 +155,11 @@ class OpenVoiceFlow:
             return
         self._last_press_time = now
 
+        # Stop any active correction watcher before starting a new dictation
+        if hasattr(self, '_watcher') and self._watcher:
+            self._watcher.stop()
+            self._watcher = None
+
         # ── Feature: Selected text context (Feature 4) ─────────────────────
         # Capture selected text BEFORE starting audio (Cmd+C takes ~150ms).
         # Done first so the clipboard is restored before we begin recording.
@@ -340,6 +345,11 @@ class OpenVoiceFlow:
                 paste_text(cleaned_text)
                 if self.config["sound_feedback"]:
                     play_sound("done")
+                # Auto-learn: watch for post-paste corrections
+                if self.config.get("auto_learn", True):
+                    from .learner import CorrectionWatcher
+                    self._watcher = CorrectionWatcher()
+                    self._watcher.start_watching(cleaned_text)
 
             # No WAV file in streaming mode — log raw text directly
             log_transcript(raw_text, cleaned_text, self.config)
@@ -424,6 +434,11 @@ class OpenVoiceFlow:
                 paste_text(cleaned_text)
                 if self.config["sound_feedback"]:
                     play_sound("done")
+                # Auto-learn: watch for post-paste corrections
+                if self.config.get("auto_learn", True):
+                    from .learner import CorrectionWatcher
+                    self._watcher = CorrectionWatcher()
+                    self._watcher.start_watching(cleaned_text)
 
             log_transcript(raw_text, cleaned_text, self.config)
             record_dictation(cleaned_text, self.recorder.duration)

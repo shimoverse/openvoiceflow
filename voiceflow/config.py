@@ -74,6 +74,8 @@ DEFAULTS = {
     # Real-time streaming transcription (Feature 1)
     "streaming": True,             # Use whisper-stream for real-time transcription
     "streaming_step_ms": 3000,     # Audio step size in milliseconds for streaming
+    # Auto-learn corrections from user edits after paste
+    "auto_learn": True,            # Watch for post-paste corrections and add to dictionary
 }
 
 VALID_HOTKEYS = [

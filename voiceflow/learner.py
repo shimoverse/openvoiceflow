@@ -207,8 +207,8 @@ class CorrectionWatcher:
             orig_word = orig_chunk[0]
             corr_word = curr_chunk[0]
 
-            # Skip if identical (case-insensitive)
-            if orig_word.lower() == corr_word.lower():
+            # Skip if identical (case-sensitive — capitalization changes ARE corrections)
+            if orig_word == corr_word:
                 continue
 
             # Apply similarity filter to avoid learning unrelated substitutions

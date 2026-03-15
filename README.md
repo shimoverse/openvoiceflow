@@ -1,337 +1,378 @@
-# 🎙️ OpenVoiceFlow
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-12%2B-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS 12+"/>
+  <img src="https://img.shields.io/badge/Apple%20Silicon-Ready-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Apple Silicon"/>
+  <img src="https://img.shields.io/badge/Intel-Ready-000000?style=for-the-badge&logo=intel&logoColor=white" alt="Intel"/>
+  <img src="https://img.shields.io/github/license/shimoverse/openvoiceflow?style=for-the-badge&color=blue" alt="MIT License"/>
+  <img src="https://img.shields.io/github/v/release/shimoverse/openvoiceflow?style=for-the-badge&color=brightgreen" alt="Release"/>
+</p>
 
-> **$0–3/year** vs **$144/year** for Wispr Flow. Same quality. Your audio stays on your Mac.
+<h1 align="center">🎙️ OpenVoiceFlow</h1>
 
-**Free, open-source voice dictation for macOS.**
+<p align="center">
+  <strong>Speak. It types. Everywhere.</strong>
+</p>
 
-Hold a key → speak → release → clean text appears at your cursor. Anywhere.
+<p align="center">
+  Free, open-source voice dictation for macOS.<br/>
+  Local transcription. AI-powered cleanup. Zero subscriptions required.
+</p>
 
-OpenVoiceFlow combines **local** speech-to-text (whisper.cpp) with **LLM-powered cleanup** to remove filler words, fix grammar, and handle corrections — giving you polished text from messy speech.
+<p align="center">
+  <code>Hold a key → Speak → Release → Polished text appears at your cursor</code>
+</p>
 
-| Solution | Annual Cost |
-|----------|------------|
-| Wispr Flow Pro | $144 |
-| Superwhisper Pro | $85 |
+---
+
+<br/>
+
+## The $144 Question
+
+Every year, millions of Mac users pay for voice dictation tools. We think that's wrong.
+
+| | Annual Cost |
+|---|:---:|
+| Wispr Flow Pro | **$144** |
+| Superwhisper Pro | **$85** |
 | **OpenVoiceFlow + Gemini** | **~$3** |
 | **OpenVoiceFlow + Ollama** | **$0** |
 
+Your audio never leaves your Mac. Your wallet stays full. That's it.
+
+<br/>
+
 ---
+
+<br/>
 
 ## How It Works
 
 ```
-🎤 You speak        →  "um hey can you schedule a meeting for uh Thursday no wait Friday"
-🔄 Whisper (local)  →  "um hey can you schedule a meeting for uh Thursday no wait Friday"
-✨ LLM cleanup      →  "Hey, can you schedule a meeting for Friday?"
-📋 Auto-paste       →  Text appears at your cursor in any app
+   You say:    "um hey can you schedule a meeting for uh Thursday no wait Friday"
+                                          ↓
+   Whisper:    transcribes locally on your Mac (Metal-accelerated)
+                                          ↓
+   LLM:       removes fillers, fixes grammar, handles "no wait"
+                                          ↓
+   Result:     "Hey, can you schedule a meeting for Friday?"
+                                          ↓
+   Auto-paste: text appears at your cursor — Notion, Gmail, Slack, anywhere
 ```
 
-**Two-stage pipeline:**
-1. **whisper.cpp** runs locally on your Mac (Metal-accelerated on Apple Silicon). Your audio never leaves your machine.
-2. **LLM cleanup** (your choice of provider) removes fillers, fixes grammar, handles corrections like "no wait" and "I mean".
+**Two stages. One keystroke. Zero cloud audio.**
+
+1. **whisper.cpp** runs locally on Apple Silicon (Metal GPU) or Intel. Your voice stays on your machine.
+2. **LLM cleanup** (your choice) polishes the transcript: removes "um"s, handles corrections like "no wait, I mean", fixes punctuation.
+
+<br/>
 
 ---
 
-## Installation
+<br/>
 
-### Option 1: DMG Installer (easiest)
+## Get Started in 60 Seconds
 
-Download the latest `.dmg` from [Releases](https://github.com/shimoverse/openvoiceflow/releases), open it, drag **OpenVoiceFlow** to Applications.
+### Download the App
 
-> **⚠️ First launch:** macOS will say it can't verify the app. Click **Done** → **System Settings → Privacy & Security** → **Open Anyway**. This only happens once.
+Grab the latest `.dmg` from [**Releases**](https://github.com/shimoverse/openvoiceflow/releases). Open it. Drag to Applications. Done.
 
-On first launch, OpenVoiceFlow installs everything it needs and walks you through setup.
+> First launch installs everything automatically and walks you through a setup wizard.
 
-### Option 2: Quick Install
+<details>
+<summary><strong>Other install methods</strong></summary>
 
+<br/>
+
+**One-line install:**
 ```bash
-git clone https://github.com/shimoverse/openvoiceflow.git
-cd openvoiceflow
-bash install.sh
+git clone https://github.com/shimoverse/openvoiceflow.git && cd openvoiceflow && bash install.sh
 ```
 
-### Option 3: Manual
-
+**Manual setup:**
 ```bash
 brew install whisper-cpp
 git clone https://github.com/shimoverse/openvoiceflow.git
 cd openvoiceflow
 python3 -m venv ~/.openvoiceflow/venv
 ~/.openvoiceflow/venv/bin/pip install -e ".[all]"
-mkdir -p ~/.openvoiceflow/models
-curl -L -o ~/.openvoiceflow/models/ggml-base.en.bin \
-  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin
 openvoiceflow --set-key gemini YOUR_KEY_HERE
 openvoiceflow
 ```
 
----
+</details>
 
-## Usage
-
-```bash
-openvoiceflow           # Launch (GUI wizard on first run)
-openvoiceflow --menubar # Menu bar mode
-openvoiceflow --test    # Test pipeline
-openvoiceflow --setup   # Re-run setup
-```
-
-**Default hotkey:** Hold `Right Command` → speak → release.
-
-Grant **Accessibility** permission when prompted (System Settings → Privacy & Security → Accessibility).
+<br/>
 
 ---
 
-## LLM Backends
+<br/>
 
-| Backend | Cost | Speed | Privacy |
-|---------|------|-------|---------|
-| **Gemini Flash** | ~$3/year | Fast | Cloud |
-| **Groq** | Free tier | Fastest | Cloud |
-| **OpenAI** | ~$5/year | Fast | Cloud |
-| **Claude** | ~$8/year | Fast | Cloud |
-| **Ollama** | $0 | Local | Fully private |
-| **None** | $0 | Instant | Local |
+## Choose Your AI Backend
+
+Pick what matters to you: cost, speed, or total privacy.
+
+| Backend | Cost | Speed | Privacy | Best For |
+|:--------|:----:|:-----:|:-------:|:---------|
+| **Gemini Flash** ⭐ | ~$3/yr | Fast | Cloud | Most users. Free tier available. |
+| **Groq** | Free tier | Fastest | Cloud | Speed demons. 30 req/min free. |
+| **OpenAI** | ~$5/yr | Fast | Cloud | GPT ecosystem fans. |
+| **Claude** | ~$8/yr | Fast | Cloud | Anthropic users. |
+| **Ollama** | $0 | Local | **100% Private** | Privacy maximalists. Nothing leaves your Mac. |
+| **None** | $0 | Instant | Local | Raw whisper output, no cleanup. |
 
 ```bash
-openvoiceflow --backend gemini && openvoiceflow --set-key gemini YOUR_KEY
-openvoiceflow --backend ollama   # Fully local — requires Ollama running
-openvoiceflow --backend none     # Raw whisper output, no cleanup
+openvoiceflow --backend gemini --set-key gemini YOUR_KEY
+openvoiceflow --backend ollama    # fully local, $0
 ```
 
 **Get a free key:** [Gemini](https://aistudio.google.com/apikey) · [Groq](https://console.groq.com/keys)
 
+<br/>
+
 ---
+
+<br/>
 
 ## Features
 
-### 🪟 Floating Overlay (Visual Feedback)
+### 🪟 Floating Overlay
 
-A native macOS HUD overlay appears at the bottom of your screen, showing:
-- 🔴 **Recording...** — while you speak
-- ⏳ **Processing...** — animated dots while transcribing and cleaning
-- ✅ **Result preview** — briefly flashes the cleaned text
-- ❌ **Error messages** — microphone issues, no speech detected, etc.
+A native macOS HUD floats at the bottom of your screen, always visible, never in the way.
 
-Uses PyObjC/AppKit for a native, always-on-top overlay that works across all Spaces. Falls back gracefully if PyObjC is unavailable.
+| State | What You See |
+|:------|:-------------|
+| 🔴 Recording | Red indicator while you speak |
+| ⏳ Processing | Animated dots during transcription |
+| ✅ Done | Brief flash of the cleaned text |
+| ❌ Error | Clear error message with guidance |
 
-### 🔔 Notification Center
+Built with PyObjC/AppKit. Works across all Spaces and fullscreen apps.
 
-macOS notifications supplement the overlay for errors, setup issues, and update availability.
-
-### 🔄 Auto-Update Check
-
-On each launch, OpenVoiceFlow silently checks GitHub for newer versions in a background thread. If an update is available, you get a notification with the download link — no action needed otherwise.
+---
 
 ### 📖 Personal Dictionary
 
-Teach OpenVoiceFlow your custom spellings — names, technical terms, brand names:
+Your words. Your spelling. Every time.
 
 ```bash
-# Add words
 openvoiceflow --add-word "OpenVoiceFlow"
-openvoiceflow --add-word "whisper.cpp"
+openvoiceflow --add-word "Kubernetes"
 openvoiceflow --add-word "Supabase"
-
-# List all words
 openvoiceflow --list-words
-
-# Remove a word
-openvoiceflow --remove-word "Supabase"
 ```
 
-Dictionary words are injected into the LLM cleanup prompt so they're always spelled correctly.
+Dictionary words are injected into the LLM prompt so names, brands, and jargon are always spelled correctly.
 
-Stored at `~/.openvoiceflow/dictionary.json`.
+---
 
 ### 📌 Voice Snippets
 
-Define voice shortcuts that expand to full text blocks:
+Say a phrase. Get a paragraph.
 
 ```bash
-# Add snippets
-openvoiceflow --add-snippet "insert signature" "Best regards,\nMohit Jain\nmohit@example.com"
-openvoiceflow --add-snippet "my email" "mohit.jain@example.com"
-openvoiceflow --add-snippet "insert disclaimer" "This message is confidential..."
+openvoiceflow --add-snippet "insert signature" "Best regards,
+Mohit Jain
+mohit@example.com"
 
-# List snippets
-openvoiceflow --list-snippets
-
-# Remove a snippet
-openvoiceflow --remove-snippet "my email"
+openvoiceflow --add-snippet "my address" "742 Evergreen Terrace, Springfield"
 ```
 
-When you speak a trigger phrase exactly, the snippet expands immediately — no LLM call needed.
+Snippets expand instantly, no LLM call needed. Say the trigger, get the text.
 
-Stored at `~/.openvoiceflow/snippets.json`.
+---
 
-### 🌍 Multi-Language Support
+### 🌍 100+ Languages
 
-Dictate in any language supported by Whisper:
+Dictate in any language Whisper supports. Mixed-language? Auto-detect handles it.
 
 ```bash
-openvoiceflow --language es   # Spanish
-openvoiceflow --language de   # German
-openvoiceflow --language ja   # Japanese
-openvoiceflow --language fr   # French
-openvoiceflow --language auto # Auto-detect language
+openvoiceflow --language es      # Spanish
+openvoiceflow --language ja      # Japanese
+openvoiceflow --language auto    # Auto-detect
 ```
 
-When you switch to a non-English language, OpenVoiceFlow automatically upgrades to a multilingual Whisper model (e.g., `base` instead of `base.en`).
+Switches to a multilingual Whisper model automatically when you pick a non-English language.
 
-Multilingual models: `tiny` · `base` · `small` · `medium` · `large`
+---
 
-### 🎨 Style/Tone Modes
+### 🎨 Tone & Style
 
-Adjust how the LLM cleans up your speech:
+Match your output to where you're writing.
 
-| Style | Description | Use for |
-|-------|-------------|---------|
-| `default` | Natural, balanced | General dictation |
-| `casual` | Friendly, conversational | Messages, chats |
-| `formal` | Professional, no contractions | Reports, documents |
-| `code` | Preserves technical terms exactly | Code comments, commit messages |
-| `email` | Email-formatted with proper structure | Emails, professional messages |
+| Style | Tone | Use In |
+|:------|:-----|:-------|
+| `default` | Natural, balanced | Anywhere |
+| `casual` | Friendly, contractions OK | Slack, iMessage, WhatsApp |
+| `formal` | Professional, no contractions | Reports, proposals |
+| `code` | Preserves technical terms exactly | IDEs, commit messages |
+| `email` | Proper structure and greeting | Gmail, Outlook |
 
 ```bash
 openvoiceflow --style casual
-openvoiceflow --style code
-openvoiceflow --style email
 ```
 
-Style is also selectable from the menu bar dropdown.
+Also switchable from the menu bar.
 
-### 📊 Statistics
+---
 
-Track your dictation usage:
+### 📊 Your Stats
+
+See how much time you've saved.
 
 ```bash
 openvoiceflow --stats
 ```
 
-Output:
 ```
 📊 OpenVoiceFlow Statistics
 ──────────────────────────────
    Dictations:    147
    Words:         12,843
-   Characters:    71,206
-   Recorded:      38.2 minutes
    Time saved:    ~321 minutes
    Days active:   14
 ```
 
-Also visible in the menu bar app under **📊 Statistics**.
-
-Stored at `~/.openvoiceflow/stats.json`.
+---
 
 ### 🚀 Launch at Login
 
-Start OpenVoiceFlow automatically when you log in to macOS:
-
 ```bash
-openvoiceflow --autostart on   # Enable
-openvoiceflow --autostart off  # Disable
+openvoiceflow --autostart on
 ```
 
-Or toggle from the menu bar app. Uses a standard macOS LaunchAgent (`~/Library/LaunchAgents/com.openvoiceflow.app.plist`).
+Starts quietly in the menu bar every time you log in. Toggle from the menu bar or CLI.
 
 ---
 
+### 🔄 Auto-Update
+
+On each launch, a background check looks for new releases. You'll get a notification if there's an update. No interruptions, no nagging.
+
+<br/>
+
+---
+
+<br/>
+
 ## Configuration
 
-`~/.openvoiceflow/config.json`:
+Everything lives in `~/.openvoiceflow/config.json`:
 
 ```json
 {
   "hotkey": "right_cmd",
   "whisper_model": "base.en",
   "llm_backend": "gemini",
-  "gemini_api_key": "your-key-here",
   "sound_feedback": true,
   "auto_paste": true,
-  "log_transcripts": true,
-  "llm_prompt": null,
   "language": "en",
   "style": "default",
   "launch_at_login": false
 }
 ```
 
-**Hotkeys:** `right_cmd` · `right_alt` · `left_alt` · `f5`–`f12`
+**Hotkeys:** `right_cmd` · `right_alt` · `left_alt` · `f5` through `f12`
 
 **Whisper models:**
-- English-only (faster): `tiny.en` (75MB) · `base.en` (142MB) · `small.en` (466MB) · `medium.en` (1.5GB)
-- Multilingual: `tiny` · `base` · `small` · `medium` · `large`
 
-**Custom LLM prompt:**
-```bash
-openvoiceflow --set-prompt "Fix grammar only. Preserve technical terms and code snippets exactly."
-openvoiceflow --clear-prompt  # Reset to default
-```
+| Type | Models | Note |
+|:-----|:-------|:-----|
+| English-only (faster) | `tiny.en` · `base.en` · `small.en` · `medium.en` | Optimized for English |
+| Multilingual | `tiny` · `base` · `small` · `medium` · `large` | 100+ languages |
+
+<br/>
 
 ---
 
-## CLI Reference
+<br/>
+
+<details>
+<summary><strong>Full CLI Reference</strong></summary>
+
+<br/>
 
 ```
 openvoiceflow [options]
 
+Launch:
+  (no args)              Start listening (GUI wizard on first run)
   --menubar              Run as menu bar app
-  --setup / --onboarding Re-run setup wizard
-  --test                 Test pipeline with microphone
-  --show-config          Print current config
+  --setup                Re-run setup wizard
+  --test                 Test pipeline
   --version              Show version
+  --show-config          Print current config
 
 Backend & Model:
-  --backend BACKEND      Set LLM backend (gemini/openai/anthropic/groq/ollama/none)
-  --model MODEL          Set Whisper model
-  --set-key BACKEND KEY  Save API key
-  --language LANG        Set transcription language (en, es, de, ja, auto, ...)
-  --set-prompt PROMPT    Set custom cleanup prompt
+  --backend BACKEND      gemini / openai / anthropic / groq / ollama / none
+  --model MODEL          Whisper model (base.en, small, large, etc.)
+  --set-key BACKEND KEY  Save API key for a backend
+  --language LANG        Transcription language (en, es, de, ja, auto, ...)
+  --set-prompt PROMPT    Custom LLM cleanup prompt
   --clear-prompt         Reset to default prompt
 
-Style & Output:
-  --style STYLE          Set output style (default/casual/formal/code/email)
+Style:
+  --style STYLE          default / casual / formal / code / email
 
-Personal Dictionary:
-  --add-word WORD        Add word to dictionary
-  --remove-word WORD     Remove word from dictionary
-  --list-words           List all dictionary words
+Dictionary:
+  --add-word WORD        Add to personal dictionary
+  --remove-word WORD     Remove from dictionary
+  --list-words           Show all dictionary words
 
-Voice Snippets:
-  --add-snippet TRIGGER TEXT   Add a voice snippet
-  --remove-snippet TRIGGER     Remove a snippet
-  --list-snippets              List all snippets
+Snippets:
+  --add-snippet TRIGGER TEXT   Create a voice shortcut
+  --remove-snippet TRIGGER     Remove a shortcut
+  --list-snippets              Show all shortcuts
 
 System:
-  --stats                Show dictation statistics
-  --autostart on|off     Enable/disable launch at login
+  --stats                Show usage statistics
+  --autostart on|off     Launch at login
 ```
 
+</details>
+
+<br/>
+
 ---
+
+<br/>
 
 ## Requirements
 
-- macOS 12+ (Apple Silicon and Intel both supported)
+- **macOS 12+** (Monterey, Ventura, Sonoma, Sequoia, Tahoe)
+- **Apple Silicon or Intel** (both fully supported)
 - Python 3.9+
-- ~200 MB disk (whisper model + deps)
-- Microphone access
-- Accessibility permission (for auto-paste)
+- ~200 MB disk space
+- Microphone access + Accessibility permission
+
+<br/>
 
 ---
 
+<br/>
+
 ## Contributing
 
-Ideas welcome:
-- Windows/Linux support
-- Streaming real-time transcription
-- Per-app prompt contexts
-- Speaker diarization
+We'd love help with:
+
+- 🪟 Windows / Linux support
+- 🎙️ Streaming real-time transcription
+- 📱 Per-app context switching
+- 🗣️ Speaker diarization
+- 🎨 Better overlay designs
 
 ```bash
-bash build-dmg.sh  # Build DMG for distribution
+bash build-dmg.sh  # Build DMGs for distribution
 ```
 
-MIT License. Built as a free alternative to paid voice dictation tools.  
-If this saves you $144/year, consider starring the repo ⭐
+<br/>
+
+---
+
+<br/>
+
+<p align="center">
+  <strong>MIT License</strong> · Built as a free alternative to paid voice dictation tools.
+</p>
+
+<p align="center">
+  If this saves you $144/year, consider giving us a ⭐
+</p>

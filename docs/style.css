@@ -1109,3 +1109,408 @@ code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace
   .community-actions { flex-direction: column; }
   .community-actions .btn { width: 100%; justify-content: center; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   NEW SECTIONS — Animated Terminal, Stats Bar, Install,
+   FAQ accordion
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Animated Terminal cursor ───────────────────────────── */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.term-cursor {
+  display: inline-block;
+  color: var(--teal);
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 13px;
+  line-height: 1;
+  margin-left: 1px;
+  animation: blink-cursor 0.9s step-end infinite;
+  vertical-align: middle;
+}
+
+/* Arrow fade-in animation */
+@keyframes arrow-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.term-arrow-hidden {
+  opacity: 0;
+}
+
+.term-arrow-visible {
+  animation: arrow-appear 0.25s ease forwards;
+}
+
+/* ─── PERFORMANCE STATS BAR ──────────────────────────────── */
+.stats-section {
+  background: var(--bg);
+  padding: 56px 0;
+}
+
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px 32px;
+  flex-wrap: wrap;
+}
+
+.stats-item {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+  padding: 12px 24px;
+}
+
+.stats-divider {
+  width: 1px;
+  height: 56px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.stats-number {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, var(--accent) 60%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stats-label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 600px) {
+  .stats-bar {
+    padding: 28px 16px;
+    gap: 0;
+  }
+  .stats-divider { display: none; }
+  .stats-item {
+    flex: 0 0 50%;
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-item:nth-child(1),
+  .stats-item:nth-child(3) {
+    border-right: 1px solid var(--border);
+  }
+  .stats-item:nth-last-child(1),
+  .stats-item:nth-last-child(2) {
+    border-bottom: none;
+  }
+}
+
+/* ─── GET STARTED / INSTALL SECTION ─────────────────────── */
+.install-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Primary DMG download button */
+.install-dmg-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid rgba(124, 92, 252, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  text-decoration: none;
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.install-dmg-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(124, 92, 252, 0.08) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.install-dmg-btn:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 8px 32px rgba(124, 92, 252, 0.2);
+  transform: translateY(-2px);
+}
+
+.install-dmg-btn:hover::before { opacity: 1; }
+
+.macos-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.install-dmg-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.install-dmg-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.install-dmg-sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.install-dmg-arrow {
+  color: var(--accent);
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.install-dmg-btn:hover .install-dmg-arrow {
+  opacity: 1;
+  transform: translateY(2px);
+}
+
+/* Divider "or" */
+.install-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.install-divider::before,
+.install-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Terminal one-liner */
+.install-terminal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  transition: border-color var(--transition);
+}
+
+.install-terminal:focus-within {
+  border-color: var(--border-hover);
+}
+
+.install-terminal-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.02);
+  border-radius: calc(var(--radius-lg) - 4px);
+}
+
+.install-prompt {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 14px;
+  color: var(--teal);
+  font-weight: 700;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.install-cmd {
+  flex: 1;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+}
+
+/* Copy button */
+.install-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font);
+}
+
+.install-copy-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.06);
+}
+
+.install-copy-btn .check-icon {
+  display: none;
+  color: var(--teal);
+}
+
+.install-copy-btn.copied {
+  border-color: rgba(0, 212, 170, 0.4);
+  color: var(--teal);
+  background: var(--teal-dim);
+}
+
+.install-copy-btn.copied .copy-icon { display: none; }
+.install-copy-btn.copied .check-icon { display: block; }
+.install-copy-btn.copied .copy-label { display: none; }
+
+@media (max-width: 480px) {
+  .install-cmd { font-size: 11px; }
+  .install-terminal-inner { padding: 12px; }
+  .install-copy-btn { padding: 7px 10px; }
+  .install-dmg-btn { padding: 16px; gap: 12px; }
+}
+
+/* ─── FAQ ACCORDION ──────────────────────────────────────── */
+.faq-list {
+  max-width: 740px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+
+.faq-item.open {
+  border-color: rgba(124, 92, 252, 0.35);
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--transition), background var(--transition);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.faq-question:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.faq-item.open .faq-question {
+  color: var(--text-primary);
+}
+
+.faq-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text-muted);
+  transition: transform 0.3s ease, color var(--transition);
+  line-height: 1;
+}
+
+.faq-item.open .faq-icon {
+  transform: rotate(45deg);
+  color: var(--accent);
+}
+
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease;
+}
+
+.faq-item.open .faq-answer {
+  grid-template-rows: 1fr;
+}
+
+.faq-answer-inner {
+  overflow: hidden;
+  padding: 0 24px;
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  transition: padding 0.35s ease;
+}
+
+.faq-item.open .faq-answer-inner {
+  padding: 0 24px 20px;
+}
+
+.faq-link {
+  color: var(--teal);
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 212, 170, 0.35);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--transition);
+}
+
+.faq-link:hover {
+  text-decoration-color: var(--teal);
+}
+
+@media (max-width: 480px) {
+  .faq-question { padding: 16px 18px; font-size: 14px; }
+  .faq-answer-inner { padding: 0 18px; font-size: 13.5px; }
+  .faq-item.open .faq-answer-inner { padding: 0 18px 16px; }
+}

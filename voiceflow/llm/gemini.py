@@ -22,7 +22,13 @@ class GeminiBackend(LLMBackend):
             return False, "No Gemini API key. Get one free at https://aistudio.google.com/apikey"
         return True, f"Gemini ({self.model})"
 
-    def cleanup(self, raw_text: str) -> str:
+    def cleanup(
+        self,
+        raw_text: str,
+        context: str | None = None,
+        app_context: str | None = None,
+        override_style: str | None = None,
+    ) -> str:
         if not self.api_key:
             return raw_text
 
@@ -31,7 +37,7 @@ class GeminiBackend(LLMBackend):
             f"{self.model}:generateContent?key={self.api_key}"
         )
         payload = {
-            "contents": [{"parts": [{"text": self._make_prompt(raw_text)}]}],
+            "contents": [{"parts": [{"text": self._make_prompt(raw_text, context=context, app_context=app_context, override_style=override_style)}]}],
             "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048},
         }
         req = urllib.request.Request(

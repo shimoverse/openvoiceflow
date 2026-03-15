@@ -45,13 +45,73 @@ class LLMBackend(ABC):
 
         self.model = config.get(f"{self.name}_model", self.default_model)
 
-    def _make_prompt(self, text: str) -> str:
-        """Build the full prompt string combining system prompt and transcript."""
-        return f"{self.prompt}\n\nTranscript: {text}"
+    def _make_prompt(
+        self,
+        text: str,
+        context: str | None = None,
+        app_context: str | None = None,
+        override_style: str | None = None,
+    ) -> str:
+        """Build the full prompt string combining system prompt and transcript.
+
+        Args:
+            text:           Raw transcript to clean up.
+            context:        Optional selected-text captured before dictation
+                            (from :mod:`voiceflow.clipboard`).
+            app_context:    Optional context fragment from
+                            :func:`~voiceflow.context.get_app_context_prompt`,
+                            describing the active app + style hint.
+            override_style: When per-app detection resolves a different style
+                            than the global config default, pass it here to
+                            rebuild the style suffix on the fly.
+        """
+        # Start from the base prompt
+        base_prompt = self.prompt
+
+        # Apply per-dictation style override when auto_style resolved a
+        # different style than the global default baked into self.prompt.
+        if override_style and override_style != self.config.get("style", "default"):
+            base = self.config.get("llm_prompt") or DEFAULT_PROMPT
+            from ..dictionary import get_dictionary_prompt_fragment
+            from ..snippets import get_snippets_prompt_fragment
+            style_suffix = STYLE_PRESETS.get(override_style, "")
+            base_prompt = (
+                base
+                + style_suffix
+                + get_dictionary_prompt_fragment()
+                + get_snippets_prompt_fragment()
+            )
+
+        # Append app context fragment (e.g. "User is in VS Code...")
+        if app_context:
+            base_prompt = base_prompt + app_context
+
+        # Prepend selected-text context block when available
+        if context:
+            context_block = (
+                f"Context - the user had this text selected: '{context}'. "
+                "Clean up the following dictation taking context into account:"
+            )
+            return f"{base_prompt}\n\n{context_block}\n\nTranscript: {text}"
+
+        return f"{base_prompt}\n\nTranscript: {text}"
 
     @abstractmethod
-    def cleanup(self, text: str) -> str:
-        """Clean up transcribed text. Returns cleaned string."""
+    def cleanup(
+        self,
+        text: str,
+        context: str | None = None,
+        app_context: str | None = None,
+        override_style: str | None = None,
+    ) -> str:
+        """Clean up transcribed text. Returns cleaned string.
+
+        Args:
+            text:           Raw transcript.
+            context:        Optional selected-text context fragment.
+            app_context:    Optional app-context LLM fragment.
+            override_style: Optional per-dictation style override.
+        """
         ...
 
     @abstractmethod

@@ -74,7 +74,13 @@ def apply_commands(text: str, commands: dict[str, str]) -> str:
     for phrase in sorted_phrases:
         replacement = commands[phrase]
         # re.escape handles any special chars a user might put in a custom phrase
-        pattern = r"(?i)\b" + re.escape(phrase) + r"\b"
+        # For punctuation replacements, optionally consume the preceding space so
+        # "hello comma world" becomes "hello, world" rather than "hello , world".
+        escaped = re.escape(phrase)
+        if replacement and not replacement[0].isalnum() and not replacement[0].isspace():
+            pattern = r"(?i) *\b" + escaped + r"\b"
+        else:
+            pattern = r"(?i)\b" + escaped + r"\b"
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
 
     return text

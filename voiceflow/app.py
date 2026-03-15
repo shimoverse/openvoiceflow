@@ -8,13 +8,15 @@ from .config import load_config, save_config, get_api_key
 from .recorder import AudioRecorder
 from .transcriber import find_whisper_cpp, get_model_path, download_model, transcribe
 from .llm import cleanup_text
+from .snippets import match_snippet
 from .system import paste_text, play_sound, log_transcript
+from .stats import record_dictation
 
 
 class OpenVoiceFlow:
     """Main OpenVoiceFlow application."""
 
-    def __init__(self):
+    def __init__(self, use_overlay=True):
         self.config = load_config()
         self.recorder = AudioRecorder(
             sample_rate=self.config["sample_rate"],
@@ -25,6 +27,14 @@ class OpenVoiceFlow:
         # BUG-005 fix: use separate timestamps for press and release
         self._last_press_time = 0
         self._last_release_time = 0
+        # Floating overlay for visual feedback
+        self._overlay = None
+        if use_overlay:
+            try:
+                from .overlay import get_overlay
+                self._overlay = get_overlay()
+            except Exception:
+                pass  # Overlay is optional
 
     def validate_setup(self) -> bool:
         """Check that all dependencies are ready."""
@@ -119,6 +129,8 @@ class OpenVoiceFlow:
         self.recorder.start()
         if self.config["sound_feedback"]:
             play_sound("start")
+        if self._overlay:
+            self._overlay.show_recording()
         print("🔴 Recording...")
 
     def stop_and_process(self):
@@ -151,6 +163,8 @@ class OpenVoiceFlow:
                 print("⚠️ No audio captured.")
                 return
 
+            if self._overlay:
+                self._overlay.show_processing()
             print("🔄 Transcribing...")
             t0 = time.time()
             raw_text = transcribe(temp_path, self.config)
@@ -158,17 +172,28 @@ class OpenVoiceFlow:
 
             if not raw_text:
                 print("⚠️  No speech detected.")
+                if self._overlay:
+                    self._overlay.show_error("No speech detected")
                 if self.config["sound_feedback"]:
                     play_sound("error")
                 return
 
             print(f"📝 Raw ({t1-t0:.1f}s): {raw_text}")
 
-            print("✨ Cleaning up...")
-            t2 = time.time()
-            cleaned_text = cleanup_text(raw_text, self.config)
-            t3 = time.time()
-            print(f"✅ Clean ({t3-t2:.1f}s): {cleaned_text}")
+            # Check for snippet match before LLM cleanup
+            snippet_expansion = match_snippet(raw_text)
+            if snippet_expansion:
+                cleaned_text = snippet_expansion
+                print(f"📌 Snippet matched: {cleaned_text[:60]}...")
+            else:
+                print("✨ Cleaning up...")
+                t2 = time.time()
+                cleaned_text = cleanup_text(raw_text, self.config)
+                t3 = time.time()
+                print(f"✅ Clean ({t3-t2:.1f}s): {cleaned_text}")
+
+            if self._overlay:
+                self._overlay.show_result(cleaned_text)
 
             if self.config["auto_paste"]:
                 paste_text(cleaned_text)
@@ -176,6 +201,7 @@ class OpenVoiceFlow:
                     play_sound("done")
 
             log_transcript(raw_text, cleaned_text, self.config)
+            record_dictation(cleaned_text, self.recorder.duration)
 
         except Exception as e:
             print(f"❌ Error: {e}")

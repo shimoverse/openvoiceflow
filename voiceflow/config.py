@@ -24,6 +24,9 @@ DEFAULTS = {
     "sample_rate": 16000,
     "channels": 1,
     "llm_prompt": None,  # Custom cleanup prompt; None = use default
+    "language": "en",  # Transcription language (en, es, de, ja, auto, etc.)
+    "style": "default",  # Output style: default, casual, formal, code, email
+    "launch_at_login": False,  # Auto-start on macOS login
 }
 
 VALID_HOTKEYS = [
@@ -31,8 +34,12 @@ VALID_HOTKEYS = [
     "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
 ]
 
-VALID_MODELS = ["tiny.en", "base.en", "small.en", "medium.en", "large"]
+VALID_MODELS = [
+    "tiny.en", "base.en", "small.en", "medium.en",  # English-only
+    "tiny", "base", "small", "medium", "large",  # Multilingual
+]
 VALID_BACKENDS = ["gemini", "openai", "anthropic", "groq", "ollama", "none"]
+VALID_STYLES = ["default", "casual", "formal", "code", "email"]
 
 
 def load_config() -> dict:

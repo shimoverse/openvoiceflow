@@ -18,8 +18,10 @@ def run_menubar():
         return
 
     from .app import OpenVoiceFlow
-    from .config import load_config, save_config, CONFIG_PATH
+    from .config import load_config, save_config, CONFIG_PATH, VALID_STYLES
     from .llm import BACKENDS
+    from .stats import load_stats
+    from .styles import get_style_label
 
     class OpenVoiceFlowMenuBar(rumps.App):
         def __init__(self):
@@ -29,7 +31,7 @@ def run_menubar():
             self.config = load_config()
             self._running = False
 
-            # Build menu
+            # Build menu items
             self.start_stop_item = rumps.MenuItem("▶ Start Listening", callback=self.toggle)
             self.status_item = rumps.MenuItem("Status: Stopped")
             self.status_item.set_callback(None)
@@ -42,25 +44,58 @@ def run_menubar():
             self.hotkey_menu = rumps.MenuItem("Hotkey")
             self._build_hotkey_menu()
 
+            # Style submenu
+            self.style_menu = rumps.MenuItem("Style/Tone")
+            self._build_style_menu()
+
+            # Stats item
+            self.stats_item = rumps.MenuItem("📊 Statistics", callback=self.show_stats)
+
+            # Dictionary item
+            self.dictionary_item = rumps.MenuItem("📖 Dictionary", callback=self.open_dictionary)
+
+            # Snippets item
+            self.snippets_item = rumps.MenuItem("📌 Snippets", callback=self.open_snippets)
+
+            # Autostart item
+            self.autostart_item = rumps.MenuItem(
+                self._autostart_label(),
+                callback=self.toggle_autostart,
+            )
+
             self.menu = [
                 self.start_stop_item,
                 self.status_item,
                 None,  # separator
                 self.backend_menu,
                 self.hotkey_menu,
+                self.style_menu,
                 None,
+                self.stats_item,
+                self.dictionary_item,
+                self.snippets_item,
+                None,
+                self.autostart_item,
                 rumps.MenuItem("Open Config", callback=self.open_config),
                 rumps.MenuItem("View Logs", callback=self.open_logs),
                 None,
                 rumps.MenuItem("Quit", callback=self.quit_app),
             ]
 
+            # Kick off update check in background
+            try:
+                from .updater import check_for_updates
+                check_for_updates(on_update_available=self._on_update_available)
+            except Exception:
+                pass
+
             # Auto-start
             self.start_listening()
 
+        # ── Menu builders ──────────────────────────────────────────────────
+
         def _build_backend_menu(self):
             """(Re)build backend submenu with current checkmarks."""
-            # Clear existing items
             self.backend_menu.clear()
             current_backend = self.config.get("llm_backend", "gemini")
             for name in list(BACKENDS.keys()) + ["none"]:
@@ -81,12 +116,37 @@ def run_menubar():
                 )
                 self.hotkey_menu.add(item)
 
+        def _build_style_menu(self):
+            """(Re)build style submenu with current checkmarks."""
+            self.style_menu.clear()
+            current_style = self.config.get("style", "default")
+            for style_id in VALID_STYLES:
+                label = get_style_label(style_id)
+                item = rumps.MenuItem(
+                    f"{'✓ ' if style_id == current_style else '  '}{label}",
+                    callback=lambda sender, s=style_id: self.set_style(sender, s),
+                )
+                self.style_menu.add(item)
+
+        def _autostart_label(self) -> str:
+            try:
+                from .autostart import get_autostart_status
+                enabled = get_autostart_status()
+            except Exception:
+                enabled = self.config.get("launch_at_login", False)
+            return "✓ Launch at Login" if enabled else "  Launch at Login"
+
+        # ── Listeners ──────────────────────────────────────────────────────
+
         def start_listening(self):
             self.vf = OpenVoiceFlow()
             if not self.vf.validate_setup():
                 self.title = "🎙️❌"
                 self.status_item.title = "Status: Setup error"
-                rumps.notification("OpenVoiceFlow", "Setup Error", "Check config. Click menu bar icon for details.")
+                rumps.notification(
+                    "OpenVoiceFlow", "Setup Error",
+                    "Check config. Click menu bar icon for details.",
+                )
                 return
 
             from pynput.keyboard import Listener
@@ -116,12 +176,12 @@ def run_menubar():
             else:
                 self.start_listening()
 
+        # ── Settings handlers ──────────────────────────────────────────────
+
         def set_backend(self, sender, name):
             self.config["llm_backend"] = name
             save_config(self.config)
-            # BUG-016 fix: rebuild backend menu to update checkmarks
             self._build_backend_menu()
-            # Restart if running
             if self._running:
                 self.stop_listening()
                 self.start_listening()
@@ -130,12 +190,91 @@ def run_menubar():
         def set_hotkey(self, sender, hotkey):
             self.config["hotkey"] = hotkey
             save_config(self.config)
-            # BUG-016 fix: rebuild hotkey menu to update checkmarks
             self._build_hotkey_menu()
             if self._running:
                 self.stop_listening()
                 self.start_listening()
             rumps.notification("OpenVoiceFlow", "Hotkey Changed", f"Now using: {hotkey}")
+
+        def set_style(self, sender, style_id):
+            self.config["style"] = style_id
+            save_config(self.config)
+            self._build_style_menu()
+            # Rebuild VoiceFlow instance so LLM backend picks up new style prompt
+            if self._running:
+                self.stop_listening()
+                self.start_listening()
+            label = get_style_label(style_id)
+            rumps.notification("OpenVoiceFlow", "Style Changed", f"Now using: {label}")
+
+        # ── Feature handlers ───────────────────────────────────────────────
+
+        def show_stats(self, _):
+            """Show statistics in a rumps alert dialog."""
+            stats = load_stats()
+            total = stats["total_dictations"]
+            words = stats["total_words"]
+            seconds = stats["total_seconds_recorded"]
+            typing_min_saved = words / 40.0 if words else 0
+
+            msg = (
+                f"Dictations: {total}\n"
+                f"Words:       {words:,}\n"
+                f"Recorded:    {seconds / 60:.1f} min\n"
+                f"Time saved:  ~{typing_min_saved:.0f} min"
+            )
+            rumps.alert(title="📊 OpenVoiceFlow Stats", message=msg)
+
+        def open_dictionary(self, _):
+            """Open a window to view dictionary words, or open config dir."""
+            try:
+                from .dictionary import list_words
+                words = list_words()
+            except Exception:
+                words = []
+
+            if words:
+                msg = "\n".join(f"  • {w}" for w in words)
+                msg += "\n\nAdd words: openvoiceflow --add-word \"MyWord\""
+            else:
+                msg = "No words yet.\n\nAdd with:\nopenvoiceflow --add-word \"MyWord\""
+            rumps.alert(title="📖 Personal Dictionary", message=msg)
+
+        def open_snippets(self, _):
+            """Show snippet list in a rumps alert dialog."""
+            try:
+                from .snippets import list_snippets
+                snips = list_snippets()
+            except Exception:
+                snips = {}
+
+            if snips:
+                lines = [f"  \"{t}\" → \"{e[:40]}{'...' if len(e)>40 else ''}\"" for t, e in snips.items()]
+                msg = "\n".join(lines)
+                msg += "\n\nAdd: openvoiceflow --add-snippet \"trigger\" \"expansion\""
+            else:
+                msg = "No snippets yet.\n\nAdd with:\nopenvoiceflow --add-snippet \"insert sig\" \"Best regards, Name\""
+            rumps.alert(title="📌 Voice Snippets", message=msg)
+
+        def toggle_autostart(self, _):
+            """Toggle launch at login."""
+            try:
+                from .autostart import get_autostart_status, set_autostart
+                current = get_autostart_status()
+                success, msg = set_autostart(not current)
+                if success:
+                    new_state = not current
+                    self.config["launch_at_login"] = new_state
+                    save_config(self.config)
+                    self.autostart_item.title = self._autostart_label()
+                    state_str = "enabled" if new_state else "disabled"
+                    rumps.notification("OpenVoiceFlow", "Launch at Login", f"Autostart {state_str}")
+                else:
+                    rumps.alert(title="Autostart Error", message=msg)
+            except Exception as e:
+                rumps.alert(title="Autostart Error", message=str(e))
+
+        # ── File openers ───────────────────────────────────────────────────
 
         def open_config(self, _):
             import subprocess
@@ -146,6 +285,17 @@ def run_menubar():
             from .config import LOG_DIR
             LOG_DIR.mkdir(parents=True, exist_ok=True)
             subprocess.Popen(["open", str(LOG_DIR)])
+
+        # ── Update handler ─────────────────────────────────────────────────
+
+        def _on_update_available(self, latest_version: str, release_url: str):
+            """Called from updater thread when a new version is found."""
+            from . import __version__
+            rumps.notification(
+                "OpenVoiceFlow Update Available",
+                f"v{latest_version} is available (you have v{__version__})",
+                f"Visit: {release_url}",
+            )
 
         def quit_app(self, _):
             self.stop_listening()

@@ -26,7 +26,8 @@ dependencies = [
 
 [project.optional-dependencies]
 menubar = ["rumps>=0.4"]
-all = ["rumps>=0.4"]
+overlay = ["pyobjc-framework-Cocoa>=9.0"]
+all = ["rumps>=0.4", "pyobjc-framework-Cocoa>=9.0"]
 
 [project.scripts]
 openvoiceflow = "voiceflow.__main__:main"

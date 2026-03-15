@@ -27,11 +27,17 @@ class OllamaBackend(LLMBackend):
         except Exception:
             return False, "Ollama not running. Install from https://ollama.com then run: ollama serve"
 
-    def cleanup(self, raw_text: str) -> str:
+    def cleanup(
+        self,
+        raw_text: str,
+        context: str | None = None,
+        app_context: str | None = None,
+        override_style: str | None = None,
+    ) -> str:
         url = f"{self.base_url}/api/generate"
         payload = {
             "model": self.model,
-            "prompt": self._make_prompt(raw_text),
+            "prompt": self._make_prompt(raw_text, context=context, app_context=app_context, override_style=override_style),
             "stream": False,
             "options": {"temperature": 0.1},
         }

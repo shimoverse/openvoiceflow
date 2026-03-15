@@ -66,11 +66,13 @@ def get_model_path(model_name: str) -> str:
     if model_path.exists():
         return str(model_path)
 
-    # Check common alternate locations
+    # Check common alternate locations (Apple Silicon + Intel Mac)
     for alt in [
         Path.home() / "whisper.cpp" / "models" / model_file,
         Path("/opt/homebrew/share/whisper-cpp/models") / model_file,
         Path("/opt/homebrew/share/whisper-cpp") / model_file,
+        Path("/usr/local/share/whisper-cpp/models") / model_file,  # Intel Mac
+        Path("/usr/local/share/whisper-cpp") / model_file,         # Intel Mac
         Path.home() / ".cache" / "whisper" / model_file,
     ]:
         if alt.exists():

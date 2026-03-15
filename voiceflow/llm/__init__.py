@@ -28,13 +28,34 @@ def get_backend(config: dict) -> LLMBackend | None:
     return cls(config)
 
 
-def cleanup_text(raw_text: str, config: dict) -> str:
-    """Clean up raw transcript using the configured LLM."""
+def cleanup_text(
+    raw_text: str,
+    config: dict,
+    context: str | None = None,
+    app_context: str | None = None,
+    style: str | None = None,
+) -> str:
+    """Clean up raw transcript using the configured LLM.
+
+    Args:
+        raw_text:    Raw transcript from whisper.cpp.
+        config:      Loaded OpenVoiceFlow config dict.
+        context:     Optional selected-text captured before dictation.
+        app_context: Optional LLM context fragment from
+                     :func:`~voiceflow.context.get_app_context_prompt`.
+        style:       Optional per-dictation style override (from per-app
+                     detection); passed as ``override_style`` to the backend.
+    """
     backend = get_backend(config)
     if not backend:
         return raw_text
     try:
-        return backend.cleanup(raw_text)
+        return backend.cleanup(
+            raw_text,
+            context=context,
+            app_context=app_context,
+            override_style=style,
+        )
     except Exception as e:
         print(f"❌ LLM cleanup failed: {e}")
         return raw_text

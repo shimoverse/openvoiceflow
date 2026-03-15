@@ -40,6 +40,30 @@ def main():
     parser.add_argument("--remove-snippet", metavar="TRIGGER", help="Remove a voice snippet")
     parser.add_argument("--list-snippets", action="store_true", help="List all voice snippets")
 
+    # Voice commands (Feature 3)
+    parser.add_argument("--add-command", nargs=2, metavar=("PHRASE", "REPLACEMENT"),
+                        help="Add or update a custom voice command (e.g. --add-command \"new line\" \"\\n\")")
+    parser.add_argument("--remove-command", metavar="PHRASE",
+                        help="Remove a custom voice command by phrase")
+    parser.add_argument("--list-commands", action="store_true",
+                        help="List all active voice commands (defaults + custom)")
+    parser.add_argument("--voice-commands", choices=["on", "off"],
+                        help="Enable or disable voice command replacement")
+
+    # Per-app style management (Feature 2)
+    parser.add_argument("--app-style", nargs=2, metavar=("APP", "STYLE"),
+                        dest="app_style",
+                        help="Set style for a specific app (e.g. --app-style \"Slack\" casual)")
+    parser.add_argument("--remove-app-style", metavar="APP",
+                        dest="remove_app_style",
+                        help="Remove per-app style override for an app")
+    parser.add_argument("--list-app-styles", action="store_true",
+                        dest="list_app_styles",
+                        help="List all per-app style mappings")
+    parser.add_argument("--auto-style", choices=["on", "off"],
+                        dest="auto_style",
+                        help="Enable or disable automatic per-app style detection")
+
     # Language
     parser.add_argument("--language", metavar="LANG", help="Set transcription language (e.g., en, es, de, ja, auto)")
 
@@ -53,6 +77,32 @@ def main():
     parser.add_argument(
         "--autostart", choices=["on", "off"],
         help="Enable/disable launch at login via LaunchAgent",
+    )
+
+    # History search (Feature 6)
+    parser.add_argument("--search", metavar="QUERY", help="Search past transcripts")
+    parser.add_argument(
+        "--search-date", metavar="DATE",
+        help="Filter search to a specific date (YYYY-MM-DD)",
+    )
+    parser.add_argument(
+        "--search-last", metavar="DAYS", type=int,
+        help="Filter search to the last N days",
+    )
+    parser.add_argument(
+        "--limit", metavar="N", type=int, default=50,
+        help="Maximum number of search results (default: 50)",
+    )
+
+    # Streaming transcription (Feature 1)
+    parser.add_argument(
+        "--streaming", choices=["on", "off"],
+        help="Enable/disable real-time streaming transcription (requires whisper-stream binary)",
+    )
+    parser.add_argument(
+        "--streaming-step", metavar="MS", type=int,
+        dest="streaming_step",
+        help="Audio step size in milliseconds for streaming mode (default: 3000)",
     )
 
     args = parser.parse_args()
@@ -119,6 +169,103 @@ def main():
             print("📌 No snippets. Add one: openvoiceflow --add-snippet \"insert sig\" \"Best regards, Name\"")
         return
 
+    # --- Voice command commands (Feature 3) ---
+    if args.add_command:
+        from .commands import DEFAULT_COMMANDS
+        phrase, replacement = args.add_command
+        # Support escape sequences in replacement (e.g. "\\n" → "\n")
+        replacement = replacement.replace("\\n", "\n").replace("\\t", "\t")
+        custom = config.get("custom_commands", {})
+        custom[phrase.lower()] = replacement
+        config["custom_commands"] = custom
+        save_config(config)
+        display = repr(replacement)
+        print(f"✅ Voice command added: \"{phrase}\" → {display}")
+        return
+
+    if args.remove_command:
+        phrase = args.remove_command.lower()
+        custom = config.get("custom_commands", {})
+        if phrase in custom:
+            del custom[phrase]
+            config["custom_commands"] = custom
+            save_config(config)
+            print(f"✅ Custom voice command removed: \"{phrase}\"")
+        else:
+            from .commands import DEFAULT_COMMANDS
+            if phrase in DEFAULT_COMMANDS:
+                print(f"⚠️  \"{phrase}\" is a built-in default command and cannot be removed. "
+                      f"Override it with --add-command if needed.")
+            else:
+                print(f"⚠️  Custom voice command not found: \"{phrase}\"")
+        return
+
+    if args.list_commands:
+        from .commands import load_commands
+        commands = load_commands(config)
+        if not commands:
+            print("🔇 Voice commands are disabled (--voice-commands on to enable).")
+            return
+        custom = config.get("custom_commands", {})
+        print("🗣️  Active voice commands:")
+        for phrase in sorted(commands.keys(), key=len, reverse=True):
+            replacement = commands[phrase]
+            tag = " [custom]" if phrase in custom else ""
+            print(f"   \"{phrase}\" → {repr(replacement)}{tag}")
+        return
+
+    if args.voice_commands:
+        enabled = args.voice_commands == "on"
+        config["voice_commands"] = enabled
+        save_config(config)
+        state = "enabled" if enabled else "disabled"
+        print(f"✅ Voice commands {state}.")
+        return
+
+    # --- Per-app style management (Feature 2) ---
+    if args.app_style:
+        app_name, style = args.app_style
+        if style not in VALID_STYLES:
+            print(f"❌ Invalid style '{style}'. Valid: {VALID_STYLES}")
+            sys.exit(1)
+        app_styles = config.get("app_styles", {})
+        app_styles[app_name] = style
+        config["app_styles"] = app_styles
+        save_config(config)
+        print(f"✅ App style set: \"{app_name}\" → {style}")
+        return
+
+    if args.remove_app_style:
+        app_styles = config.get("app_styles", {})
+        if args.remove_app_style in app_styles:
+            del app_styles[args.remove_app_style]
+            config["app_styles"] = app_styles
+            save_config(config)
+            print(f"✅ App style removed: \"{args.remove_app_style}\"")
+        else:
+            print(f"⚠️  No style mapping found for: \"{args.remove_app_style}\"")
+        return
+
+    if args.list_app_styles:
+        app_styles = config.get("app_styles", {})
+        if app_styles:
+            print("🎨 Per-app style mappings:")
+            for app, style in sorted(app_styles.items()):
+                print(f"   \"{app}\" → {style}")
+        else:
+            print("🎨 No per-app style mappings configured.")
+        auto = config.get("auto_style", True)
+        print(f"   Auto-style: {'enabled' if auto else 'disabled'}")
+        return
+
+    if args.auto_style:
+        enabled = args.auto_style == "on"
+        config["auto_style"] = enabled
+        save_config(config)
+        state = "enabled" if enabled else "disabled"
+        print(f"✅ Auto-style {state}.")
+        return
+
     # --- Statistics ---
     if args.stats:
         from .stats import show_stats
@@ -175,6 +322,23 @@ def main():
         save_config(config)
         print(f"✅ Style set to: {args.style}")
 
+    if args.streaming:
+        enabled = args.streaming == "on"
+        config["streaming"] = enabled
+        save_config(config)
+        state = "enabled" if enabled else "disabled"
+        print(f"✅ Streaming transcription {state}.")
+        if enabled:
+            from .streamer import find_whisper_stream
+            if not find_whisper_stream():
+                print("⚠️  whisper-stream binary not found. Install with: brew install whisper-cpp")
+                print("   Streaming will fall back to batch mode until the binary is available.")
+
+    if args.streaming_step:
+        config["streaming_step_ms"] = args.streaming_step
+        save_config(config)
+        print(f"✅ Streaming step size set to: {args.streaming_step} ms")
+
     if args.autostart:
         from .autostart import set_autostart, get_autostart_status
         enabled = args.autostart == "on"
@@ -194,8 +358,30 @@ def main():
         print(json.dumps(safe, indent=2))
         return
 
+    # --- History search (Feature 6) ---
+    if args.search:
+        from .search import search_transcripts
+        results = search_transcripts(
+            query=args.search,
+            date=args.search_date,
+            last_days=args.search_last,
+            limit=args.limit,
+        )
+        if not results:
+            print(f"No transcripts found matching: {args.search!r}")
+            sys.exit(1)
+        print(f"🔍 {len(results)} result(s) for {args.search!r}:\n")
+        for entry in results:
+            ts = entry["timestamp"]
+            text = entry["cleaned"] or entry["raw"]
+            display = text[:100] + ("…" if len(text) > 100 else "")
+            print(f"  [{ts}] {display}")
+            print(f"   ↳ {entry['file']}")
+        sys.exit(0)
+
     if any([args.hotkey, args.model, args.backend, args.set_key, args.set_prompt,
-            args.clear_prompt, args.language, args.style]):
+            args.clear_prompt, args.language, args.style,
+            args.streaming, args.streaming_step]):
         return
 
     # --- Startup update check (non-blocking) ---

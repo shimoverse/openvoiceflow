@@ -22,16 +22,30 @@ class AnthropicBackend(LLMBackend):
             return False, "No Anthropic API key. Get one at https://console.anthropic.com/"
         return True, f"Claude ({self.model})"
 
-    def cleanup(self, raw_text: str) -> str:
+    def cleanup(
+        self,
+        raw_text: str,
+        context: str | None = None,
+        app_context: str | None = None,
+        override_style: str | None = None,
+    ) -> str:
         if not self.api_key:
             return raw_text
 
         url = "https://api.anthropic.com/v1/messages"
+        # Inject context into user turn when available
+        if context:
+            user_content = (
+                f"Context - the user had this text selected: '{context}'. "
+                f"Clean up the following dictation taking context into account:\n\n{raw_text}"
+            )
+        else:
+            user_content = raw_text
         payload = {
             "model": self.model,
             "max_tokens": 2048,
             "system": self.prompt,
-            "messages": [{"role": "user", "content": raw_text}],
+            "messages": [{"role": "user", "content": user_content}],
         }
         req = urllib.request.Request(
             url,

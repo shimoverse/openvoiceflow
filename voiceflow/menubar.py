@@ -63,13 +63,32 @@ def run_menubar():
                 callback=self.toggle_autostart,
             )
 
+            # Streaming toggle (Feature 1)
+            self.streaming_item = rumps.MenuItem(
+                self._streaming_label(),
+                callback=self.toggle_streaming,
+            )
+
+            # Auto-style toggle (Feature 2)
+            self.auto_style_item = rumps.MenuItem(
+                self._auto_style_label(),
+                callback=self.toggle_auto_style,
+            )
+
+            # Detected app status (Feature 2) — read-only informational item
+            self.detected_app_item = rumps.MenuItem("App: —")
+            self.detected_app_item.set_callback(None)
+
             self.menu = [
                 self.start_stop_item,
                 self.status_item,
+                self.detected_app_item,
                 None,  # separator
                 self.backend_menu,
                 self.hotkey_menu,
                 self.style_menu,
+                self.auto_style_item,
+                self.streaming_item,
                 None,
                 self.stats_item,
                 self.dictionary_item,
@@ -136,6 +155,27 @@ def run_menubar():
                 enabled = self.config.get("launch_at_login", False)
             return "✓ Launch at Login" if enabled else "  Launch at Login"
 
+        def _streaming_label(self) -> str:
+            enabled = self.config.get("streaming", True)
+            return "✓ Streaming Transcription" if enabled else "  Streaming Transcription"
+
+        def _auto_style_label(self) -> str:
+            enabled = self.config.get("auto_style", True)
+            return "✓ Auto-Style (per app)" if enabled else "  Auto-Style (per app)"
+
+        def _update_detected_app(self):
+            """Refresh the detected-app status item (called after start_listening)."""
+            try:
+                from .context import get_frontmost_app, get_style_for_app
+                app = get_frontmost_app()
+                if app:
+                    style = get_style_for_app(app, self.config)
+                    self.detected_app_item.title = f"App: {app} [{style}]"
+                else:
+                    self.detected_app_item.title = "App: —"
+            except Exception:
+                self.detected_app_item.title = "App: —"
+
         # ── Listeners ──────────────────────────────────────────────────────
 
         def start_listening(self):
@@ -160,6 +200,8 @@ def run_menubar():
             hotkey = self.config.get("hotkey", "right_cmd")
             self.start_stop_item.title = "⏸ Stop Listening"
             self.status_item.title = f"Status: Ready — hold [{hotkey}]"
+            # Refresh detected app label
+            self._update_detected_app()
 
         def stop_listening(self):
             if self.listener:
@@ -206,6 +248,24 @@ def run_menubar():
                 self.start_listening()
             label = get_style_label(style_id)
             rumps.notification("OpenVoiceFlow", "Style Changed", f"Now using: {label}")
+
+        def toggle_streaming(self, _):
+            """Toggle streaming transcription on/off."""
+            current = self.config.get("streaming", True)
+            self.config["streaming"] = not current
+            save_config(self.config)
+            self.streaming_item.title = self._streaming_label()
+            state_str = "enabled" if not current else "disabled"
+            rumps.notification("OpenVoiceFlow", "Streaming", f"Streaming transcription {state_str}")
+
+        def toggle_auto_style(self, _):
+            """Toggle automatic per-app style detection."""
+            current = self.config.get("auto_style", True)
+            self.config["auto_style"] = not current
+            save_config(self.config)
+            self.auto_style_item.title = self._auto_style_label()
+            state_str = "enabled" if not current else "disabled"
+            rumps.notification("OpenVoiceFlow", "Auto-Style", f"Per-app auto style {state_str}")
 
         # ── Feature handlers ───────────────────────────────────────────────
 

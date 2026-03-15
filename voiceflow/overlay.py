@@ -202,22 +202,50 @@ class FloatingOverlay:
             print(f"⚠️  Overlay init failed: {e}")
             self._initialized = False
 
-    def show_recording(self):
-        """Show recording indicator (red dot + "Recording...")."""
+    def show_recording(self, style_label: str | None = None, with_context: bool = False):
+        """Show recording indicator (red dot + "Recording...").
+
+        Args:
+            style_label:  Optional per-app style name to display (e.g. "code").
+            with_context: When True, append "(with context)" to the label.
+        """
         if not HAS_APPKIT:
             return
-        self._perform_on_main(self._show_recording)
+        self._perform_on_main(self._show_recording, style_label, with_context)
 
-    def _show_recording(self):
+    def _show_recording(self, style_label=None, with_context=False):
         if not self._initialized:
             self._setup()
         if not self._initialized:
             return
         self._cancel_hide_timer()
         self._animator.stopAnimation()
-        self._label.setStringValue_("🔴 Recording...")
+        label = "🔴 Recording"
+        if style_label:
+            label += f" [{style_label}]"
+        if with_context:
+            label += " (with context)"
+        label += "..."
+        self._label.setStringValue_(label)
         self._label.setTextColor_(NSColor.whiteColor())
         self._fade_in()
+
+    def show_streaming_text(self, text: str):
+        """Show a live partial transcript during streaming mode."""
+        if not HAS_APPKIT:
+            return
+        self._perform_on_main(self._show_streaming_text, text)
+
+    def _show_streaming_text(self, text):
+        if not self._initialized:
+            return
+        self._cancel_hide_timer()
+        self._animator.stopAnimation()
+        display = text if len(text) <= 35 else "…" + text[-32:]
+        self._label.setStringValue_(f"🎙 {display}")
+        self._label.setTextColor_(NSColor.colorWithWhite_alpha_(0.9, 1.0))
+        if self._window.alphaValue() < 0.5:
+            self._fade_in()
 
     def show_processing(self):
         """Show processing indicator (animated dots)."""

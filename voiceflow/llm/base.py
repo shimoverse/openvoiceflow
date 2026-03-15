@@ -43,6 +43,10 @@ class LLMBackend(ABC):
         from ..snippets import get_snippets_prompt_fragment
         self.prompt += get_snippets_prompt_fragment()
 
+        # Append personal profile context ("Know Me" — names, occupation, style)
+        from ..profile import get_profile_prompt_fragment
+        self.prompt += get_profile_prompt_fragment()
+
         self.model = config.get(f"{self.name}_model", self.default_model)
 
     def _make_prompt(
@@ -74,12 +78,14 @@ class LLMBackend(ABC):
             base = self.config.get("llm_prompt") or DEFAULT_PROMPT
             from ..dictionary import get_dictionary_prompt_fragment
             from ..snippets import get_snippets_prompt_fragment
+            from ..profile import get_profile_prompt_fragment
             style_suffix = STYLE_PRESETS.get(override_style, "")
             base_prompt = (
                 base
                 + style_suffix
                 + get_dictionary_prompt_fragment()
                 + get_snippets_prompt_fragment()
+                + get_profile_prompt_fragment()
             )
 
         # Append app context fragment (e.g. "User is in VS Code...")

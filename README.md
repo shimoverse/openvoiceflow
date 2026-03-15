@@ -33,7 +33,7 @@ Other tools ask you to pay $144/year and trust their cloud. We don't.
 | | Annual Cost | Open Source | Local Audio | Learns From You | Per-App Styles |
 |---|:---:|:---:|:---:|:---:|:---:|
 | **OpenVoiceFlow** | **$0-3** | ✅ MIT | ✅ | ✅ | ✅ |
-| Wispr Flow | $144 | ❌ | ❌ | Partial | ❌ |
+| Wispr Flow | $144 | ❌ | ❌ | ✅ | ✅ |
 | Superwhisper | $85 | ❌ | ✅ | Partial | ✅ |
 | VoiceInk | Free (GPL) | ❌ PRs | ✅ | ❌ | ✅ |
 
@@ -384,20 +384,21 @@ Here's everything OpenVoiceFlow does, compared to the paid alternatives:
 
 | Feature | OpenVoiceFlow | Wispr Flow ($144) | Superwhisper ($85) | VoiceInk (GPL) |
 |:--------|:---:|:---:|:---:|:---:|
-| Local STT (whisper.cpp) | ✅ | ✅ | ✅ | ✅ |
+| Local STT (whisper.cpp) | ✅ | ❌ Cloud | ✅ | ✅ |
 | LLM cleanup | ✅ 6 backends | ✅ 1 | ✅ 1 | ✅ 1 |
 | Real-time streaming | ✅ | ✅ | ✅ | ❌ |
-| Per-app context | ✅ 30 apps | ❌ | ✅ | ✅ |
+| Per-app context | ✅ 30 apps | ✅ | ✅ | ✅ |
 | Voice commands | ✅ 24 commands | ❌ | ❌ | ❌ |
-| Selected text context | ✅ | ❌ | ✅ | ❌ |
+| Selected text context | ✅ | ✅ | ✅ | ❌ |
 | Smart profile onboarding | ✅ | Partial | ❌ | ❌ |
 | Auto-learn corrections | ✅ | ✅ | ❌ | ❌ |
-| Personal dictionary | ✅ | ❌ | ❌ | ❌ |
-| Voice snippets | ✅ | ❌ | ❌ | ❌ |
+| Personal dictionary | ✅ | ✅ | ✅ | ✅ |
+| Voice snippets | ✅ | ✅ | ❌ | ❌ |
 | Multi-language (100+) | ✅ | ✅ | ✅ | ✅ |
-| Style/tone modes | ✅ 5 modes | ❌ | ❌ | ❌ |
+| Style/tone modes | ✅ 5 modes | ✅ | ❌ | ❌ |
 | History search | ✅ | ❌ | ❌ | ❌ |
 | Floating overlay | ✅ | ✅ | ✅ | ✅ |
+| Audio stays local | ✅ | ❌ | ✅ | ✅ |
 | Open source (MIT) | ✅ | ❌ | ❌ | ❌ (GPL) |
 | Price | **$0-3/yr** | $144/yr | $85/yr | $0 |
 

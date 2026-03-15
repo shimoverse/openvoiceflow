@@ -292,6 +292,46 @@ class FloatingOverlay:
             self._fade_in()
         self._schedule_hide(duration)
 
+    def show_learned(self, original: str, corrected: str, duration: float = 2.5):
+        """Show a subtle dictionary learning notification.
+
+        Displays a brief pill like "📚 mir → Meer" then fades out.
+        Uses a smaller, dimmer style than the main overlay to avoid
+        interrupting the user's flow.
+        """
+        if not HAS_APPKIT:
+            return
+        self._perform_on_main(self._show_learned, original, corrected, duration)
+
+    def _show_learned(self, original, corrected, duration):
+        if not self._initialized:
+            self._setup()
+        if not self._initialized:
+            return
+        self._cancel_hide_timer()
+        self._animator.stopAnimation()
+
+        display = f"📚 {original} → {corrected}"
+        self._label.setStringValue_(display)
+        # Subtle dim white — less attention-grabbing than result/error
+        self._label.setTextColor_(NSColor.colorWithWhite_alpha_(0.75, 1.0))
+        self._label.setFont_(NSFont.systemFontOfSize_weight_(12, 0.2))
+
+        # Compact pill width
+        text_width = max(160, min(350, len(display) * 8 + 40))
+        screen = NSScreen.mainScreen()
+        if screen:
+            screen_frame = screen.frame()
+            x = (screen_frame.size.width - text_width) / 2
+            # Position slightly lower than main overlay
+            frame = NSMakeRect(x, self.MARGIN_BOTTOM - 10, text_width, 32)
+            self._window.setFrame_display_(frame, True)
+
+        if self._window.alphaValue() < 0.5:
+            self._fade_in()
+        # Restore main font after hide
+        self._schedule_hide(duration)
+
     def show_error(self, message: str, duration: float = 3.0):
         """Show an error message briefly."""
         if not HAS_APPKIT:

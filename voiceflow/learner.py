@@ -241,5 +241,13 @@ class CorrectionWatcher:
 
             add_word(corrected_word, aliases=[original_word])
             print(f"📚 Learned: {original_word} → {corrected_word}")
+
+            # Visual feedback via overlay
+            try:
+                from .overlay import get_overlay
+                overlay = get_overlay()
+                overlay.show_learned(original_word, corrected_word)
+            except Exception:
+                pass  # Overlay feedback is optional
         except Exception:
             pass  # BEST EFFORT

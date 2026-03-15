@@ -27,6 +27,53 @@ DEFAULTS = {
     "language": "en",  # Transcription language (en, es, de, ja, auto, etc.)
     "style": "default",  # Output style: default, casual, formal, code, email
     "launch_at_login": False,  # Auto-start on macOS login
+    # Per-app automatic style detection (Feature 2)
+    "auto_style": True,  # Automatically switch style based on the frontmost app
+    "app_styles": {
+        # Coding environments -> code style
+        "Code": "code",           # VS Code (macOS app name is "Code")
+        "Xcode": "code",
+        "Terminal": "code",
+        "iTerm2": "code",
+        "IntelliJ IDEA": "code",
+        "PyCharm": "code",
+        "WebStorm": "code",
+        "RubyMine": "code",
+        "GoLand": "code",
+        "CLion": "code",
+        "Zed": "code",
+        "Nova": "code",
+        "BBEdit": "code",
+        # Email clients -> email style
+        "Mail": "email",
+        "Gmail": "email",
+        "Outlook": "email",
+        "Mimestream": "email",
+        "Airmail 5": "email",
+        "Superhuman": "email",
+        # Chat / messaging apps -> casual style
+        "Slack": "casual",
+        "Discord": "casual",
+        "Messages": "casual",
+        "WhatsApp": "casual",
+        "Telegram": "casual",
+        "Signal": "casual",
+        "Texts": "casual",
+        # Document editors -> default style
+        "Microsoft Word": "default",
+        "Google Chrome": "default",
+        "Safari": "default",
+        "Pages": "default",
+        "Notion": "default",
+    },
+    # Voice command replacement (Feature 3)
+    "voice_commands": True,   # Replace spoken punctuation phrases pre-LLM
+    "custom_commands": {},    # User-defined phrase → replacement overrides
+    # Selected text context capture (Feature 4)
+    "selected_text_context": True,  # Capture selected text as LLM context on hotkey press
+    # Real-time streaming transcription (Feature 1)
+    "streaming": True,             # Use whisper-stream for real-time transcription
+    "streaming_step_ms": 3000,     # Audio step size in milliseconds for streaming
 }
 
 VALID_HOTKEYS = [

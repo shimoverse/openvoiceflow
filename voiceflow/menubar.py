@@ -78,6 +78,12 @@ def run_menubar():
                 callback=self.toggle_auto_style,
             )
 
+            # Auto-learn corrections toggle
+            self.auto_learn_item = rumps.MenuItem(
+                self._auto_learn_label(),
+                callback=self.toggle_auto_learn,
+            )
+
             # Detected app status (Feature 2) — read-only informational item
             self.detected_app_item = rumps.MenuItem("App: —")
             self.detected_app_item.set_callback(None)
@@ -92,6 +98,7 @@ def run_menubar():
                 self.style_menu,
                 self.auto_style_item,
                 self.streaming_item,
+                self.auto_learn_item,
                 None,
                 self.stats_item,
                 self.dictionary_item,
@@ -166,6 +173,10 @@ def run_menubar():
         def _auto_style_label(self) -> str:
             enabled = self.config.get("auto_style", True)
             return "✓ Auto-Style (per app)" if enabled else "  Auto-Style (per app)"
+
+        def _auto_learn_label(self) -> str:
+            enabled = self.config.get("auto_learn", True)
+            return "✓ Auto-Learn Corrections" if enabled else "  Auto-Learn Corrections"
 
         def _update_detected_app(self):
             """Refresh the detected-app status item (called after start_listening)."""
@@ -270,6 +281,15 @@ def run_menubar():
             self.auto_style_item.title = self._auto_style_label()
             state_str = "enabled" if not current else "disabled"
             rumps.notification("OpenVoiceFlow", "Auto-Style", f"Per-app auto style {state_str}")
+
+        def toggle_auto_learn(self, _):
+            """Toggle auto-learning corrections from post-paste edits."""
+            current = self.config.get("auto_learn", True)
+            self.config["auto_learn"] = not current
+            save_config(self.config)
+            self.auto_learn_item.title = self._auto_learn_label()
+            state_str = "enabled" if not current else "disabled"
+            rumps.notification("OpenVoiceFlow", "Auto-Learn", f"Correction learning {state_str}")
 
         # ── Feature handlers ───────────────────────────────────────────────
 

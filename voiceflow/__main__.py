@@ -119,6 +119,13 @@ def main():
         help="Audio step size in milliseconds for streaming mode (default: 3000)",
     )
 
+    # Auto-learn corrections
+    parser.add_argument(
+        "--auto-learn", choices=["on", "off"],
+        dest="auto_learn",
+        help="Enable/disable auto-learning corrections from post-paste edits",
+    )
+
     args = parser.parse_args()
 
     config = load_config()
@@ -382,6 +389,14 @@ def main():
         save_config(config)
         print(f"✅ Streaming step size set to: {args.streaming_step} ms")
 
+    if args.auto_learn:
+        enabled = args.auto_learn == "on"
+        config["auto_learn"] = enabled
+        save_config(config)
+        state = "enabled" if enabled else "disabled"
+        print(f"✅ Auto-learn corrections {state}.")
+        return
+
     if args.autostart:
         from .autostart import set_autostart, get_autostart_status
         enabled = args.autostart == "on"
@@ -424,7 +439,7 @@ def main():
 
     if any([args.hotkey, args.model, args.backend, args.set_key, args.set_prompt,
             args.clear_prompt, args.language, args.style,
-            args.streaming, args.streaming_step]):
+            args.streaming, args.streaming_step, args.auto_learn]):
         return
 
     # --- Startup update check (non-blocking) ---

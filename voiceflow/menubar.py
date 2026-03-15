@@ -57,6 +57,9 @@ def run_menubar():
             # Snippets item
             self.snippets_item = rumps.MenuItem("📌 Snippets", callback=self.open_snippets)
 
+            # "Know Me" profile item
+            self.profile_item = rumps.MenuItem("👤 Edit Profile...", callback=self.open_profile)
+
             # Autostart item
             self.autostart_item = rumps.MenuItem(
                 self._autostart_label(),
@@ -93,6 +96,7 @@ def run_menubar():
                 self.stats_item,
                 self.dictionary_item,
                 self.snippets_item,
+                self.profile_item,
                 None,
                 self.autostart_item,
                 rumps.MenuItem("Open Config", callback=self.open_config),
@@ -315,6 +319,16 @@ def run_menubar():
             else:
                 msg = "No snippets yet.\n\nAdd with:\nopenvoiceflow --add-snippet \"insert sig\" \"Best regards, Name\""
             rumps.alert(title="📌 Voice Snippets", message=msg)
+
+        def open_profile(self, _):
+            """Open the Know Me interview wizard so the user can update their profile."""
+            try:
+                from .interview import run_interview
+                import threading
+                # Run in a separate thread to avoid blocking the rumps event loop
+                threading.Thread(target=run_interview, daemon=True).start()
+            except Exception as e:
+                rumps.alert(title="Profile Error", message=str(e))
 
         def toggle_autostart(self, _):
             """Toggle launch at login."""

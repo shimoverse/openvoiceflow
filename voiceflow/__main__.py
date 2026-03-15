@@ -70,6 +70,20 @@ def main():
     # Style
     parser.add_argument("--style", choices=VALID_STYLES, help="Set output style/tone")
 
+    # "Know Me" profile
+    parser.add_argument(
+        "--profile", action="store_true",
+        help="Run the Know Me personalization interview (re-run anytime to update)",
+    )
+    parser.add_argument(
+        "--show-profile", action="store_true", dest="show_profile",
+        help="Print the current user profile",
+    )
+    parser.add_argument(
+        "--clear-profile", action="store_true", dest="clear_profile",
+        help="Delete the user profile",
+    )
+
     # Statistics
     parser.add_argument("--stats", action="store_true", help="Show dictation statistics")
 
@@ -264,6 +278,35 @@ def main():
         save_config(config)
         state = "enabled" if enabled else "disabled"
         print(f"✅ Auto-style {state}.")
+        return
+
+    # --- "Know Me" profile commands ---
+    if args.profile:
+        from .interview import run_interview
+        completed = run_interview()
+        if completed:
+            print("✅ Profile saved! Your personalization is active.")
+        else:
+            print("⏭  Profile interview skipped.")
+        return
+
+    if args.show_profile:
+        import json as _json
+        from .profile import load_profile, has_profile
+        if not has_profile():
+            print("No profile found. Run: openvoiceflow --profile")
+        else:
+            profile = load_profile()
+            print(_json.dumps(profile, indent=2))
+        return
+
+    if args.clear_profile:
+        from .profile import clear_profile, has_profile
+        if has_profile():
+            clear_profile()
+            print("✅ Profile deleted.")
+        else:
+            print("⚠️  No profile found.")
         return
 
     # --- Statistics ---

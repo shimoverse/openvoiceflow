@@ -533,10 +533,33 @@ class OnboardingWizard:
             justify="center",
         ).pack(pady=10)
 
-        self._button("Start OpenVoiceFlow 🎙️", self.launch_and_close)
+        # "Know Me" personalization step — strongly encouraged, skip is subtle
+        self._button("Personalize OpenVoiceFlow ✨", self.launch_interview_then_close)
+
+        # Small skip link for users who want to jump straight in
+        skip_btn = tk.Button(
+            self.container,
+            text="Skip personalization",
+            command=self.launch_and_close,
+            bg=BG, fg=FG_DIM, activebackground=BG,
+            font=("SF Pro Text", 11),
+            relief="flat", cursor="hand2",
+            borderwidth=0,
+        )
+        skip_btn.pack(pady=(2, 0))
+
+    def launch_interview_then_close(self):
+        """Close setup wizard and immediately open the Know Me interview."""
+        self.root.destroy()
+        # Run the personalization interview — it creates its own Tk window
+        try:
+            from .interview import run_interview
+            run_interview()
+        except Exception:
+            pass  # Interview errors must not crash the app launch
 
     def launch_and_close(self):
-        """Close wizard and launch OpenVoiceFlow."""
+        """Close wizard and launch OpenVoiceFlow (no personalization)."""
         self.root.destroy()
 
     def run(self):

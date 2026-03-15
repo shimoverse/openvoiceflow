@@ -479,6 +479,14 @@ code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace
 .t-text   { color: var(--text-secondary); font-family: 'SF Mono', Consolas, monospace; font-size: 12.5px; }
 .t-accent { color: var(--teal); font-family: 'SF Mono', Consolas, monospace; font-size: 12.5px; font-weight: 600; }
 
+@media (max-width: 480px) {
+  .terminal-body { padding: 16px; gap: 4px; }
+  .terminal-line { font-size: 12px; }
+  .t-text, .t-accent { font-size: 10.5px; word-break: break-word; white-space: normal; }
+  .terminal-arrow { font-size: 14px; padding: 1px 0 1px 12px; }
+  .hero-terminal { border-radius: var(--radius); }
+}
+
 /* ─── HOW IT WORKS ───────────────────────────────────────── */
 .pipeline {
   display: flex;
@@ -1108,6 +1116,48 @@ code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace
   .backends-grid { grid-template-columns: 1fr; }
   .community-actions { flex-direction: column; }
   .community-actions .btn { width: 100%; justify-content: center; }
+}
+
+/* ─── Mobile comparison table ────────────────────────────── */
+.table-scroll-hint {
+  display: none;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .table-scroll-hint { display: flex; }
+  .compare-table {
+    font-size: 12px;
+    min-width: 520px;
+  }
+  .compare-table th { padding: 12px 8px; font-size: 11px; }
+  .compare-table td { padding: 10px 8px; font-size: 12px; }
+  .compare-table td.col-feature { font-size: 12px; }
+  .th-emoji { font-size: 16px; }
+  .th-name { font-size: 12px; }
+  .th-badge { font-size: 9px; padding: 2px 6px; }
+  .th-price { font-size: 10px; }
+  .table-wrap {
+    position: relative;
+    border-radius: var(--radius);
+  }
+  .table-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(to right, transparent, var(--bg));
+    pointer-events: none;
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════

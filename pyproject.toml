@@ -28,6 +28,13 @@ dependencies = [
 menubar = ["rumps>=0.4"]
 overlay = ["pyobjc-framework-Cocoa>=9.0"]
 all = ["rumps>=0.4", "pyobjc-framework-Cocoa>=9.0"]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "build>=1.0",
+    "twine>=4.0",
+]
 
 [project.scripts]
 openvoiceflow = "voiceflow.__main__:main"
@@ -35,3 +42,19 @@ openvoiceflow = "voiceflow.__main__:main"
 [project.urls]
 Homepage = "https://github.com/shimoverse/openvoiceflow"
 Issues = "https://github.com/shimoverse/openvoiceflow/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "slow: tests that take more than a second",
+    "integration: tests that require external resources (network, brew, etc.)",
+]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = []

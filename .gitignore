@@ -15,5 +15,8 @@ env/
 .DS_Store
 .openvoiceflow/
 .pytest_cache/
+.pytest_venv/
+.coverage
+htmlcov/
 .playwright-sessions/
 *.pyo

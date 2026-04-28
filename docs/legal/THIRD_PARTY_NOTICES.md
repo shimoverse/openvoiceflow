@@ -105,5 +105,4 @@ This file is regenerated each release. Pull requests that touch `pyproject.toml`
 Last reviewed against:
 
 - `pyproject.toml` runtime deps (core + optional extras).
-- `requirements.txt` (note the divergence flagged in the maintainer summary — it omits `pyobjc-framework-Cocoa` and lists `rumps` as required rather than optional).
-- v0.3-readiness branch as of this commit.
+- `main` branch at v0.3.0.

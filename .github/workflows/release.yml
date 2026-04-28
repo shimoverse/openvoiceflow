@@ -29,19 +29,23 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           # Strip leading 'v' for comparison.
           TAG_VERSION="${TAG#v}"
+          # Strip a trailing pre-release suffix (rc1, -alpha2, .dev3, a1, b2)
+          # for the equality comparison: the tag carries the pre-release
+          # marker, but pyproject + __init__ stay at the base version.
+          BASE_VERSION=$(echo "$TAG_VERSION" | python3 -c "import re,sys; print(re.sub(r'([-.]?)(rc|alpha|beta|dev|a|b)\d+\$', '', sys.stdin.read().strip()))")
           PYPROJECT_VERSION=$(python3 -c "import re,sys; m=re.search(r'^version\s*=\s*\"([^\"]+)\"', open('pyproject.toml').read(), re.M); print(m.group(1))")
           INIT_VERSION=$(python3 -c "import re; m=re.search(r'__version__\s*=\s*\"([^\"]+)\"', open('voiceflow/__init__.py').read()); print(m.group(1))")
-          echo "tag=$TAG_VERSION pyproject=$PYPROJECT_VERSION init=$INIT_VERSION"
-          if [ "$TAG_VERSION" != "$PYPROJECT_VERSION" ]; then
-            echo "::error::tag $TAG_VERSION != pyproject.toml $PYPROJECT_VERSION"
+          echo "tag=$TAG_VERSION (base=$BASE_VERSION) pyproject=$PYPROJECT_VERSION init=$INIT_VERSION"
+          if [ "$BASE_VERSION" != "$PYPROJECT_VERSION" ]; then
+            echo "::error::base version $BASE_VERSION (from tag $TAG_VERSION) != pyproject.toml $PYPROJECT_VERSION"
             exit 1
           fi
-          if [ "$TAG_VERSION" != "$INIT_VERSION" ]; then
-            echo "::error::tag $TAG_VERSION != voiceflow/__init__.py $INIT_VERSION"
+          if [ "$BASE_VERSION" != "$INIT_VERSION" ]; then
+            echo "::error::base version $BASE_VERSION (from tag $TAG_VERSION) != voiceflow/__init__.py $INIT_VERSION"
             exit 1
           fi
-          # Pre-release detection (rc, alpha, beta, dev).
-          if [[ "$TAG_VERSION" =~ (rc|alpha|beta|dev|a[0-9]+|b[0-9]+) ]]; then
+          # Pre-release detection: any suffix ⇒ pre-release.
+          if [ "$BASE_VERSION" != "$TAG_VERSION" ]; then
             echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "is_prerelease=false" >> "$GITHUB_OUTPUT"

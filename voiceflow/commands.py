@@ -4,6 +4,9 @@ Translates spoken punctuation/formatting phrases (e.g. "new line", "period")
 into their text equivalents BEFORE the LLM cleanup pass, so the LLM sees
 already-formatted text and the replacement adds zero latency.
 """
+
+from __future__ import annotations
+
 import re
 
 # Default spoken-phrase → replacement mapping.

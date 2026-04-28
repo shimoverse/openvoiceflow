@@ -244,20 +244,27 @@ Have text selected when you start dictating? OpenVoiceFlow reads it and feeds it
 
 Say punctuation and formatting commands naturally. They're replaced **before** the LLM sees the text, so there's zero added latency.
 
+**24 default commands** — say any of the trigger phrases below and OpenVoiceFlow swaps it in instantly:
+
 | Say | Get |
 |:----|:----|
-| "new line" | ↵ |
+| "new line" / "newline" | ↵ |
 | "new paragraph" | ↵↵ |
 | "period" / "full stop" | . |
 | "comma" | , |
 | "question mark" | ? |
-| "exclamation mark" | ! |
-| "colon" / "semicolon" | : / ; |
-| "open paren" / "close paren" | ( / ) |
-| "open quote" / "close quote" | " / " |
+| "exclamation mark" / "exclamation point" | ! |
+| "colon" | : |
+| "semicolon" | ; |
+| "open paren" / "open parenthesis" | ( |
+| "close paren" / "close parenthesis" | ) |
+| "open quote" / "open quotes" | " |
+| "close quote" / "close quotes" | " |
 | "ellipsis" / "dot dot dot" | ... |
 | "dash" / "hyphen" | - |
 | "tab" | ⇥ |
+
+Run `openvoiceflow --list-commands` to print the live table from your installed version.
 
 Add custom commands:
 

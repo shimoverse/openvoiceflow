@@ -14,6 +14,9 @@ Design principles (Steve Jobs-ish):
 Visual style matches onboarding.py exactly:
   BG="#1a1a2e", BG_CARD="#16213e", FG="#e0e0e0", ACCENT="#0f89ff"
 """
+
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 

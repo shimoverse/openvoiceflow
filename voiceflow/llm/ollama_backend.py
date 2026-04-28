@@ -1,4 +1,7 @@
 """Ollama backend for fully local transcript cleanup ($0 cost)."""
+
+from __future__ import annotations
+
 import json
 import urllib.request
 import urllib.error

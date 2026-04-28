@@ -1,4 +1,7 @@
 """LLM backends for transcript cleanup."""
+
+from __future__ import annotations
+
 from .base import LLMBackend
 from .gemini import GeminiBackend
 from .openai_backend import OpenAIBackend

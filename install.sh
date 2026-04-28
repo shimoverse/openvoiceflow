@@ -79,11 +79,14 @@ fi
 echo -e "${GREEN}✅ Whisper model ready${NC}"
 
 # --- Create shell command ---
+# Exec the pip-installed console script ($VENV_DIR/bin/openvoiceflow) rather
+# than reinventing a module-style invocation. The earlier `python3 -m
+# openvoiceflow` form was broken: the Python package is named `voiceflow`.
 BINDIR="$HOME/.local/bin"
 mkdir -p "$BINDIR"
 cat > "$BINDIR/openvoiceflow" << EOF
 #!/bin/bash
-exec "$VENV_DIR/bin/python3" -m openvoiceflow "\$@"
+exec "$VENV_DIR/bin/openvoiceflow" "\$@"
 EOF
 chmod +x "$BINDIR/openvoiceflow"
 

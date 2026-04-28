@@ -17,18 +17,14 @@ Visual style matches onboarding.py exactly:
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 try:
     import tkinter as tk
-    from tkinter import font as tkfont
     HAS_TKINTER = True
 except ImportError:
     HAS_TKINTER = False
     tk = None
 
-from .profile import save_profile, load_profile, profile_to_dictionary
+from .profile import load_profile, profile_to_dictionary, save_profile
 
 # ── Color palette (matches onboarding.py) ──────────────────────────────────
 BG        = "#1a1a2e"
@@ -558,7 +554,7 @@ class InterviewWizard:
     def _sync_style_to_config(self, style: str):
         """Write the chosen communication style to config.json."""
         try:
-            from .config import load_config, save_config, VALID_STYLES
+            from .config import VALID_STYLES, load_config, save_config
             # Map interview style names to config VALID_STYLES
             style_map = {
                 "casual":   "casual",

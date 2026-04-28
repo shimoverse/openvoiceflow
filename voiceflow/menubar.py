@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import sys
-import threading
-
 try:
     import rumps
 except ImportError:
@@ -21,7 +18,7 @@ def run_menubar():
         return
 
     from .app import OpenVoiceFlow
-    from .config import load_config, save_config, CONFIG_PATH, VALID_STYLES
+    from .config import CONFIG_PATH, VALID_STYLES, load_config, save_config
     from .llm import BACKENDS
     from .stats import load_stats
     from .styles import get_style_label
@@ -346,8 +343,9 @@ def run_menubar():
         def open_profile(self, _):
             """Open the Know Me interview wizard so the user can update their profile."""
             try:
-                from .interview import run_interview
                 import threading
+
+                from .interview import run_interview
                 # Run in a separate thread to avoid blocking the rumps event loop
                 threading.Thread(target=run_interview, daemon=True).start()
             except Exception as e:
@@ -379,6 +377,7 @@ def run_menubar():
 
         def open_logs(self, _):
             import subprocess
+
             from .config import LOG_DIR
             LOG_DIR.mkdir(parents=True, exist_ok=True)
             subprocess.Popen(["open", str(LOG_DIR)])

@@ -2,29 +2,51 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "v0.3-readiness"]
   pull_request:
     branches: [main]
 
 jobs:
-  lint-and-test:
+  test:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install package + dev extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all,dev]"
+      - name: Lint (blocking)
+        run: ruff check voiceflow/
+      - name: Import smoke
+        run: python -c "import voiceflow; print(f'✅ voiceflow {voiceflow.__version__} imports on {__import__(\"sys\").version_info[:2]}')"
+      - name: Config validation
+        run: |
+          python -c "
+          from voiceflow.config import DEFAULTS, validate_config
+          errors = validate_config(DEFAULTS)
+          assert errors == [], f'Default config has errors: {errors}'
+          print('✅ config defaults valid')
+          "
+      - name: Tests
+        run: pytest -q
+
+  build:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install dependencies
-        run: pip install -e ".[all]" ruff
-      - name: Lint (warnings only)
-        run: ruff check voiceflow/ || echo "⚠️ Lint warnings found (non-blocking)"
-      - name: Import check
-        run: python3 -c "import voiceflow; print('✅ imports ok')"
-      - name: Config validation test
-        run: |
-          python3 -c "
-          from voiceflow.config import DEFAULTS, validate_config
-          errors = validate_config(DEFAULTS)
-          assert errors == [], f'Default config has errors: {errors}'
-          print('✅ config defaults valid')
-          "
+      - name: Install build tooling
+        run: pip install build twine
+      - name: Build wheel + sdist
+        run: python -m build
+      - name: Twine check
+        run: twine check dist/*

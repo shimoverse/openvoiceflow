@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import wave
+
 import numpy as np
 import sounddevice as sd
 

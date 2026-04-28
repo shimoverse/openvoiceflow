@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 import tempfile
 import threading
@@ -15,6 +16,57 @@ from .snippets import match_snippet
 from .stats import record_dictation
 from .system import log_transcript, paste_text, play_sound
 from .transcriber import find_whisper_cpp, get_model_path, transcribe
+
+# ─────────────────────────────────────────────────────────────────────
+# Voice-command tutor (Phase C2 — UX_REVIEW.md Theme B)
+# ─────────────────────────────────────────────────────────────────────
+
+# Word-boundary phoneme detector: catches the punctuation phrases a user
+# would have benefited from voice-command substitution on.
+_PUNCT_PHONEMES = re.compile(
+    r"\b(comma|period|full stop|question mark|exclamation (?:mark|point)|"
+    r"semicolon|colon|new paragraph|new line|newline)\b",
+    re.IGNORECASE,
+)
+
+
+def _has_punct_phoneme(text: str) -> bool:
+    """True iff the raw transcript contains a punctuation phoneme."""
+    if not text:
+        return False
+    return bool(_PUNCT_PHONEMES.search(text))
+
+
+def _maybe_voice_command_tutor(text_before: str, text_after: str) -> None:
+    """Show a one-shot educational nudge if appropriate.
+
+    - If apply_commands actually substituted (text_before != text_after):
+      fire a positive-reinforcement tip ("OpenVoiceFlow heard a voice
+      command and converted it"). once_key='voice_command_first_fire'.
+    - Else, if the raw transcript contains a punctuation phoneme but
+      no substitution occurred (commands disabled, or phoneme wasn't a
+      configured trigger): fire an educational tip
+      ("Try saying 'comma' for ,"). once_key='voice_commands_intro'.
+    - Else: silent.
+
+    Both tips fire ONCE total per machine (the once_key persists in
+    ~/.openvoiceflow/_seen_tips.json).
+    """
+    from . import notify
+    if text_before != text_after:
+        notify.tip(
+            "✓ OpenVoiceFlow heard a voice command and converted it. "
+            "Try also: 'period', 'question mark', 'new paragraph'. "
+            "Run `openvoiceflow --list-commands` for all 24.",
+            once_key="voice_command_first_fire",
+        )
+    elif _has_punct_phoneme(text_before):
+        notify.tip(
+            "💡 Tip: try saying 'comma' or 'period' — OpenVoiceFlow types it "
+            "for you. We have 24 voice commands built in. "
+            "Run `openvoiceflow --list-commands` to see them.",
+            once_key="voice_commands_intro",
+        )
 
 
 class OpenVoiceFlow:
@@ -321,7 +373,9 @@ class OpenVoiceFlow:
 
             # ── Feature: Voice commands (Feature 3) ─────────────────────────
             from .commands import apply_commands, load_commands
+            _text_before_cmds_streaming = raw_text
             raw_text = apply_commands(raw_text, load_commands(self.config))
+            _maybe_voice_command_tutor(_text_before_cmds_streaming, raw_text)
 
             # Snippet match before LLM cleanup
             snippet_expansion = match_snippet(raw_text)
@@ -413,7 +467,9 @@ class OpenVoiceFlow:
             # ── Feature: Voice commands (Feature 3) ─────────────────────────
             # Apply spoken punctuation/formatting replacements before LLM cleanup.
             from .commands import apply_commands, load_commands
+            _text_before_cmds_batch = raw_text
             raw_text = apply_commands(raw_text, load_commands(self.config))
+            _maybe_voice_command_tutor(_text_before_cmds_batch, raw_text)
 
             # Check for snippet match before LLM cleanup
             snippet_expansion = match_snippet(raw_text)

@@ -13,21 +13,35 @@ Tracking toward **0.3.0** — the pre-publish readiness pass. See
 for the full spec.
 
 ### Added
-- Pytest scaffold under `tests/` with smoke tests for config, transcriber argv
-  assembly, LLM backends (mocked HTTP), commands/snippets matchers, learner
-  correction extraction, and search filtering.
-- `[dev]` extras in `pyproject.toml` (pytest, ruff, build, twine).
-- CI Python matrix: 3.9, 3.10, 3.11 on macos-latest. Each leg runs
-  `pip install .` and exercises `openvoiceflow --version`.
+- Pytest scaffold under `tests/` with regression tests for every
+  Wave-1 ship-stopper (`test_python39_compat`, `test_install_sh`,
+  `test_config_migration`, `test_onboarding`, `test_voice_commands_count`,
+  `test_updater`) plus privacy invariants (`test_chmod_600`,
+  `test_privacy_defaults`) and package smoke tests. 60 tests total,
+  green on Python 3.9, 3.10, and 3.11.
+- `[dev]` extras in `pyproject.toml` (pytest, pytest-cov, ruff, build, twine).
+- CI Python matrix: 3.9, 3.10, 3.11 on macos-latest. Lint is now a
+  blocking step. A separate `build` job exercises `python -m build` and
+  `twine check`.
 - `--update-check on/off` CLI flag and matching `update_check` config key
   for opting out of the daily GitHub-Releases ping.
 - `--log-transcripts on/off` CLI flag for explicit control of the
   `~/.openvoiceflow/logs/` daily files.
 - "Privacy at a glance" panel in the README that maps every on-disk file
   and every network egress in one table.
-- `voiceflow/_secure_io.py` — `write_json_600()` helper that all
-  config/profile/dictionary/snippets/stats writes now go through, plus a
-  matching `chmod 600` on first-write of the daily log files.
+- `voiceflow/_secure_io.py` — `secure_write_json()` and `secure_chmod()`
+  helpers that all config / profile / dictionary / snippets / stats /
+  daily-log writes now go through, enforcing mode 600.
+- Community-health docs: SECURITY, PRIVACY, CONTRIBUTING, CODE_OF_CONDUCT,
+  SUPPORT, VERSIONING, AGENTS, plus docs/COMPLIANCE, docs/COMPATIBILITY,
+  docs/THREAT_MODEL, docs/ARCHITECTURE, docs/legal/DPA-template,
+  docs/legal/THIRD_PARTY_NOTICES. ~14 files, ~2,100 lines.
+- `RELEASE.md` — maintainer's three-command playbook plus
+  when-things-go-wrong table.
+- `.github/workflows/release.yml` rebuilt: tag-driven, Trusted Publisher
+  PyPI publish on non-pre-release tags, split arm64/x86_64 DMG attach,
+  `verify-version` gate that fails the release if tag ↔ pyproject ↔
+  `__version__` disagree.
 
 ### Changed
 - **Config-key migration:** `cleanup_prompt` → `llm_prompt`. Existing

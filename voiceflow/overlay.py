@@ -259,18 +259,26 @@ class FloatingOverlay:
         if self._window.alphaValue() < 0.5:
             self._fade_in()
 
-    def show_result(self, text: str, duration: float = 2.0):
-        """Briefly flash the result text, then hide."""
+    def show_result(self, text: str, duration: float = 2.0, *, timing: str | None = None):
+        """Briefly flash the result text, then hide.
+
+        ``timing`` (optional): a short string like ``"Whisper 0.8s · Cleanup 1.4s"``
+        appended after the result. Surfaces the dictation latency so the
+        user understands the system is fast (or which backend is slow).
+        See UX_REVIEW.md Journey 6.
+        """
         if not HAS_APPKIT:
             return
-        self._perform_on_main(self._show_result, text, duration)
+        self._perform_on_main(self._show_result, text, duration, timing)
 
-    def _show_result(self, text, duration):
+    def _show_result(self, text, duration, timing=None):
         if not self._initialized:
             return
         self._animator.stopAnimation()
         # Truncate for display
         display = text if len(text) <= 30 else text[:27] + "..."
+        if timing:
+            display = f"{display}  ·  {timing}"
         self._label.setStringValue_(f"✅ {display}")
         self._label.setTextColor_(NSColor.whiteColor())
 

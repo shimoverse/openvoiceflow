@@ -1,4 +1,10 @@
-name: Release DMG
+name: Release
+
+# Tag-driven release. Push a `v*.*.*` tag → wheel + sdist publish to PyPI
+# (via Trusted Publisher OIDC, no token needed) and split arm64/x86_64
+# DMGs attach to the GitHub Release. RC tags (e.g. v0.3.0-rc1) skip
+# PyPI publish so we can exercise the pipeline without burning the
+# version number.
 
 on:
   push:
@@ -6,8 +12,86 @@ on:
       - "v*"
 
 jobs:
+  # ────────────────────────────────────────────────────────────────────
+  # Gate: tag must match the version stamped in pyproject.toml + __init__
+  # ────────────────────────────────────────────────────────────────────
+  verify-version:
+    runs-on: ubuntu-latest
+    outputs:
+      is_prerelease: ${{ steps.classify.outputs.is_prerelease }}
+      version: ${{ steps.classify.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: classify
+        name: Verify tag ↔ pyproject ↔ __init__ agree, and classify pre-release
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          # Strip leading 'v' for comparison.
+          TAG_VERSION="${TAG#v}"
+          PYPROJECT_VERSION=$(python3 -c "import re,sys; m=re.search(r'^version\s*=\s*\"([^\"]+)\"', open('pyproject.toml').read(), re.M); print(m.group(1))")
+          INIT_VERSION=$(python3 -c "import re; m=re.search(r'__version__\s*=\s*\"([^\"]+)\"', open('voiceflow/__init__.py').read()); print(m.group(1))")
+          echo "tag=$TAG_VERSION pyproject=$PYPROJECT_VERSION init=$INIT_VERSION"
+          if [ "$TAG_VERSION" != "$PYPROJECT_VERSION" ]; then
+            echo "::error::tag $TAG_VERSION != pyproject.toml $PYPROJECT_VERSION"
+            exit 1
+          fi
+          if [ "$TAG_VERSION" != "$INIT_VERSION" ]; then
+            echo "::error::tag $TAG_VERSION != voiceflow/__init__.py $INIT_VERSION"
+            exit 1
+          fi
+          # Pre-release detection (rc, alpha, beta, dev).
+          if [[ "$TAG_VERSION" =~ (rc|alpha|beta|dev|a[0-9]+|b[0-9]+) ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version=$TAG_VERSION" >> "$GITHUB_OUTPUT"
+
+  # ────────────────────────────────────────────────────────────────────
+  # Build wheel + sdist; attach to GitHub Release; publish to PyPI on
+  # non-pre-release tags only.
+  # ────────────────────────────────────────────────────────────────────
+  publish-pypi:
+    needs: verify-version
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # Required for PyPI Trusted Publisher (OIDC)
+      contents: write   # Required for the GitHub Release upload
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+      - name: Build wheel + sdist
+        run: python -m build
+      - name: Twine check
+        run: twine check dist/*
+      - name: Upload sdist + wheel to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          prerelease: ${{ needs.verify-version.outputs.is_prerelease == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to PyPI (non-pre-release tags only)
+        if: needs.verify-version.outputs.is_prerelease == 'false'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # Trusted Publisher: configure on PyPI side first.
+        # https://docs.pypi.org/trusted-publishers/
+
+  # ────────────────────────────────────────────────────────────────────
+  # Build and attach DMGs (one arm64, one x86_64) on the same release.
+  # ────────────────────────────────────────────────────────────────────
   build-dmg:
+    needs: verify-version
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,9 +101,10 @@ jobs:
         run: pip install -e ".[all]"
       - name: Build DMG
         run: bash build-dmg.sh
-      - name: Upload to Release
+      - name: Upload DMGs to Release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.dmg
+          prerelease: ${{ needs.verify-version.outputs.is_prerelease == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

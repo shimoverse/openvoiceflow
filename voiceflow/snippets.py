@@ -22,9 +22,9 @@ def load_snippets() -> dict[str, str]:
 
 def save_snippets(snippets: dict[str, str]):
     """Save snippets to disk."""
+    from ._secure_io import secure_write_json
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(SNIPPETS_PATH, "w") as f:
-        json.dump(snippets, f, indent=2)
+    secure_write_json(SNIPPETS_PATH, snippets)
 
 
 def add_snippet(trigger: str, expansion: str):

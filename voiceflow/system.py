@@ -50,6 +50,8 @@ def log_transcript(raw: str, cleaned: str, config: dict):
     if not config.get("log_transcripts"):
         return
 
+    from ._secure_io import secure_chmod
+
     # BUG-020 fix: ensure log directory exists before writing
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     now = datetime.now()
@@ -59,6 +61,7 @@ def log_transcript(raw: str, cleaned: str, config: dict):
     entry = {"timestamp": now.isoformat(), "raw": raw, "cleaned": cleaned}
     with open(jsonl_file, "a") as f:
         f.write(json.dumps(entry) + "\n")
+    secure_chmod(jsonl_file)
 
     # Human-readable Markdown
     md_file = LOG_DIR / f"{now:%Y-%m-%d}.md"
@@ -67,3 +70,4 @@ def log_transcript(raw: str, cleaned: str, config: dict):
         if is_new:
             f.write(f"# OpenVoiceFlow — {now:%A, %B %d, %Y}\n\n")
         f.write(f"**{now:%I:%M %p}**\n{cleaned}\n\n")
+    secure_chmod(md_file)

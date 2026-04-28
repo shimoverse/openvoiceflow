@@ -494,8 +494,8 @@ class OnboardingWizard:
             if k not in self.config:
                 self.config[k] = v
 
-        with open(CONFIG_PATH, "w") as f:
-            json.dump(self.config, f, indent=2)
+        from ._secure_io import secure_write_json
+        secure_write_json(CONFIG_PATH, self.config)
 
         self.show_success()
 

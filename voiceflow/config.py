@@ -23,7 +23,9 @@ DEFAULTS = {
     "groq_api_key": None,
     "sound_feedback": True,
     "auto_paste": True,
-    "log_transcripts": True,
+    # Privacy defaults: opt-in only. Existing users who had this on keep it
+    # because load_config merges DEFAULTS first then `stored`.
+    "log_transcripts": False,
     "sample_rate": 16000,
     "channels": 1,
     "llm_prompt": None,  # Custom cleanup prompt; None = use default
@@ -77,8 +79,10 @@ DEFAULTS = {
     # Real-time streaming transcription (Feature 1)
     "streaming": True,             # Use whisper-stream for real-time transcription
     "streaming_step_ms": 3000,     # Audio step size in milliseconds for streaming
-    # Auto-learn corrections from user edits after paste
-    "auto_learn": True,            # Watch for post-paste corrections and add to dictionary
+    # Auto-learn corrections from user edits after paste.
+    # Strong privilege (reads focused text field via Accessibility API for
+    # 30 s post-paste). Opt-in only — gated by the Know Me interview.
+    "auto_learn": False,
     # Auto-update notifier
     "update_check": True,          # On launch, check GitHub Releases for a newer version
 }
@@ -134,8 +138,8 @@ def load_config() -> dict:
 
 def save_config(config: dict):
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(CONFIG_PATH, "w") as f:
-        json.dump(config, f, indent=2)
+    from ._secure_io import secure_write_json
+    secure_write_json(CONFIG_PATH, config)
 
 
 def get_api_key(config: dict, backend: str) -> str | None:

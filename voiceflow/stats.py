@@ -32,9 +32,9 @@ def load_stats() -> dict:
 
 def save_stats(stats: dict):
     """Save cumulative stats."""
+    from ._secure_io import secure_write_json
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(STATS_PATH, "w") as f:
-        json.dump(stats, f, indent=2)
+    secure_write_json(STATS_PATH, stats)
 
 
 def record_dictation(cleaned_text: str, duration_seconds: float):

@@ -40,9 +40,9 @@ def save_profile(profile: dict) -> None:
     Args:
         profile: Profile dict to save.
     """
+    from ._secure_io import secure_write_json
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    with open(PROFILE_PATH, "w") as f:
-        json.dump(profile, f, indent=2)
+    secure_write_json(PROFILE_PATH, profile)
 
 
 def has_profile() -> bool:

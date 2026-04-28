@@ -26,9 +26,9 @@ def load_dictionary() -> list[dict]:
 
 def save_dictionary(entries: list[dict]):
     """Save personal dictionary to disk."""
+    from ._secure_io import secure_write_json
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(DICTIONARY_PATH, "w") as f:
-        json.dump(entries, f, indent=2)
+    secure_write_json(DICTIONARY_PATH, entries)
 
 
 def add_word(word: str, aliases: list[str] | None = None):

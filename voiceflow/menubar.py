@@ -175,7 +175,8 @@ def run_menubar():
             return "✓ Auto-Style (per app)" if enabled else "  Auto-Style (per app)"
 
         def _auto_learn_label(self) -> str:
-            enabled = self.config.get("auto_learn", True)
+            # Default mirrors DEFAULTS["auto_learn"] (False in v0.3+; opt-in only).
+            enabled = self.config.get("auto_learn", False)
             return "✓ Auto-Learn Corrections" if enabled else "  Auto-Learn Corrections"
 
         def _update_detected_app(self):

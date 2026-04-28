@@ -469,25 +469,12 @@ class OnboardingWizard:
             self.config[key_field] = key
 
         # Set defaults for missing fields
-        defaults = {
-            "whisper_model": "base.en",
-            "sound_feedback": True,
-            "auto_paste": True,
-            "log_transcripts": True,
-            "language": "en",
-            "sample_rate": 16000,
-            "channels": 1,
-            "llm_prompt": (
-                "Clean up this voice dictation transcript. "
-                "Remove filler words (um, uh, like, you know), "
-                "fix grammar and punctuation, "
-                "handle corrections (e.g. 'no wait' means discard what came before), "
-                "and make it read naturally. "
-                "Keep the speaker's intent and tone. "
-                "Output ONLY the cleaned text, nothing else."
-            ),
-        }
-        for k, v in defaults.items():
+        # Backfill any missing keys from the canonical DEFAULTS rather than
+        # hardcoding a parallel dict here (the v0.2 hardcoded copy was the
+        # reason `log_transcripts` quietly stayed True for fresh wizard
+        # users even after the DEFAULTS-level flip in v0.3).
+        from .config import DEFAULTS as _CONFIG_DEFAULTS
+        for k, v in _CONFIG_DEFAULTS.items():
             if k not in self.config:
                 self.config[k] = v
 

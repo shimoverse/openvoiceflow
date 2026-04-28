@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import os
-import urllib.request
 import urllib.error
+import urllib.request
+
 from .base import LLMBackend
 
 
@@ -39,8 +40,14 @@ class GeminiBackend(LLMBackend):
             f"https://generativelanguage.googleapis.com/v1beta/models/"
             f"{self.model}:generateContent?key={self.api_key}"
         )
+        prompt_text = self._make_prompt(
+            raw_text,
+            context=context,
+            app_context=app_context,
+            override_style=override_style,
+        )
         payload = {
-            "contents": [{"parts": [{"text": self._make_prompt(raw_text, context=context, app_context=app_context, override_style=override_style)}]}],
+            "contents": [{"parts": [{"text": prompt_text}]}],
             "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048},
         }
         req = urllib.request.Request(

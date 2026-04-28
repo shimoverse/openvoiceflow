@@ -9,45 +9,30 @@ Falls back gracefully if PyObjC is not available (e.g., non-macOS or missing dep
 
 from __future__ import annotations
 
-import threading
-import time
-
 # PyObjC imports — graceful fallback if unavailable
 try:
     import objc
     from AppKit import (
-        NSApplication,
-        NSWindow,
-        NSView,
-        NSTextField,
+        NSAnimationContext,
+        NSBackingStoreBuffered,
         NSColor,
         NSFont,
+        NSMakeRect,
         NSScreen,
-        NSWindowStyleMaskBorderless,
-        NSWindowLevelFloating,
-        NSBackingStoreBuffered,
-        NSWindowCollectionBehaviorCanJoinAllSpaces,
-        NSWindowCollectionBehaviorStationary,
         NSTextAlignmentCenter,
-        NSVisualEffectView,
+        NSTextField,
+        NSViewHeightSizable,
+        NSViewWidthSizable,
         NSVisualEffectBlendingModeBehindWindow,
         NSVisualEffectMaterialHUDWindow,
-        NSLayoutAttributeCenterX,
-        NSLayoutAttributeCenterY,
-        NSLayoutAttributeWidth,
-        NSLayoutAttributeHeight,
-        NSLayoutConstraint,
-        NSLayoutRelationEqual,
-        NSAnimationContext,
-        NSViewWidthSizable,
-        NSViewHeightSizable,
-        NSImageView,
-        NSImage,
-        NSMakeRect,
-        NSBezierPath,
+        NSVisualEffectView,
+        NSWindow,
+        NSWindowCollectionBehaviorCanJoinAllSpaces,
+        NSWindowCollectionBehaviorStationary,
+        NSWindowLevelFloating,
+        NSWindowStyleMaskBorderless,
     )
-    from Foundation import NSTimer, NSRunLoop, NSDefaultRunLoopMode, NSObject
-    from Quartz import CGFloat
+    from Foundation import NSDefaultRunLoopMode, NSObject, NSRunLoop, NSTimer
     HAS_APPKIT = True
 except ImportError:
     HAS_APPKIT = False

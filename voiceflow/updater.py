@@ -6,10 +6,10 @@ if a newer version is available via macOS Notification Center.
 
 from __future__ import annotations
 
-import threading
 import json
-import urllib.request
+import threading
 import urllib.error
+import urllib.request
 from typing import Callable
 
 from . import __version__
@@ -84,7 +84,6 @@ def _check_worker(on_update_available: Callable | None) -> None:
 
     latest_tag = release.get("tag_name", "")
     release_url = release.get("html_url", "https://github.com/shimoverse/openvoiceflow/releases")
-    release_notes = release.get("body", "")
 
     latest_version = _parse_version(latest_tag)
     current_version = _parse_version(__version__)

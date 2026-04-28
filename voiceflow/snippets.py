@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+
 from .config import CONFIG_DIR
 
 SNIPPETS_PATH = os.path.join(CONFIG_DIR, "snippets.json")

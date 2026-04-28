@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
+
 from .base import LLMBackend
 
 
@@ -38,9 +39,15 @@ class OllamaBackend(LLMBackend):
         override_style: str | None = None,
     ) -> str:
         url = f"{self.base_url}/api/generate"
+        prompt_text = self._make_prompt(
+            raw_text,
+            context=context,
+            app_context=app_context,
+            override_style=override_style,
+        )
         payload = {
             "model": self.model,
-            "prompt": self._make_prompt(raw_text, context=context, app_context=app_context, override_style=override_style),
+            "prompt": prompt_text,
             "stream": False,
             "options": {"temperature": 0.1},
         }

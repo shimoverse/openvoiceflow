@@ -4,16 +4,17 @@ from __future__ import annotations
 
 import os
 import sys
-import time
 import tempfile
 import threading
-from .config import load_config, save_config, get_api_key
-from .recorder import AudioRecorder
-from .transcriber import find_whisper_cpp, get_model_path, download_model, transcribe
+import time
+
+from .config import load_config
 from .llm import cleanup_text
+from .recorder import AudioRecorder
 from .snippets import match_snippet
-from .system import paste_text, play_sound, log_transcript
 from .stats import record_dictation
+from .system import log_transcript, paste_text, play_sound
+from .transcriber import find_whisper_cpp, get_model_path, transcribe
 
 
 class OpenVoiceFlow:
@@ -67,12 +68,12 @@ class OpenVoiceFlow:
             size_mb = os.path.getsize(model_path) / (1024 * 1024)
             print(f"✅ Model: {self.config['whisper_model']} ({size_mb:.0f} MB)")
         else:
-            print(f"⚠️  Model not found. Will download on first use.")
+            print("⚠️  Model not found. Will download on first use.")
 
         # LLM backend
         backend = self.config.get("llm_backend", "gemini")
         if backend == "none":
-            print(f"✅ LLM cleanup: disabled (raw transcripts only)")
+            print("✅ LLM cleanup: disabled (raw transcripts only)")
         else:
             from .llm import get_backend
             b = get_backend(self.config)
@@ -87,7 +88,7 @@ class OpenVoiceFlow:
 
         # Audio
         try:
-            import sounddevice
+            import sounddevice  # noqa: F401  (availability check)
             print("✅ Audio input available")
         except ImportError:
             errors.append("sounddevice not installed. Run: pip install sounddevice")
@@ -312,7 +313,7 @@ class OpenVoiceFlow:
             print(f"📝 Raw (streaming): {raw_text}")
 
             # ── Feature: Voice commands (Feature 3) ─────────────────────────
-            from .commands import load_commands, apply_commands
+            from .commands import apply_commands, load_commands
             raw_text = apply_commands(raw_text, load_commands(self.config))
 
             # Snippet match before LLM cleanup
@@ -401,7 +402,7 @@ class OpenVoiceFlow:
 
             # ── Feature: Voice commands (Feature 3) ─────────────────────────
             # Apply spoken punctuation/formatting replacements before LLM cleanup.
-            from .commands import load_commands, apply_commands
+            from .commands import apply_commands, load_commands
             raw_text = apply_commands(raw_text, load_commands(self.config))
 
             # Check for snippet match before LLM cleanup
@@ -469,7 +470,7 @@ class OpenVoiceFlow:
 
         hotkey = self.config["hotkey"]
         print(f"\n🎤 Ready! Hold [{hotkey}] to dictate, release to process.")
-        print(f"   Press Ctrl+C to quit.\n")
+        print("   Press Ctrl+C to quit.\n")
 
         with Listener(
             on_press=self.on_key_press,

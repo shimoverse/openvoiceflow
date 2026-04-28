@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
-import sys
 import argparse
-from .config import (
-    load_config, save_config, get_api_key,
-    VALID_HOTKEYS, VALID_MODELS, VALID_BACKENDS, VALID_STYLES, validate_config
-)
+import sys
+
 from . import __version__
+from .config import (
+    VALID_BACKENDS,
+    VALID_HOTKEYS,
+    VALID_MODELS,
+    VALID_STYLES,
+    load_config,
+    save_config,
+    validate_config,
+)
 
 
 def main():
@@ -134,6 +140,12 @@ def main():
         dest="update_check",
         help="Enable/disable the GitHub release check on launch",
     )
+    # Transcript-logging opt-in (off by default for fresh installs)
+    parser.add_argument(
+        "--log-transcripts", choices=["on", "off"],
+        dest="log_transcripts",
+        help="Enable/disable saving every dictation to ~/.openvoiceflow/logs/",
+    )
 
     args = parser.parse_args()
 
@@ -143,7 +155,8 @@ def main():
     errors = validate_config(config)
     if errors:
         print("⚠️  Config issues detected:")
-        for e in errors: print(f"   • {e}")
+        for e in errors:
+            print(f"   • {e}")
         print("   Run: openvoiceflow --setup to fix\n")
 
     # --- Dictionary commands ---
@@ -308,7 +321,8 @@ def main():
 
     if args.show_profile:
         import json as _json
-        from .profile import load_profile, has_profile
+
+        from .profile import has_profile, load_profile
         if not has_profile():
             print("No profile found. Run: openvoiceflow --profile")
         else:
@@ -357,7 +371,7 @@ def main():
     if args.set_prompt:
         config["llm_prompt"] = args.set_prompt
         save_config(config)
-        print(f"✅ Custom LLM prompt saved.")
+        print("✅ Custom LLM prompt saved.")
 
     if args.clear_prompt:
         config["llm_prompt"] = None
@@ -414,8 +428,16 @@ def main():
         print(f"✅ Update check {state}.")
         return
 
+    if args.log_transcripts:
+        enabled = args.log_transcripts == "on"
+        config["log_transcripts"] = enabled
+        save_config(config)
+        state = "enabled" if enabled else "disabled"
+        print(f"✅ Transcript logging {state}.")
+        return
+
     if args.autostart:
-        from .autostart import set_autostart, get_autostart_status
+        from .autostart import set_autostart
         enabled = args.autostart == "on"
         success, msg = set_autostart(enabled)
         if success:
@@ -457,7 +479,7 @@ def main():
     if any([args.hotkey, args.model, args.backend, args.set_key, args.set_prompt,
             args.clear_prompt, args.language, args.style,
             args.streaming, args.streaming_step, args.auto_learn,
-            args.update_check]):
+            args.update_check, args.log_transcripts]):
         return
 
     # --- Startup update check (non-blocking; honors config["update_check"]) ---

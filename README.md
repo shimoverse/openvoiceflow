@@ -37,7 +37,14 @@ Other tools ask you to pay $144/year and trust their cloud. We don't.
 | Superwhisper | $85 | ❌ | ✅ | Partial | ✅ |
 | VoiceInk | Free (GPL) | ❌ PRs | ✅ | ❌ | ✅ |
 
-Your audio never leaves your Mac. Your corrections teach the app. Your wallet stays full.
+**Privacy at a glance:**
+- 🎤 **Audio** stays on your Mac. Always. Whisper.cpp runs locally with Metal GPU.
+- 📝 **Cleaned transcripts** go to the LLM provider you pick (Gemini, OpenAI, Anthropic, Groq) — *or stay on your Mac if you pick Ollama or "no cleanup"*.
+- 🔑 **API keys** live in `~/.openvoiceflow/config.json`, mode `600` (owner-only).
+- 📓 **Daily transcript logs** are off by default; opt in via `--log-transcripts on` if you want a searchable diary.
+- 🧠 **Auto-learn** is off by default; the Know Me interview asks before turning it on.
+
+Your wallet stays full. Your corrections teach the app. You decide what data leaves your Mac.
 
 <br/>
 

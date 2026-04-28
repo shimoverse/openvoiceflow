@@ -56,16 +56,18 @@ echo "📦 Installing Python packages..."
 echo -e "${GREEN}✅ Python environment ready${NC}"
 
 # --- Install OpenVoiceFlow (BUG-006 fix: clone repo if running via curl-pipe) ---
+# Use the [all] extra so users get the overlay HUD (pyobjc-framework-Cocoa)
+# and menubar (rumps) features without a second install step.
 echo "📥 Installing OpenVoiceFlow..."
 if [[ -f "$(dirname "$0")/pyproject.toml" ]] 2>/dev/null; then
     # Running from cloned repo directory
-    "$VENV_DIR/bin/pip" install -q .
+    "$VENV_DIR/bin/pip" install -q ".[all]"
 else
     # Running via curl-pipe — no source directory available; clone first
     REPO_DIR="$(mktemp -d)/openvoiceflow"
     git clone --depth=1 https://github.com/shimoverse/openvoiceflow.git "$REPO_DIR"
     cd "$REPO_DIR"
-    "$VENV_DIR/bin/pip" install -q .
+    "$VENV_DIR/bin/pip" install -q ".[all]"
 fi
 echo -e "${GREEN}✅ OpenVoiceFlow installed${NC}"
 

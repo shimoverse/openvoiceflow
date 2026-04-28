@@ -12,7 +12,13 @@ from .config import LOG_DIR
 
 
 def paste_text(text: str):
-    """Copy text to clipboard and paste at cursor (macOS)."""
+    """Copy text to clipboard and paste at cursor (macOS).
+
+    On Accessibility / Apple Events permission failure, surfaces a
+    user-visible notification + overlay banner via ``voiceflow.notify``
+    instead of an invisible stderr line. The user's text is still on
+    the clipboard, so a manual ⌘V always works as a fallback.
+    """
     process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
     process.communicate(text.encode("utf-8"))
     time.sleep(0.05)
@@ -26,9 +32,16 @@ def paste_text(text: str):
     )
     if result.returncode != 0:
         play_sound("error")
-        print(
-            "❌ Auto-paste failed. Grant Accessibility access: "
-            "System Settings → Privacy & Security → Accessibility → Terminal"
+        # System Events → Privacy_AppleEvents (this is the pane macOS opens
+        # when an unauthorized osascript-keystroke call is attempted).
+        from . import notify
+        notify.error(
+            "Auto-paste failed — your text is on the clipboard, ⌘V to paste manually. "
+            "Grant Accessibility access to enable auto-paste.",
+            action=(
+                "Open System Settings",
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            ),
         )
 
 

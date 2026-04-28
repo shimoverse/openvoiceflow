@@ -97,6 +97,13 @@ class OpenVoiceFlow:
             print("\n❌ Setup issues:")
             for e in errors:
                 print(f"   • {e}")
+            # B2: surface to menubar users + click-to-fix Notification Center.
+            from . import notify
+            notify.error(
+                "Setup incomplete — " + (errors[0] if len(errors) == 1
+                                          else f"{len(errors)} issues found"),
+                action=("Run openvoiceflow --doctor", None),
+            )
             return False
         return True
 
@@ -343,7 +350,10 @@ class OpenVoiceFlow:
                 print(f"✅ Clean ({t1-t0:.1f}s): {cleaned_text}")
 
             if self._overlay:
-                self._overlay.show_result(cleaned_text)
+                self._overlay.show_result(
+                    cleaned_text,
+                    timing=f"Cleanup {t1-t0:.1f}s",
+                )
 
             if self.config["auto_paste"]:
                 paste_text(cleaned_text)
@@ -431,8 +441,15 @@ class OpenVoiceFlow:
                 t3 = time.time()
                 print(f"✅ Clean ({t3-t2:.1f}s): {cleaned_text}")
 
+            # B3: per-dictation timing line — surfaces latency to user.
             if self._overlay:
-                self._overlay.show_result(cleaned_text)
+                if snippet_expansion:
+                    self._overlay.show_result(cleaned_text)
+                else:
+                    self._overlay.show_result(
+                        cleaned_text,
+                        timing=f"Whisper {t1-t0:.1f}s · Cleanup {t3-t2:.1f}s",
+                    )
 
             if self.config["auto_paste"]:
                 paste_text(cleaned_text)

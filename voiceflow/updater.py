@@ -3,6 +3,9 @@
 Checks GitHub releases on startup (non-blocking thread) and notifies the user
 if a newer version is available via macOS Notification Center.
 """
+
+from __future__ import annotations
+
 import threading
 import json
 import urllib.request
@@ -42,13 +45,28 @@ def _fetch_latest_release() -> dict | None:
     return None
 
 
-def check_for_updates(on_update_available: Callable[[str, str], None] | None = None) -> None:
+def check_for_updates(
+    config: dict | None = None,
+    on_update_available: Callable[[str, str], None] | None = None,
+) -> None:
     """Check for updates in a background thread (non-blocking).
 
     Args:
+        config: Optional loaded config dict. When ``config["update_check"]``
+            is False, this function returns immediately without spawning a
+            thread or making any network call. If ``config`` is None, loads
+            it lazily; if loading fails, defaults to checking (for back-compat).
         on_update_available: Optional callback(latest_version, release_url).
             If None, shows a macOS notification and prints to stdout.
     """
+    if config is None:
+        try:
+            from .config import load_config
+            config = load_config()
+        except Exception:
+            config = {}
+    if config.get("update_check", True) is False:
+        return
     thread = threading.Thread(
         target=_check_worker,
         args=(on_update_available,),

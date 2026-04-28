@@ -10,6 +10,8 @@ Usage:
     full_text = streamer.stop()
 """
 
+from __future__ import annotations
+
 import os
 import re
 import signal

@@ -1,4 +1,7 @@
 """System integration: paste, sound feedback, transcript logging."""
+
+from __future__ import annotations
+
 import os
 import json
 import subprocess

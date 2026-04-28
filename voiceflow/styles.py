@@ -3,6 +3,9 @@
 Each preset appends a style instruction to the base LLM prompt,
 adjusting the tone and formatting of the output text.
 """
+
+from __future__ import annotations
+
 from .config import VALID_STYLES
 
 # Style suffix added to the base prompt for each mode.

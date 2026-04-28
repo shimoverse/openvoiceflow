@@ -1,4 +1,7 @@
 """Voice snippets — say a trigger phrase and it expands to a text block."""
+
+from __future__ import annotations
+
 import json
 import os
 from .config import CONFIG_DIR

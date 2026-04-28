@@ -1,4 +1,7 @@
 """Abstract base class for LLM cleanup backends."""
+
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 DEFAULT_PROMPT = (

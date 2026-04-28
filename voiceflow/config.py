@@ -1,4 +1,7 @@
 """OpenVoiceFlow configuration management."""
+
+from __future__ import annotations
+
 import json
 import os
 from pathlib import Path
@@ -76,6 +79,8 @@ DEFAULTS = {
     "streaming_step_ms": 3000,     # Audio step size in milliseconds for streaming
     # Auto-learn corrections from user edits after paste
     "auto_learn": True,            # Watch for post-paste corrections and add to dictionary
+    # Auto-update notifier
+    "update_check": True,          # On launch, check GitHub Releases for a newer version
 }
 
 VALID_HOTKEYS = [
@@ -91,6 +96,21 @@ VALID_BACKENDS = ["gemini", "openai", "anthropic", "groq", "ollama", "none"]
 VALID_STYLES = ["default", "casual", "formal", "code", "email"]
 
 
+def _migrate_cleanup_to_llm_prompt(stored: dict) -> bool:
+    """Rename ``cleanup_prompt`` → ``llm_prompt`` for v0.1.x → v0.2+ upgrade.
+
+    Returns True if ``stored`` was mutated. The merged config still drops
+    the legacy key, but mutating ``stored`` lets the caller persist the
+    migrated form so it's a one-time event.
+    """
+    if "cleanup_prompt" not in stored:
+        return False
+    if "llm_prompt" not in stored:
+        stored["llm_prompt"] = stored["cleanup_prompt"]
+    del stored["cleanup_prompt"]
+    return True
+
+
 def load_config() -> dict:
     os.makedirs(CONFIG_DIR, exist_ok=True)
     if not os.path.exists(CONFIG_PATH):
@@ -98,9 +118,17 @@ def load_config() -> dict:
         return dict(DEFAULTS)
     with open(CONFIG_PATH) as f:
         stored = json.load(f)
+    migrated = _migrate_cleanup_to_llm_prompt(stored)
     # Merge with defaults so new fields are always present
     config = dict(DEFAULTS)
     config.update(stored)
+    if migrated:
+        # Persist so the rename is a one-time event.
+        save_config(stored)
+        print(
+            "ℹ️  Migrated config key `cleanup_prompt` → `llm_prompt` "
+            "(v0.1 → v0.2+ rename). Your custom prompt is preserved."
+        )
     return config
 
 

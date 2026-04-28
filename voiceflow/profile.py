@@ -8,6 +8,9 @@ knows how to spell your kid's name.
 Profile is stored at ~/.openvoiceflow/profile.json and never leaves the
 user's machine.
 """
+
+from __future__ import annotations
+
 import json
 import os
 from pathlib import Path

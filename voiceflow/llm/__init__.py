@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from .anthropic_backend import AnthropicBackend
 from .base import LLMBackend
 from .gemini import GeminiBackend
-from .openai_backend import OpenAIBackend
-from .anthropic_backend import AnthropicBackend
 from .groq_backend import GroqBackend
 from .ollama_backend import OllamaBackend
+from .openai_backend import OpenAIBackend
 
 BACKENDS = {
     "gemini": GeminiBackend,

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import difflib
 import threading
-from typing import TYPE_CHECKING
 
 # ---------------------------------------------------------------------------
 # Accessibility API — optional; gracefully absent on non-macOS or missing PyObjC
@@ -24,8 +23,8 @@ from typing import TYPE_CHECKING
 
 try:
     from ApplicationServices import (  # type: ignore[import]
-        AXUIElementCreateSystemWide,
         AXUIElementCopyAttributeValue,
+        AXUIElementCreateSystemWide,
         kAXFocusedUIElementAttribute,
         kAXValueAttribute,
     )
@@ -104,7 +103,6 @@ class CorrectionWatcher:
 
     def _run_watch_loop(self) -> None:
         """Core sampling logic, extracted for clarity."""
-        import time
 
         prev_interval = 0
         for interval in _WATCH_INTERVALS:
@@ -232,7 +230,7 @@ class CorrectionWatcher:
         Silently skips if the corrected word is already in the dictionary.
         """
         try:
-            from .dictionary import load_dictionary, add_word
+            from .dictionary import add_word, load_dictionary
 
             # Don't re-learn words already present
             existing = [e["word"].lower() for e in load_dictionary()]

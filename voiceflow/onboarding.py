@@ -12,17 +12,14 @@ Uses tkinter (built into macOS Python — no extra dependencies).
 
 from __future__ import annotations
 
-import sys
-import os
 import json
+import sys
 import webbrowser
-import threading
-import subprocess
 from pathlib import Path
 
 try:
     import tkinter as tk
-    from tkinter import ttk, messagebox, font as tkfont
+    from tkinter import messagebox
     HAS_TKINTER = True
 except ImportError:
     HAS_TKINTER = False
@@ -575,7 +572,6 @@ def _launch_interview() -> None:
     no-op without the user knowing why. Now: print to stderr and, when
     tkinter is available, show an error dialog with a re-run hint.
     """
-    import sys
     import traceback
 
     try:

@@ -80,8 +80,8 @@ class LLMBackend(ABC):
         if override_style and override_style != self.config.get("style", "default"):
             base = self.config.get("llm_prompt") or DEFAULT_PROMPT
             from ..dictionary import get_dictionary_prompt_fragment
-            from ..snippets import get_snippets_prompt_fragment
             from ..profile import get_profile_prompt_fragment
+            from ..snippets import get_snippets_prompt_fragment
             style_suffix = STYLE_PRESETS.get(override_style, "")
             base_prompt = (
                 base

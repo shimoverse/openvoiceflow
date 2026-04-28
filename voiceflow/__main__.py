@@ -146,6 +146,15 @@ def main():
         dest="log_transcripts",
         help="Enable/disable saving every dictation to ~/.openvoiceflow/logs/",
     )
+    # Self-diagnosis
+    parser.add_argument(
+        "--doctor", action="store_true",
+        help="Run a setup self-check (brew, whisper, model, API key, perms, file modes).",
+    )
+    parser.add_argument(
+        "--json", dest="json_output", action="store_true",
+        help="With --doctor, emit JSON instead of a pretty table.",
+    )
 
     args = parser.parse_args()
 
@@ -475,6 +484,11 @@ def main():
             print(f"  [{ts}] {display}")
             print(f"   ↳ {entry['file']}")
         sys.exit(0)
+
+    # Self-diagnosis short-circuits everything else.
+    if args.doctor:
+        from .doctor import run_doctor_cli
+        sys.exit(run_doctor_cli(config, json_output=args.json_output))
 
     if any([args.hotkey, args.model, args.backend, args.set_key, args.set_prompt,
             args.clear_prompt, args.language, args.style,

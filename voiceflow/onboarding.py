@@ -9,6 +9,9 @@ A step-by-step setup experience:
 
 Uses tkinter (built into macOS Python — no extra dependencies).
 """
+
+from __future__ import annotations
+
 import sys
 import os
 import json
@@ -552,11 +555,7 @@ class OnboardingWizard:
         """Close setup wizard and immediately open the Know Me interview."""
         self.root.destroy()
         # Run the personalization interview — it creates its own Tk window
-        try:
-            from .interview import run_interview
-            run_interview()
-        except Exception:
-            pass  # Interview errors must not crash the app launch
+        _launch_interview()
 
     def launch_and_close(self):
         """Close wizard and launch OpenVoiceFlow (no personalization)."""
@@ -566,6 +565,37 @@ class OnboardingWizard:
         """Start the wizard."""
         self.root.mainloop()
         return self.config
+
+
+def _launch_interview() -> None:
+    """Run the Know Me interview and surface any failure to the user.
+
+    Previously wrapped in ``try/except: pass`` (SS6) which silently hid every
+    error, so the flagship "Personalize OpenVoiceFlow ✨" button could
+    no-op without the user knowing why. Now: print to stderr and, when
+    tkinter is available, show an error dialog with a re-run hint.
+    """
+    import sys
+    import traceback
+
+    try:
+        from .interview import run_interview
+        run_interview()
+    except Exception as exc:
+        print(f"❌ Personalization couldn't start: {exc}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        if HAS_TKINTER:
+            try:
+                messagebox.showerror(
+                    "Personalization couldn't start",
+                    f"{exc}\n\n"
+                    "You can re-run it any time with:\n"
+                    "  openvoiceflow --interview",
+                )
+            except Exception:
+                # If the error dialog itself fails, the stderr output above
+                # is the user's diagnostic surface.
+                pass
 
 
 def run_onboarding():

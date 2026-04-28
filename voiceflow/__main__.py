@@ -1,4 +1,7 @@
 """OpenVoiceFlow CLI entry point."""
+
+from __future__ import annotations
+
 import sys
 import argparse
 from .config import (
@@ -124,6 +127,12 @@ def main():
         "--auto-learn", choices=["on", "off"],
         dest="auto_learn",
         help="Enable/disable auto-learning corrections from post-paste edits",
+    )
+    # Update-check opt-out
+    parser.add_argument(
+        "--update-check", choices=["on", "off"],
+        dest="update_check",
+        help="Enable/disable the GitHub release check on launch",
     )
 
     args = parser.parse_args()
@@ -397,6 +406,14 @@ def main():
         print(f"✅ Auto-learn corrections {state}.")
         return
 
+    if args.update_check:
+        enabled = args.update_check == "on"
+        config["update_check"] = enabled
+        save_config(config)
+        state = "enabled" if enabled else "disabled"
+        print(f"✅ Update check {state}.")
+        return
+
     if args.autostart:
         from .autostart import set_autostart, get_autostart_status
         enabled = args.autostart == "on"
@@ -439,13 +456,14 @@ def main():
 
     if any([args.hotkey, args.model, args.backend, args.set_key, args.set_prompt,
             args.clear_prompt, args.language, args.style,
-            args.streaming, args.streaming_step, args.auto_learn]):
+            args.streaming, args.streaming_step, args.auto_learn,
+            args.update_check]):
         return
 
-    # --- Startup update check (non-blocking) ---
+    # --- Startup update check (non-blocking; honors config["update_check"]) ---
     try:
         from .updater import check_for_updates
-        check_for_updates()
+        check_for_updates(config=config)
     except Exception:
         pass
 

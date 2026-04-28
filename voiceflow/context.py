@@ -7,6 +7,8 @@ PyObjC is an optional dependency (also used by overlay.py).  Falls back
 gracefully when unavailable (non-macOS or missing optional deps).
 """
 
+from __future__ import annotations
+
 # ---------------------------------------------------------------------------
 # Frontmost app detection
 # ---------------------------------------------------------------------------

@@ -6,6 +6,9 @@ the cleaned text result.
 
 Falls back gracefully if PyObjC is not available (e.g., non-macOS or missing deps).
 """
+
+from __future__ import annotations
+
 import threading
 import time
 
@@ -59,40 +62,47 @@ class OverlayState:
     ERROR = "error"
 
 
-class _OverlayAnimator(NSObject):
-    """NSObject subclass to handle animation timer callbacks."""
+# Define _OverlayAnimator only when PyObjC/AppKit is available.
+# Without AppKit there is no NSObject base class, and the animator is
+# never instantiated anyway (FloatingOverlay short-circuits when
+# HAS_APPKIT is False), so the symbol can simply be absent.
+if HAS_APPKIT:
+    class _OverlayAnimator(NSObject):
+        """NSObject subclass to handle animation timer callbacks."""
 
-    def init(self):
-        self = objc.super(_OverlayAnimator, self).init()
-        if self is None:
-            return None
-        self._dot_count = 0
-        self._label = None
-        self._timer = None
-        return self
-
-    def setLabel_(self, label):
-        self._label = label
-
-    def startProcessingAnimation(self):
-        """Start the processing dots animation."""
-        self._dot_count = 0
-        self._timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-            0.4, self, b"animateDots:", None, True
-        )
-        NSRunLoop.currentRunLoop().addTimer_forMode_(self._timer, NSDefaultRunLoopMode)
-
-    def stopAnimation(self):
-        if self._timer:
-            self._timer.invalidate()
+        def init(self):
+            self = objc.super(_OverlayAnimator, self).init()
+            if self is None:
+                return None
+            self._dot_count = 0
+            self._label = None
             self._timer = None
+            return self
 
-    def animateDots_(self, timer):
-        """Timer callback for processing animation."""
-        self._dot_count = (self._dot_count + 1) % 4
-        dots = "." * self._dot_count
-        if self._label:
-            self._label.setStringValue_(f"Processing{dots}")
+        def setLabel_(self, label):
+            self._label = label
+
+        def startProcessingAnimation(self):
+            """Start the processing dots animation."""
+            self._dot_count = 0
+            self._timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+                0.4, self, b"animateDots:", None, True
+            )
+            NSRunLoop.currentRunLoop().addTimer_forMode_(self._timer, NSDefaultRunLoopMode)
+
+        def stopAnimation(self):
+            if self._timer:
+                self._timer.invalidate()
+                self._timer = None
+
+        def animateDots_(self, timer):
+            """Timer callback for processing animation."""
+            self._dot_count = (self._dot_count + 1) % 4
+            dots = "." * self._dot_count
+            if self._label:
+                self._label.setStringValue_(f"Processing{dots}")
+else:
+    _OverlayAnimator = None  # type: ignore[assignment]
 
 
 class FloatingOverlay:

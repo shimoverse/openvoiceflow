@@ -1,4 +1,7 @@
 """OpenVoiceFlow macOS menu bar app using rumps."""
+
+from __future__ import annotations
+
 import sys
 import threading
 

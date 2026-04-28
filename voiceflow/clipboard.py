@@ -4,6 +4,9 @@ Captures the currently selected text in the frontmost application by
 temporarily simulating Cmd+C and reading the pasteboard, then restoring
 the original clipboard contents to avoid disrupting the user.
 """
+
+from __future__ import annotations
+
 import subprocess
 import time
 

@@ -5,6 +5,9 @@ OpenVoiceFlow starts automatically on macOS login.
 
 Supports macOS 12+ on both Apple Silicon and Intel.
 """
+
+from __future__ import annotations
+
 import os
 import subprocess
 import sys

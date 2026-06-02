@@ -9,8 +9,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 
 def test_check_status_enum_has_three_levels() -> None:
     from voiceflow.doctor import Status
@@ -90,11 +88,11 @@ def test_check_model_missing(monkeypatch, tmp_path) -> None:
 
 def test_check_api_key_no_key(monkeypatch) -> None:
     from voiceflow import doctor
-    config = {"llm_backend": "gemini", "gemini_api_key": ""}
+    config = {"llm_backend": "openrouter", "openrouter_api_key": ""}
     result = doctor.check_api_key(config)
     assert result.status == doctor.Status.FAIL
     assert result.fix is not None
-    assert "aistudio" in (result.fix.url or "")
+    assert "openrouter" in (result.fix.url or "")
 
 
 def test_check_api_key_none_backend(monkeypatch) -> None:
@@ -156,18 +154,18 @@ def test_format_checks_text_renders(monkeypatch) -> None:
 
 
 def test_format_checks_json_renders(monkeypatch) -> None:
-    from voiceflow.doctor import Check, Status, Fix, format_checks_json
+    from voiceflow.doctor import Check, Fix, Status, format_checks_json
     checks = [
         Check(
             name="api_key", status=Status.FAIL,
-            description="No Gemini key",
-            fix=Fix(label="Get a key", url="https://aistudio.google.com/apikey"),
+            description="No OpenRouter key",
+            fix=Fix(label="Get a key", url="https://openrouter.ai/keys"),
         ),
     ]
     parsed = json.loads(format_checks_json(checks))
     assert parsed["checks"][0]["name"] == "api_key"
     assert parsed["checks"][0]["status"] == "FAIL"
-    assert parsed["checks"][0]["fix"]["url"] == "https://aistudio.google.com/apikey"
+    assert parsed["checks"][0]["fix"]["url"] == "https://openrouter.ai/keys"
 
 
 def test_doctor_cli_flag(monkeypatch, capsys) -> None:

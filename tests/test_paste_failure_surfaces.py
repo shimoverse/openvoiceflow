@@ -9,12 +9,10 @@ at System Settings → Privacy & Security → Accessibility.
 """
 from __future__ import annotations
 
-from unittest.mock import patch
-
 
 def test_paste_failure_calls_notify_error(monkeypatch) -> None:
-    import voiceflow.system as sysmod
     import voiceflow.notify as notify
+    import voiceflow.system as sysmod
 
     notify_calls: list[dict] = []
 
@@ -64,8 +62,8 @@ def test_paste_failure_calls_notify_error(monkeypatch) -> None:
 
 def test_paste_success_does_not_notify(monkeypatch) -> None:
     """Happy path: no notify calls."""
-    import voiceflow.system as sysmod
     import voiceflow.notify as notify
+    import voiceflow.system as sysmod
 
     notify_calls: list = []
     monkeypatch.setattr(notify, "error", lambda *a, **kw: notify_calls.append(("error", a, kw)))

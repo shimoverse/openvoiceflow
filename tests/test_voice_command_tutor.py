@@ -18,8 +18,6 @@ test pins the heuristic + the once_key contract:
 """
 from __future__ import annotations
 
-import pytest
-
 
 def test_punct_phoneme_detection() -> None:
     from voiceflow.app import _has_punct_phoneme

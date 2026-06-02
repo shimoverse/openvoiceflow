@@ -59,9 +59,9 @@ Upstream license: <https://github.com/ggerganov/whisper.cpp/blob/master/LICENSE>
 
 ## 4. LLM provider SDKs — none bundled
 
-OpenVoiceFlow's LLM backends (Gemini, Groq, OpenAI, Anthropic, Ollama) are implemented in `voiceflow/llm/*.py` using only the Python standard library — `urllib`, `json`, `ssl`. No vendor SDK is shipped or required.
+OpenVoiceFlow's LLM backends (OpenRouter, Groq, OpenAI, Anthropic, Ollama) are implemented in `voiceflow/llm/*.py` using only the Python standard library — `urllib`, `json`, `ssl`. No vendor SDK is shipped or required.
 
-This means there is no `google-generativeai`, `openai`, `anthropic`, or `groq` SDK in our dependency tree, and consequently no licensing obligation flowing from those SDKs.
+This means there is no OpenRouter, `openai`, `anthropic`, or `groq` SDK in our dependency tree, and consequently no licensing obligation flowing from those SDKs.
 
 ## 5. Bundled docs, fonts, and assets
 
@@ -92,7 +92,7 @@ There is **no GPL-2.0-or-later or GPL-3.0 obligation** propagating to OpenVoiceF
 
 ## 8. Trademark notice
 
-The names "Gemini", "GPT-4o", "Claude", "Llama", "Whisper", "Homebrew", "macOS", and "Apple Silicon" are trademarks of their respective owners. OpenVoiceFlow references them descriptively to identify the third-party services or platforms it interoperates with, and does not claim affiliation with, endorsement by, or sponsorship from any of those owners.
+The names "OpenRouter", "Gemma", "GPT-4o", "Claude", "Llama", "Whisper", "Homebrew", "macOS", and "Apple Silicon" are trademarks of their respective owners. OpenVoiceFlow references them descriptively to identify the third-party services or platforms it interoperates with, and does not claim affiliation with, endorsement by, or sponsorship from any of those owners.
 
 ---
 

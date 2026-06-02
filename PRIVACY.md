@@ -9,7 +9,7 @@ This policy applies to OpenVoiceFlow `v0.3.x`. For older versions, check `git lo
 ## 1. TL;DR
 
 - **Your audio never leaves your Mac.** Transcription happens locally via `whisper.cpp` (and optionally `whisper-stream`). There is no audio upload, ever.
-- **Your cleaned text goes wherever you tell it to.** The default LLM backend is Google Gemini (cloud). You can switch to OpenAI / Anthropic / Groq, run Ollama locally, or pick `none` to skip the LLM step entirely.
+- **Your cleaned text goes wherever you tell it to.** The default LLM backend is OpenRouter Gemma 4 (cloud). You can switch to OpenAI / Anthropic / Groq, run Ollama locally, or pick `none` to skip the LLM step entirely.
 - **OpenVoiceFlow has no servers.** No telemetry, no analytics, no crash reports, no accounts, no cloud sync. The only thing the app phones home for is a once-per-launch GitHub API check for a newer release, and that's opt-out.
 - **Everything is on your disk, in your home directory.** API keys, profile, dictionary, snippets, optional logs — all in `~/.openvoiceflow/`, all `chmod 600` (owner-only). You can delete the folder at any time and the app forgets you.
 
@@ -22,13 +22,13 @@ Everything OpenVoiceFlow knows about you lives in one of the rows below.
 | Artifact | Where it lives | What it contains | Default state | Goes off the Mac? |
 |---|---|---|---|---|
 | **Audio buffers** | RAM, then a temp WAV file | Your raw microphone audio while you hold the hotkey | Always on (it's how dictation works) | **No.** Sent to local `whisper.cpp` only. Temp WAV is deleted in a `finally` block after transcription. |
-| **Cleaned transcripts (Gemini)** | In transit to `generativelanguage.googleapis.com` | The transcribed text + your system prompt, profile snippet, and any selected-text context | Default backend | **Yes** — to Google. You contract directly with Google under their Gemini API terms. |
+| **Cleaned transcripts (OpenRouter)** | In transit to `openrouter.ai` | The transcribed text + your system prompt, profile snippet, and any selected-text context | Default backend | **Yes** — to OpenRouter. You contract directly with OpenRouter under its terms. |
 | **Cleaned transcripts (OpenAI)** | In transit to `api.openai.com` | Same as above | If you pick `--backend openai` | **Yes** — to OpenAI. |
 | **Cleaned transcripts (Anthropic)** | In transit to `api.anthropic.com` | Same as above | If you pick `--backend anthropic` | **Yes** — to Anthropic. |
 | **Cleaned transcripts (Groq)** | In transit to `api.groq.com` | Same as above | If you pick `--backend groq` | **Yes** — to Groq. |
 | **Cleaned transcripts (Ollama)** | In transit to `http://localhost:11434` | Same as above | If you pick `--backend ollama` | **No.** Stays on the Mac (or wherever you point Ollama). |
 | **Cleaned transcripts (none)** | Nowhere | The Whisper output is pasted directly with no LLM cleanup | If you pick `--backend none` | **No.** No LLM call is made at all. |
-| **`config.json`** | `~/.openvoiceflow/config.json`, mode `600` | Hotkey, model, backend choice, all four cloud API keys (plaintext) | Created on first run | **No.** |
+| **`config.json`** | `~/.openvoiceflow/config.json`, mode `600` | Hotkey, model, backend choice, cloud API keys (plaintext) | Created on first run | **No.** |
 | **`profile.json`** | `~/.openvoiceflow/profile.json`, mode `600` | Your name, occupation, industry, names of people/tools you mention, communication style. | Empty until you complete the **Know Me** interview. | **No** — but the profile is injected into every LLM call's system prompt, so the chosen backend sees it. |
 | **`dictionary.json`** | `~/.openvoiceflow/dictionary.json`, mode `600` | A list of `{word, aliases}` entries you've added | Empty until you add words via `--add-word` or the menubar | **No** — but words you add are injected into LLM system prompts, like the profile. |
 | **`snippets.json`** | `~/.openvoiceflow/snippets.json`, mode `600` | Voice triggers and their expansions (e.g. `"my email" → "..."`). May contain signature blocks. | Empty until you add snippets | **No** — but expansions become part of dictated text and follow whatever path you've set for that text. |
@@ -50,7 +50,7 @@ Everything OpenVoiceFlow knows about you lives in one of the rows below.
                                                   │
                                   ┌───────────────┼────────────────┐
                                   ▼               ▼                ▼
-                              Gemini /         Ollama            none
+                              OpenRouter /     Ollama            none
                               OpenAI /        (local)         (no call)
                               Anthropic /
                               Groq (cloud)
@@ -73,7 +73,7 @@ OpenVoiceFlow itself is **not** a sub-processor of your data. We have no servers
 
 The third parties your install can talk to:
 
-- **Google Gemini** (`generativelanguage.googleapis.com`) — receives your cleaned transcript + profile + dictionary + selected-text context every time you dictate, **if** Gemini is your backend (the default). Governed by Google's Gemini API terms.
+- **OpenRouter** (`openrouter.ai`) — receives your cleaned transcript + profile + dictionary + selected-text context every time you dictate, **if** OpenRouter is your backend (the default). Governed by OpenRouter's terms.
 - **OpenAI** (`api.openai.com`) — same data, only if you pick `--backend openai`. Governed by OpenAI's API terms.
 - **Anthropic** (`api.anthropic.com`) — same data, only if you pick `--backend anthropic`. Governed by Anthropic's API terms.
 - **Groq** (`api.groq.com`) — same data, only if you pick `--backend groq`. Governed by Groq's API terms.
@@ -89,7 +89,7 @@ If you set `--backend ollama` or `--backend none` and leave `--update-check off`
 
 When you trigger dictation with text selected in the focused app, OpenVoiceFlow reads that selection (via the macOS Accessibility API) and sends it to the LLM as part of the user message, so the cleanup can match the surrounding context. Two implications worth flagging:
 
-- Whatever you have selected when you start dictating goes to your chosen LLM backend. If that's Gemini/OpenAI/Anthropic/Groq, treat selected text the same way you'd treat anything you paste into a chat with that provider.
+- Whatever you have selected when you start dictating goes to your chosen LLM backend. If that's OpenRouter/OpenAI/Anthropic/Groq, treat selected text the same way you'd treat anything you paste into a chat with that provider.
 - This behavior is controlled by the `selected_text_context` config key (on by default). There is no current CLI flag to toggle it; edit `~/.openvoiceflow/config.json` to disable. (Tracked as a v0.3 follow-up.)
 
 ---
@@ -116,7 +116,7 @@ Every privacy-relevant default is one CLI flag away.
 | `log_transcripts` | **off** | Writes every dictation (raw + cleaned) to `~/.openvoiceflow/logs/`. | `--log-transcripts on/off` |
 | `auto_learn` | **off** | Reads the focused text field for 30 s post-paste to learn corrections. | `--auto-learn on/off` |
 | `update_check` | on | Once-per-launch GitHub API check for a newer release. | `--update-check on/off` |
-| `llm_backend` | `gemini` | Which LLM backend (or none) cleans up your transcript. | `--backend gemini\|openai\|anthropic\|groq\|ollama\|none` |
+| `llm_backend` | `openrouter` | Which LLM backend (or none) cleans up your transcript. | `--backend openrouter\|openai\|anthropic\|groq\|ollama\|none` |
 | `voice_commands` | on | Replaces spoken punctuation phrases ("new line", "comma") locally, before any LLM call. | `--voice-commands on/off` |
 | `streaming` | on | Uses `whisper-stream` for real-time partial transcription. Audio still never leaves your Mac. | `--streaming on/off` |
 | `auto_style` | on | Switches dictation style based on the frontmost app. Reads only the app name (via Apple Events), not its content. | `--auto-style on/off` |
@@ -145,7 +145,7 @@ OpenVoiceFlow is a **bring-your-own-key (BYOK), self-managed, personal-productiv
 - **OpenVoiceFlow is not a controller or processor** of your personal data under GDPR. We don't run servers and we have no copy of anything you dictate, store, or configure.
 - **You are the controller** of the data on your Mac. You decide whether to fill out the Know Me interview, whether to log transcripts, and which LLM backend (if any) to use.
 - **Each LLM provider you choose is an independent controller / processor** for the text you send them. If you need a Data Processing Addendum (DPA), Standard Contractual Clauses, or any other GDPR paperwork, you negotiate that **directly with that provider** under your own account. OpenVoiceFlow cannot sign a DPA on their behalf and does not pretend to.
-- **EU users:** if your dictations contain personal data and you point the app at a non-EU cloud LLM (Gemini, OpenAI, Anthropic, Groq), you are responsible for the lawful basis and the international-transfer story. The simplest way to take all three providers out of the picture is `--backend ollama` or `--backend none`.
+- **EU users:** if your dictations contain personal data and you point the app at a non-EU cloud LLM (OpenRouter, OpenAI, Anthropic, Groq), you are responsible for the lawful basis and the international-transfer story. The simplest way to take every cloud provider out of the picture is `--backend ollama` or `--backend none`.
 - **Regulated industries (healthcare, legal, financial, government):** OpenVoiceFlow has no SOC 2, no ISO 27001, no HIPAA BAA, and no FedRAMP. Don't use it for regulated data unless you have your own compliance overlay (your own DPA with the LLM provider, your own air-gapped Ollama deployment, your own organizational controls).
 
 ---

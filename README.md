@@ -39,7 +39,7 @@ Other tools ask you to pay $144/year and trust their cloud. We don't.
 
 **Privacy at a glance:**
 - 🎤 **Audio** stays on your Mac. Always. Whisper.cpp runs locally with Metal GPU.
-- 📝 **Cleaned transcripts** go to the LLM provider you pick (Gemini, OpenAI, Anthropic, Groq) — *or stay on your Mac if you pick Ollama or "no cleanup"*.
+- 📝 **Cleaned transcripts** go to the LLM provider you pick (OpenRouter, OpenAI, Anthropic, Groq) — *or stay on your Mac if you pick Ollama or "no cleanup"*.
 - 🔑 **API keys** live in `~/.openvoiceflow/config.json`, mode `600` (owner-only).
 - 📓 **Daily transcript logs** are off by default; opt in via `--log-transcripts on` if you want a searchable diary.
 - 🧠 **Auto-learn** is off by default; the Know Me interview asks before turning it on.
@@ -102,7 +102,7 @@ brew install whisper-cpp
 git clone https://github.com/shimoverse/openvoiceflow.git && cd openvoiceflow
 python3 -m venv ~/.openvoiceflow/venv
 ~/.openvoiceflow/venv/bin/pip install -e ".[all]"
-openvoiceflow --set-key gemini YOUR_KEY_HERE
+openvoiceflow --set-key openrouter YOUR_KEY_HERE
 openvoiceflow
 ```
 
@@ -120,7 +120,7 @@ Pick what matters to you: cost, speed, or total privacy.
 
 | Backend | Cost | Speed | Privacy | Best For |
 |:--------|:----:|:-----:|:-------:|:---------|
-| **Gemini Flash** ⭐ | ~$3/yr | Fast | Cloud | Most users. Free tier available. |
+| **OpenRouter Gemma 4** ⭐ | OpenRouter pricing/free tiers | Fast | Cloud | Default cloud cleanup via `google/gemma-4-31b-it`. |
 | **Groq** | Free tier | Fastest | Cloud | Speed demons. 30 req/min free. |
 | **OpenAI** | ~$5/yr | Fast | Cloud | GPT ecosystem fans. |
 | **Claude** | ~$8/yr | Fast | Cloud | Anthropic users. |
@@ -128,11 +128,11 @@ Pick what matters to you: cost, speed, or total privacy.
 | **None** | $0 | Instant | Local | Raw whisper output, no cleanup. |
 
 ```bash
-openvoiceflow --backend gemini --set-key gemini YOUR_KEY
+openvoiceflow --backend openrouter --set-key openrouter YOUR_KEY
 openvoiceflow --backend ollama    # fully local, $0
 ```
 
-**Get a free key:** [Gemini](https://aistudio.google.com/apikey) · [Groq](https://console.groq.com/keys)
+**Get a key:** [OpenRouter](https://openrouter.ai/keys) · [Groq](https://console.groq.com/keys)
 
 <br/>
 
@@ -445,7 +445,8 @@ Everything lives in `~/.openvoiceflow/`:
 {
   "hotkey": "right_cmd",
   "whisper_model": "base.en",
-  "llm_backend": "gemini",
+  "llm_backend": "openrouter",
+  "openrouter_model": "google/gemma-4-31b-it",
   "sound_feedback": true,
   "auto_paste": true,
   "language": "en",
@@ -494,7 +495,7 @@ Launch:
   --show-config                    Print current config
 
 Backend & Model:
-  --backend BACKEND                gemini / openai / anthropic / groq / ollama / none
+  --backend BACKEND                openrouter / openai / anthropic / groq / ollama / none
   --model MODEL                    Whisper model
   --set-key BACKEND KEY            Save API key
   --language LANG                  Transcription language (en, es, auto, ...)

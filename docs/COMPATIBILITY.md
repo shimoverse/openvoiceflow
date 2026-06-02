@@ -54,7 +54,7 @@ OpenVoiceFlow talks to LLM providers over plain HTTPS via `urllib`. No vendor SD
 
 | Backend     | Default model in v0.3            | Auth                         | Region        | Streaming response? | Notes                                                       |
 | ----------- | -------------------------------- | ---------------------------- | ------------- | ------------------- | ----------------------------------------------------------- |
-| `gemini`    | `gemini-2.0-flash-lite`          | `gemini_api_key` (Google AI) | Google global | No (single-shot)    | Default for new installs. Free tier available.              |
+| `openrouter` | `google/gemma-4-31b-it`         | `openrouter_api_key` or `OPENROUTER_API_KEY` | OpenRouter global | No (single-shot) | Default for new installs; OpenAI-compatible endpoint.       |
 | `groq`      | `llama-3.1-8b-instant`           | `groq_api_key`                | Groq global   | No (single-shot)    | Fastest cloud option; free tier with rate limits.           |
 | `openai`    | `gpt-4o-mini`                    | `openai_api_key`              | OpenAI global | No (single-shot)    | Standard OpenAI Chat Completions endpoint.                  |
 | `anthropic` | `claude-3-5-haiku-20241022`      | `anthropic_api_key`           | Anthropic     | No (single-shot)    | Standard Messages API.                                      |

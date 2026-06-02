@@ -120,7 +120,7 @@ import json, sys
 try:
     cfg = json.load(open('$CONFIG_FILE'))
     backend = cfg.get('llm_backend', '')
-    has_key = any(cfg.get(f'{b}_api_key') for b in ['gemini','openai','anthropic','groq'])
+    has_key = any(cfg.get(f'{b}_api_key') for b in ['openrouter','openai','anthropic','groq'])
     if has_key or backend in ['ollama','none']:
         sys.exit(0)
     sys.exit(1)
@@ -135,12 +135,12 @@ if [[ "$needs_setup" == "true" ]]; then
     echo "OpenVoiceFlow needs an LLM API key for transcript cleanup."
     echo ""
     echo "  FREE options:"
-    echo "    Gemini  — https://aistudio.google.com/apikey"
+    echo "    OpenRouter (Gemma 4) — https://openrouter.ai/keys"
     echo "    Groq    — https://console.groq.com/keys"
     echo "    Ollama  — https://ollama.com (fully local, no key needed)"
     echo ""
-    read -p "  Which backend? [gemini/openai/anthropic/groq/ollama]: " BACKEND
-    BACKEND="${BACKEND:-gemini}"
+    read -p "  Which backend? [openrouter/openai/anthropic/groq/ollama]: " BACKEND
+    BACKEND="${BACKEND:-openrouter}"
 
     "$BINDIR/openvoiceflow" --backend "$BACKEND"
 

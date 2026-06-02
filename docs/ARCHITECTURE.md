@@ -4,7 +4,7 @@
 
 ## 1. Elevator pitch
 
-OpenVoiceFlow is a macOS push-to-talk dictation app: hold a hotkey, speak, release, and cleaned text appears at your cursor. Speech-to-text runs locally via `whisper.cpp`. Cleanup runs through whichever LLM you point it at — Gemini, OpenAI, Anthropic, Groq, or fully-local Ollama. The core invariant is **audio stays on your Mac, transcripts may go to the LLM you pick, and everything else (logs, learned corrections, profile, snippets) is opt-in and stored in `~/.openvoiceflow/` mode 600**.
+OpenVoiceFlow is a macOS push-to-talk dictation app: hold a hotkey, speak, release, and cleaned text appears at your cursor. Speech-to-text runs locally via `whisper.cpp`. Cleanup runs through whichever LLM you point it at — OpenRouter, OpenAI, Anthropic, Groq, or fully-local Ollama. The core invariant is **audio stays on your Mac, transcripts may go to the LLM you pick, and everything else (logs, learned corrections, profile, snippets) is opt-in and stored in `~/.openvoiceflow/` mode 600**.
 
 ## 2. Top-level data flow
 
@@ -100,7 +100,7 @@ Every cleanup call hands the backend one fully-assembled system prompt. The piec
    + "\n\nTranscript: <raw_text>"
 ```
 
-The first four lines are baked once in `LLMBackend.__init__`. The last four are added per-call in `LLMBackend._make_prompt`. Backends that hit a chat-style API (OpenAI, Anthropic, Groq) use `self.prompt` as the system message and put the transcript + selected-text context in the user turn; Gemini and Ollama send the whole assembly as a single prompt string.
+The first four lines are baked once in `LLMBackend.__init__`. The last four are added per-call in `LLMBackend._make_prompt`. Backends that hit a chat-style API (OpenRouter, OpenAI, Anthropic, Groq) use chat-completions-style messages; Ollama sends the whole assembly as a single prompt string.
 
 ## 3. Module map
 
@@ -132,7 +132,7 @@ The 28 modules under `voiceflow/`, grouped by role.
 |---|---|---|
 | `llm/__init__.py` | Backend registry + dispatcher. | `BACKENDS`, `get_backend(config)`, `cleanup_text(...)` |
 | `llm/base.py` | Abstract `LLMBackend`; assembles the system prompt from default + style + dictionary + snippets + profile. | `LLMBackend`, `DEFAULT_PROMPT`, `STYLE_PRESETS` |
-| `llm/gemini.py` | Google Gemini Flash backend (default). | `GeminiBackend` |
+| `llm/openrouter.py` | OpenRouter Gemma 4 backend (default, `google/gemma-4-31b-it`). | `OpenRouterBackend` |
 | `llm/openai_backend.py` | OpenAI chat-completions backend. | `OpenAIBackend` |
 | `llm/anthropic_backend.py` | Claude Messages API backend. | `AnthropicBackend` |
 | `llm/groq_backend.py` | Groq backend (OpenAI-compatible API). | `GroqBackend` |
@@ -159,7 +159,7 @@ The 28 modules under `voiceflow/`, grouped by role.
 ### Configuration & migration
 | Module | Purpose | Public symbols |
 |---|---|---|
-| `config.py` | `DEFAULTS`, validation, load/save with one-time `cleanup_prompt` → `llm_prompt` migration. | `DEFAULTS`, `VALID_HOTKEYS`, `VALID_MODELS`, `VALID_BACKENDS`, `VALID_STYLES`, `load_config()`, `save_config()`, `validate_config()`, `get_api_key()`, `CONFIG_DIR`, `CONFIG_PATH`, `LOG_DIR`, `MODELS_DIR` |
+| `config.py` | `DEFAULTS`, validation, load/save with one-time `cleanup_prompt` → `llm_prompt` and retired Gemini → OpenRouter migrations. | `DEFAULTS`, `VALID_HOTKEYS`, `VALID_MODELS`, `VALID_BACKENDS`, `VALID_STYLES`, `load_config()`, `save_config()`, `validate_config()`, `get_api_key()`, `CONFIG_DIR`, `CONFIG_PATH`, `LOG_DIR`, `MODELS_DIR` |
 | `_secure_io.py` | Centralized chmod-600 + JSON write helpers for every file under `~/.openvoiceflow/`. | `secure_chmod()`, `secure_write_json()` |
 
 ### Telemetry / lifecycle
@@ -246,8 +246,8 @@ Preserve these — most have explicit tests, the rest are load-bearing for trust
 
 1. **Audio never leaves the Mac.** Only `transcriber.py` and `streamer.py` touch audio, and both call local subprocess binaries. No HTTP client takes audio bytes anywhere.
 2. **Every file under `~/.openvoiceflow/` is mode 600.** New persistence sites must go through `_secure_io.secure_write_json` / `secure_chmod`. Enforced by `tests/test_chmod_600.py`.
-3. **`cleanup_prompt` → `llm_prompt` migration runs at most once.** `config._migrate_cleanup_to_llm_prompt` mutates and persists the stored dict; tests in `tests/test_config_migration.py` pin this.
-4. **`LLMBackend.cleanup` signature is fixed:** `cleanup(raw_text, context=None, app_context=None, override_style=None) -> str`. All five backends conform; the orchestrator passes all four args. Don't break this.
+3. **Config migrations run at most once.** `config._migrate_cleanup_to_llm_prompt` and `config._migrate_gemini_to_openrouter` mutate and persist the stored dict; tests in `tests/test_config_migration.py` pin this.
+4. **`LLMBackend.cleanup` signature is fixed:** `cleanup(raw_text, context=None, app_context=None, override_style=None) -> str`. All backends conform; the orchestrator passes all four args. Don't break this.
 5. **Voice commands run BEFORE LLM cleanup.** That's how `"new line"` becomes an actual newline at zero added latency, and the LLM sees the formatted text as input.
 6. **Snippets run AFTER cleanup (well, instead of it) and BEFORE paste.** A matched snippet short-circuits the LLM call. Don't move that check.
 7. **Privacy defaults are opt-in.** `log_transcripts` is `False` for fresh installs; `auto_learn` is `False` by default. `tests/test_privacy_defaults.py` pins this. Existing users keep their current setting because `load_config` merges DEFAULTS *under* stored config.

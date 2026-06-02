@@ -135,7 +135,7 @@ if os.path.exists(cfg_path):
     try:
         cfg = json.load(open(cfg_path))
         backend = cfg.get('llm_backend', '')
-        has_key = any(cfg.get(f'{b}_api_key') for b in ['gemini','openai','anthropic','groq'])
+        has_key = any(cfg.get(f'{b}_api_key') for b in ['openrouter','openai','anthropic','groq'])
         needs_setup = not (has_key or backend in ['ollama','none'])
     except Exception:
         needs_setup = True

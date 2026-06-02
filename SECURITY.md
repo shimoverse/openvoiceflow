@@ -104,7 +104,7 @@ boundary (arbitrary code execution rather than just bad text).
 
 These are real concerns, but **not** ours to fix — please report them upstream:
 
-- **Third-party LLM providers** (Gemini, OpenAI, Anthropic, Groq, Ollama). Report to
+- **Third-party LLM providers** (OpenRouter, OpenAI, Anthropic, Groq, Ollama). Report to
   the provider. We just send HTTPS requests to their published APIs.
 - **whisper.cpp / ggml / whisper-stream.** Report upstream at
   https://github.com/ggerganov/whisper.cpp.

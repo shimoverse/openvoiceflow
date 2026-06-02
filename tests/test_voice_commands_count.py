@@ -12,8 +12,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-import pytest
-
 from voiceflow.commands import DEFAULT_COMMANDS
 
 README = Path(__file__).resolve().parent.parent / "README.md"

@@ -94,3 +94,21 @@ def test_neither_key_is_noop(isolated_config: Path) -> None:
     assert config["llm_prompt"] is None
     assert "cleanup_prompt" not in config
     assert config["hotkey"] == "f5"  # other keys preserved
+
+
+def test_gemini_backend_migrates_to_openrouter(isolated_config: Path) -> None:
+    """Retired Gemini backend configs are moved to OpenRouter without copying keys."""
+    _write(
+        isolated_config,
+        {"llm_backend": "gemini", "gemini_api_key": "old-google-key"},
+    )
+
+    config = cfg.load_config()
+
+    assert config["llm_backend"] == "openrouter"
+    assert config["openrouter_api_key"] is None
+    assert "gemini_api_key" not in config
+
+    on_disk = json.loads(isolated_config.read_text())
+    assert on_disk["llm_backend"] == "openrouter"
+    assert "gemini_api_key" not in on_disk

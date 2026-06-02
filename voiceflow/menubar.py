@@ -127,7 +127,7 @@ def run_menubar():
         def _build_backend_menu(self):
             """(Re)build backend submenu with current checkmarks."""
             self.backend_menu.clear()
-            current_backend = self.config.get("llm_backend", "gemini")
+            current_backend = self.config.get("llm_backend", "openrouter")
             for name in list(BACKENDS.keys()) + ["none"]:
                 item = rumps.MenuItem(
                     f"{'✓ ' if name == current_backend else '  '}{name}",

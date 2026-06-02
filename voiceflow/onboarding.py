@@ -40,16 +40,16 @@ WARN = "#ffab00"
 
 # --- Backend definitions ---
 BACKENDS = {
-    "gemini": {
-        "name": "Google Gemini Flash",
-        "cost": "~$3/year (free tier available)",
+    "openrouter": {
+        "name": "OpenRouter Gemma 4",
+        "cost": "OpenRouter pricing/free tiers",
         "speed": "Fast",
         "privacy": "Cloud",
-        "url": "https://aistudio.google.com/apikey",
+        "url": "https://openrouter.ai/keys",
         "instructions": [
-            "1. Click the link below to open Google AI Studio",
-            "2. Sign in with your Google account",
-            "3. Click 'Create API Key'",
+            "1. Click the link below to open OpenRouter API Keys",
+            "2. Sign in or create an OpenRouter account",
+            "3. Create an API key",
             "4. Copy the key and paste it below",
         ],
         "recommended": True,
@@ -130,7 +130,7 @@ class OnboardingWizard:
         self.root.geometry(f"{w}x{h}+{x}+{y}")
 
         # State
-        self.selected_backend = tk.StringVar(value="gemini")
+        self.selected_backend = tk.StringVar(value="openrouter")
         self.api_key = tk.StringVar()
         self.selected_hotkey = tk.StringVar(value="right_cmd")
         self.config = {}
@@ -151,7 +151,9 @@ class OnboardingWizard:
             try:
                 with open(CONFIG_PATH) as f:
                     self.config = json.load(f)
-                backend = self.config.get("llm_backend", "gemini")
+                backend = self.config.get("llm_backend", "openrouter")
+                if backend == "gemini":
+                    backend = "openrouter"
                 self.selected_backend.set(backend)
                 key_field = f"{backend}_api_key"
                 if self.config.get(key_field):
@@ -461,6 +463,7 @@ class OnboardingWizard:
 
         self.config["llm_backend"] = backend
         self.config["hotkey"] = self.selected_hotkey.get()
+        self.config.pop("gemini_api_key", None)
 
         # Save API key
         key = self.api_key.get().strip()
@@ -597,7 +600,7 @@ def needs_onboarding() -> bool:
     try:
         with open(CONFIG_PATH) as f:
             config = json.load(f)
-        backend = config.get("llm_backend", "gemini")
+        backend = config.get("llm_backend", "openrouter")
         if backend in ("ollama", "none"):
             return False
         key_field = f"{backend}_api_key"

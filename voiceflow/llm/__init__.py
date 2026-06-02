@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from .anthropic_backend import AnthropicBackend
 from .base import LLMBackend
-from .gemini import GeminiBackend
 from .groq_backend import GroqBackend
 from .ollama_backend import OllamaBackend
 from .openai_backend import OpenAIBackend
+from .openrouter import OpenRouterBackend
 
 BACKENDS = {
-    "gemini": GeminiBackend,
+    "openrouter": OpenRouterBackend,
     "openai": OpenAIBackend,
     "anthropic": AnthropicBackend,
     "groq": GroqBackend,
@@ -20,7 +20,7 @@ BACKENDS = {
 
 def get_backend(config: dict) -> LLMBackend | None:
     """Get the configured LLM backend."""
-    name = config.get("llm_backend", "gemini")
+    name = config.get("llm_backend", "openrouter")
     if name == "none":
         return None
     cls = BACKENDS.get(name)

@@ -45,7 +45,7 @@ you only have one or the other, the app degrades gracefully — but tests that
 exercise the transcriber assume both are on PATH.
 
 You do **not** need an LLM API key to run the test suite. Backend tests use
-mocked HTTP. You only need a real key (Gemini / OpenAI / Anthropic / Groq) or
+mocked HTTP. You only need a real key (OpenRouter / OpenAI / Anthropic / Groq) or
 a local Ollama daemon if you want to dictate end-to-end on your own machine.
 
 ## The TDD discipline we follow
@@ -76,7 +76,7 @@ see `AGENTS.md` for the full file map and per-module summaries.
 - **Transcription** — `transcriber.py` (whisper.cpp wrapper),
   `streamer.py` (whisper-stream wrapper).
 - **LLM backends** — `llm/base.py` (abstract), `llm/__init__.py` (registry +
-  dispatch), and one file per provider: `gemini.py`, `openai_backend.py`,
+  dispatch), and one file per provider: `openrouter.py`, `openai_backend.py`,
   `anthropic_backend.py`, `groq_backend.py`, `ollama_backend.py`.
 - **Personalization** — `profile.py`, `dictionary.py`, `snippets.py`,
   `commands.py`, `styles.py`, `learner.py`, `interview.py`, `search.py`,

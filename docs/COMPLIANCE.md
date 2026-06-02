@@ -33,7 +33,7 @@ OpenVoiceFlow is a free, MIT-licensed, single-developer macOS dictation tool. It
 
 ## GDPR considerations (EU users)
 
-When you choose a cloud LLM backend (Gemini, OpenAI, Anthropic, Groq), the cleaned transcripts you send for cleanup become **personal data being processed by that provider** under their terms.
+When you choose a cloud LLM backend (OpenRouter, OpenAI, Anthropic, Groq), the cleaned transcripts you send for cleanup become **personal data being processed by that provider** under their terms.
 
 - **You are the data controller.** You decide why and how the data is processed.
 - **Your chosen LLM provider is the data processor.** They run the inference and retain (or don't retain) data per their terms.
@@ -49,7 +49,7 @@ If you need a Data Processing Addendum, sign one **with the LLM provider you cho
 
 - Anthropic: <https://www.anthropic.com/legal/dpa>
 - OpenAI: <https://openai.com/policies/data-processing-addendum>
-- Google AI / Gemini API: <https://cloud.google.com/terms/data-processing-addendum>
+- OpenRouter: <https://openrouter.ai/terms>
 - Groq: contact Groq for their current DPA.
 
 If your situation makes any external processor unacceptable (legal, contractual, or policy reasons), use the **Ollama** backend or the **`none`** backend — both keep transcripts on the Mac. That is the only way to take *every* third party out of the path.
@@ -67,7 +67,7 @@ Provider state at time of writing (verify with the provider before relying on th
 
 - **Anthropic** — enterprise tiers offer BAAs.
 - **OpenAI** — enterprise tiers offer BAAs.
-- **Google AI / Gemini API** — generally not BAA-covered for the consumer-grade Gemini API; Google Cloud Vertex AI is a different product.
+- **OpenRouter** — verify coverage directly with OpenRouter before sending regulated data.
 - **Groq** — does not offer BAAs at the time of writing.
 - **Ollama** — runs entirely on your Mac; no third party is in the path. Whether that satisfies your covered-entity assessment is a question for your compliance officer.
 

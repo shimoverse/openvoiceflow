@@ -123,7 +123,7 @@ class OpenVoiceFlow:
             print("⚠️  Model not found. Will download on first use.")
 
         # LLM backend
-        backend = self.config.get("llm_backend", "gemini")
+        backend = self.config.get("llm_backend", "openrouter")
         if backend == "none":
             print("✅ LLM cleanup: disabled (raw transcripts only)")
         else:

@@ -372,6 +372,9 @@ def main():
 
     if args.set_key:
         backend, key = args.set_key
+        if backend not in VALID_BACKENDS or backend in ("ollama", "none"):
+            print(f"❌ Invalid API-key backend '{backend}'. Valid: openrouter / openai / anthropic / groq")
+            sys.exit(1)
         key_field = f"{backend}_api_key"
         config[key_field] = key
         save_config(config)
@@ -516,7 +519,7 @@ def main():
         return
 
     # First run — launch onboarding
-    is_first_run = not config.get("gemini_api_key") and \
+    is_first_run = not config.get("openrouter_api_key") and \
                    not config.get("openai_api_key") and \
                    not config.get("anthropic_api_key") and \
                    not config.get("groq_api_key") and \

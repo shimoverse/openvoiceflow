@@ -13,9 +13,6 @@ visible to the user via stderr and (when tkinter is available)
 from __future__ import annotations
 
 import importlib
-import sys
-
-import pytest
 
 
 def test_interview_error_is_surfaced_to_stderr(monkeypatch, capsys) -> None:

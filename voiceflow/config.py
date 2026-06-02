@@ -16,8 +16,9 @@ DEFAULTS = {
     "hotkey": "right_cmd",
     "whisper_model": "base.en",
     "whisper_cpp_path": None,
-    "llm_backend": "gemini",
-    "gemini_api_key": None,
+    "llm_backend": "openrouter",
+    "openrouter_api_key": None,
+    "openrouter_model": "google/gemma-4-31b-it",
     "openai_api_key": None,
     "anthropic_api_key": None,
     "groq_api_key": None,
@@ -96,7 +97,7 @@ VALID_MODELS = [
     "tiny.en", "base.en", "small.en", "medium.en",  # English-only
     "tiny", "base", "small", "medium", "large",  # Multilingual
 ]
-VALID_BACKENDS = ["gemini", "openai", "anthropic", "groq", "ollama", "none"]
+VALID_BACKENDS = ["openrouter", "openai", "anthropic", "groq", "ollama", "none"]
 VALID_STYLES = ["default", "casual", "formal", "code", "email"]
 
 
@@ -115,6 +116,23 @@ def _migrate_cleanup_to_llm_prompt(stored: dict) -> bool:
     return True
 
 
+def _migrate_gemini_to_openrouter(stored: dict) -> bool:
+    """Rename the retired Gemini default backend/key fields to OpenRouter.
+
+    Gemini API keys cannot be reused with OpenRouter, so a legacy
+    ``gemini_api_key`` is removed rather than copied. Users must configure an
+    OpenRouter key via ``openrouter_api_key`` or ``OPENROUTER_API_KEY``.
+    """
+    migrated = False
+    if stored.get("llm_backend") == "gemini":
+        stored["llm_backend"] = "openrouter"
+        migrated = True
+    if "gemini_api_key" in stored:
+        del stored["gemini_api_key"]
+        migrated = True
+    return migrated
+
+
 def load_config() -> dict:
     os.makedirs(CONFIG_DIR, exist_ok=True)
     if not os.path.exists(CONFIG_PATH):
@@ -122,17 +140,25 @@ def load_config() -> dict:
         return dict(DEFAULTS)
     with open(CONFIG_PATH) as f:
         stored = json.load(f)
-    migrated = _migrate_cleanup_to_llm_prompt(stored)
+    prompt_migrated = _migrate_cleanup_to_llm_prompt(stored)
+    backend_migrated = _migrate_gemini_to_openrouter(stored)
+    migrated = prompt_migrated or backend_migrated
     # Merge with defaults so new fields are always present
     config = dict(DEFAULTS)
     config.update(stored)
     if migrated:
         # Persist so the rename is a one-time event.
         save_config(stored)
-        print(
-            "ℹ️  Migrated config key `cleanup_prompt` → `llm_prompt` "
-            "(v0.1 → v0.2+ rename). Your custom prompt is preserved."
-        )
+        if prompt_migrated:
+            print(
+                "ℹ️  Migrated config key `cleanup_prompt` → `llm_prompt` "
+                "(v0.1 → v0.2+ rename). Your custom prompt is preserved."
+            )
+        if backend_migrated:
+            print(
+                "ℹ️  Migrated retired Gemini backend config to OpenRouter. "
+                "Set `openrouter_api_key` or OPENROUTER_API_KEY before using cloud cleanup."
+            )
     return config
 
 
@@ -144,7 +170,7 @@ def save_config(config: dict):
 
 def get_api_key(config: dict, backend: str) -> str | None:
     key_map = {
-        "gemini": "gemini_api_key",
+        "openrouter": "openrouter_api_key",
         "openai": "openai_api_key",
         "anthropic": "anthropic_api_key",
         "groq": "groq_api_key",
@@ -157,7 +183,7 @@ def get_api_key(config: dict, backend: str) -> str | None:
     if val:
         return val
     env_map = {
-        "gemini_api_key": "GEMINI_API_KEY",
+        "openrouter_api_key": "OPENROUTER_API_KEY",
         "openai_api_key": "OPENAI_API_KEY",
         "anthropic_api_key": "ANTHROPIC_API_KEY",
         "groq_api_key": "GROQ_API_KEY",

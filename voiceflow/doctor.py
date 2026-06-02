@@ -157,7 +157,7 @@ def check_model(config: dict) -> Check:
 
 
 def check_api_key(config: dict) -> Check:
-    backend = config.get("llm_backend", "gemini")
+    backend = config.get("llm_backend", "openrouter")
     if backend == "none":
         return Check(
             name="LLM backend",
@@ -172,7 +172,7 @@ def check_api_key(config: dict) -> Check:
     )
     if not key:
         urls = {
-            "gemini": "https://aistudio.google.com/apikey",
+            "openrouter": "https://openrouter.ai/keys",
             "groq": "https://console.groq.com/keys",
             "openai": "https://platform.openai.com/api-keys",
             "anthropic": "https://console.anthropic.com/",
@@ -190,7 +190,7 @@ def check_api_key(config: dict) -> Check:
     return Check(
         name=f"{backend.title()} API key",
         status=Status.OK,
-        description=f"Configured (ends in …{key[-4:]}).",
+        description="Configured.",
     )
 
 

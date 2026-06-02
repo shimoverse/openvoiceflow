@@ -32,7 +32,7 @@ These are the OpenVoiceFlow settings (in `~/.openvoiceflow/config.json` on each 
 
 | Setting | Default in v0.3 | Your deployment | Effect |
 |---|---|---|---|
-| `llm_backend` | `gemini` | *e.g. `ollama`* | Determines which third party (if any) sees transcripts. |
+| `llm_backend` | `openrouter` | *e.g. `ollama`* | Determines which third party (if any) sees transcripts. |
 | `log_transcripts` | `false` | *true / false* | Writes daily plaintext transcript logs to `~/.openvoiceflow/logs/`. |
 | `auto_learn` | `false` | *true / false* | Reads the focused text field via macOS Accessibility API for ~30s after each paste. |
 | `update_check` | `true` | *true / false* | Pings GitHub once per launch to check for new releases. |

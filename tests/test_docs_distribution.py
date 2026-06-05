@@ -22,6 +22,7 @@ def test_distribution_pages_and_crawler_files_exist():
         "press.html",
         "llms.txt",
         "robots.txt",
+        "site.js",
         f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg",
         f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg",
     ]:
@@ -58,6 +59,32 @@ def test_growth_pages_have_metadata_canonicals_and_structured_data():
         assert '<link rel="canonical"' in html
         assert 'application/ld+json' in html
         assert schema_type in html
+
+
+def test_public_pages_have_mobile_first_navigation_and_touch_targets():
+    css = read_doc("style.css")
+    site_js = read_doc("site.js")
+
+    assert '<meta name="viewport" content="width=device-width, initial-scale=1.0" />' in read_doc("index.html")
+    for name in ["index.html", "download.html", "install.html", "how-it-works.html", "press.html"]:
+        html = read_doc(name)
+        assert 'class="nav-hamburger"' in html, f"missing mobile hamburger on {name}"
+        assert 'aria-expanded="false"' in html, f"hamburger state missing on {name}"
+        assert 'aria-controls="navDrawer"' in html, f"hamburger drawer relation missing on {name}"
+        assert 'class="nav-drawer"' in html, f"missing mobile drawer on {name}"
+        assert 'Download for Mac' in html, f"mobile drawer CTA missing on {name}"
+        assert '<meta name="viewport" content="width=device-width, initial-scale=1.0" />' in html
+        if name != "index.html":
+            assert '<script src="site.js"></script>' in html
+
+    assert "width: 44px;" in css
+    assert "min-height: 44px;" in css
+    assert "min-height: 100svh;" in css
+    assert "@media (max-width: 640px)" in css
+    assert ".btn { white-space: normal; }" in css
+    assert ".code-block { white-space: pre-wrap; overflow-wrap: anywhere; }" in css
+    assert "hamburger.setAttribute('aria-expanded'" in site_js
+    assert "Escape" in site_js
 
 
 def test_download_page_uses_website_hosted_assets_and_checksums():

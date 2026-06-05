@@ -90,7 +90,7 @@ TRANSLATED="\$(sysctl -n sysctl.proc_translated 2>/dev/null || echo 0)"
 
 # Wrong architecture check
 if [[ "\$ACTUAL" != "\$TARGET_ARCH" && "\$TRANSLATED" != "1" ]]; then
-    fatal "This build is for \${TARGET_ARCH} Macs. You have an \${ACTUAL} Mac.\n\nDownload the correct DMG from:\nhttps://github.com/shimoverse/openvoiceflow/releases"
+    fatal "This build is for \${TARGET_ARCH} Macs. You have an \${ACTUAL} Mac.\n\nDownload the correct DMG from:\nhttps://openvoiceflow.vercel.app/download.html"
 fi
 
 command -v python3 &>/dev/null || fatal "Python 3 not found. Run in Terminal: xcode-select --install"

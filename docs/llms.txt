@@ -9,8 +9,8 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 - Install guide: https://openvoiceflow.vercel.app/install.html
 - How it works: https://openvoiceflow.vercel.app/how-it-works.html
 - Press/media kit: https://openvoiceflow.vercel.app/press.html
-- Website-hosted Apple Silicon DMG: https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.2.0-arm64.dmg
-- Website-hosted Intel DMG: https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.2.0-x86_64.dmg
+- Website-hosted Apple Silicon DMG: https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.0-arm64.dmg
+- Website-hosted Intel DMG: https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.0-x86_64.dmg
 - Private source repository: https://github.com/shimoverse/openvoiceflow
 
 ## Key facts

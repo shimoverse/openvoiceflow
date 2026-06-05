@@ -25,11 +25,11 @@
     "description": "Free push-to-talk voice dictation for macOS with local whisper.cpp transcription and optional LLM cleanup.",
     "operatingSystem": "macOS 12+",
     "applicationCategory": "UtilitiesApplication",
-    "softwareVersion": "0.2.0",
+    "softwareVersion": "0.3.0",
     "url": "https://openvoiceflow.vercel.app/download.html",
     "downloadUrl": [
-      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.2.0-arm64.dmg",
-      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.2.0-x86_64.dmg"
+      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.0-arm64.dmg",
+      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.0-x86_64.dmg"
     ],
     "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
   }
@@ -42,13 +42,13 @@
       <div class="hero-badge"><span class="badge-dot"></span>Website-hosted release assets</div>
       <h1 class="hero-title">Download OpenVoiceFlow for macOS</h1>
       <p class="hero-sub answer-block">OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. Download the latest stable DMG directly from this website, or use the source install path only if you already have access to the private GitHub repository. Audio transcription runs locally with whisper.cpp.</p>
-      <div class="page-link-row"><a class="btn btn-primary btn-lg" href="downloads/OpenVoiceFlow-0.2.0-arm64.dmg">Apple Silicon DMG</a><a class="btn btn-primary btn-lg" href="downloads/OpenVoiceFlow-0.2.0-x86_64.dmg">Intel DMG</a><a class="btn btn-outline btn-lg" href="install.html">Install guide</a></div>
+      <div class="page-link-row"><a class="btn btn-primary btn-lg" href="downloads/OpenVoiceFlow-0.3.0-arm64.dmg">Apple Silicon DMG</a><a class="btn btn-primary btn-lg" href="downloads/OpenVoiceFlow-0.3.0-x86_64.dmg">Intel DMG</a><a class="btn btn-outline btn-lg" href="install.html">Install guide</a></div>
       <div class="content-grid two-col">
-        <section class="feature-card content-card"><div class="feature-icon">🍎</div><h2 class="feature-title">Apple Silicon Macs</h2><p class="feature-desc">For M1, M2, M3, and newer Macs running macOS 12 or later.</p><p><a class="btn btn-primary btn-lg" href="downloads/OpenVoiceFlow-0.2.0-arm64.dmg">Download OpenVoiceFlow-0.2.0-arm64.dmg</a></p><code class="code-block">sha256: 653b2da2ff971642a6a35add1e07c7a3823e4c2c8edb4c0efa0d15712c21e2a4</code></section>
-        <section class="feature-card content-card"><div class="feature-icon">💻</div><h2 class="feature-title">Intel Macs</h2><p class="feature-desc">For x86_64 Intel Macs running macOS 12 or later.</p><p><a class="btn btn-primary btn-lg" href="downloads/OpenVoiceFlow-0.2.0-x86_64.dmg">Download OpenVoiceFlow-0.2.0-x86_64.dmg</a></p><code class="code-block">sha256: 553f893e5bc7ddbbdfbad75a20047128816138027ebbd30997730583021a1118</code></section>
+        <section class="feature-card content-card"><div class="feature-icon">🍎</div><h2 class="feature-title">Apple Silicon Macs</h2><p class="feature-desc">For M1, M2, M3, and newer Macs running macOS 12 or later.</p><p><a class="btn btn-primary btn-lg" href="downloads/OpenVoiceFlow-0.3.0-arm64.dmg">Download OpenVoiceFlow-0.3.0-arm64.dmg</a></p><code class="code-block">sha256: 52116ab4447e6957f11132fdb157d2ac5156eb5ea7a89d14ec28a986316f8fc7</code></section>
+        <section class="feature-card content-card"><div class="feature-icon">💻</div><h2 class="feature-title">Intel Macs</h2><p class="feature-desc">For x86_64 Intel Macs running macOS 12 or later.</p><p><a class="btn btn-primary btn-lg" href="downloads/OpenVoiceFlow-0.3.0-x86_64.dmg">Download OpenVoiceFlow-0.3.0-x86_64.dmg</a></p><code class="code-block">sha256: 2ab7b1d4ed9a809cef16bea8479ff118d98943c5c1f58434d786f2bd32bc06e9</code></section>
       </div>
       <section class="content-card wide-card"><h2>Source install for repo collaborators</h2><p>The repository is private during this launch phase, so public users should use the website-hosted DMG downloads above. If you already have GitHub access, you can install from source.</p><code class="code-block">git clone https://github.com/shimoverse/openvoiceflow.git &amp;&amp; cd openvoiceflow &amp;&amp; bash install.sh</code></section>
-      <section class="content-card wide-card"><h2>Download notes and limitations</h2><ul class="check-list"><li>The website-hosted DMGs above are copied from GitHub release v0.2.0 so public visitors can download them while the source repo remains private.</li><li>A v0.3.0 release candidate exists, but this page links stable assets until the final release is published.</li><li>OpenVoiceFlow supports macOS 12+ on Apple Silicon and Intel. Windows and Linux downloads are not currently available.</li><li>The DMG checksums are shown so users can verify downloaded files; signing/notarization claims are not made here.</li></ul></section>
+      <section class="content-card wide-card"><h2>Download notes and limitations</h2><ul class="check-list"><li>The website-hosted DMGs above are copied from the OpenVoiceFlow v0.3.0 build so public visitors can download them while the source repo remains private.</li><li>This page now links the v0.3.0 website-hosted DMGs built from the current tested main branch.</li><li>OpenVoiceFlow supports macOS 12+ on Apple Silicon and Intel. Windows and Linux downloads are not currently available.</li><li>The DMG checksums are shown so users can verify downloaded files; signing/notarization claims are not made here.</li></ul></section>
       <section class="content-card wide-card"><h2>Download FAQ</h2><h3>Is the source repository public?</h3><p>Not yet. OpenVoiceFlow is intended to be MIT licensed, but the GitHub repository is private during this launch phase. Public visitors should use the website-hosted DMG downloads.</p><h3>Does OpenVoiceFlow send audio to the cloud?</h3><p>No. Audio transcription runs locally through whisper.cpp. Cleaned transcript text only goes to a cloud LLM if you choose a cloud backend.</p><h3>Which backend should I choose?</h3><p>The current default cloud cleanup path is OpenRouter Gemma 4. Ollama and the “none” backend keep cleanup local/no-cloud.</p></section>
     </div></section>
   </main>

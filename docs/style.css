@@ -3,6 +3,38 @@
    Inspired by Linear.app + Raycast.com
    ═══════════════════════════════════════════════════════════ */
 
+/* ─── Static growth pages ─────────────────────────────────── */
+.answer-card,
+.answer-block {
+  max-width: 760px;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  margin: -18px auto 32px;
+  line-height: 1.75;
+}
+.answer-card strong { color: var(--text-primary); }
+.page-hero { min-height: auto; padding: 140px 0 80px; }
+.page-link-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 0 0 44px; }
+.content-grid { width: 100%; display: grid; gap: 18px; margin-top: 12px; }
+.two-col { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.content-card { text-align: left; width: 100%; }
+.content-card h2 { font-size: 24px; margin: 8px 0 12px; letter-spacing: -0.02em; }
+.content-card h3 { font-size: 17px; margin: 20px 0 6px; color: var(--text-primary); }
+.content-card p, .content-card li { color: var(--text-secondary); }
+.wide-card { max-width: 900px; margin: 18px auto 0; padding: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.code-block { display: block; width: 100%; overflow-x: auto; white-space: nowrap; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin: 14px 0; color: var(--teal); line-height: 1.8; }
+.check-list { list-style: none; display: grid; gap: 10px; padding: 0; }
+.check-list li { position: relative; padding-left: 26px; }
+.check-list li::before { content: "✓"; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+.step-list { list-style: decimal; padding-left: 24px; color: var(--text-secondary); }
+.step-list li { margin: 10px 0; }
+.content-pipeline { align-items: stretch; gap: 12px; margin: 10px auto 36px; }
+.content-pipeline .pipeline-step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); min-width: 180px; flex: 1 1 180px; }
+@media (max-width: 640px) { .page-link-row .btn { width: 100%; } .answer-card, .answer-block { margin-top: -8px; } }
+
 /* ─── CSS Variables ─────────────────────────────────────── */
 :root {
   --bg: #0a0a0f;

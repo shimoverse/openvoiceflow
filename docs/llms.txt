@@ -1,0 +1,30 @@
+# OpenVoiceFlow
+
+OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcribes audio locally through whisper.cpp, applies voice commands, optionally cleans text with the user's selected LLM backend, and pastes the final text at the cursor.
+
+## Priority pages
+
+- Homepage: https://openvoiceflow.vercel.app/
+- Download page: https://openvoiceflow.vercel.app/download.html
+- Install guide: https://openvoiceflow.vercel.app/install.html
+- How it works: https://openvoiceflow.vercel.app/how-it-works.html
+- Press/media kit: https://openvoiceflow.vercel.app/press.html
+- Website-hosted Apple Silicon DMG: https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.2.0-arm64.dmg
+- Website-hosted Intel DMG: https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.2.0-x86_64.dmg
+- Private source repository: https://github.com/shimoverse/openvoiceflow
+
+## Key facts
+
+- Category: macOS push-to-talk voice dictation.
+- Source repository: private during this launch phase.
+- Platforms: macOS 12+ on Apple Silicon and Intel Macs.
+- Audio transcription: local whisper.cpp.
+- Cleanup backends: OpenRouter Gemma 4, Groq, OpenAI, Anthropic, Ollama, or none.
+- Download path: website-hosted DMGs for Apple Silicon and Intel; source install requires private repo access.
+
+## Do not claim
+
+- Do not claim Windows or Linux downloads exist.
+- Do not claim all text processing is local unless the user chooses Ollama or no cleanup.
+- Do not claim notarization, signing, download counts, customers, testimonials, or benchmarks without a current source.
+- Do not claim affiliation with Wispr Flow, Superwhisper, VoiceInk, Apple, or GitHub.

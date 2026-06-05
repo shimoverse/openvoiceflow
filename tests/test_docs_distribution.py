@@ -1,8 +1,12 @@
+from hashlib import sha256
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
+RELEASE_VERSION = "0.3.0"
+ARM64_SHA256 = "52116ab4447e6957f11132fdb157d2ac5156eb5ea7a89d14ec28a986316f8fc7"
+X86_64_SHA256 = "2ab7b1d4ed9a809cef16bea8479ff118d98943c5c1f58434d786f2bd32bc06e9"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html", "press.html"]
 
 
@@ -18,8 +22,8 @@ def test_distribution_pages_and_crawler_files_exist():
         "press.html",
         "llms.txt",
         "robots.txt",
-        "downloads/OpenVoiceFlow-0.2.0-arm64.dmg",
-        "downloads/OpenVoiceFlow-0.2.0-x86_64.dmg",
+        f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg",
+        f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg",
     ]:
         assert (DOCS / name).exists(), f"missing docs/{name}"
 
@@ -58,11 +62,30 @@ def test_growth_pages_have_metadata_canonicals_and_structured_data():
 
 def test_download_page_uses_website_hosted_assets_and_checksums():
     html = read_doc("download.html")
-    assert "downloads/OpenVoiceFlow-0.2.0-arm64.dmg" in html
-    assert "downloads/OpenVoiceFlow-0.2.0-x86_64.dmg" in html
+    assert f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg" in html
+    assert f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg" in html
+    assert f'"softwareVersion": "{RELEASE_VERSION}"' in html
     assert "github.com/shimoverse/openvoiceflow/releases/download" not in html
-    assert "653b2da2ff971642a6a35add1e07c7a3823e4c2c8edb4c0efa0d15712c21e2a4" in html
-    assert "553f893e5bc7ddbbdfbad75a20047128816138027ebbd30997730583021a1118" in html
+    assert "0.2.0" not in html
+    assert "release candidate" not in html.lower()
+    assert ARM64_SHA256 in html
+    assert X86_64_SHA256 in html
+    checksum_lines = [line for line in html.splitlines() if "sha256:" in line]
+    assert len(checksum_lines) >= 2
+    for line in checksum_lines[:2]:
+        digest = line.split("sha256:", 1)[1].split("<", 1)[0].strip()
+        assert len(digest) == 64
+        int(digest, 16)
+
+
+def test_download_assets_match_published_checksums():
+    expected = {
+        f"OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg": ARM64_SHA256,
+        f"OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg": X86_64_SHA256,
+    }
+    for filename, digest in expected.items():
+        asset = DOCS / "downloads" / filename
+        assert sha256(asset.read_bytes()).hexdigest() == digest
 
 
 def test_site_claims_match_current_openrouter_default():
@@ -109,6 +132,8 @@ def test_public_positioning_matches_private_launch_phase():
 def test_readme_points_public_users_to_website_downloads():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert f"{CANONICAL}/download.html" in readme
+    assert f"{CANONICAL}/downloads/OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg" in readme
+    assert f"{CANONICAL}/downloads/OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg" in readme
     assert "website-hosted DMG" in readme
     assert "Source install currently requires collaborator access" in readme
     assert "Grab the latest `.dmg` from [**Releases**]" not in readme

@@ -78,6 +78,33 @@ def test_public_pages_do_not_depend_on_private_github_downloads():
     assert "private GitHub repository" in combined
 
 
+def test_public_pages_do_not_link_to_private_repo_or_github_assets():
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in DOCS.glob("*.html"))
+    forbidden_public_links = [
+        'href="https://github.com/shimoverse/openvoiceflow',
+        "opengraph.githubassets.com/1/shimoverse/openvoiceflow",
+        "img.shields.io/github",
+        "Star on GitHub",
+        "View on GitHub",
+        'GitHub repo</a>',
+    ]
+    for forbidden in forbidden_public_links:
+        assert forbidden not in combined
+
+
+def test_public_positioning_matches_private_launch_phase():
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in DOCS.glob("*.html"))
+    for stale_claim in [
+        "open-source",
+        "open source voice typing",
+        "Open source",
+        "MIT-licensed and open to everyone",
+    ]:
+        assert stale_claim not in combined
+    assert "source repository stays private during this launch phase" in combined
+    assert "website-hosted DMGs" in combined
+
+
 def test_llms_txt_points_agents_to_priority_pages():
     llms = read_doc("llms.txt")
     assert "# OpenVoiceFlow" in llms

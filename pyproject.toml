@@ -7,7 +7,7 @@ name = "openvoiceflow"
 version = "0.3.0"
 description = "Free voice dictation for macOS — local transcription + optional LLM cleanup"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [{name = "Shimoverse"}]
 requires-python = ">=3.9"
 keywords = ["voice", "dictation", "speech-to-text", "whisper", "macos", "openvoiceflow"]
@@ -15,7 +15,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Topic :: Multimedia :: Sound/Audio :: Speech",
 ]
 dependencies = [

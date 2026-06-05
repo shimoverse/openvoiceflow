@@ -21,7 +21,7 @@ jobs:
       is_prerelease: ${{ steps.classify.outputs.is_prerelease }}
       version: ${{ steps.classify.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: classify
         name: Verify tag ↔ pyproject ↔ __init__ agree, and classify pre-release
         run: |
@@ -63,8 +63,8 @@ jobs:
       id-token: write   # Required for PyPI Trusted Publisher (OIDC)
       contents: write   # Required for the GitHub Release upload
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install build tooling
@@ -97,8 +97,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install dependencies

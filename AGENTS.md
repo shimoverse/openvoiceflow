@@ -104,7 +104,7 @@ If you want to actually run the app end-to-end on a Mac you need `brew install w
 - **Add `from __future__ import annotations` to every new module.** The codebase targets Python 3.9 and uses `str | None` annotations; without the future import, 3.9 raises `TypeError`. `tests/test_python39_compat.py` enforces this.
 - **No new `print(...)` for debug.** User-facing status goes through `overlay.get_overlay()`. Diagnostics go to `sys.stderr` (see `_secure_io.secure_chmod` for the pattern). The existing `print(...)` calls in `app.py`/CLI handlers are user-facing status messages — leave those, just don't add more for debugging.
 - **Update README when you add user-facing surface.** Adding a backend, voice command, snippet default, or CLI flag means updating `README.md`. The `tests/test_voice_commands_count.py` test currently enforces this for voice commands; we want the same posture project-wide.
-- **Don't `git push`** unless the maintainer explicitly asks. Commit freely on a feature branch.
+- **Push completed changes to GitHub `main`.** the maintainer has explicitly authorized agents to push updates and changes through to the GitHub `main` branch once the work is complete and verification passes. Prefer the normal branch → PR → green CI → squash-merge flow for non-trivial changes, then sync local `main`. For tiny documentation-only updates, direct commits to `main` are acceptable after a quick verification. Always report the final `origin/main` commit SHA.
 
 ## Recipes
 

@@ -2,8 +2,8 @@
   <img src="https://img.shields.io/badge/macOS-12%2B-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS 12+"/>
   <img src="https://img.shields.io/badge/Apple%20Silicon-Ready-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Apple Silicon"/>
   <img src="https://img.shields.io/badge/Intel-Ready-000000?style=for-the-badge&logo=intel&logoColor=white" alt="Intel"/>
-  <img src="https://img.shields.io/github/license/shimoverse/openvoiceflow?style=for-the-badge&color=blue" alt="MIT License"/>
-  <img src="https://img.shields.io/github/v/release/shimoverse/openvoiceflow?style=for-the-badge&color=brightgreen" alt="Release"/>
+  <img src="https://img.shields.io/badge/Price-Free-00d4aa?style=for-the-badge" alt="Free"/>
+  <img src="https://img.shields.io/badge/Source-Private%20Beta-7c5cfc?style=for-the-badge" alt="Private beta source"/>
 </p>
 
 <h1 align="center">🎙️ OpenVoiceFlow</h1>
@@ -13,9 +13,9 @@
 </p>
 
 <p align="center">
-  The only open-source voice dictation app that learns who you are,<br/>
+  A free voice dictation app that learns who you are,<br/>
   adapts to every app you use, and gets smarter every time you correct it.<br/>
-  All for $0.
+  Public downloads are website-hosted while source access stays private during launch.
 </p>
 
 <p align="center">
@@ -30,9 +30,9 @@
 
 Other tools ask you to pay $144/year and trust their cloud. We don't.
 
-| | Annual Cost | Open Source | Local Audio | Learns From You | Per-App Styles |
+| | Annual Cost | Source Access | Local Audio | Learns From You | Per-App Styles |
 |---|:---:|:---:|:---:|:---:|:---:|
-| **OpenVoiceFlow** | **$0-3** | ✅ MIT | ✅ | ✅ | ✅ |
+| **OpenVoiceFlow** | **$0-3** | Private beta; MIT planned | ✅ | ✅ | ✅ |
 | Wispr Flow | $144 | ❌ | ❌ | ✅ | ✅ |
 | Superwhisper | $85 | ❌ | ✅ | Partial | ✅ |
 | VoiceInk | Free (GPL) | ❌ PRs | ✅ | ❌ | ✅ |
@@ -82,14 +82,22 @@ Your wallet stays full. Your corrections teach the app. You decide what data lea
 
 ### Download the App
 
-Grab the latest `.dmg` from [**Releases**](https://github.com/shimoverse/openvoiceflow/releases). Open it. Drag to Applications. Done.
+Public users should download OpenVoiceFlow from the website, not from GitHub. The repository is private during this launch phase, so GitHub release/source URLs can 404 for unauthenticated visitors.
+
+- **Download page:** <https://openvoiceflow.vercel.app/download.html>
+- **Apple Silicon DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.2.0-arm64.dmg>
+- **Intel DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.2.0-x86_64.dmg>
+
+Open the website-hosted DMG, drag OpenVoiceFlow to Applications, then launch it.
 
 > First launch installs everything automatically, walks you through setup, and interviews you so it knows your name, your team, and your jargon from day one.
 
 <details>
-<summary><strong>Other install methods</strong></summary>
+<summary><strong>Source install for collaborators</strong></summary>
 
 <br/>
+
+Source install currently requires collaborator access to the private GitHub repository. Public website visitors should use the website-hosted DMG downloads above.
 
 **One-line install:**
 ```bash
@@ -413,7 +421,7 @@ Here's everything OpenVoiceFlow does, compared to the paid alternatives:
 | History search | ✅ | ❌ | ❌ | ❌ |
 | Floating overlay | ✅ | ✅ | ✅ | ✅ |
 | Audio stays local | ✅ | ❌ | ✅ | ✅ |
-| Open source (MIT) | ✅ | ❌ | ❌ | ❌ (GPL) |
+| License / source access | Private beta source; MIT license planned | ❌ | ❌ | GPL |
 | Price | **$0-3/yr** | $144/yr | $85/yr | $0 |
 
 <br/>

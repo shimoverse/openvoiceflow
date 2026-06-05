@@ -1,0 +1,13 @@
+{
+  "name": "openvoiceflow-site",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Vercel static-site build wrapper for OpenVoiceFlow docs.",
+  "scripts": {
+    "build": "node scripts/vercel-build.mjs",
+    "vercel-build": "node scripts/vercel-build.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

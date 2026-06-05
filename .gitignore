@@ -20,3 +20,4 @@ env/
 htmlcov/
 .playwright-sessions/
 *.pyo
+public/

@@ -68,7 +68,7 @@
           </a>
         </li>
       </ul>
-      <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
+      <button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
         <span></span><span></span><span></span>
       </button>
     </div>
@@ -676,9 +676,19 @@
     // ─── Hamburger menu ────────────────────────────────────
     const hamburger = document.getElementById('navHamburger');
     const drawer = document.getElementById('navDrawer');
+    function setDrawerOpen(open) {
+      hamburger.classList.toggle('active', open);
+      drawer.classList.toggle('open', open);
+      hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
     hamburger.addEventListener('click', () => {
-      hamburger.classList.toggle('active');
-      drawer.classList.toggle('open');
+      setDrawerOpen(!drawer.classList.contains('open'));
+    });
+    drawer.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => setDrawerOpen(false));
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') setDrawerOpen(false);
     });
 
     // ─── Intersection Observer (reveal on scroll) ──────────

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "openvoiceflow"
 version = "0.3.0"
-description = "Free, open-source voice dictation for macOS — local transcription + LLM cleanup"
+description = "Free voice dictation for macOS — local transcription + optional LLM cleanup"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [{name = "Mohit Jain"}]
@@ -40,8 +40,13 @@ dev = [
 openvoiceflow = "voiceflow.__main__:main"
 
 [project.urls]
-Homepage = "https://github.com/shimoverse/openvoiceflow"
+Homepage = "https://openvoiceflow.vercel.app/"
+Download = "https://openvoiceflow.vercel.app/download.html"
+Source = "https://github.com/shimoverse/openvoiceflow"
 Issues = "https://github.com/shimoverse/openvoiceflow/issues"
+
+[tool.setuptools.packages.find]
+include = ["voiceflow*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,6 +1,7 @@
 from pathlib import Path
 
-DOCS = Path(__file__).resolve().parents[1] / "docs"
+ROOT = Path(__file__).resolve().parents[1]
+DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html", "press.html"]
 
@@ -103,6 +104,33 @@ def test_public_positioning_matches_private_launch_phase():
         assert stale_claim not in combined
     assert "source repository stays private during this launch phase" in combined
     assert "website-hosted DMGs" in combined
+
+
+def test_readme_points_public_users_to_website_downloads():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert f"{CANONICAL}/download.html" in readme
+    assert "website-hosted DMG" in readme
+    assert "Source install currently requires collaborator access" in readme
+    assert "Grab the latest `.dmg` from [**Releases**]" not in readme
+    assert "github.com/shimoverse/openvoiceflow/releases" not in readme
+    assert "The only open-source voice dictation app" not in readme
+
+
+def test_vercel_root_build_serves_docs_static_site():
+    package_json = (ROOT / "package.json").read_text(encoding="utf-8")
+    vercel_json = (ROOT / "vercel.json").read_text(encoding="utf-8")
+    build_script = (ROOT / "scripts" / "vercel-build.mjs").read_text(encoding="utf-8")
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+    assert '"vercel-build": "node scripts/vercel-build.mjs"' in package_json
+    assert '"buildCommand": "npm run vercel-build"' in vercel_json
+    assert '"outputDirectory": "public"' in vercel_json
+    assert '"installCommand": "npm install --ignore-scripts"' in vercel_json
+    assert "const sourceDir = path.join(root, \"docs\")" in build_script
+    assert "const outputDir = path.join(root, \"public\")" in build_script
+    assert "public/" in (ROOT / ".gitignore").read_text(encoding="utf-8")
+    assert '[tool.setuptools.packages.find]' in pyproject
+    assert 'include = ["voiceflow*"]' in pyproject
 
 
 def test_llms_txt_points_agents_to_priority_pages():

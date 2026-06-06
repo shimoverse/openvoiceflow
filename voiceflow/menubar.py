@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .system import play_sound
+
 try:
     import rumps
 except ImportError:
@@ -38,15 +40,12 @@ def run_menubar():
 
             # Backend submenu
             self.backend_menu = rumps.MenuItem("LLM Backend")
-            self._build_backend_menu()
 
             # Hotkey submenu
             self.hotkey_menu = rumps.MenuItem("Hotkey")
-            self._build_hotkey_menu()
 
             # Style submenu
             self.style_menu = rumps.MenuItem("Style/Tone")
-            self._build_style_menu()
 
             # Stats item
             self.stats_item = rumps.MenuItem("📊 Statistics", callback=self.show_stats)
@@ -139,7 +138,7 @@ def run_menubar():
             """(Re)build hotkey submenu with current checkmarks."""
             self.hotkey_menu.clear()
             current_hotkey = self.config.get("hotkey", "right_cmd")
-            for hk in ["right_cmd", "right_alt", "left_alt", "f5", "f6", "f7", "f8"]:
+            for hk in ["left_fn", "right_cmd", "right_alt", "left_alt", "f5", "f6", "f7", "f8"]:
                 item = rumps.MenuItem(
                     f"{'✓ ' if hk == current_hotkey else '  '}{hk}",
                     callback=lambda sender, h=hk: self.set_hotkey(sender, h),
@@ -211,8 +210,11 @@ def run_menubar():
                 on_release=self.vf.on_key_release,
             )
             self.listener.start()
+            self.vf.start_hotkey_runtime_checks()
             self._running = True
-            self.title = "🎙️"
+            self.title = "🎙️✅"
+            if self.config.get("sound_feedback", True):
+                play_sound("done")
             hotkey = self.config.get("hotkey", "right_cmd")
             self.start_stop_item.title = "⏸ Stop Listening"
             self.status_item.title = f"Status: Ready — hold [{hotkey}]"

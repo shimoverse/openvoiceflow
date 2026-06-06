@@ -4,17 +4,25 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import threading
 import time
+from ctypes import CDLL, c_bool
 
 from .config import load_config
 from .llm import cleanup_text
 from .recorder import AudioRecorder
 from .snippets import match_snippet
 from .stats import record_dictation
-from .system import log_transcript, paste_text, play_sound
+from .system import (
+    clear_recording_indicator,
+    insert_recording_indicator,
+    log_transcript,
+    paste_text,
+    play_sound,
+)
 from .transcriber import find_whisper_cpp, get_model_path, transcribe
 
 # ─────────────────────────────────────────────────────────────────────
@@ -69,6 +77,52 @@ def _maybe_voice_command_tutor(text_before: str, text_after: str) -> None:
         )
 
 
+def _is_accessibility_trusted() -> bool:
+    """Return True when the process is trusted for macOS Accessibility APIs."""
+    try:
+        from ApplicationServices import (  # type: ignore
+            AXIsProcessTrusted,
+        )
+        return bool(AXIsProcessTrusted())
+    except Exception:
+        pass
+
+    try:
+        app_services = CDLL(
+            "/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices"
+        )
+        app_services.AXIsProcessTrusted.restype = c_bool
+        return bool(app_services.AXIsProcessTrusted())
+    except Exception:
+        # If we cannot query trust state, don't block startup on this check.
+        return True
+
+
+def _prompt_accessibility_consent() -> None:
+    """Request Accessibility consent and open the relevant Settings pane."""
+    try:
+        from ApplicationServices import (  # type: ignore
+            AXIsProcessTrustedWithOptions,
+            kAXTrustedCheckOptionPrompt,
+        )
+        AXIsProcessTrustedWithOptions({kAXTrustedCheckOptionPrompt: True})
+    except Exception:
+        pass
+
+    # Best-effort direct jump to the Accessibility settings pane.
+    try:
+        subprocess.run(
+            [
+                "open",
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            ],
+            check=False,
+            capture_output=True,
+        )
+    except Exception:
+        pass
+
+
 class OpenVoiceFlow:
     """Main OpenVoiceFlow application."""
 
@@ -102,6 +156,11 @@ class OpenVoiceFlow:
         self._current_app = ""
         self._current_style = ""
         self._selected_text_context = None  # captured selected text
+
+        # Runtime fn hotkey self-check state
+        self._fn_probe_started = False
+        self._fn_event_seen = False
+        self._recording_indicator_inserted = False
 
     def validate_setup(self) -> bool:
         """Check that all dependencies are ready."""
@@ -145,6 +204,17 @@ class OpenVoiceFlow:
         except ImportError:
             errors.append("sounddevice not installed. Run: pip install sounddevice")
 
+        # Accessibility / input monitoring
+        if _is_accessibility_trusted():
+            print("✅ Accessibility permission granted")
+        else:
+            _prompt_accessibility_consent()
+            errors.append(
+                "Accessibility permission not granted. "
+                "Enable OpenVoiceFlow in System Settings -> Privacy & Security -> Accessibility, "
+                "then relaunch the app"
+            )
+
         if errors:
             print("\n❌ Setup issues:")
             for e in errors:
@@ -163,6 +233,7 @@ class OpenVoiceFlow:
         """Build hotkey map for available pynput keys."""
         from pynput.keyboard import Key
         definitions = {
+            "left_fn": "fn",
             "right_cmd": "cmd_r", "left_cmd": "cmd_l",
             "right_alt": "alt_r", "left_alt": "alt_l",
             "right_ctrl": "ctrl_r",
@@ -179,10 +250,47 @@ class OpenVoiceFlow:
         try:
             hotkey = self.config["hotkey"]
             target = self._get_key_map().get(hotkey)
+            if hotkey == "left_fn" and target and key == target:
+                self._fn_event_seen = True
             if target and key == target and not self.is_recording and not self.processing:
                 self.start_recording()
         except Exception:
             pass
+
+    def start_hotkey_runtime_checks(self):
+        """Start non-blocking runtime checks for fn hotkey reliability."""
+        if self._fn_probe_started:
+            return
+        self._fn_probe_started = True
+
+        if self.config.get("hotkey") != "left_fn":
+            return
+
+        key_map = self._get_key_map()
+        if "left_fn" not in key_map:
+            from . import notify
+            notify.tip(
+                "OpenVoiceFlow cannot detect the fn/globe key on this setup. "
+                "Switch hotkey to right option with: openvoiceflow --hotkey right_alt",
+                once_key="fn_hotkey_not_supported",
+            )
+            return
+
+        def _watch_fn_events():
+            # Give the user a short window to press fn once after activation.
+            time.sleep(12)
+            if self._fn_event_seen:
+                return
+            from . import notify
+            notify.tip(
+                "No fn key events detected yet. macOS may reserve Globe/fn shortcuts. "
+                "Try System Settings > Keyboard > Press Globe key, or switch hotkey: "
+                "openvoiceflow --hotkey right_alt",
+                once_key="fn_hotkey_no_events",
+            )
+
+        thread = threading.Thread(target=_watch_fn_events, daemon=True, name="ovf-fn-watchdog")
+        thread.start()
 
     def on_key_release(self, key):
         try:
@@ -246,6 +354,7 @@ class OpenVoiceFlow:
                 pass  # Never let app detection block recording
 
         self.is_recording = True
+        self._recording_indicator_inserted = insert_recording_indicator("🎙")
 
         if self._streaming_enabled():
             # ── Feature: Streaming transcription (Feature 1) ────────────────
@@ -293,6 +402,9 @@ class OpenVoiceFlow:
     def stop_and_process(self):
         """Stop recording and process — no debounce, use press timestamp for duration check."""
         self.is_recording = False
+        if self._recording_indicator_inserted:
+            clear_recording_indicator()
+            self._recording_indicator_inserted = False
 
         # Snapshot context so it's consistent across the whole process call
         current_app = self._current_app
@@ -544,11 +656,14 @@ class OpenVoiceFlow:
         hotkey = self.config["hotkey"]
         print(f"\n🎤 Ready! Hold [{hotkey}] to dictate, release to process.")
         print("   Press Ctrl+C to quit.\n")
+        if self.config.get("sound_feedback", True):
+            play_sound("done")
 
         with Listener(
             on_press=self.on_key_press,
             on_release=self.on_key_release,
         ) as listener:
+            self.start_hotkey_runtime_checks()
             try:
                 listener.join()
             except KeyboardInterrupt:

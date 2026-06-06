@@ -91,7 +91,9 @@ def test_public_pages_include_web_analytics_and_download_event_tracking():
     site_js = read_doc("site.js")
     for name in ["index.html", "download.html", "install.html", "how-it-works.html", "press.html"]:
         html = read_doc(name)
-        assert '/_vercel/insights/script.js' in html, f"missing Vercel Web Analytics on {name}"
+        assert 'https://va.vercel-scripts.com/v1/script.js' in html, f"missing Vercel Web Analytics on {name}"
+        assert "vitals.vercel-analytics.com/v1/view?dsn=" in html, f"missing Vercel pageview endpoint on {name}"
+        assert "vitals.vercel-analytics.com/v1/event?dsn=" in html, f"missing Vercel event endpoint on {name}"
         assert "window.va = window.va || function" in html, f"missing Vercel analytics queue on {name}"
         assert '<script src="site.js"></script>' in html, f"missing site.js analytics hooks on {name}"
 

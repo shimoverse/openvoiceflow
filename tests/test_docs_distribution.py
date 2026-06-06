@@ -87,6 +87,21 @@ def test_public_pages_have_mobile_first_navigation_and_touch_targets():
     assert "Escape" in site_js
 
 
+def test_public_pages_include_web_analytics_and_download_event_tracking():
+    site_js = read_doc("site.js")
+    for name in ["index.html", "download.html", "install.html", "how-it-works.html", "press.html"]:
+        html = read_doc(name)
+        assert '/_vercel/insights/script.js' in html, f"missing Vercel Web Analytics on {name}"
+        assert "window.va = window.va || function" in html, f"missing Vercel analytics queue on {name}"
+        assert '<script src="site.js"></script>' in html, f"missing site.js analytics hooks on {name}"
+
+    assert "download_click" in site_js
+    assert "install_guide_click" in site_js
+    assert "source_path" in site_js
+    assert "window.va('event'" in site_js
+    assert "/downloads/" in site_js
+
+
 def test_download_page_uses_website_hosted_assets_and_checksums():
     html = read_doc("download.html")
     assert f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg" in html

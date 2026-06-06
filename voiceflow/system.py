@@ -21,6 +21,7 @@ def paste_text(text: str):
     """
     process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
     process.communicate(text.encode("utf-8"))
+    _move_caret_to_end()
     time.sleep(0.05)
     # BUG-009 fix: capture return code and report Accessibility errors clearly
     result = subprocess.run(
@@ -43,6 +44,52 @@ def paste_text(text: str):
                 "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
             ),
         )
+
+
+def insert_recording_indicator(indicator: str = "🎙") -> bool:
+    """Insert a short visual marker at the current text cursor.
+
+    Returns True if insertion succeeded.
+    """
+    process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+    process.communicate(indicator.encode("utf-8"))
+    _move_caret_to_end()
+    time.sleep(0.03)
+    result = subprocess.run(
+        [
+            "osascript", "-e",
+            'tell application "System Events" to keystroke "v" using command down',
+        ],
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
+def clear_recording_indicator() -> bool:
+    """Delete one character to remove the temporary recording marker.
+
+    Returns True if the delete keystroke was sent successfully.
+    """
+    _move_caret_to_end()
+    result = subprocess.run(
+        [
+            "osascript", "-e",
+            'tell application "System Events" to key code 51',
+        ],
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
+def _move_caret_to_end() -> None:
+    """Move insertion point to end of the focused text field (best-effort)."""
+    subprocess.run(
+        [
+            "osascript", "-e",
+            'tell application "System Events" to key code 124 using command down',
+        ],
+        capture_output=True,
+    )
 
 
 def play_sound(sound_type: str = "start"):

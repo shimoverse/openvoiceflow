@@ -89,7 +89,7 @@ DEFAULTS = {
 }
 
 VALID_HOTKEYS = [
-    "right_cmd", "left_cmd", "right_alt", "left_alt", "right_ctrl",
+    "right_cmd", "left_fn", "left_cmd", "right_alt", "left_alt", "right_ctrl",
     "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
 ]
 

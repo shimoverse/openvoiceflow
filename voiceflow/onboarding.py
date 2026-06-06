@@ -401,8 +401,9 @@ class OnboardingWizard:
         self._subtitle("Hold this key to start dictating. Release to stop and paste.")
 
         hotkeys = [
-            ("right_cmd", "Right ⌘ Command", "Recommended — easy to reach"),
+            ("right_cmd", "Right ⌘ Command", "Recommended — default hotkey"),
             ("right_alt", "Right ⌥ Option", "Good alternative"),
+            ("left_fn", "Left fn / Globe", "Optional — may be reserved by macOS"),
             ("left_alt", "Left ⌥ Option", "If right side is awkward"),
             ("f5", "F5", "Traditional push-to-talk"),
             ("f6", "F6", "Alternative function key"),

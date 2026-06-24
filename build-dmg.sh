@@ -18,14 +18,70 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DIST_DIR="$SCRIPT_DIR/dist"
 BUILD_ONLY_ARCH="${OVF_BUILD_ARCH_ONLY:-}"
 LOCAL_ONLY_MODE="${OVF_LOCAL_ONLY:-0}"
+ICON_FILE="$SCRIPT_DIR/assets/OpenVoiceFlow.icns"
+SIGN_IDENTITY="${OVF_SIGN_IDENTITY:-}"
+NOTARIZE="${OVF_NOTARIZE:-0}"
+NOTARY_PROFILE="${OVF_NOTARY_PROFILE:-}"
+NOTARY_KEY="${OVF_NOTARY_KEY:-}"
+NOTARY_KEY_ID="${OVF_NOTARY_KEY_ID:-}"
+NOTARY_ISSUER_ID="${OVF_NOTARY_ISSUER_ID:-}"
 
 echo ""; echo "================================================"
 echo "🔨 Building ${APP_NAME} v${VERSION} DMGs"
 echo "================================================"
 
 [[ "$(uname)" != "Darwin" ]] && echo "❌ Requires macOS." && exit 1
+[[ ! -f "$ICON_FILE" ]] && echo "❌ Missing app icon: $ICON_FILE" && exit 1
 
 rm -rf "$DIST_DIR"; mkdir -p "$DIST_DIR"
+
+sign_app_if_requested() {
+    local APP_DIR=$1
+
+    if [[ -z "$SIGN_IDENTITY" ]]; then
+        echo "  ⚠️  OVF_SIGN_IDENTITY not set; building an unsigned app."
+        return 0
+    fi
+
+    echo "  🔏 Signing app with: $SIGN_IDENTITY"
+    xattr -cr "$APP_DIR" >/dev/null 2>&1 || true
+    /usr/bin/codesign --force --timestamp --options runtime --sign "$SIGN_IDENTITY" "$APP_DIR"
+    /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_DIR"
+}
+
+notarize_dmg_if_requested() {
+    local DMG=$1
+
+    if [[ "$NOTARIZE" != "1" ]]; then
+        echo "  ⚠️  OVF_NOTARIZE=1 not set; skipping Apple notarization."
+        return 0
+    fi
+
+    if [[ -z "$SIGN_IDENTITY" ]]; then
+        echo "❌ OVF_NOTARIZE=1 requires OVF_SIGN_IDENTITY."
+        exit 1
+    fi
+
+    local ARGS=()
+    if [[ -n "$NOTARY_PROFILE" ]]; then
+        ARGS=(--keychain-profile "$NOTARY_PROFILE")
+    elif [[ -n "$NOTARY_KEY" && -n "$NOTARY_KEY_ID" && -n "$NOTARY_ISSUER_ID" ]]; then
+        ARGS=(--key "$NOTARY_KEY" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID")
+    else
+        echo "❌ OVF_NOTARIZE=1 requires OVF_NOTARY_PROFILE or OVF_NOTARY_KEY + OVF_NOTARY_KEY_ID + OVF_NOTARY_ISSUER_ID."
+        exit 1
+    fi
+
+    echo "  🔏 Signing DMG..."
+    /usr/bin/codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG"
+    /usr/bin/codesign --verify --verbose=2 "$DMG"
+
+    echo "  📮 Submitting DMG to Apple notarization..."
+    /usr/bin/xcrun notarytool submit "$DMG" "${ARGS[@]}" --wait
+    /usr/bin/xcrun stapler staple "$DMG"
+    /usr/bin/xcrun stapler validate "$DMG"
+    /usr/sbin/spctl --assess --type open --verbose=4 "$DMG"
+}
 
 build_dmg() {
     local ARCH=$1 ARCH_LABEL=$2
@@ -36,6 +92,7 @@ build_dmg() {
 
     cp "$SCRIPT_DIR/voiceflow/"*.py "$APP_DIR/Contents/Resources/voiceflow/"
     cp "$SCRIPT_DIR/voiceflow/llm/"*.py "$APP_DIR/Contents/Resources/voiceflow/llm/"
+    cp "$ICON_FILE" "$APP_DIR/Contents/Resources/OpenVoiceFlow.icns"
 
     cat > "$APP_DIR/Contents/Info.plist" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -47,6 +104,7 @@ build_dmg() {
     <key>CFBundleVersion</key><string>${VERSION}</string>
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
     <key>CFBundleExecutable</key><string>${APP_NAME}</string>
+    <key>CFBundleIconFile</key><string>OpenVoiceFlow.icns</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>LSUIElement</key><true/>
     <key>NSMicrophoneUsageDescription</key><string>OpenVoiceFlow needs microphone access to transcribe your voice.</string>
@@ -288,6 +346,7 @@ except Exception as e:
 LAUNCHER
 
     chmod +x "$APP_DIR/Contents/MacOS/${APP_NAME}"
+    sign_app_if_requested "$APP_DIR"
 
     local STAGING="$DIST_DIR/staging-$ARCH"
     local DMG="$DIST_DIR/${APP_NAME}-${VERSION}-${ARCH}.dmg"
@@ -295,6 +354,7 @@ LAUNCHER
     cp -R "$APP_DIR" "$STAGING/"
     ln -s /Applications "$STAGING/Applications"
     hdiutil create -volname "${APP_NAME} (${ARCH_LABEL})" -srcfolder "$STAGING" -ov -format UDBZ "$DMG" >/dev/null
+    notarize_dmg_if_requested "$DMG"
     rm -rf "$STAGING" "$DIST_DIR/build-$ARCH"
     echo -e "  ${GREEN}✅ $DMG ($(du -h "$DMG" | cut -f1))${NC}"
 }

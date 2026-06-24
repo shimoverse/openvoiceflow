@@ -106,9 +106,17 @@ def test_public_pages_include_web_analytics_and_download_event_tracking():
 
 def test_download_page_uses_website_hosted_assets_and_checksums():
     html = read_doc("download.html")
+    site_js = read_doc("site.js")
     assert f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg" in html
     assert f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg" in html
     assert f'"softwareVersion": "{RELEASE_VERSION}"' in html
+    assert 'data-download-recommendation' in html
+    assert 'data-arch="arm64"' in html
+    assert 'data-arch="x86_64"' in html
+    assert "Download the recommended DMG" in html
+    assert "navigator.userAgentData" in site_js
+    assert "applyDownloadRecommendation" in site_js
+    assert "download_recommendation_detected" in site_js
     assert "github.com/shimoverse/openvoiceflow/releases/download" not in html
     assert "0.2.0" not in html
     assert "release candidate" not in html.lower()
@@ -120,6 +128,15 @@ def test_download_page_uses_website_hosted_assets_and_checksums():
         digest = line.split("sha256:", 1)[1].split("<", 1)[0].strip()
         assert len(digest) == 64
         int(digest, 16)
+
+
+def test_download_page_avoids_duplicate_primary_ctas():
+    html = read_doc("download.html")
+
+    assert html.count('class="btn btn-primary btn-lg"') <= 1
+    assert html.count('Download OpenVoiceFlow-0.3.0-arm64.dmg') == 1
+    assert html.count('Download OpenVoiceFlow-0.3.0-x86_64.dmg') == 1
+    assert "If we cannot confidently detect your chip" in html
 
 
 def test_download_assets_match_published_checksums():

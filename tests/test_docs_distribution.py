@@ -5,8 +5,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
 RELEASE_VERSION = "0.3.0"
-ARM64_SHA256 = "52116ab4447e6957f11132fdb157d2ac5156eb5ea7a89d14ec28a986316f8fc7"
-X86_64_SHA256 = "2ab7b1d4ed9a809cef16bea8479ff118d98943c5c1f58434d786f2bd32bc06e9"
+ARM64_SHA256 = "42dad98d65592676e269534c666a85fe498191844421f2df6d1a0e5fb6b2e38f"
+X86_64_SHA256 = "9cc8ceb6694bc8a5318f50b38c9a3e56082580a14e5ea462369e05b06365fd93"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html", "press.html"]
 
 

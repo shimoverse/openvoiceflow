@@ -7,7 +7,7 @@ CANONICAL = "https://openvoiceflow.vercel.app"
 RELEASE_VERSION = "0.3.0"
 ARM64_SHA256 = "42dad98d65592676e269534c666a85fe498191844421f2df6d1a0e5fb6b2e38f"
 X86_64_SHA256 = "9cc8ceb6694bc8a5318f50b38c9a3e56082580a14e5ea462369e05b06365fd93"
-PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html", "press.html"]
+PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html"]
 
 
 def read_doc(name: str) -> str:
@@ -19,7 +19,6 @@ def test_distribution_pages_and_crawler_files_exist():
         "download.html",
         "install.html",
         "how-it-works.html",
-        "press.html",
         "llms.txt",
         "robots.txt",
         "site.js",
@@ -39,7 +38,7 @@ def test_sitemap_includes_public_growth_pages():
 def test_homepage_has_answer_first_positioning_and_internal_growth_links():
     html = read_doc("index.html")
     assert "OpenVoiceFlow is a free push-to-talk voice dictation app for macOS" in html
-    for href in ["download.html", "install.html", "how-it-works.html", "press.html"]:
+    for href in ["download.html", "install.html", "how-it-works.html"]:
         assert f'href="{href}"' in html
     assert "No cloud. No subscription. No compromises." not in html
 
@@ -50,7 +49,6 @@ def test_growth_pages_have_metadata_canonicals_and_structured_data():
         "download.html": "SoftwareApplication",
         "install.html": "HowTo",
         "how-it-works.html": "FAQPage",
-        "press.html": "Organization",
     }
     for name, schema_type in expected.items():
         html = read_doc(name)
@@ -66,7 +64,7 @@ def test_public_pages_have_mobile_first_navigation_and_touch_targets():
     site_js = read_doc("site.js")
 
     assert '<meta name="viewport" content="width=device-width, initial-scale=1.0" />' in read_doc("index.html")
-    for name in ["index.html", "download.html", "install.html", "how-it-works.html", "press.html"]:
+    for name in ["index.html", "download.html", "install.html", "how-it-works.html"]:
         html = read_doc(name)
         assert 'class="nav-hamburger"' in html, f"missing mobile hamburger on {name}"
         assert 'aria-expanded="false"' in html, f"hamburger state missing on {name}"
@@ -89,7 +87,7 @@ def test_public_pages_have_mobile_first_navigation_and_touch_targets():
 
 def test_public_pages_include_web_analytics_and_download_event_tracking():
     site_js = read_doc("site.js")
-    for name in ["index.html", "download.html", "install.html", "how-it-works.html", "press.html"]:
+    for name in ["index.html", "download.html", "install.html", "how-it-works.html"]:
         html = read_doc(name)
         assert 'https://va.vercel-scripts.com/v1/script.js' in html, f"missing Vercel Web Analytics on {name}"
         assert "vitals.vercel-analytics.com/v1/view?dsn=" in html, f"missing Vercel pageview endpoint on {name}"
@@ -190,29 +188,16 @@ def test_public_positioning_matches_private_launch_phase():
     assert "website-hosted DMGs" in combined
 
 
-def test_press_page_reads_like_public_media_kit_not_internal_notes():
-    html = read_doc("press.html")
+def test_press_page_is_not_publicly_published_or_linked():
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in DOCS.glob("*.html"))
+    sitemap = read_doc("sitemap.xml")
+    llms = read_doc("llms.txt")
 
-    for draft_phrase in [
-        "claim boundaries",
-        "Do not claim",
-        "Launch copy drafts",
-        "Show HN style",
-        "Product Hunt style",
-        "Community reply",
-        "AI answer engines",
-    ]:
-        assert draft_phrase not in html
-
-    for polished_section in [
-        "Media Kit",
-        "Ready-to-use copy",
-        "Fast facts",
-        "Accuracy notes",
-        "Brand assets",
-        "OpenVoiceFlow is a free push-to-talk voice dictation app for macOS",
-    ]:
-        assert polished_section in html
+    assert not (DOCS / "press.html").exists()
+    assert "press.html" not in combined
+    assert "press.html" not in sitemap
+    assert "press.html" not in llms
+    assert "Press kit" not in combined
 
 
 def test_readme_points_public_users_to_website_downloads():
@@ -247,6 +232,6 @@ def test_vercel_root_build_serves_docs_static_site():
 def test_llms_txt_points_agents_to_priority_pages():
     llms = read_doc("llms.txt")
     assert "# OpenVoiceFlow" in llms
-    for page in ["/", "/download.html", "/install.html", "/how-it-works.html", "/press.html"]:
+    for page in ["/", "/download.html", "/install.html", "/how-it-works.html"]:
         assert f"{CANONICAL}{page}" in llms
     assert "Do not claim" in llms

@@ -71,14 +71,25 @@ If/when you want `brew tap shimoverse/tap && brew install openvoiceflow`:
 - Add a Formula like `Formula/openvoiceflow.rb` matching the PRD's draft (see [PRD.md](PRD.md))
 - Update the formula's `url` and `sha256` after each PyPI release. (Can be automated later via a separate workflow if it becomes a chore.)
 
-### 4. (When ready) Code signing + notarization
+### 4. Apple Developer ID signing + notarization
 
-Skipped for v0.3.0 (Decision D6). When you decide to pay the $99/yr Apple Developer fee:
+The release workflow can sign and notarize DMGs when Apple Developer credentials are present. Current v0.3.0 website-hosted DMGs were built before those credentials were configured, so they still trigger the Gatekeeper warning.
 
-- Generate a Developer ID Application certificate
-- Add `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_PASSWORD`, `DEVELOPER_ID_CERT_BASE64` to repo secrets
-- Add a `codesign` + `xcrun notarytool submit` step to `release.yml` between `build-dmg.sh` and the Release upload
-- Update README to drop the Gatekeeper-override footnote
+To produce Apple-certified DMGs for the next tag:
+
+- Join the Apple Developer Program and create a **Developer ID Application** certificate.
+- Export the certificate as a password-protected `.p12`.
+- Create an App Store Connect API key with notarization access.
+- Add these GitHub Actions secrets:
+  - `APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64`: base64-encoded `.p12`
+  - `APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD`: `.p12` password
+  - `APPLE_KEYCHAIN_PASSWORD`: temporary CI keychain password
+  - `APPLE_CODESIGN_IDENTITY`: full identity, for example `Developer ID Application: Your Name (TEAMID)`
+  - `APPLE_NOTARY_KEY_BASE64`: base64-encoded `AuthKey_XXXX.p8`
+  - `APPLE_NOTARY_KEY_ID`: App Store Connect key ID
+  - `APPLE_NOTARY_ISSUER_ID`: App Store Connect issuer UUID
+- Push a new release tag and verify the workflow logs show `codesign`, `xcrun notarytool submit`, `xcrun stapler staple`, and `spctl`.
+- Replace the website-hosted DMGs and checksums with the newly notarized artifacts.
 
 ## When things go wrong
 
@@ -86,7 +97,8 @@ Skipped for v0.3.0 (Decision D6). When you decide to pay the $99/yr Apple Develo
 |---|---|
 | Workflow fails at `verify-version` | Tag ≠ `pyproject.toml` ≠ `voiceflow/__init__.py`. Pick one, propagate, force-update the tag. |
 | `twine check` fails | Almost always a malformed README rendering or a missing `[project]` field. Run `python -m build && twine check dist/*` locally. |
-| DMG build fails on `bash build-dmg.sh` | Run it locally on a Mac with the `[all]` extras installed; the script is finicky about brew + arch detection. |
+| DMG build fails on `bash build-dmg.sh` | Run it locally on a Mac with the `[all]` extras installed; the script requires `assets/OpenVoiceFlow.icns` and is finicky about brew + arch detection. |
+| DMG notarization fails | Confirm the Developer ID cert is valid, `APPLE_CODESIGN_IDENTITY` matches `security find-identity`, and the App Store Connect API key secrets are correct. |
 | PyPI publish step fails with "Trusted publisher not found" | The OIDC config on PyPI doesn't match the workflow filename or the repo path. Re-check both sides. |
 | GitHub Release artifact missing | The two upload jobs (`publish-pypi` and `build-dmg`) target the same Release; race conditions are usually benign — the second upload appends. If something's missing, re-run the failed job. |
 | Tag accidentally pushed without bumping the version | Delete the tag locally and remotely (`git tag -d vX.Y.Z; git push origin :refs/tags/vX.Y.Z`), bump, re-tag. |
@@ -130,5 +142,5 @@ git push origin v0.3.0
 ## Maintainer notes
 
 - The release workflow is idempotent in spirit but not in fact. Don't push the same tag twice.
-- DMG signing/notarization is a future-Mohit problem. Until then, every first launch needs a Gatekeeper override; this is documented in README.
+- DMG signing/notarization is wired into CI, but it only runs when the Apple Developer secrets above are configured. Until notarized artifacts replace the hosted DMGs, first launch needs a Gatekeeper override.
 - If you transfer the GitHub repo to a different owner (Decision D1), the Trusted Publisher OIDC config on PyPI breaks until you re-add it under the new path.

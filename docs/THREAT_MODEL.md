@@ -128,7 +128,7 @@ Threats we **do not** try to defend against, because either the threat is the us
 
 6. **Supply-chain attack on PyPI.** v0.3 is **not on PyPI yet**, so this is moot today. **It will be the dominant supply-chain concern at v0.4** when we publish. Today, `pip install -e .` from the GitHub repo and the DMG installer are the two entry points; neither pulls a typo-squat-able package name. **(TODO-v0.4-D: sign the GitHub Release and publish to PyPI under the reserved `openvoiceflow` name with Trusted Publisher OIDC.)**
 
-7. **DMG signing / notarization.** v0.3 ships an unsigned DMG. macOS Gatekeeper requires the user to right-click → Open on first launch. Apple Developer signing ($99/yr) is a v0.4 decision (D6). Until then, the DMG path is "trust the user verified the source themselves."
+7. **DMG signing / notarization.** The current v0.3.0 website-hosted DMGs are unsigned, so macOS Gatekeeper requires the user to right-click → Open on first launch. The release workflow now supports Developer ID signing and Apple notarization when Apple Developer credentials are configured, but hosted artifacts must be rebuilt and replaced before we can claim a notarized download.
 
 8. **Compromised dependencies (unpinned `>=`).** `pyproject.toml` uses `>=` rather than exact pins. A malicious update to a transitive dep could land on next install. **(TODO-v0.4-E: lockfile + Dependabot.)**
 
@@ -164,7 +164,7 @@ Threats we **do not** try to defend against, because either the threat is the us
 1. What's your PII redaction roadmap? (Not present today.)
 2. What's your retention policy for `~/.openvoiceflow/logs/` when the user opts in? (None today; user manages.)
 3. What's your incident-response process for a leaked API key reported by a user?
-4. When will the DMG be signed/notarized?
+4. Have the hosted DMGs been rebuilt from the signing/notarization-enabled release workflow?
 5. When will model checksums be verified at download?
 
 ---

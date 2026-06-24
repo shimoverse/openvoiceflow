@@ -190,6 +190,31 @@ def test_public_positioning_matches_private_launch_phase():
     assert "website-hosted DMGs" in combined
 
 
+def test_press_page_reads_like_public_media_kit_not_internal_notes():
+    html = read_doc("press.html")
+
+    for draft_phrase in [
+        "claim boundaries",
+        "Do not claim",
+        "Launch copy drafts",
+        "Show HN style",
+        "Product Hunt style",
+        "Community reply",
+        "AI answer engines",
+    ]:
+        assert draft_phrase not in html
+
+    for polished_section in [
+        "Media Kit",
+        "Ready-to-use copy",
+        "Fast facts",
+        "Accuracy notes",
+        "Brand assets",
+        "OpenVoiceFlow is a free push-to-talk voice dictation app for macOS",
+    ]:
+        assert polished_section in html
+
+
 def test_readme_points_public_users_to_website_downloads():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert f"{CANONICAL}/download.html" in readme

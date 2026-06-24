@@ -96,6 +96,8 @@ jobs:
     runs-on: macos-latest
     permissions:
       contents: write
+    env:
+      HAS_APPLE_SIGNING: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 != '' && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD != '' && secrets.APPLE_KEYCHAIN_PASSWORD != '' && secrets.APPLE_NOTARY_KEY_BASE64 != '' && secrets.APPLE_NOTARY_KEY_ID != '' && secrets.APPLE_NOTARY_ISSUER_ID != '' }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -103,8 +105,50 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -e ".[all]"
+      - name: Prepare Apple Developer ID signing assets
+        if: env.HAS_APPLE_SIGNING == 'true'
+        env:
+          APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
+          APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD }}
+          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          APPLE_NOTARY_KEY_BASE64: ${{ secrets.APPLE_NOTARY_KEY_BASE64 }}
+          APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/openvoiceflow-signing.keychain-db"
+          CERT_PATH="$RUNNER_TEMP/developer-id-application.p12"
+          NOTARY_KEY_PATH="$RUNNER_TEMP/AuthKey_${APPLE_NOTARY_KEY_ID}.p8"
+
+          echo "$APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          echo "$APPLE_NOTARY_KEY_BASE64" | base64 --decode > "$NOTARY_KEY_PATH"
+
+          security create-keychain -p "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH" -T /usr/bin/codesign
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          echo "OVF_NOTARY_KEY=$NOTARY_KEY_PATH" >> "$GITHUB_ENV"
       - name: Build DMG
-        run: bash build-dmg.sh
+        env:
+          APPLE_CODESIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
+          APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          APPLE_NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          if [[ "$HAS_APPLE_SIGNING" == "true" ]]; then
+            OVF_SIGN_IDENTITY="${APPLE_CODESIGN_IDENTITY:-Developer ID Application}" \
+            OVF_NOTARIZE=1 \
+            OVF_NOTARY_KEY="$OVF_NOTARY_KEY" \
+            OVF_NOTARY_KEY_ID="$APPLE_NOTARY_KEY_ID" \
+            OVF_NOTARY_ISSUER_ID="$APPLE_NOTARY_ISSUER_ID" \
+            bash build-dmg.sh
+          else
+            echo "::warning::Apple signing/notarization secrets are missing; DMGs will be unsigned and will trigger Gatekeeper warnings."
+            bash build-dmg.sh
+          fi
       - name: Upload DMGs to Release
         uses: softprops/action-gh-release@v2
         with:

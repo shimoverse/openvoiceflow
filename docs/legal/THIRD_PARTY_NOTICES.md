@@ -65,7 +65,7 @@ This means there is no OpenRouter, `openai`, `anthropic`, or `groq` SDK in our d
 
 ## 5. Bundled docs, fonts, and assets
 
-The DMG contains only Python source code and the launcher shell script. No fonts, images, or icon sets with separate licenses are bundled. The overlay HUD draws using macOS system fonts (San Francisco), which carry no separate licensing obligation for an app running on macOS.
+The DMG contains Python source code, the launcher shell script, and the project-generated OpenVoiceFlow app icon. No third-party fonts, images, or icon sets with separate licenses are bundled. The overlay HUD draws using macOS system fonts (San Francisco), which carry no separate licensing obligation for an app running on macOS.
 
 ## 6. Build- and dev-time only (not shipped)
 

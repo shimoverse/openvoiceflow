@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 
 CONFIG_DIR = os.path.expanduser("~/.openvoiceflow")
@@ -84,6 +85,10 @@ DEFAULTS = {
     # Strong privilege (reads focused text field via Accessibility API for
     # 30 s post-paste). Opt-in only — gated by the Know Me interview.
     "auto_learn": False,
+    # Typed 🎙 recording indicator. Opt-in: it edits the frontmost document
+    # (paste on start, backspace on stop) and can misfire when focus changes
+    # mid-dictation. The overlay HUD is the default recording feedback.
+    "recording_indicator": False,
     # Auto-update notifier
     "update_check": True,          # On launch, check GitHub Releases for a newer version
 }
@@ -135,11 +140,34 @@ def _migrate_gemini_to_openrouter(stored: dict) -> bool:
 
 def load_config() -> dict:
     os.makedirs(CONFIG_DIR, exist_ok=True)
+    from ._secure_io import secure_dir
+    secure_dir(CONFIG_DIR)
     if not os.path.exists(CONFIG_PATH):
         save_config(DEFAULTS)
         return dict(DEFAULTS)
-    with open(CONFIG_PATH) as f:
-        stored = json.load(f)
+    try:
+        with open(CONFIG_PATH) as f:
+            stored = json.load(f)
+        if not isinstance(stored, dict):
+            raise ValueError("config root is not a JSON object")
+    except (json.JSONDecodeError, ValueError, OSError) as exc:
+        # A corrupt config must never brick the app (including --doctor and
+        # --setup, which are the tools to fix it). Preserve the bad file for
+        # manual recovery and continue with defaults.
+        backup_path = CONFIG_PATH + ".corrupt"
+        try:
+            os.replace(CONFIG_PATH, backup_path)
+        except OSError:
+            backup_path = None
+        print(
+            f"⚠️  Could not read {CONFIG_PATH} ({exc}). "
+            + (f"The unreadable file was moved to {backup_path}. " if backup_path else "")
+            + "Continuing with default settings — re-add your API key with "
+            "`openvoiceflow --setup` or `openvoiceflow --set-key`.",
+            file=sys.stderr,
+        )
+        save_config(DEFAULTS)
+        return dict(DEFAULTS)
     prompt_migrated = _migrate_cleanup_to_llm_prompt(stored)
     backend_migrated = _migrate_gemini_to_openrouter(stored)
     migrated = prompt_migrated or backend_migrated

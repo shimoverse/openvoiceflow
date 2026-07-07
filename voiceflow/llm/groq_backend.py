@@ -48,7 +48,13 @@ class GroqBackend(LLMBackend):
         payload = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": self.prompt},
+                {
+                    "role": "system",
+                    "content": self._make_system_prompt(
+                        app_context=app_context,
+                        override_style=override_style,
+                    ),
+                },
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.1,
@@ -68,7 +74,7 @@ class GroqBackend(LLMBackend):
                 data = json.loads(resp.read().decode())
                 return data["choices"][0]["message"]["content"].strip()
         except urllib.error.HTTPError as e:
-            error_body = e.read().decode()
+            error_body = e.read().decode("utf-8", errors="replace")
             print(f"❌ Groq API error ({e.code}): {error_body}")
             return raw_text
         except Exception as e:

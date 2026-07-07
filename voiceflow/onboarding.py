@@ -134,6 +134,11 @@ class OnboardingWizard:
         self.api_key = tk.StringVar()
         self.selected_hotkey = tk.StringVar(value="right_cmd")
         self.config = {}
+        # Which backend the prefilled key belongs to — so re-running the
+        # wizard and picking a different backend can't silently save the
+        # old backend's key under the new backend's field.
+        self._prefill_key = ""
+        self._prefill_backend = None
 
         # Load existing config
         self._load_existing_config()
@@ -158,6 +163,8 @@ class OnboardingWizard:
                 key_field = f"{backend}_api_key"
                 if self.config.get(key_field):
                     self.api_key.set(self.config[key_field])
+                    self._prefill_key = self.config[key_field]
+                    self._prefill_backend = backend
                 if self.config.get("hotkey"):
                     self.selected_hotkey.set(self.config["hotkey"])
             except Exception:
@@ -457,18 +464,27 @@ class OnboardingWizard:
         # Build config
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
-        # Preserve existing config
+        # Preserve existing config (a corrupt file must not crash the
+        # Finish button — fall back to a fresh config)
         if CONFIG_PATH.exists():
-            with open(CONFIG_PATH) as f:
-                self.config = json.load(f)
+            try:
+                with open(CONFIG_PATH) as f:
+                    self.config = json.load(f)
+            except (json.JSONDecodeError, ValueError, OSError):
+                self.config = {}
 
         self.config["llm_backend"] = backend
         self.config["hotkey"] = self.selected_hotkey.get()
         self.config.pop("gemini_api_key", None)
 
-        # Save API key
+        # Save API key — but never a key prefilled from a *different*
+        # backend (it would be saved under the wrong field and every
+        # cleanup would 401), and never for keyless backends.
         key = self.api_key.get().strip()
-        if key:
+        stale_prefill = (
+            key == self._prefill_key and backend != self._prefill_backend
+        )
+        if key and backend not in ("ollama", "none") and not stale_prefill:
             key_field = f"{backend}_api_key"
             self.config[key_field] = key
 
@@ -577,7 +593,7 @@ def _launch_interview() -> None:
                     "Personalization couldn't start",
                     f"{exc}\n\n"
                     "You can re-run it any time with:\n"
-                    "  openvoiceflow --interview",
+                    "  openvoiceflow --profile",
                 )
             except Exception:
                 # If the error dialog itself fails, the stderr output above
@@ -588,9 +604,24 @@ def _launch_interview() -> None:
 def run_onboarding():
     """Run the onboarding wizard and return the config."""
     if not HAS_TKINTER:
-        print("❌ tkinter not available. Run: openvoiceflow --setup for CLI setup.")
+        print(
+            "❌ tkinter not available. Configure from the terminal instead:\n"
+            "   openvoiceflow --backend openrouter\n"
+            "   openvoiceflow --set-key openrouter -   (key read from stdin)"
+        )
         return None
-    wizard = OnboardingWizard()
+    try:
+        wizard = OnboardingWizard()
+    except Exception as exc:
+        # tk.Tk() raises TclError when no display is available (e.g. SSH)
+        print(
+            f"❌ Could not open the setup window ({exc}).\n"
+            "   Configure from the terminal instead:\n"
+            "   openvoiceflow --backend openrouter\n"
+            "   openvoiceflow --set-key openrouter -   (key read from stdin)",
+            file=sys.stderr,
+        )
+        return None
     return wizard.run()
 
 

@@ -95,11 +95,23 @@ def download_model(model_name: str) -> str | None:
     url = f"https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-{model_name}.bin"
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Download to a temp name and move into place only on success. Without
+    # --fail, curl saves HTTP error pages as the "model"; and a partial file
+    # left at model_path would be treated as a valid model forever after.
+    tmp_path = model_path + ".download"
     try:
-        subprocess.run(["curl", "-L", "-o", model_path, url], check=True)
+        subprocess.run(
+            ["curl", "-fL", "--retry", "3", "-o", tmp_path, url],
+            check=True,
+        )
+        os.replace(tmp_path, model_path)
         print(f"✅ Model downloaded to {model_path}")
         return model_path
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
         print(f"❌ Failed to download model from {url}")
         return None
 
@@ -127,7 +139,10 @@ def transcribe(audio_path: str, config: dict) -> str | None:
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        # 30 s was too tight: a multi-minute dictation with a small/medium
+        # model (or older hardware) legitimately takes longer, and a timeout
+        # discards the entire recording.
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
         if result.returncode != 0:
             print(f"❌ Whisper error: {result.stderr}")
             return None

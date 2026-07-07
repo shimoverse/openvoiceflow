@@ -33,7 +33,9 @@ def main():
     parser.add_argument("--hotkey", choices=VALID_HOTKEYS, help="Set hotkey")
     parser.add_argument("--model", choices=VALID_MODELS, help="Set whisper model")
     parser.add_argument("--backend", choices=VALID_BACKENDS, help="Set LLM backend")
-    parser.add_argument("--set-key", nargs=2, metavar=("BACKEND", "KEY"), help="Set API key")
+    parser.add_argument("--set-key", nargs=2, metavar=("BACKEND", "KEY"),
+                        help="Set API key (use '-' as KEY to read it from stdin, "
+                             "keeping it out of shell history and process listings)")
     parser.add_argument("--set-prompt", metavar="PROMPT", help="Set custom LLM cleanup prompt")
     parser.add_argument("--clear-prompt", action="store_true", help="Reset to default LLM prompt")
     parser.add_argument("--show-config", action="store_true", help="Print current config")
@@ -375,6 +377,11 @@ def main():
         if backend not in VALID_BACKENDS or backend in ("ollama", "none"):
             print(f"❌ Invalid API-key backend '{backend}'. Valid: openrouter / openai / anthropic / groq")
             sys.exit(1)
+        if key == "-":
+            key = sys.stdin.readline().strip()
+        if not key:
+            print("❌ Empty API key.")
+            sys.exit(1)
         key_field = f"{backend}_api_key"
         config[key_field] = key
         save_config(config)
@@ -393,7 +400,7 @@ def main():
     if args.language:
         config["language"] = args.language
         # Auto-switch to multilingual model if language isn't English
-        if args.language != "en" and config.get("whisper_model", "").endswith(".en"):
+        if args.language != "en" and (config.get("whisper_model") or "").endswith(".en"):
             base = config["whisper_model"].replace(".en", "")
             config["whisper_model"] = base
             print(f"✅ Language set to: {args.language}")
@@ -419,7 +426,10 @@ def main():
                 print("⚠️  whisper-stream binary not found. Install with: brew install whisper-cpp")
                 print("   Streaming will fall back to batch mode until the binary is available.")
 
-    if args.streaming_step:
+    if args.streaming_step is not None:
+        if args.streaming_step < 100:
+            print(f"❌ Invalid streaming step {args.streaming_step} ms (minimum 100).")
+            sys.exit(1)
         config["streaming_step_ms"] = args.streaming_step
         save_config(config)
         print(f"✅ Streaming step size set to: {args.streaming_step} ms")
@@ -463,7 +473,8 @@ def main():
 
     if args.show_config:
         import json
-        safe = {k: ("***" if "key" in k and v else v) for k, v in config.items()}
+        # Match actual secret fields only — a substring test also masks "hotkey"
+        safe = {k: ("***" if k.endswith("_api_key") and v else v) for k, v in config.items()}
         print(json.dumps(safe, indent=2))
         return
 
@@ -495,7 +506,7 @@ def main():
 
     if any([args.hotkey, args.model, args.backend, args.set_key, args.set_prompt,
             args.clear_prompt, args.language, args.style,
-            args.streaming, args.streaming_step, args.auto_learn,
+            args.streaming, args.streaming_step is not None, args.auto_learn,
             args.update_check, args.log_transcripts]):
         return
 
@@ -518,11 +529,14 @@ def main():
             print("\n✅ All checks passed. Run openvoiceflow to start.")
         return
 
-    # First run — launch onboarding
-    is_first_run = not config.get("openrouter_api_key") and \
-                   not config.get("openai_api_key") and \
-                   not config.get("anthropic_api_key") and \
-                   not config.get("groq_api_key") and \
+    # First run — launch onboarding. get_api_key also honors the
+    # OPENROUTER_API_KEY-style environment variables, so an env-var-only
+    # setup isn't forced through the wizard on every launch.
+    from .config import get_api_key
+    has_any_key = any(
+        get_api_key(config, b) for b in ("openrouter", "openai", "anthropic", "groq")
+    )
+    is_first_run = not has_any_key and \
                    config.get("llm_backend") != "ollama" and \
                    config.get("llm_backend") != "none"
 

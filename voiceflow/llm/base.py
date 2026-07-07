@@ -52,19 +52,18 @@ class LLMBackend(ABC):
 
         self.model = config.get(f"{self.name}_model", self.default_model)
 
-    def _make_prompt(
+    def _make_system_prompt(
         self,
-        text: str,
-        context: str | None = None,
         app_context: str | None = None,
         override_style: str | None = None,
     ) -> str:
-        """Build the full prompt string combining system prompt and transcript.
+        """Build the system prompt with per-dictation style/app context applied.
+
+        Backends with a separate system/user message split (OpenAI, Anthropic,
+        Groq) use this for the system message; :meth:`_make_prompt` builds on
+        it for single-prompt backends (OpenRouter, Ollama).
 
         Args:
-            text:           Raw transcript to clean up.
-            context:        Optional selected-text captured before dictation
-                            (from :mod:`voiceflow.clipboard`).
             app_context:    Optional context fragment from
                             :func:`~voiceflow.context.get_app_context_prompt`,
                             describing the active app + style hint.
@@ -72,7 +71,6 @@ class LLMBackend(ABC):
                             than the global config default, pass it here to
                             rebuild the style suffix on the fly.
         """
-        # Start from the base prompt
         base_prompt = self.prompt
 
         # Apply per-dictation style override when auto_style resolved a
@@ -94,6 +92,29 @@ class LLMBackend(ABC):
         # Append app context fragment (e.g. "User is in VS Code...")
         if app_context:
             base_prompt = base_prompt + app_context
+
+        return base_prompt
+
+    def _make_prompt(
+        self,
+        text: str,
+        context: str | None = None,
+        app_context: str | None = None,
+        override_style: str | None = None,
+    ) -> str:
+        """Build the full prompt string combining system prompt and transcript.
+
+        Args:
+            text:           Raw transcript to clean up.
+            context:        Optional selected-text captured before dictation
+                            (from :mod:`voiceflow.clipboard`).
+            app_context:    See :meth:`_make_system_prompt`.
+            override_style: See :meth:`_make_system_prompt`.
+        """
+        base_prompt = self._make_system_prompt(
+            app_context=app_context,
+            override_style=override_style,
+        )
 
         # Prepend selected-text context block when available
         if context:

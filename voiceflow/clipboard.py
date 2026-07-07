@@ -19,6 +19,7 @@ def _read_clipboard() -> str:
     result = subprocess.run(
         ["pbpaste"],
         capture_output=True,
+        timeout=3,
     )
     if result.returncode == 0:
         return result.stdout.decode("utf-8", errors="replace")
@@ -29,7 +30,7 @@ def _write_clipboard(text: str) -> None:
     """Write text to clipboard via pbcopy."""
     try:
         process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
-        process.communicate(text.encode("utf-8"))
+        process.communicate(text.encode("utf-8"), timeout=3)
     except Exception:
         pass
 
@@ -70,9 +71,11 @@ def capture_selected_text() -> str | None:
         selected_text: str | None = None
         if new_clipboard != original_clipboard and new_clipboard.strip():
             selected_text = new_clipboard[:MAX_CONTEXT_CHARS]
-
-        # 6. Restore original clipboard unconditionally
-        _write_clipboard(original_clipboard)
+            # 6. Restore the original clipboard. Only done when Cmd+C actually
+            # replaced it: pbpaste can't represent non-text contents (images,
+            # files), so writing back when nothing changed would overwrite
+            # them with empty text.
+            _write_clipboard(original_clipboard)
 
         return selected_text
 

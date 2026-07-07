@@ -20,9 +20,14 @@ def load_dictionary() -> list[dict]:
         return []
     try:
         with open(DICTIONARY_PATH) as f:
-            return json.load(f)
-    except (json.JSONDecodeError, ValueError):
+            entries = json.load(f)
+    except (json.JSONDecodeError, ValueError, OSError):
         return []
+    if not isinstance(entries, list):
+        return []
+    # Drop malformed entries (e.g. hand-edited without "word") so callers
+    # like add_word/list_words can't crash on a KeyError.
+    return [e for e in entries if isinstance(e, dict) and isinstance(e.get("word"), str)]
 
 
 def save_dictionary(entries: list[dict]):

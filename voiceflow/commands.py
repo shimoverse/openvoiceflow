@@ -62,28 +62,35 @@ def load_commands(config: dict) -> dict[str, str]:
 def apply_commands(text: str, commands: dict[str, str]) -> str:
     """Replace spoken command phrases in *text* with their target strings.
 
-    Processing order: longest phrase first, so "new paragraph" is matched
-    before either "new" or "paragraph" could interfere.
+    All phrases are matched in a single pass with one combined pattern:
+    longest phrase first, so "new paragraph" is matched before either "new"
+    or "paragraph" could interfere, and text produced by one replacement is
+    never re-scanned by another (a custom expansion containing the word
+    "period" stays intact).
 
     Matching is case-insensitive and uses word boundaries so "comma" does not
     accidentally match inside "uncomma ndable" or similar edge cases.
+
+    Replacements are inserted literally (via a callback), so custom commands
+    containing backslashes or "\\1"-style sequences cannot break the regex.
     """
     if not commands or not text:
         return text
 
-    # Sort descending by phrase length to prevent partial matches
-    sorted_phrases = sorted(commands.keys(), key=len, reverse=True)
+    lookup = {phrase.lower(): replacement for phrase, replacement in commands.items()}
+    # Sort descending by phrase length to prevent partial matches; regex
+    # alternation tries branches left to right.
+    sorted_phrases = sorted(lookup.keys(), key=len, reverse=True)
+    alternation = "|".join(re.escape(p) for p in sorted_phrases)
+    pattern = re.compile(r"( *)\b(" + alternation + r")\b", re.IGNORECASE)
 
-    for phrase in sorted_phrases:
-        replacement = commands[phrase]
-        # re.escape handles any special chars a user might put in a custom phrase
-        # For punctuation replacements, optionally consume the preceding space so
+    def _replace(match: re.Match) -> str:
+        spaces, phrase = match.group(1), match.group(2)
+        replacement = lookup[phrase.lower()]
+        # For punctuation replacements, consume the preceding space so
         # "hello comma world" becomes "hello, world" rather than "hello , world".
-        escaped = re.escape(phrase)
         if replacement and not replacement[0].isalnum() and not replacement[0].isspace():
-            pattern = r"(?i) *\b" + escaped + r"\b"
-        else:
-            pattern = r"(?i)\b" + escaped + r"\b"
-        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+            return replacement
+        return spaces + replacement
 
-    return text
+    return pattern.sub(_replace, text)

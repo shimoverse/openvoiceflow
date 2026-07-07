@@ -13,8 +13,12 @@ set -euo pipefail
 GREEN='\033[0;32m'; NC='\033[0m'
 APP_NAME="OpenVoiceFlow"
 BUNDLE_ID="com.openvoiceflow.dictation"
-VERSION=$(python3 -c "import re; v=re.search(r'version\s*=\s*\"(.+?)\"', open('pyproject.toml').read()); print(v.group(1) if v else '0.1.0')" 2>/dev/null || echo "0.1.0")
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Read the version from the repo's own pyproject.toml (not the CWD's) and
+# fail loudly rather than silently stamping a fallback version on the DMG.
+VERSION=$(python3 -c "import re; v=re.search(r'version\s*=\s*\"(.+?)\"', open('$SCRIPT_DIR/pyproject.toml').read()); print(v.group(1))") || {
+    echo "❌ Could not read version from $SCRIPT_DIR/pyproject.toml"; exit 1;
+}
 DIST_DIR="$SCRIPT_DIR/dist"
 BUILD_ONLY_ARCH="${OVF_BUILD_ARCH_ONLY:-}"
 LOCAL_ONLY_MODE="${OVF_LOCAL_ONLY:-0}"
@@ -222,11 +226,16 @@ if ! command -v whisper-cli &>/dev/null && ! command -v whisper-cpp &>/dev/null;
     brew install whisper-cpp || fatal "whisper-cpp install failed. Try: brew install whisper-cpp\nLog: \$LOG"
 fi
 
-if [[ ! -f "\$PY" ]]; then
+# A completion marker (not the venv python) gates the bootstrap: if pip
+# failed after venv creation, checking for \$PY alone would skip the install
+# forever and every launch would die on missing imports.
+DEPS_MARKER="\$VENV/.ovf-deps-installed"
+if [[ ! -f "\$PY" || ! -f "\$DEPS_MARKER" ]]; then
     notify "First run setup (~1 min)..."
     python3 -m venv "\$VENV"
     "\$VENV/bin/pip" install -q --upgrade pip
-    "\$VENV/bin/pip" install -q sounddevice numpy pynput rumps pyobjc-framework-Cocoa || fatal "Package install failed. Log: \$LOG"
+    "\$VENV/bin/pip" install -q sounddevice numpy pynput rumps pyobjc-framework-Cocoa || fatal "Package install failed. Relaunch OpenVoiceFlow to retry. Log: \$LOG"
+    touch "\$DEPS_MARKER"
 fi
 
 # Runtime shim name helps users find the process in permission panes.
@@ -240,11 +249,15 @@ notify "OpenVoiceFlow is launching..."
 SITE="\$("\$PY" -c "import site; print(site.getsitepackages()[0])" 2>/dev/null)"
 [[ -n "\$SITE" ]] && rm -rf "\$SITE/voiceflow" 2>/dev/null && cp -R "\$RESOURCES/voiceflow" "\$SITE/"
 
+# --fail + temp-file + move: an HTTP error page or interrupted transfer must
+# never be left at \$MODEL, where it would be treated as a valid model forever.
 MODEL="\$HOME_DIR/models/ggml-base.en.bin"
 if [[ ! -f "\$MODEL" ]]; then
     notify "Downloading speech model (~142 MB, once)..."
-    curl -L --progress-bar -o "\$MODEL" \
-        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin"
+    curl -fL --retry 3 --progress-bar -o "\$MODEL.download" \
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin" \
+        || { rm -f "\$MODEL.download"; fatal "Speech model download failed. Check your internet connection and relaunch OpenVoiceFlow. Log: \$LOG"; }
+    mv "\$MODEL.download" "\$MODEL"
 fi
 
 AX_OK="\$("\$PY_RUN" - <<'PY'
@@ -274,11 +287,15 @@ except Exception:
     pass
 PY
 
-PERM_CHOICE="\$(ask_permissions_menu || true)"
-if [[ "\$PERM_CHOICE" == *"Accessibility"* ]]; then
-    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" >/dev/null 2>&1 || true
-elif [[ "\$PERM_CHOICE" == *"Microphone"* ]]; then
-    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone" >/dev/null 2>&1 || true
+# Only surface the permissions menu when a permission is actually missing —
+# unconditionally it would block every launch with a dialog.
+if [[ "\$AX_OK" != "1" ]]; then
+    PERM_CHOICE="\$(ask_permissions_menu || true)"
+    if [[ "\$PERM_CHOICE" == *"Accessibility"* ]]; then
+        open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" >/dev/null 2>&1 || true
+    elif [[ "\$PERM_CHOICE" == *"Microphone"* ]]; then
+        open "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone" >/dev/null 2>&1 || true
+    fi
 fi
 
 "\$PY_RUN" -c "
@@ -387,8 +404,8 @@ else
     echo "    dist/${APP_NAME}-${VERSION}-arm64.dmg \\"
     echo "    dist/${APP_NAME}-${VERSION}-x86_64.dmg \\"
     echo "    --title \"OpenVoiceFlow v${VERSION}\" \\"
-    echo '    --notes "**Apple Silicon (M1/M2/M3/M4):** `OpenVoiceFlow-arm64.dmg`
-**Intel Mac:** `OpenVoiceFlow-x86_64.dmg`
+    echo "    --notes \"**Apple Silicon (M1/M2/M3/M4):** \\\`${APP_NAME}-${VERSION}-arm64.dmg\\\`
+**Intel Mac:** \\\`${APP_NAME}-${VERSION}-x86_64.dmg\\\`
 
-Drag to Applications, launch, done. Everything installs automatically."'
+Drag to Applications, launch, done. Everything installs automatically.\""
 fi

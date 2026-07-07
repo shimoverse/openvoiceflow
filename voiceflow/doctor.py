@@ -215,11 +215,16 @@ def _check_ollama_inline(config: dict) -> Check:
             status=Status.OK,
             description=f"Running at {base_url}; {len(models)} model(s) available.",
         )
-    except (urllib.error.URLError, OSError):
+    except Exception:
+        # Broad on purpose: beyond URLError this can raise JSONDecodeError
+        # (proxy/captive-portal reply), ValueError (malformed ollama_url),
+        # or TypeError (unexpected response shape) — a diagnostic check must
+        # report failure, not crash the doctor run.
         return Check(
             name="Ollama",
             status=Status.FAIL,
-            description=f"Ollama daemon not reachable at {base_url}.",
+            description=f"Ollama daemon not reachable at {base_url} "
+                        "(or it returned an unexpected response).",
             fix=Fix(
                 label="Start Ollama (or install from ollama.com)",
                 url="https://ollama.com",

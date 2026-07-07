@@ -26,8 +26,33 @@ def secure_chmod(path: str | os.PathLike[str]) -> None:
         )
 
 
+def secure_dir(path: str | os.PathLike[str]) -> None:
+    """Best-effort ``chmod 700`` for a directory holding sensitive files."""
+    try:
+        os.chmod(path, 0o700)
+    except OSError:
+        pass
+
+
 def secure_write_json(path: str | os.PathLike[str], data: Any, *, indent: int = 2) -> None:
-    """Write JSON to ``path`` and ``chmod 600`` immediately afterwards."""
-    with open(path, "w") as f:
-        json.dump(data, f, indent=indent)
+    """Write JSON to ``path`` atomically, created with mode 600.
+
+    The payload is written to a same-directory temp file opened with 0600
+    (never world-readable, even transiently) and moved into place with
+    ``os.replace``, so a crash mid-write can't truncate the target file.
+    """
+    path = os.fspath(path)
+    payload = json.dumps(data, indent=indent)
+    tmp_path = f"{path}.tmp{os.getpid()}"
+    fd = os.open(tmp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(payload)
+        os.replace(tmp_path, path)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
     secure_chmod(path)

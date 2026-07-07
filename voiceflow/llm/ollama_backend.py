@@ -58,7 +58,10 @@ class OllamaBackend(LLMBackend):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            # Generous timeout: with stream=False Ollama sends nothing until
+            # generation completes, and a cold model load alone can take
+            # longer than 30 s.
+            with urllib.request.urlopen(req, timeout=120) as resp:
                 data = json.loads(resp.read().decode())
                 return data.get("response", raw_text).strip()
         except Exception as e:

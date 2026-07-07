@@ -53,7 +53,7 @@ def cleanup_text(
     if not backend:
         return raw_text
     try:
-        return backend.cleanup(
+        cleaned = backend.cleanup(
             raw_text,
             context=context,
             app_context=app_context,
@@ -62,3 +62,8 @@ def cleanup_text(
     except Exception as e:
         print(f"❌ LLM cleanup failed: {e}")
         return raw_text
+    # An empty response (content filter, max_tokens edge case) must never
+    # erase the dictation — fall back to the raw transcript.
+    if not cleaned or not cleaned.strip():
+        return raw_text
+    return cleaned

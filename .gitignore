@@ -21,3 +21,4 @@ htmlcov/
 .playwright-sessions/
 *.pyo
 public/
+node_modules/

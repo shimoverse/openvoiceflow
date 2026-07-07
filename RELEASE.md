@@ -108,13 +108,13 @@ To produce Apple-certified DMGs for the next tag:
 
 Before tagging:
 
-- [ ] All Wave 1–6 items in `docs/superpowers/plans/v0.3-readiness.md` are ✅ or explicitly deferred
+- [ ] All Wave 1–6 readiness items are ✅ or explicitly deferred (internal readiness plan)
 - [ ] `pytest -q` green on Py 3.9, 3.10, 3.11
 - [ ] `ruff check voiceflow/` clean
 - [ ] `python -m build && twine check dist/*` clean
 - [ ] CHANGELOG.md "Unreleased" → "0.3.0" with date
-- [ ] the maintainer has filled in or removed the `<security-email-tbd>` placeholder in SECURITY.md
-- [ ] the maintainer has run the 4-agent pre-publish review pass (Wave 6)
+- [x] SECURITY.md routes reports through GitHub private vulnerability reporting (no email placeholder)
+- [ ] The maintainer has run the 4-agent pre-publish review pass (Wave 6)
 - [ ] PyPI Trusted Publisher OIDC is configured
 - [ ] Repo is public on GitHub (or you've decided to publish on PyPI before flipping the GitHub repo public)
 
@@ -137,7 +137,7 @@ git push origin v0.3.0
 
 - Open a `chore: bump to v0.X.0-dev` PR setting `__version__` and the pyproject version to the next planned minor with a `-dev0` suffix, so accidental local installs from `main` don't conflict with the just-published release.
 - Tweet / post / whatever marketing channel. Keep it short.
-- Add a "Now / Next" entry to your roadmap noting the v0.4 follow-ups in `docs/superpowers/audits/READINESS_CHECKLIST.md`.
+- Add a "Now / Next" entry to your roadmap noting the v0.4 follow-ups (internal readiness checklist).
 
 ## Maintainer notes
 

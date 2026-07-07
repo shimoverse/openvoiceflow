@@ -3,7 +3,7 @@
 # Run: curl -fsSL https://raw.githubusercontent.com/shimoverse/openvoiceflow/main/install.sh | bash
 #   OR: bash install.sh
 
-set -e
+set -euo pipefail
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -58,25 +58,39 @@ echo -e "${GREEN}✅ Python environment ready${NC}"
 # --- Install OpenVoiceFlow (BUG-006 fix: clone repo if running via curl-pipe) ---
 # Use the [all] extra so users get the overlay HUD (pyobjc-framework-Cocoa)
 # and menubar (rumps) features without a second install step.
+# The repo check must confirm it's actually THIS project: under curl|bash
+# $0 is "bash", dirname gives ".", and blindly running `pip install .` would
+# install whatever unrelated project the user's CWD happens to contain.
 echo "📥 Installing OpenVoiceFlow..."
-if [[ -f "$(dirname "$0")/pyproject.toml" ]] 2>/dev/null; then
-    # Running from cloned repo directory
-    "$VENV_DIR/bin/pip" install -q ".[all]"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+CLONE_TMP=""
+cleanup_clone() {
+    [[ -n "$CLONE_TMP" ]] && rm -rf "$CLONE_TMP"
+}
+trap cleanup_clone EXIT
+if [[ -n "$SCRIPT_DIR" && -f "$SCRIPT_DIR/pyproject.toml" ]] \
+        && grep -q '^name = "openvoiceflow"' "$SCRIPT_DIR/pyproject.toml"; then
+    # Running from a cloned repo directory
+    "$VENV_DIR/bin/pip" install -q "$SCRIPT_DIR[all]"
 else
     # Running via curl-pipe — no source directory available; clone first
-    REPO_DIR="$(mktemp -d)/openvoiceflow"
+    CLONE_TMP="$(mktemp -d)"
+    REPO_DIR="$CLONE_TMP/openvoiceflow"
     git clone --depth=1 https://github.com/shimoverse/openvoiceflow.git "$REPO_DIR"
-    cd "$REPO_DIR"
-    "$VENV_DIR/bin/pip" install -q ".[all]"
+    "$VENV_DIR/bin/pip" install -q "$REPO_DIR[all]"
 fi
 echo -e "${GREEN}✅ OpenVoiceFlow installed${NC}"
 
 # --- Download whisper model ---
+# --fail keeps curl from saving an HTML error page as the model, and the
+# temp-file + move means an interrupted download is never mistaken for a
+# valid model on the next run.
 MODEL_FILE="$VOICEFLOW_HOME/models/ggml-base.en.bin"
 if [[ ! -f "$MODEL_FILE" ]]; then
     echo "⬇️  Downloading Whisper model (base.en, ~142 MB)..."
-    curl -L -o "$MODEL_FILE" \
+    curl -fL --retry 3 -o "$MODEL_FILE.download" \
         "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin"
+    mv "$MODEL_FILE.download" "$MODEL_FILE"
 fi
 echo -e "${GREEN}✅ Whisper model ready${NC}"
 
@@ -92,8 +106,13 @@ exec "$VENV_DIR/bin/openvoiceflow" "\$@"
 EOF
 chmod +x "$BINDIR/openvoiceflow"
 
-# Add to PATH if needed
+# Add to PATH if needed. Create ~/.zshrc when no rc file exists at all —
+# a fresh macOS account has none, and skipping would leave `openvoiceflow`
+# unfound in every new terminal despite the success message below.
 if [[ ":$PATH:" != *":$BINDIR:"* ]]; then
+    if [[ ! -f "$HOME/.zshrc" && ! -f "$HOME/.bashrc" ]]; then
+        touch "$HOME/.zshrc"
+    fi
     for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
         if [[ -f "$rc" ]] && ! grep -q '.local/bin' "$rc"; then
             echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$rc"
@@ -139,16 +158,26 @@ if [[ "$needs_setup" == "true" ]]; then
     echo "    Groq    — https://console.groq.com/keys"
     echo "    Ollama  — https://ollama.com (fully local, no key needed)"
     echo ""
-    read -p "  Which backend? [openrouter/openai/anthropic/groq/ollama]: " BACKEND
-    BACKEND="${BACKEND:-openrouter}"
+    # Under `curl ... | bash` stdin is the script itself, so `read` would
+    # consume script lines as "answers". Read from the terminal directly,
+    # and skip the wizard when no terminal is available.
+    if [[ -r /dev/tty ]]; then
+        read -r -p "  Which backend? [openrouter/openai/anthropic/groq/ollama]: " BACKEND < /dev/tty
+        BACKEND="${BACKEND:-openrouter}"
 
-    "$BINDIR/openvoiceflow" --backend "$BACKEND"
+        "$BINDIR/openvoiceflow" --backend "$BACKEND"
 
-    if [[ "$BACKEND" != "ollama" && "$BACKEND" != "none" ]]; then
-        read -p "  Paste your API key: " API_KEY
-        if [[ -n "$API_KEY" ]]; then
-            "$BINDIR/openvoiceflow" --set-key "$BACKEND" "$API_KEY"
+        if [[ "$BACKEND" != "ollama" && "$BACKEND" != "none" ]]; then
+            # -s: don't echo the key; pass it via stdin so it never appears
+            # in `ps` output or shell history.
+            read -r -s -p "  Paste your API key (input hidden): " API_KEY < /dev/tty
+            echo ""
+            if [[ -n "$API_KEY" ]]; then
+                printf '%s\n' "$API_KEY" | "$BINDIR/openvoiceflow" --set-key "$BACKEND" -
+            fi
         fi
+    else
+        echo "  (No interactive terminal — run 'openvoiceflow --setup' afterwards.)"
     fi
 fi
 

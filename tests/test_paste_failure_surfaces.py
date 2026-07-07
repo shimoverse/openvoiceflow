@@ -25,7 +25,7 @@ def test_paste_failure_calls_notify_error(monkeypatch) -> None:
     class FakePopen:
         def __init__(self, *args, **kwargs):
             pass
-        def communicate(self, data=None):
+        def communicate(self, data=None, timeout=None):
             return None, None
 
     monkeypatch.setattr(sysmod.subprocess, "Popen", FakePopen)
@@ -72,7 +72,7 @@ def test_paste_success_does_not_notify(monkeypatch) -> None:
     class FakePopen:
         def __init__(self, *args, **kwargs):
             pass
-        def communicate(self, data=None):
+        def communicate(self, data=None, timeout=None):
             return None, None
     monkeypatch.setattr(sysmod.subprocess, "Popen", FakePopen)
 

@@ -20,8 +20,7 @@ def paste_text(text: str):
     the clipboard, so a manual ⌘V always works as a fallback.
     """
     process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
-    process.communicate(text.encode("utf-8"))
-    _move_caret_to_end()
+    process.communicate(text.encode("utf-8"), timeout=5)
     time.sleep(0.05)
     # BUG-009 fix: capture return code and report Accessibility errors clearly
     result = subprocess.run(
@@ -49,10 +48,14 @@ def paste_text(text: str):
 def insert_recording_indicator(indicator: str = "🎙") -> bool:
     """Insert a short visual marker at the current text cursor.
 
+    Saves and restores the user's clipboard around the paste so an aborted
+    dictation doesn't leave the indicator on the clipboard.
+
     Returns True if insertion succeeded.
     """
+    original = subprocess.run(["pbpaste"], capture_output=True, timeout=5)
     process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
-    process.communicate(indicator.encode("utf-8"))
+    process.communicate(indicator.encode("utf-8"), timeout=5)
     _move_caret_to_end()
     time.sleep(0.03)
     result = subprocess.run(
@@ -62,6 +65,11 @@ def insert_recording_indicator(indicator: str = "🎙") -> bool:
         ],
         capture_output=True,
     )
+    # Give the target app a moment to service the paste before restoring.
+    time.sleep(0.15)
+    if original.returncode == 0:
+        restore = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+        restore.communicate(original.stdout, timeout=5)
     return result.returncode == 0
 
 
@@ -116,17 +124,23 @@ def log_transcript(raw: str, cleaned: str, config: dict):
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     now = datetime.now()
 
+    def _open_append_600(path):
+        # Create with 0600 directly — no world-readable window between
+        # creation and a later chmod.
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        return os.fdopen(fd, "a")
+
     # Machine-readable JSONL
     jsonl_file = LOG_DIR / f"{now:%Y-%m-%d}.jsonl"
     entry = {"timestamp": now.isoformat(), "raw": raw, "cleaned": cleaned}
-    with open(jsonl_file, "a") as f:
+    with _open_append_600(jsonl_file) as f:
         f.write(json.dumps(entry) + "\n")
     secure_chmod(jsonl_file)
 
     # Human-readable Markdown
     md_file = LOG_DIR / f"{now:%Y-%m-%d}.md"
     is_new = not md_file.exists()
-    with open(md_file, "a") as f:
+    with _open_append_600(md_file) as f:
         if is_new:
             f.write(f"# OpenVoiceFlow — {now:%A, %B %d, %Y}\n\n")
         f.write(f"**{now:%I:%M %p}**\n{cleaned}\n\n")

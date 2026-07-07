@@ -310,7 +310,7 @@ Say a phrase. Get a paragraph.
 
 ```bash
 openvoiceflow --add-snippet "insert signature" "Best regards,
-Shimoverse
+Alex Chen
 alex@example.com"
 
 openvoiceflow --add-snippet "my address" "742 Evergreen Terrace, Springfield"

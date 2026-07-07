@@ -92,7 +92,9 @@ jobs:
   # Build and attach DMGs (one arm64, one x86_64) on the same release.
   # ────────────────────────────────────────────────────────────────────
   build-dmg:
-    needs: verify-version
+    # Sequenced after publish-pypi: two parallel action-gh-release uploads
+    # race to create the same release and intermittently fail with a 422.
+    needs: [verify-version, publish-pypi]
     runs-on: macos-latest
     permissions:
       contents: write

@@ -75,14 +75,20 @@ def get_profile_prompt_fragment() -> str:
     occupation = profile.get("occupation", "").strip()
     industry = profile.get("industry", "").strip()
 
+    intro_parts = []
     if name:
-        line = f"The user's name is {name}."
-        if occupation:
-            if industry:
-                line += f" They work as a {occupation} ({industry} industry)."
-            else:
-                line += f" They work as a {occupation}."
-        lines.append(line)
+        intro_parts.append(f"The user's name is {name}.")
+    if occupation:
+        # Occupation stands on its own — a profile without a name still
+        # benefits from the work context.
+        if industry:
+            intro_parts.append(f"They work as a {occupation} ({industry} industry).")
+        else:
+            intro_parts.append(f"They work as a {occupation}.")
+    elif industry:
+        intro_parts.append(f"They work in the {industry} industry.")
+    if intro_parts:
+        lines.append(" ".join(intro_parts))
 
     # Names they mention
     work_names = [n.strip() for n in profile.get("work_names", []) if n.strip()]

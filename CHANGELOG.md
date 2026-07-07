@@ -8,9 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Tracking toward **0.3.0** — the pre-publish readiness pass. See
-[`docs/superpowers/specs/v0.3-readiness.md`](docs/superpowers/specs/v0.3-readiness.md)
-for the full spec.
+Tracking toward **0.3.0** — the pre-publish readiness pass.
 
 ### Added
 - Pytest scaffold under `tests/` with regression tests for every
@@ -135,8 +133,8 @@ for the full spec.
 - Update-notification strings from the GitHub API are escaped before
   AppleScript interpolation (a crafted release tag/URL could otherwise
   break out of the string literal).
-- The website build excludes internal `docs/superpowers/` documents from
-  publication.
+- Internal `docs/superpowers/` documents removed from the repository, and
+  the website build excludes any such directory as defense-in-depth.
 
 - **SS2** — `install.sh` shim no longer crashes with
   `ModuleNotFoundError: No module named 'openvoiceflow'`.

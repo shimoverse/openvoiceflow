@@ -64,7 +64,7 @@ def test_snippet_prefix_requires_word_boundary(monkeypatch):
     import voiceflow.snippets as snippets
     monkeypatch.setattr(
         snippets, "load_snippets",
-        lambda: {"sig": "Best regards,\nthe maintainer"},
+        lambda: {"sig": "Best regards,\nAlex"},
     )
     # A dictation *starting with* the trigger as a word-prefix must not match
     assert snippets.match_snippet("significant delays are expected") is None

@@ -64,7 +64,6 @@ openvoiceflow/
 │   ├── THREAT_MODEL.md
 │   ├── COMPATIBILITY.md
 │   ├── legal/
-│   ├── superpowers/                ← historical audits — read for context, NOT as spec.
 │   └── (landing-page assets: index.html, style.css, sitemap.xml)
 ├── .github/workflows/              ← UNSAFE to edit without testing on a fork first.
 │   ├── ci.yml                      ← matrix: macos-latest × Python 3.9/3.10/3.11
@@ -104,8 +103,8 @@ If you want to actually run the app end-to-end on a Mac you need `brew install w
 - **Add `from __future__ import annotations` to every new module.** The codebase targets Python 3.9 and uses `str | None` annotations; without the future import, 3.9 raises `TypeError`. `tests/test_python39_compat.py` enforces this.
 - **No new `print(...)` for debug.** User-facing status goes through `overlay.get_overlay()`. Diagnostics go to `sys.stderr` (see `_secure_io.secure_chmod` for the pattern). The existing `print(...)` calls in `app.py`/CLI handlers are user-facing status messages — leave those, just don't add more for debugging.
 - **Update README when you add user-facing surface.** Adding a backend, voice command, snippet default, or CLI flag means updating `README.md`. The `tests/test_voice_commands_count.py` test currently enforces this for voice commands; we want the same posture project-wide.
-- **Push completed changes to GitHub `main`.** the maintainer has explicitly authorized agents to push updates and changes through to the GitHub `main` branch once the work is complete and verification passes. Prefer the normal branch → PR → green CI → squash-merge flow for non-trivial changes, then sync local `main`. For tiny documentation-only updates, direct commits to `main` are acceptable after a quick verification. Always report the final `origin/main` commit SHA.
-- **Vercel deploys the public site from GitHub `main`.** The Vercel project `openvoiceflow` (owner's Vercel team) is connected to `shimoverse/openvoiceflow` with production branch `main`. Root `vercel.json` runs `npm run vercel-build`, which copies `docs/` (excluding internal `superpowers/`) into `public/` for the deployed static site.
+- **Push completed changes to GitHub `main`.** The maintainer has explicitly authorized agents to push updates and changes through to the GitHub `main` branch once the work is complete and verification passes. Prefer the normal branch → PR → green CI → squash-merge flow for non-trivial changes, then sync local `main`. For tiny documentation-only updates, direct commits to `main` are acceptable after a quick verification. Always report the final `origin/main` commit SHA.
+- **Vercel deploys the public site from GitHub `main`.** The Vercel project `openvoiceflow` (owner's Vercel team) is connected to `shimoverse/openvoiceflow` with production branch `main`. Root `vercel.json` runs `npm run vercel-build`, which copies `docs/` into `public/` for the deployed static site (the build script excludes any `superpowers/` directory as defense-in-depth; internal working docs must not live under `docs/`).
 
 ## Recipes
 
@@ -149,7 +148,7 @@ The pattern in `voiceflow/__main__.py:main()`:
 - **Do not skip git hooks** (`--no-verify`) or commit signing flags unless explicitly told to.
 - **Do not add a runtime dependency without updating both `pyproject.toml` and `legal/THIRD_PARTY_NOTICES.md`.** The audit trail matters; license attribution matters more. Optional dependencies (`menubar`, `overlay`) go in the relevant `optional-dependencies` group, not `dependencies`.
 - **Do not claim something the code doesn't do.** The README must match the code. `test_voice_commands_count` enforces this for one feature; we want the same posture project-wide. If you remove a feature, remove its README copy in the same PR.
-- **Do not read `docs/superpowers/audits/*` as a spec.** They're historical findings — useful context, sometimes outdated. The current state is whatever the code, tests, and README say *now*.
+- **Historical audit documents are not a spec.** Internal audits/plans are kept outside the repository. The current state is whatever the code, tests, and README say *now*.
 - **Do not add asyncio.** The concurrency model is threads + subprocesses (see `docs/ARCHITECTURE.md` §7). Adding an event loop would interleave badly with `pynput.Listener`, AppKit, and rumps.
 - **Do not add telemetry, analytics, or call-home behavior.** The only outbound network calls without a user action are the GitHub release check (`updater.py`) and the LLM backend the user chose. If you need to add a third, get explicit sign-off from the maintainer first.
 
@@ -189,6 +188,6 @@ Useful for testing changes from the agent's shell. Many of these write to `~/.op
 ## Where to ask
 
 - **Read first:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`PRIVACY.md`](PRIVACY.md), [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
-- **Stuck on a design call?** Open a draft PR with the failing test and a question in the description; tag the maintainer (the maintainer). Algorithm-shaped or accuracy-shaped changes (cleanup-prompt structure, voice-command matching, dictionary inclusion logic) need explicit sign-off — don't auto-ship them based on a green test.
+- **Stuck on a design call?** Open a draft PR with the failing test and a question in the description; tag the maintainer. Algorithm-shaped or accuracy-shaped changes (cleanup-prompt structure, voice-command matching, dictionary inclusion logic) need explicit sign-off — don't auto-ship them based on a green test.
 - **Stuck on a permissions issue?** macOS Accessibility / Apple Events / Mic permissions don't replicate well in CI. Reproduce locally; describe the System Settings state in the PR.
 - **Spotted a security issue?** See `SECURITY.md`. Do not file a public issue.

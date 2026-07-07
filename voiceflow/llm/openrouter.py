@@ -74,7 +74,7 @@ class OpenRouterBackend(LLMBackend):
                 data = json.loads(resp.read().decode())
                 return data["choices"][0]["message"]["content"].strip()
         except urllib.error.HTTPError as e:
-            error_body = e.read().decode()
+            error_body = e.read().decode("utf-8", errors="replace")
             print(f"❌ OpenRouter API error ({e.code}): {error_body}")
             return text
         except Exception as e:

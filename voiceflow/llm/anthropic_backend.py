@@ -48,7 +48,10 @@ class AnthropicBackend(LLMBackend):
         payload = {
             "model": self.model,
             "max_tokens": 2048,
-            "system": self.prompt,
+            "system": self._make_system_prompt(
+                app_context=app_context,
+                override_style=override_style,
+            ),
             "messages": [{"role": "user", "content": user_content}],
         }
         req = urllib.request.Request(
@@ -66,7 +69,7 @@ class AnthropicBackend(LLMBackend):
                 data = json.loads(resp.read().decode())
                 return data["content"][0]["text"].strip()
         except urllib.error.HTTPError as e:
-            error_body = e.read().decode()
+            error_body = e.read().decode("utf-8", errors="replace")
             print(f"❌ Anthropic API error ({e.code}): {error_body}")
             return raw_text
         except Exception as e:

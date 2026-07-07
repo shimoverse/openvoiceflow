@@ -77,9 +77,13 @@ fi
 
 MOUNT_POINT="$(mktemp -d /tmp/ovf-local-build.XXXX)"
 
+# A second `trap ... EXIT` REPLACES the first, so this must also release the
+# build lock — otherwise the lock dir is left behind after every run that
+# reaches the mount stage.
 cleanup() {
     hdiutil detach "$MOUNT_POINT" -quiet >/dev/null 2>&1 || true
     rmdir "$MOUNT_POINT" >/dev/null 2>&1 || true
+    cleanup_lock
 }
 trap cleanup EXIT
 

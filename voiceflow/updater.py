@@ -7,6 +7,7 @@ if a newer version is available via macOS Notification Center.
 from __future__ import annotations
 
 import json
+import re
 import threading
 import urllib.error
 import urllib.request
@@ -19,12 +20,20 @@ CHECK_TIMEOUT = 8  # seconds
 
 
 def _parse_version(version_str: str) -> tuple[int, ...]:
-    """Parse a semver string like '0.2.1' into a tuple for comparison."""
-    v = version_str.lstrip("v").strip()
-    try:
-        return tuple(int(x) for x in v.split("."))
-    except (ValueError, AttributeError):
-        return (0,)
+    """Parse a version string like '0.2.1' into a tuple for comparison.
+
+    Pre-release suffixes are tolerated by taking the leading numeric part of
+    each segment: 'v1.0.0-rc1' → (1, 0, 0), '0.4.0.dev1' → (0, 4, 0).
+    A completely unparsable string yields (0,) so it never wins a comparison.
+    """
+    v = str(version_str).lstrip("vV").strip()
+    parts: list[int] = []
+    for segment in v.replace("-", ".").split("."):
+        m = re.match(r"\d+", segment)
+        if not m:
+            break
+        parts.append(int(m.group()))
+    return tuple(parts) or (0,)
 
 
 def _fetch_latest_release() -> dict | None:
@@ -102,14 +111,21 @@ def _check_worker(on_update_available: Callable | None) -> None:
 
 
 def _send_notification(latest_version: str, release_url: str) -> None:
-    """Show a macOS Notification Center alert for the update."""
+    """Show a macOS Notification Center alert for the update.
+
+    Both values originate from the GitHub API response, so they are escaped
+    before interpolation into the AppleScript source — an unescaped quote
+    would otherwise break out of the string literal.
+    """
     try:
         import subprocess
+
+        from .notify import _esc
         script = (
-            f'display notification "OpenVoiceFlow v{latest_version} is available. '
-            f'Visit {release_url}" '
+            f'display notification "OpenVoiceFlow v{_esc(latest_version)} is available. '
+            f'Visit {_esc(release_url)}" '
             f'with title "OpenVoiceFlow Update Available" '
-            f'subtitle "You have v{__version__}" '
+            f'subtitle "You have v{_esc(__version__)}" '
             f'sound name "Glass"'
         )
         subprocess.run(

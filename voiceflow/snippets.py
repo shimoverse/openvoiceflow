@@ -71,10 +71,16 @@ def match_snippet(text: str) -> str | None:
     if normalized in snippets:
         return snippets[normalized]
 
-    # Check if text starts with a trigger (e.g., "insert signature please")
+    # Check if text starts with a trigger followed by a word break
+    # (e.g., "insert signature please" or "insert signature."). A bare
+    # prefix match would let a trigger like "sig" swallow a dictation
+    # starting with "significant", replacing the whole dictation with
+    # the snippet.
     for trigger, expansion in sorted(snippets.items(), key=lambda x: -len(x[0])):
         if normalized.startswith(trigger):
-            return expansion
+            rest = normalized[len(trigger):]
+            if not rest or not rest[0].isalnum():
+                return expansion
 
     return None
 

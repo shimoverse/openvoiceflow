@@ -111,6 +111,11 @@ def run_menubar():
                 rumps.MenuItem("Quit", callback=self.quit_app),
             ]
 
+            # Populate the settings submenus (they start empty)
+            self._build_backend_menu()
+            self._build_hotkey_menu()
+            self._build_style_menu()
+
             # Kick off update check in background
             try:
                 from .updater import check_for_updates
@@ -221,10 +226,31 @@ def run_menubar():
             # Refresh detected app label
             self._update_detected_app()
 
+        def _abort_active_dictation(self):
+            """Stop any in-flight recording so mic/whisper-stream aren't orphaned."""
+            vf = self.vf
+            if not vf:
+                return
+            try:
+                vf.is_recording = False
+                if vf._streamer:
+                    vf._streamer.stop()
+                    vf._streamer = None
+                    vf._streaming_active = False
+                elif vf.recorder and vf.recorder.is_recording:
+                    vf.recorder.stop()
+                watcher = getattr(vf, "_watcher", None)
+                if watcher:
+                    watcher.stop()
+                    vf._watcher = None
+            except Exception:
+                pass  # Best-effort cleanup; never block stop/quit
+
         def stop_listening(self):
             if self.listener:
                 self.listener.stop()
                 self.listener = None
+            self._abort_active_dictation()
             self._running = False
             self.title = "🎙️💤"
             self.start_stop_item.title = "▶ Start Listening"
@@ -267,11 +293,22 @@ def run_menubar():
             label = get_style_label(style_id)
             rumps.notification("OpenVoiceFlow", "Style Changed", f"Now using: {label}")
 
+        def _set_config_flag(self, key: str, value: bool):
+            """Persist a config flag and propagate it to the live instance.
+
+            The running OpenVoiceFlow instance holds its own config dict
+            loaded at start_listening; without this, toggles only take
+            effect after an app restart.
+            """
+            self.config[key] = value
+            save_config(self.config)
+            if self.vf:
+                self.vf.config[key] = value
+
         def toggle_streaming(self, _):
             """Toggle streaming transcription on/off."""
             current = self.config.get("streaming", True)
-            self.config["streaming"] = not current
-            save_config(self.config)
+            self._set_config_flag("streaming", not current)
             self.streaming_item.title = self._streaming_label()
             state_str = "enabled" if not current else "disabled"
             rumps.notification("OpenVoiceFlow", "Streaming", f"Streaming transcription {state_str}")
@@ -279,17 +316,16 @@ def run_menubar():
         def toggle_auto_style(self, _):
             """Toggle automatic per-app style detection."""
             current = self.config.get("auto_style", True)
-            self.config["auto_style"] = not current
-            save_config(self.config)
+            self._set_config_flag("auto_style", not current)
             self.auto_style_item.title = self._auto_style_label()
             state_str = "enabled" if not current else "disabled"
             rumps.notification("OpenVoiceFlow", "Auto-Style", f"Per-app auto style {state_str}")
 
         def toggle_auto_learn(self, _):
             """Toggle auto-learning corrections from post-paste edits."""
-            current = self.config.get("auto_learn", True)
-            self.config["auto_learn"] = not current
-            save_config(self.config)
+            # Default mirrors DEFAULTS["auto_learn"] (False; opt-in only).
+            current = self.config.get("auto_learn", False)
+            self._set_config_flag("auto_learn", not current)
             self.auto_learn_item.title = self._auto_learn_label()
             state_str = "enabled" if not current else "disabled"
             rumps.notification("OpenVoiceFlow", "Auto-Learn", f"Correction learning {state_str}")

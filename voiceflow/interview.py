@@ -619,8 +619,13 @@ class InterviewWizard:
     # ── Skip / Finish ──────────────────────────────────────────────────────
 
     def _skip(self):
-        """Close without saving."""
-        self._completed = False
+        """Close the window.
+
+        Doesn't reset ``_completed``: on the done screen the profile is
+        already saved and active, so Escape there must still report the
+        interview as completed. Before that point ``_completed`` is False
+        anyway.
+        """
         self.root.destroy()
 
     def _finish(self):
@@ -648,5 +653,11 @@ def run_interview() -> bool:
     if not HAS_TKINTER:
         print("❌ tkinter not available. Profile interview requires a display.")
         return False
-    wizard = InterviewWizard()
+    try:
+        wizard = InterviewWizard()
+    except Exception as exc:
+        # tk.Tk() raises TclError when no display is available (e.g. SSH)
+        print(f"❌ Could not open the interview window ({exc}). "
+              "Run from a session with a display.")
+        return False
     return wizard.run()

@@ -38,14 +38,13 @@ Use GitHub's private vulnerability reporting:
 This goes to the maintainer privately, lets us collaborate on a fix in a private fork,
 and is the easiest path to a CVE if one is warranted.
 
-### Fallback: email
+### If you can't use GitHub advisories
 
-If you can't use GitHub advisories (no account, organizational policy, etc.), email:
-
-> `<security-email-tbd>`
-
-Encrypt with PGP if you prefer; key fingerprint will be published alongside the email
-address once it's set.
+GitHub private vulnerability reporting is currently the only private channel.
+If you have no GitHub account (or policy forbids it), open a plain GitHub issue
+that says only "security report — please open a private channel" with **no
+technical details**, and the maintainer will follow up. A dedicated security
+email (with PGP key) will be published here if one is established.
 
 ### What to include
 

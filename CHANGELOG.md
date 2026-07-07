@@ -8,9 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Tracking toward **0.3.0** — the pre-publish readiness pass. See
-[`docs/superpowers/specs/v0.3-readiness.md`](docs/superpowers/specs/v0.3-readiness.md)
-for the full spec.
+Tracking toward **0.3.0** — the pre-publish readiness pass.
 
 ### Added
 - Pytest scaffold under `tests/` with regression tests for every
@@ -62,6 +60,82 @@ for the full spec.
   Gemini is cloud, Ollama is local).
 
 ### Fixed
+- **Code-review pass (2026-07)** — full-codebase review; the notable fixes:
+  - Streaming mode + snippet match no longer crashes with a `NameError`
+    (the dictation was silently lost with only an error sound).
+  - OpenAI, Anthropic, and Groq backends now honor per-app style and app
+    context (previously silently dropped — the per-app style feature only
+    worked on OpenRouter/Ollama).
+  - Empty LLM responses fall back to the raw transcript instead of pasting
+    nothing.
+  - Custom voice commands containing backslashes no longer crash every
+    dictation; command expansions are no longer re-processed by later
+    commands (single-pass replacement).
+  - Snippet triggers only match on word boundaries — a trigger like `sig`
+    no longer swallows a dictation starting with "significant…".
+  - Menu bar: LLM Backend / Hotkey / Style submenus are now populated at
+    startup (previously empty until first use); Streaming/Auto-Style/
+    Auto-Learn toggles now apply to the running session; stopping or
+    quitting aborts an in-flight recording instead of orphaning the
+    whisper-stream process (hot mic).
+  - Corrupt `config.json` no longer bricks every CLI entry point — the bad
+    file is preserved as `config.json.corrupt` and defaults are restored.
+  - Whisper model downloads use `curl --fail` with a temp file, so an HTTP
+    error page or interrupted transfer can't be mistaken for a valid model
+    forever after (fixed in `transcriber.py`, `install.sh`, and the DMG
+    launcher).
+  - Batch transcription timeout raised 30 s → 300 s so long dictations
+    aren't discarded; Ollama cleanup timeout raised 30 s → 120 s for cold
+    model loads.
+  - Mic failures during recording start are surfaced (notification + error
+    sound) instead of being silently swallowed with stale state.
+  - Overlay no longer sticks on screen after too-short/no-speech/error
+    aborts.
+  - Selected-text capture no longer erases image/file clipboards when
+    nothing was selected; `pbpaste`/`pbcopy` calls have timeouts.
+  - `--show-config` no longer masks `hotkey` (over-broad secret matching);
+    `--streaming-step` validates its value and `0` is no longer ignored;
+    `--language` no longer crashes on a null `whisper_model`; env-var-only
+    API-key setups aren't forced through onboarding on every launch.
+  - Onboarding: re-running the wizard and switching backends no longer
+    saves the old backend's key under the new backend's field; the Finish
+    button survives a corrupt config; headless runs fail with instructions
+    instead of a traceback (also fixed for `--profile`).
+  - Interview: pressing Escape on the final screen no longer mislabels a
+    saved profile as skipped.
+  - `--autostart on` fails with a clear message when the executable can't
+    be resolved (previously installed a LaunchAgent that silently never
+    launched); the plist is generated with `plistlib` so paths containing
+    `&` can't produce invalid XML.
+  - `install.sh` works under `curl | bash` (wizard prompts read from
+    `/dev/tty`), installs from the script's own directory instead of the
+    CWD, creates `~/.zshrc` when no shell rc exists, and uses
+    `set -euo pipefail`.
+  - Release workflow: DMG job sequenced after the PyPI job so the two
+    release-upload steps can't race creating the same GitHub Release.
+
+### Changed (code-review pass)
+- The typed 🎙 recording indicator is now opt-in
+  (`"recording_indicator": true`): it edits the frontmost document and
+  could delete a user character when focus changed mid-dictation; the
+  overlay HUD remains the default recording feedback.
+- `paste_text` no longer moves the caret to end-of-line before pasting —
+  text is pasted at the cursor, as documented.
+- `--set-key BACKEND -` reads the key from stdin so it stays out of shell
+  history and `ps` output (used by `install.sh`, which also hides key input).
+
+### Security (code-review pass)
+- Config/profile/dictionary writes are atomic and created with mode 600
+  from the first byte (previously created 644 then chmod'd — a crash
+  mid-write could truncate the file or leave secrets world-readable).
+- `~/.openvoiceflow/` is chmod 700; LaunchAgent stdout/stderr logs are
+  pre-created with mode 600 (they capture dictated text via stdout).
+- Update-notification strings from the GitHub API are escaped before
+  AppleScript interpolation (a crafted release tag/URL could otherwise
+  break out of the string literal).
+- Internal `docs/superpowers/` documents removed from the repository, and
+  the website build excludes any such directory as defense-in-depth.
+
 - **SS2** — `install.sh` shim no longer crashes with
   `ModuleNotFoundError: No module named 'openvoiceflow'`.
 - **SS3** — `from __future__ import annotations` added to all 30 modules

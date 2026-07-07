@@ -1,5 +1,7 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+# license = "MIT" (PEP 639 SPDX string) requires setuptools >= 77; a lower
+# floor only works by luck of build isolation grabbing the latest.
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]

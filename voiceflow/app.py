@@ -319,10 +319,30 @@ class OpenVoiceFlow:
         if self._overlay:
             self._overlay.show_streaming_text(text)
 
+    def _abort_recording_start(self, reason: str):
+        """Roll back recording state after a failed start (e.g. mic unavailable)."""
+        self.is_recording = False
+        if self._recording_indicator_inserted:
+            clear_recording_indicator()
+            self._recording_indicator_inserted = False
+        if self._overlay:
+            self._overlay.show_error(reason)
+        if self.config["sound_feedback"]:
+            play_sound("error")
+        from . import notify
+        notify.error(
+            f"Could not start recording — {reason}. "
+            "Check the microphone and Input Monitoring permissions."
+        )
+
     def start_recording(self):
-        """Start recording — debounced to prevent double-press."""
+        """Start recording — debounced to prevent duplicate key events.
+
+        The window is short (0.2 s) so a genuine immediate retry after a
+        too-short attempt still works; it only filters event bounce.
+        """
         now = time.time()
-        if now - self._last_press_time < 0.5:
+        if now - self._last_press_time < 0.2:
             return
         self._last_press_time = now
 
@@ -354,7 +374,12 @@ class OpenVoiceFlow:
                 pass  # Never let app detection block recording
 
         self.is_recording = True
-        self._recording_indicator_inserted = insert_recording_indicator("🎙")
+        # Typed 🎙 indicator is opt-in: it edits the user's document and can
+        # misfire if focus changes mid-dictation. The overlay HUD is the
+        # default recording feedback.
+        self._recording_indicator_inserted = False
+        if self.config.get("recording_indicator", False):
+            self._recording_indicator_inserted = insert_recording_indicator("🎙")
 
         if self._streaming_enabled():
             # ── Feature: Streaming transcription (Feature 1) ────────────────
@@ -380,13 +405,21 @@ class OpenVoiceFlow:
                 # Binary vanished at runtime — fall back silently to batch
                 self._streamer = None
                 self._streaming_active = False
-                self.recorder.start()
+                try:
+                    self.recorder.start()
+                except Exception as e:
+                    self._abort_recording_start(f"microphone unavailable ({e})")
+                    return
                 _style_info = f" [{self._current_style}]" if self._current_app else ""
                 print("🔴 Recording (batch fallback)" + _style_info + "...")
         else:
             # Batch mode: AudioRecorder captures WAV as before
             self._streaming_active = False
-            self.recorder.start()
+            try:
+                self.recorder.start()
+            except Exception as e:
+                self._abort_recording_start(f"microphone unavailable ({e})")
+                return
             _style_info = f" [{self._current_style}]" if self._current_app else ""
             _ctx_info = " (with context)" if self._selected_text_context else ""
             print("🔴 Recording..." + _style_info + _ctx_info)
@@ -425,6 +458,8 @@ class OpenVoiceFlow:
 
             if duration < 0.3:
                 print("⚠️  Recording too short (< 0.3s). Skipping.")
+                if self._overlay:
+                    self._overlay.hide()
                 return
 
             # Prefer callback-accumulated text (more complete); fall back to stop() return
@@ -456,6 +491,8 @@ class OpenVoiceFlow:
             # BUG-005 fix: warn on short recordings but do NOT silently drop
             if duration < 0.3:
                 print("⚠️  Recording too short (< 0.3s). Skipping — hold the key longer next time.")
+                if self._overlay:
+                    self._overlay.hide()
                 return
 
             self.processing = True
@@ -516,17 +553,20 @@ class OpenVoiceFlow:
                 print(f"✅ Clean ({t1-t0:.1f}s): {cleaned_text}")
 
             if self._overlay:
-                self._overlay.show_result(
-                    cleaned_text,
-                    timing=f"Cleanup {t1-t0:.1f}s",
-                )
+                if snippet_expansion:
+                    self._overlay.show_result(cleaned_text)
+                else:
+                    self._overlay.show_result(
+                        cleaned_text,
+                        timing=f"Cleanup {t1-t0:.1f}s",
+                    )
 
             if self.config["auto_paste"]:
                 paste_text(cleaned_text)
                 if self.config["sound_feedback"]:
                     play_sound("done")
-                # Auto-learn: watch for post-paste corrections
-                if self.config.get("auto_learn", True):
+                # Auto-learn: watch for post-paste corrections (opt-in)
+                if self.config.get("auto_learn", False):
                     from .learner import CorrectionWatcher
                     self._watcher = CorrectionWatcher()
                     self._watcher.start_watching(cleaned_text)
@@ -537,6 +577,8 @@ class OpenVoiceFlow:
 
         except Exception as e:
             print(f"❌ Error (streaming): {e}")
+            if self._overlay:
+                self._overlay.show_error("Dictation failed")
             if self.config["sound_feedback"]:
                 play_sound("error")
         finally:
@@ -557,6 +599,8 @@ class OpenVoiceFlow:
             # BUG-008 fix: check save_wav() return value
             if not self.recorder.save_wav(temp_path):
                 print("⚠️ No audio captured.")
+                if self._overlay:
+                    self._overlay.hide()
                 return
 
             if self._overlay:
@@ -623,8 +667,8 @@ class OpenVoiceFlow:
                 paste_text(cleaned_text)
                 if self.config["sound_feedback"]:
                     play_sound("done")
-                # Auto-learn: watch for post-paste corrections
-                if self.config.get("auto_learn", True):
+                # Auto-learn: watch for post-paste corrections (opt-in)
+                if self.config.get("auto_learn", False):
                     from .learner import CorrectionWatcher
                     self._watcher = CorrectionWatcher()
                     self._watcher.start_watching(cleaned_text)
@@ -634,6 +678,8 @@ class OpenVoiceFlow:
 
         except Exception as e:
             print(f"❌ Error: {e}")
+            if self._overlay:
+                self._overlay.show_error("Dictation failed")
             if self.config["sound_feedback"]:
                 play_sound("error")
         finally:

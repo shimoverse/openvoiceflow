@@ -73,7 +73,7 @@ If/when you want `brew tap shimoverse/tap && brew install openvoiceflow`:
 
 ### 4. Apple Developer ID signing + notarization
 
-The release workflow can sign and notarize DMGs when Apple Developer credentials are present. Current v0.3.0 website-hosted DMGs were built before those credentials were configured, so they still trigger the Gatekeeper warning.
+The release workflow can sign and notarize DMGs when Apple Developer credentials are present. Current v0.3.0 website-hosted DMGs are signed with Developer ID, notarized by Apple, stapled, and verified with Gatekeeper assessment.
 
 To produce Apple-certified DMGs for the next tag:
 
@@ -89,7 +89,7 @@ To produce Apple-certified DMGs for the next tag:
   - `APPLE_NOTARY_KEY_ID`: App Store Connect key ID
   - `APPLE_NOTARY_ISSUER_ID`: App Store Connect issuer UUID
 - Push a new release tag and verify the workflow logs show `codesign`, `xcrun notarytool submit`, `xcrun stapler staple`, and `spctl`.
-- Replace the website-hosted DMGs and checksums with the newly notarized artifacts.
+- Replace the website-hosted DMGs and checksums with the newly notarized artifacts when a new version is cut.
 
 ## When things go wrong
 
@@ -142,5 +142,5 @@ git push origin v0.3.0
 ## Maintainer notes
 
 - The release workflow is idempotent in spirit but not in fact. Don't push the same tag twice.
-- DMG signing/notarization is wired into CI, but it only runs when the Apple Developer secrets above are configured. Until notarized artifacts replace the hosted DMGs, first launch needs a Gatekeeper override.
+- DMG signing/notarization is wired into CI, but it only runs when the Apple Developer secrets above are configured. Verify every new hosted DMG with `xcrun stapler validate` and `spctl --assess --type open --context context:primary-signature` before publishing.
 - If you transfer the GitHub repo to a different owner (Decision D1), the Trusted Publisher OIDC config on PyPI breaks until you re-add it under the new path.

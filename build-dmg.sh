@@ -84,7 +84,10 @@ notarize_dmg_if_requested() {
     /usr/bin/xcrun notarytool submit "$DMG" "${ARGS[@]}" --wait
     /usr/bin/xcrun stapler staple "$DMG"
     /usr/bin/xcrun stapler validate "$DMG"
-    /usr/sbin/spctl --assess --type open --verbose=4 "$DMG"
+    # DMGs need the primary-signature context for Gatekeeper assessment;
+    # otherwise spctl can return "rejected: Insufficient Context" even when
+    # Apple notarization and stapling succeeded.
+    /usr/sbin/spctl --assess --type open --context context:primary-signature --verbose=4 "$DMG"
 }
 
 build_dmg() {

@@ -39,6 +39,7 @@ def test_dmg_build_declares_icon_and_optional_apple_signing_pipeline():
     assert "xcrun notarytool submit" in build_script
     assert "xcrun stapler staple" in build_script
     assert "spctl" in build_script
+    assert "context:primary-signature" in build_script
 
     assert "APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64" in release_workflow
     assert "APPLE_NOTARY_KEY_BASE64" in release_workflow

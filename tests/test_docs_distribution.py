@@ -5,8 +5,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
 RELEASE_VERSION = "0.3.0"
-ARM64_SHA256 = "42dad98d65592676e269534c666a85fe498191844421f2df6d1a0e5fb6b2e38f"
-X86_64_SHA256 = "9cc8ceb6694bc8a5318f50b38c9a3e56082580a14e5ea462369e05b06365fd93"
+ARM64_SHA256 = "09379c3a3dccdb5455a370a8481dcd1de3cd5c8fc7ad721240d2e739a863feff"
+X86_64_SHA256 = "837bb56c6ae6c5d3533de988f32f4b07000c6e56a41f72413255967519ebffb0"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html"]
 
 
@@ -134,7 +134,7 @@ def test_download_page_avoids_duplicate_primary_ctas():
     assert html.count('class="btn btn-primary btn-lg"') <= 1
     assert html.count('Download OpenVoiceFlow-0.3.0-arm64.dmg') == 1
     assert html.count('Download OpenVoiceFlow-0.3.0-x86_64.dmg') == 1
-    assert "If we cannot confidently detect your chip" in html
+    assert "both Apple Silicon and Intel builds stay visible" in html
 
 
 def test_download_assets_match_published_checksums():

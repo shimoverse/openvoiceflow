@@ -31,14 +31,14 @@
 
   const builds = {
     arm64: {
-      href: 'downloads/OpenVoiceFlow-0.3.1-arm64.dmg',
+      href: 'downloads/OpenVoiceFlow-0.3.2-arm64.dmg',
       title: 'Apple Silicon DMG',
       subtitle: 'Recommended for M1, M2, M3, M4, and newer Macs running macOS 12 or later.',
       badge: 'Apple Silicon',
       confidence: 'Detected from browser architecture hints.',
     },
     x86_64: {
-      href: 'downloads/OpenVoiceFlow-0.3.1-x86_64.dmg',
+      href: 'downloads/OpenVoiceFlow-0.3.2-x86_64.dmg',
       title: 'Intel DMG',
       subtitle: 'Recommended for x86_64 Intel Macs running macOS 12 or later.',
       badge: 'Intel Mac',

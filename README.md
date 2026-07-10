@@ -86,8 +86,8 @@ speak. The reliable batch recorder is the default.
 For the simplest signed install, download OpenVoiceFlow from the website. The source repository is public for anyone who prefers to inspect or install from source.
 
 - **Download page:** <https://openvoiceflow.vercel.app/download.html>
-- **Apple Silicon DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.3-arm64.dmg>
-- **Intel DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.3-x86_64.dmg>
+- **Apple Silicon DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.4-arm64.dmg>
+- **Intel DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.4-x86_64.dmg>
 
 Open the website-hosted DMG, drag OpenVoiceFlow to Applications, then launch it.
 

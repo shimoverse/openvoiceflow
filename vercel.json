@@ -4,13 +4,33 @@
   "installCommand": "npm install --ignore-scripts",
   "redirects": [
     {
+      "source": "/downloads/OpenVoiceFlow-0.2.0-arm64.dmg",
+      "destination": "/downloads/OpenVoiceFlow-0.3.4-arm64.dmg",
+      "permanent": true
+    },
+    {
+      "source": "/downloads/OpenVoiceFlow-0.2.0-x86_64.dmg",
+      "destination": "/downloads/OpenVoiceFlow-0.3.4-x86_64.dmg",
+      "permanent": true
+    },
+    {
       "source": "/downloads/OpenVoiceFlow-0.3.2-arm64.dmg",
-      "destination": "/downloads/OpenVoiceFlow-0.3.3-arm64.dmg",
+      "destination": "/downloads/OpenVoiceFlow-0.3.4-arm64.dmg",
       "permanent": true
     },
     {
       "source": "/downloads/OpenVoiceFlow-0.3.2-x86_64.dmg",
-      "destination": "/downloads/OpenVoiceFlow-0.3.3-x86_64.dmg",
+      "destination": "/downloads/OpenVoiceFlow-0.3.4-x86_64.dmg",
+      "permanent": true
+    },
+    {
+      "source": "/downloads/OpenVoiceFlow-0.3.3-arm64.dmg",
+      "destination": "/downloads/OpenVoiceFlow-0.3.4-arm64.dmg",
+      "permanent": true
+    },
+    {
+      "source": "/downloads/OpenVoiceFlow-0.3.3-x86_64.dmg",
+      "destination": "/downloads/OpenVoiceFlow-0.3.4-x86_64.dmg",
       "permanent": true
     }
   ]

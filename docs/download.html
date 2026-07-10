@@ -25,11 +25,11 @@
     "description": "Free push-to-talk voice dictation for macOS with local whisper.cpp transcription and optional LLM cleanup.",
     "operatingSystem": "macOS 12+",
     "applicationCategory": "UtilitiesApplication",
-    "softwareVersion": "0.3.3",
+    "softwareVersion": "0.3.4",
     "url": "https://openvoiceflow.vercel.app/download.html",
     "downloadUrl": [
-      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.3-arm64.dmg",
-      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.3-x86_64.dmg"
+      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.4-arm64.dmg",
+      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.4-x86_64.dmg"
     ],
     "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
   }
@@ -57,7 +57,7 @@
           </div>
         </div>
         <div class="download-panel-actions">
-          <a class="btn btn-primary btn-lg" id="recommendedDownload" href="downloads/OpenVoiceFlow-0.3.3-arm64.dmg" data-recommended-download>Download the recommended DMG</a>
+          <a class="btn btn-primary btn-lg" id="recommendedDownload" href="downloads/OpenVoiceFlow-0.3.4-arm64.dmg" data-recommended-download>Download the recommended DMG</a>
           <a class="btn btn-outline btn-lg" href="install.html">Install guide</a>
         </div>
       </section>
@@ -71,22 +71,22 @@
             <div>
               <span class="download-build-label">Apple Silicon</span>
               <h3>For M1, M2, M3, M4, and newer Macs</h3>
-              <code class="code-block">sha256: ec4494a1cd2187340b7d888d5cb86957ff8e85b4db0c424c07ef6059a3a0eb31</code>
+              <code class="code-block">sha256: e31676da9a446fd2df67ea65e5ea79d6060193aada486b1f32dc786f6b7696a8</code>
             </div>
-            <a class="btn btn-outline btn-lg" href="downloads/OpenVoiceFlow-0.3.3-arm64.dmg" aria-label="Download OpenVoiceFlow-0.3.3-arm64.dmg">Download Apple Silicon DMG</a>
+            <a class="btn btn-outline btn-lg" href="downloads/OpenVoiceFlow-0.3.4-arm64.dmg" aria-label="Download OpenVoiceFlow-0.3.4-arm64.dmg">Download Apple Silicon DMG</a>
           </article>
           <article class="download-build-row" data-arch="x86_64">
             <div>
               <span class="download-build-label">Intel</span>
               <h3>For x86_64 Intel Macs</h3>
-              <code class="code-block">sha256: c9f0c6efce08ba7f2bff78e5488f198329cb9f6d63f31966fb9fa937ca6d3f2f</code>
+              <code class="code-block">sha256: 4cdf427885a5f1c11e6b933429335863f1aa08f7090c58be6a84d3cb42c124fe</code>
             </div>
-            <a class="btn btn-outline btn-lg" href="downloads/OpenVoiceFlow-0.3.3-x86_64.dmg" aria-label="Download OpenVoiceFlow-0.3.3-x86_64.dmg">Download Intel DMG</a>
+            <a class="btn btn-outline btn-lg" href="downloads/OpenVoiceFlow-0.3.4-x86_64.dmg" aria-label="Download OpenVoiceFlow-0.3.4-x86_64.dmg">Download Intel DMG</a>
           </article>
         </div>
       </section>
       <section class="content-card wide-card"><h2>Install from source</h2><p>The <a href="https://github.com/shimoverse/openvoiceflow">public GitHub repository</a> is MIT licensed. Clone it below if you prefer a source install; use the website-hosted DMGs above for the signed app.</p><code class="code-block">git clone https://github.com/shimoverse/openvoiceflow.git &amp;&amp; cd openvoiceflow &amp;&amp; bash install.sh</code></section>
-      <section class="content-card wide-card"><h2>Download notes and limitations</h2><ul class="check-list"><li>The website-hosted DMGs above are byte-for-byte copies of the verified OpenVoiceFlow v0.3.3 GitHub Release assets.</li><li>OpenVoiceFlow supports macOS 12+ on Apple Silicon and Intel. Windows and Linux downloads are not currently available.</li><li>The current v0.3.3 DMGs are signed with Developer ID, Apple-notarized, and stapled so Gatekeeper can verify the download offline.</li></ul></section>
+      <section class="content-card wide-card"><h2>Download notes and limitations</h2><ul class="check-list"><li>The website-hosted DMGs above are byte-for-byte copies of the verified OpenVoiceFlow v0.3.4 GitHub Release assets.</li><li>OpenVoiceFlow supports macOS 12+ on Apple Silicon and Intel. Windows and Linux downloads are not currently available.</li><li>The current v0.3.4 DMGs are signed with Developer ID, Apple-notarized, and stapled so Gatekeeper can verify the download offline.</li></ul></section>
       <section class="content-card wide-card"><h2>Download FAQ</h2><h3>Is the source repository public?</h3><p>Yes. OpenVoiceFlow is MIT-licensed and open source on <a href="https://github.com/shimoverse/openvoiceflow">GitHub</a>. The website-hosted DMGs are the easiest signed install.</p><h3>Does OpenVoiceFlow send audio to the cloud?</h3><p>No. Audio transcription runs locally through whisper.cpp. Cleaned transcript text only goes to a cloud LLM if you choose a cloud backend.</p><h3>Which backend should I choose?</h3><p>The current default cloud cleanup path is OpenRouter Gemma 4. Ollama and the “none” backend keep cleanup local/no-cloud.</p></section>
     </div></section>
   </main>

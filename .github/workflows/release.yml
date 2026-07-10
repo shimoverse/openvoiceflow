@@ -10,6 +10,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing v* tag to build/upload DMGs for"
+        required: true
+        type: string
 
 jobs:
   # ────────────────────────────────────────────────────────────────────
@@ -20,13 +26,21 @@ jobs:
     outputs:
       is_prerelease: ${{ steps.classify.outputs.is_prerelease }}
       version: ${{ steps.classify.outputs.version }}
+      release_tag: ${{ steps.classify.outputs.release_tag }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
       - id: classify
         name: Verify tag ↔ pyproject ↔ __init__ agree, and classify pre-release
         run: |
           set -euo pipefail
-          TAG="${GITHUB_REF_NAME}"
+          RAW_TAG="${{ inputs.release_tag || github.ref_name }}"
+          TAG="${RAW_TAG#refs/tags/}"
+          if [[ "$TAG" != v* ]]; then
+            echo "::error::release tag must start with v; got $TAG"
+            exit 1
+          fi
           # Strip leading 'v' for comparison.
           TAG_VERSION="${TAG#v}"
           # Strip a trailing pre-release suffix (rc1, -alpha2, .dev3, a1, b2)
@@ -50,6 +64,7 @@ jobs:
           else
             echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
           fi
+          echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$TAG_VERSION" >> "$GITHUB_OUTPUT"
 
   # ────────────────────────────────────────────────────────────────────
@@ -57,6 +72,7 @@ jobs:
   # non-pre-release tags only.
   # ────────────────────────────────────────────────────────────────────
   publish-pypi:
+    if: github.event_name == 'push'
     needs: verify-version
     runs-on: ubuntu-latest
     permissions:
@@ -78,12 +94,13 @@ jobs:
       - name: Upload sdist + wheel to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.verify-version.outputs.release_tag }}
           files: dist/*
           prerelease: ${{ needs.verify-version.outputs.is_prerelease == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish to PyPI (non-pre-release tags only)
-        if: needs.verify-version.outputs.is_prerelease == 'false'
+        if: needs.verify-version.outputs.is_prerelease == 'false' && vars.PYPI_TRUSTED_PUBLISHING_ENABLED == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         # Trusted Publisher: configure on PyPI side first.
         # https://docs.pypi.org/trusted-publishers/
@@ -92,16 +109,19 @@ jobs:
   # Build and attach DMGs (one arm64, one x86_64) on the same release.
   # ────────────────────────────────────────────────────────────────────
   build-dmg:
-    # Sequenced after publish-pypi: two parallel action-gh-release uploads
-    # race to create the same release and intermittently fail with a 422.
+    # Sequenced after publish-pypi on tag pushes: two parallel action-gh-release
+    # uploads race to create the same release and intermittently fail with a 422.
     needs: [verify-version, publish-pypi]
+    if: always() && needs.verify-version.result == 'success' && (github.event_name == 'workflow_dispatch' || needs.publish-pypi.result == 'success')
     runs-on: macos-latest
     permissions:
       contents: write
     env:
-      HAS_APPLE_SIGNING: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 != '' && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD != '' && secrets.APPLE_KEYCHAIN_PASSWORD != '' && secrets.APPLE_NOTARY_KEY_BASE64 != '' && secrets.APPLE_NOTARY_KEY_ID != '' && secrets.APPLE_NOTARY_ISSUER_ID != '' }}
+      HAS_APPLE_SIGNING: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 != '' && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD != '' && secrets.APPLE_KEYCHAIN_PASSWORD != '' && secrets.APPLE_NOTARY_KEY_BASE64 != '' && secrets.APPLE_NOTARY_KEY_ID != '' && secrets.APPLE_NOTARY_ISSUER_ID != '' && secrets.APPLE_CODESIGN_IDENTITY != '' }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.verify-version.outputs.release_tag }}
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
@@ -141,19 +161,20 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$HAS_APPLE_SIGNING" == "true" ]]; then
-            OVF_SIGN_IDENTITY="${APPLE_CODESIGN_IDENTITY:-Developer ID Application}" \
+            OVF_SIGN_IDENTITY="$APPLE_CODESIGN_IDENTITY" \
             OVF_NOTARIZE=1 \
             OVF_NOTARY_KEY="$OVF_NOTARY_KEY" \
             OVF_NOTARY_KEY_ID="$APPLE_NOTARY_KEY_ID" \
             OVF_NOTARY_ISSUER_ID="$APPLE_NOTARY_ISSUER_ID" \
             bash build-dmg.sh
           else
-            echo "::warning::Apple signing/notarization secrets are missing; DMGs will be unsigned and will trigger Gatekeeper warnings."
-            bash build-dmg.sh
+            echo "::error::Apple signing/notarization secrets are missing; refusing to publish unsigned DMGs."
+            exit 1
           fi
       - name: Upload DMGs to Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.verify-version.outputs.release_tag }}
           files: dist/*.dmg
           prerelease: ${{ needs.verify-version.outputs.is_prerelease == 'true' }}
         env:

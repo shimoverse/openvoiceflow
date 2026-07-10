@@ -137,6 +137,7 @@ PLIST
 TARGET_ARCH="$LAUNCHER_ARCH"
 APP_DIR="\$(cd "\$(dirname "\$0")/.." && pwd)"
 RESOURCES="\$APP_DIR/Resources"
+export OPENVOICEFLOW_APP_RESOURCES="\$RESOURCES"
 HOME_DIR="\$HOME/.openvoiceflow"
 VENV="\$HOME_DIR/venv"
 LOG_DIR="\$HOME/OpenVoiceFlow"

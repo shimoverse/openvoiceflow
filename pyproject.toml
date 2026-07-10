@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openvoiceflow"
-version = "0.3.3"
+version = "0.3.4"
 description = "Free voice dictation for macOS — local transcription + optional LLM cleanup"
 readme = "README.md"
 license = "MIT"

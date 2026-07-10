@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] — 2026-07-10
+
+### Added
+- A polished native menu-bar experience led by **Open OpenVoiceFlow**, with
+  grouped Dictation Shortcut, AI Cleanup, Writing Style, Personalization, and
+  Advanced menus.
+- A user-triggered **Check for Updates…** action that always reports whether a
+  release is available, the app is current, or the service could not be
+  reached.
+- Direct menu links to macOS Microphone and Accessibility settings.
+
+### Changed
+- The status item now uses dark-mode-safe SF Symbols with accessible labels:
+  a waveform while ready, a pause symbol while paused, and a warning symbol
+  when setup needs attention. A visible `OpenVoiceFlow` text label remains as
+  the fallback if symbols are unavailable.
+- Menu selections now use native macOS checkmarks, clean human-readable names,
+  every supported dictation shortcut, standard separators, and **⌘Q** for
+  **Quit OpenVoiceFlow** instead of emoji-prefixed labels.
+- The long-lived Python UI process now stays out of the Dock and uses the
+  bundled OpenVoiceFlow icon for native dialogs. The Current App row refreshes
+  as focus changes without mistaking the UI process for the user's app.
+
+### Fixed
+- The waveform status item is created before backend validation begins, so a
+  slow local backend no longer makes launch look unresponsive.
+- **Edit Profile** now runs its Tk interview in an isolated process instead of
+  risking a native Tk crash in the menu-bar process.
+- The **Download** button in the update alert now recognizes AppKit's native
+  button result and opens the release page correctly.
+
 ## [0.3.3] — 2026-07-10
 
 ### Added
@@ -336,7 +367,8 @@ Initial release.
 
 ## Compare links
 
-[Unreleased]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.4...HEAD
+[0.3.4]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.0...v0.3.1

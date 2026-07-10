@@ -576,6 +576,11 @@ System:
 - ~200 MB disk space
 - Microphone + Accessibility permission
 
+OpenVoiceFlow is macOS-only. On Linux or Windows it won't crash — it detects
+the OS, explains why dictation can't work there, and shows how to uninstall.
+Run `openvoiceflow --doctor` on any machine to check OS, architecture,
+dependencies, and macOS permissions (see [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)).
+
 On first launch, allow both prompts. OpenVoiceFlow should appear by name under **System Settings → Privacy & Security → Microphone** and **Accessibility**. If microphone access was previously denied, relaunch OpenVoiceFlow and choose **Open Microphone Settings**, enable it, then relaunch once more.
 
 <br/>

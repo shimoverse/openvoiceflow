@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -31,13 +32,12 @@ def find_whisper_cpp() -> str | None:
     (contains 'ggml' or 'whisper.cpp'), to avoid false detection of the openai-whisper
     Python CLI.
     """
-    # Check explicit whisper.cpp names first (these are never the Python CLI)
+    # Check explicit whisper.cpp names first (these are never the Python CLI).
+    # shutil.which (not a `which` subprocess) so lookup works on any OS.
     for name in ["whisper-cli", "whisper-cpp"]:
-        result = subprocess.run(["which", name], capture_output=True, text=True)
-        if result.returncode == 0:
-            path = result.stdout.strip()
-            if path:
-                return path
+        path = shutil.which(name)
+        if path:
+            return path
 
     # Explicit known paths for whisper.cpp (not Python whisper)
     explicit_paths = [
@@ -53,11 +53,9 @@ def find_whisper_cpp() -> str | None:
             return p
 
     # Fall back to 'whisper' only if it is actually whisper.cpp
-    result = subprocess.run(["which", "whisper"], capture_output=True, text=True)
-    if result.returncode == 0:
-        path = result.stdout.strip()
-        if path and _is_whisper_cpp(path):
-            return path
+    path = shutil.which("whisper")
+    if path and _is_whisper_cpp(path):
+        return path
 
     return None
 

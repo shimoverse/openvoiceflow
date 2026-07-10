@@ -15,6 +15,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from . import platform_support
+
 LAUNCH_AGENTS_DIR = Path.home() / "Library" / "LaunchAgents"
 PLIST_NAME = "com.openvoiceflow.app.plist"
 PLIST_PATH = LAUNCH_AGENTS_DIR / PLIST_NAME
@@ -78,10 +80,33 @@ def set_autostart(enabled: bool) -> tuple[bool, str]:
     Returns:
         (success, message) tuple.
     """
+    if not platform_support.is_macos():
+        return False, (
+            "Launch at login uses macOS LaunchAgents and is not available on "
+            f"{platform_support.os_label()}."
+        )
     if enabled:
         return _enable_autostart()
     else:
         return _disable_autostart()
+
+
+def _launchctl(modern_args: list, legacy_args: list) -> subprocess.CompletedProcess:
+    """Run launchctl with the modern subcommand, falling back to the legacy one.
+
+    ``bootstrap``/``bootout`` are the supported interface on macOS 10.11+;
+    ``load``/``unload`` are deprecated but still function. Trying modern
+    first keeps us working when Apple eventually removes the legacy verbs,
+    and the fallback keeps us working everywhere they still exist.
+    """
+    result = subprocess.run(
+        ["launchctl"] + modern_args, capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        result = subprocess.run(
+            ["launchctl"] + legacy_args, capture_output=True, text=True,
+        )
+    return result
 
 
 def _enable_autostart() -> tuple[bool, str]:
@@ -98,16 +123,16 @@ def _enable_autostart() -> tuple[bool, str]:
         plist_content = _build_plist(executable)
         PLIST_PATH.write_text(plist_content, encoding="utf-8")
 
+        gui_domain = f"gui/{os.getuid()}"
         # Unload first (ignore error if not loaded)
-        subprocess.run(
-            ["launchctl", "unload", str(PLIST_PATH)],
-            capture_output=True,
+        _launchctl(
+            ["bootout", gui_domain, str(PLIST_PATH)],
+            ["unload", str(PLIST_PATH)],
         )
         # Load the agent
-        result = subprocess.run(
-            ["launchctl", "load", str(PLIST_PATH)],
-            capture_output=True,
-            text=True,
+        result = _launchctl(
+            ["bootstrap", gui_domain, str(PLIST_PATH)],
+            ["load", str(PLIST_PATH)],
         )
         if result.returncode != 0:
             err = result.stderr.strip() or result.stdout.strip()
@@ -124,9 +149,9 @@ def _disable_autostart() -> tuple[bool, str]:
     """Unload and remove the LaunchAgent plist."""
     try:
         if PLIST_PATH.exists():
-            subprocess.run(
-                ["launchctl", "unload", str(PLIST_PATH)],
-                capture_output=True,
+            _launchctl(
+                ["bootout", f"gui/{os.getuid()}", str(PLIST_PATH)],
+                ["unload", str(PLIST_PATH)],
             )
             PLIST_PATH.unlink()
             return True, "LaunchAgent removed"

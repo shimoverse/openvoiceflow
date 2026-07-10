@@ -55,3 +55,12 @@ def test_native_launcher_surfaces_bootstrap_failures() -> None:
     assert "showBootstrapFailure" in launcher_source
     assert "Open Launcher Log" in launcher_source
     assert "task.terminationStatus != 0" in launcher_source
+
+
+def test_tk_onboarding_runs_outside_the_long_lived_menu_process() -> None:
+    """A native Tk abort must not take down the menu-bar application."""
+    build_script = BUILD_SCRIPT.read_text(encoding="utf-8")
+
+    assert "import subprocess" in build_script
+    assert "subprocess.run([sys.executable, '-c', onboarding_code]" in build_script
+    assert "Onboarding process exited with status" in build_script

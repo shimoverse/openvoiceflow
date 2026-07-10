@@ -570,6 +570,8 @@ System:
 - ~200 MB disk space
 - Microphone + Accessibility permission
 
+On first launch, allow both prompts. OpenVoiceFlow should appear by name under **System Settings → Privacy & Security → Microphone** and **Accessibility**. If microphone access was previously denied, relaunch OpenVoiceFlow and choose **Open Microphone Settings**, enable it, then relaunch once more.
+
 <br/>
 
 ---

@@ -8,7 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Tracking toward **0.3.0** — the pre-publish readiness pass.
+## [0.3.1] — 2026-07-09
+
+### Fixed
+- The notarized macOS app now carries the hardened-runtime entitlements for
+  microphone input and Apple Events, allowing recording and auto-paste to
+  pass macOS privacy enforcement.
+- DMGs now use a small native launcher so macOS attributes Microphone and
+  Accessibility consent to OpenVoiceFlow instead of its Python bootstrap.
+- First launch uses the native macOS consent prompts and no longer stacks two
+  conflicting custom permission dialogs.
+
+## [0.3.0] — 2026-07-08
+
+The pre-publish readiness pass.
 
 ### Added
 - Pytest scaffold under `tests/` with regression tests for every

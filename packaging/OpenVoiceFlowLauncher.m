@@ -64,6 +64,21 @@ static void requestAccessibilityAccess(void) {
     CFRelease(options);
 }
 
+static void showBootstrapFailure(int status) {
+    NSAlert *alert = [[NSAlert alloc] init];
+    alert.messageText = @"OpenVoiceFlow could not finish starting";
+    alert.informativeText = [NSString stringWithFormat:
+        @"The background service exited with status %d. Open the launcher log for details.",
+        status];
+    [alert addButtonWithTitle:@"Open Launcher Log"];
+    [alert addButtonWithTitle:@"Close"];
+
+    if ([alert runModal] == NSAlertFirstButtonReturn) {
+        NSString *logPath = [@"~/OpenVoiceFlow/launcher.log" stringByExpandingTildeInPath];
+        [[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:logPath]];
+    }
+}
+
 static int runBootstrap(int argc, const char *argv[]) {
     NSString *scriptPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"launcher.sh"];
     NSMutableArray<NSString *> *arguments = [NSMutableArray arrayWithObject:scriptPath];
@@ -85,6 +100,9 @@ static int runBootstrap(int argc, const char *argv[]) {
     }
 
     [task waitUntilExit];
+    if (task.terminationStatus != 0) {
+        showBootstrapFailure(task.terminationStatus);
+    }
     return task.terminationStatus;
 }
 

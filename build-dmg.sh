@@ -142,7 +142,7 @@ VENV="\$HOME_DIR/venv"
 LOG_DIR="\$HOME/OpenVoiceFlow"
 LOG="\$LOG_DIR/launcher.log"
 PY="\$VENV/bin/python3"
-PY_RUN="\$VENV/bin/OpenVoiceFlow"
+PY_RUN="\$PY"
 
 mkdir -p "\$LOG_DIR" "\$HOME_DIR/models" "\$LOG_DIR/logs"
 exec >> "\$LOG" 2>&1
@@ -238,11 +238,6 @@ if [[ ! -f "\$PY" || ! -f "\$DEPS_MARKER" ]]; then
     "\$VENV/bin/pip" install -q sounddevice numpy pynput rumps pyobjc-framework-Cocoa || fatal "Package install failed. Relaunch OpenVoiceFlow to retry. Log: \$LOG"
     touch "\$DEPS_MARKER"
 fi
-
-# Runtime shim name helps users find the process in permission panes.
-rm -f "\$PY_RUN" >/dev/null 2>&1 || true
-cp "\$PY" "\$PY_RUN"
-chmod +x "\$PY_RUN"
 
 notify "OpenVoiceFlow is launching..."
 

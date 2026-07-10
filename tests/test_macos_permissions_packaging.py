@@ -38,3 +38,20 @@ def test_launcher_requests_permissions_and_shows_only_one_fallback_dialog() -> N
     assert 'Contents/Resources/launcher.sh' in build_script
     assert "ask_permission_help" not in build_script
     assert "ask_permissions_menu" not in build_script
+
+
+def test_bootstrap_does_not_copy_the_python_framework_launcher() -> None:
+    """Renaming framework Python breaks its relative @executable_path lookup."""
+    build_script = BUILD_SCRIPT.read_text(encoding="utf-8")
+
+    assert 'PY_RUN="\\$PY"' in build_script
+    assert 'cp "\\$PY" "\\$PY_RUN"' not in build_script
+
+
+def test_native_launcher_surfaces_bootstrap_failures() -> None:
+    """A bootstrap crash must show a visible error instead of silently exiting."""
+    launcher_source = LAUNCHER_SOURCE.read_text(encoding="utf-8")
+
+    assert "showBootstrapFailure" in launcher_source
+    assert "Open Launcher Log" in launcher_source
+    assert "task.terminationStatus != 0" in launcher_source

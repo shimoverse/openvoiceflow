@@ -64,3 +64,14 @@ def test_tk_onboarding_runs_outside_the_long_lived_menu_process() -> None:
     assert "import subprocess" in build_script
     assert "subprocess.run([sys.executable, '-c', onboarding_code]" in build_script
     assert "Onboarding process exited with status" in build_script
+
+
+def test_python_menu_process_keeps_the_openvoiceflow_app_identity() -> None:
+    """The rumps child must remain a Dock-less app with the bundled icon."""
+    build_script = BUILD_SCRIPT.read_text(encoding="utf-8")
+    menubar = (ROOT / "voiceflow" / "menubar.py").read_text(encoding="utf-8")
+
+    assert 'export OPENVOICEFLOW_APP_RESOURCES="\\$RESOURCES"' in build_script
+    assert "NSApplicationActivationPolicyAccessory" in menubar
+    assert "setActivationPolicy_" in menubar
+    assert "setApplicationIconImage_" in menubar

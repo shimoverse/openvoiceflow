@@ -91,11 +91,15 @@ For the simplest signed install, download OpenVoiceFlow from the website. The so
 
 Open the website-hosted DMG, drag OpenVoiceFlow to Applications, then launch it.
 
-OpenVoiceFlow is a **menu-bar app**, so it does not open a normal window or
-stay in the Dock. Look for `🎙️✅` at the top-right of the screen. Click in any
-text field, hold the **Right Command (⌘)** key, speak, then release it; the
-transcribed text appears at the cursor. Click the menu-bar icon to pause
-listening, open **How to Use**, or change the hotkey.
+OpenVoiceFlow is a **menu-bar app**, so it does not stay in the Dock. Look for
+the monochrome **waveform icon** at the top-right of the screen. Click it for a
+native macOS menu whose first action is **Open OpenVoiceFlow**; the same menu
+lets you pause listening, change the dictation shortcut, select AI cleanup and
+writing styles, open permission settings, and **Check for Updates**.
+
+To dictate, click in any text field, hold the **Right Command (⌘)** key, speak,
+then release it. The transcribed text appears at the cursor. The icon changes
+to a pause or warning symbol when listening is paused or setup needs attention.
 
 > First launch installs everything automatically, walks you through setup, and interviews you so it knows your name, your team, and your jargon from day one.
 

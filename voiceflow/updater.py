@@ -16,7 +16,10 @@ from typing import Callable
 from . import __version__
 
 GITHUB_RELEASES_API = "https://api.github.com/repos/shimoverse/openvoiceflow/releases/latest"
+GITHUB_RELEASES_URL = "https://github.com/shimoverse/openvoiceflow/releases"
 CHECK_TIMEOUT = 8  # seconds
+
+ManualUpdateCallback = Callable[[str, str, str], None]
 
 
 def _parse_version(version_str: str) -> tuple[int, ...]:
@@ -85,6 +88,22 @@ def check_for_updates(
     thread.start()
 
 
+def check_for_updates_now(on_result: ManualUpdateCallback) -> None:
+    """Run a user-requested update check without blocking the menu bar.
+
+    Unlike the quiet startup check, this always calls ``on_result`` with one
+    of ``"available"``, ``"current"``, or ``"error"`` so the menu can give
+    the user a definitive answer.
+    """
+    thread = threading.Thread(
+        target=_manual_check_worker,
+        args=(on_result,),
+        daemon=True,
+        name="openvoiceflow-manual-updater",
+    )
+    thread.start()
+
+
 def _check_worker(on_update_available: Callable | None) -> None:
     """Background worker: fetch release and compare versions."""
     release = _fetch_latest_release()
@@ -108,6 +127,22 @@ def _check_worker(on_update_available: Callable | None) -> None:
         print(f"\n🆕 Update available: v{latest_str} (you have v{__version__})")
         print(f"   Download: {release_url}\n")
         _send_notification(latest_str, release_url)
+
+
+def _manual_check_worker(on_result: ManualUpdateCallback) -> None:
+    """Fetch and classify the latest release for an explicit menu action."""
+    release = _fetch_latest_release()
+    if not release:
+        on_result("error", "", GITHUB_RELEASES_URL)
+        return
+
+    latest_tag = release.get("tag_name", "")
+    release_url = release.get("html_url", GITHUB_RELEASES_URL)
+    latest_str = latest_tag.lstrip("vV")
+    if _parse_version(latest_tag) > _parse_version(__version__):
+        on_result("available", latest_str, release_url)
+    else:
+        on_result("current", latest_str or __version__, release_url)
 
 
 def _send_notification(latest_version: str, release_url: str) -> None:

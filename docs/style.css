@@ -556,6 +556,15 @@ code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace
 }
 .btn-ghost:hover { color: var(--text-primary); background: rgba(255,255,255,0.06); }
 
+/* Non-Mac visitors: the recommended-download CTA becomes an inert notice. */
+.btn-unavailable {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-secondary);
+  border-color: var(--border);
+  cursor: not-allowed;
+}
+.btn-unavailable:hover { transform: none; }
+
 /* ─── Section layout ─────────────────────────────────────── */
 .section { padding: 100px 0; }
 .section-alt { background: var(--bg-alt); }

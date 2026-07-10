@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   upgrade warning.
 - CI: new `non-macos-guard` job on `ubuntu-latest` pins the "friendly
   message, never a traceback" guarantee and runs the full suite on Linux.
+- Website: the download page now detects the visitor's OS. Windows, Linux,
+  ChromeOS, Android, and iPhone/iPad visitors get an inert "Not available
+  for <OS>" notice instead of a live DMG button; Safari-on-Mac visitors get
+  an Apple Silicon / Intel recommendation via a WebGL renderer fallback
+  (Chromium browsers already used architecture hints).
 
 ### Fixed
 - `voiceflow.recorder` no longer imports `sounddevice` at module load —

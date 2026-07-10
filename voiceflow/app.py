@@ -221,10 +221,20 @@ class OpenVoiceFlow:
                 print(f"   • {e}")
             # B2: surface to menubar users + click-to-fix Notification Center.
             from . import notify
+            accessibility_missing = any(
+                "Accessibility permission not granted" in error for error in errors
+            )
             notify.error(
                 "Setup incomplete — " + (errors[0] if len(errors) == 1
                                           else f"{len(errors)} issues found"),
-                action=("Run openvoiceflow --doctor", None),
+                action=(
+                    (
+                        "Open Accessibility Settings",
+                        "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+                    )
+                    if accessibility_missing
+                    else ("Run openvoiceflow --doctor", None)
+                ),
             )
             return False
         return True

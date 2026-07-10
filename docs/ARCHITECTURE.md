@@ -196,7 +196,7 @@ Audio (`.wav`) is written only as a NamedTemporaryFile during batch processing a
 
 ## 5. Permissions model
 
-OpenVoiceFlow is unsandboxed and uses standard macOS TCC prompts. Each feature requires exactly the set below; the app degrades cleanly when a permission is missing.
+OpenVoiceFlow is unsandboxed and uses standard macOS TCC prompts. The DMG app starts through a small native launcher so macOS attributes Microphone, Accessibility, and Apple Events consent to the stable `com.openvoiceflow.dictation` bundle rather than to its Python bootstrap process. Signed builds carry the narrow audio-input and Apple Events entitlements required by the hardened runtime. Each feature requires exactly the set below; the app degrades cleanly when a permission is missing.
 
 | Permission | Required for | Where | Failure mode if missing |
 |---|---|---|---|

@@ -13,7 +13,11 @@ CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
 LOG_DIR = Path(CONFIG_DIR) / "logs"
 MODELS_DIR = Path(CONFIG_DIR) / "models"
 
+CONFIG_SCHEMA_VERSION = 1
+_STREAMING_DEFAULT_MIGRATION_VERSION = 1
+
 DEFAULTS = {
+    "_config_version": CONFIG_SCHEMA_VERSION,
     "hotkey": "right_cmd",
     "whisper_model": "base.en",
     "whisper_cpp_path": None,
@@ -79,7 +83,8 @@ DEFAULTS = {
     # Selected text context capture (Feature 4)
     "selected_text_context": True,  # Capture selected text as LLM context on hotkey press
     # Real-time streaming transcription (Feature 1)
-    "streaming": True,             # Use whisper-stream for real-time transcription
+    # Opt-in until whisper-stream can reliably finalize sub-step dictations.
+    "streaming": False,            # Use whisper-stream for real-time transcription
     "streaming_step_ms": 3000,     # Audio step size in milliseconds for streaming
     # Auto-learn corrections from user edits after paste.
     # Strong privilege (reads focused text field via Accessibility API for
@@ -138,6 +143,22 @@ def _migrate_gemini_to_openrouter(stored: dict) -> bool:
     return migrated
 
 
+def _migrate_streaming_default(stored: dict) -> bool:
+    """Reset v0.3.2's persisted streaming default to reliable batch mode.
+
+    v0.3.2 wrote the entire defaults dictionary on first launch, so nearly
+    every existing config contains ``streaming: true`` even when the user did
+    not opt in. Stamp the first schema version and reset streaming once. A
+    later explicit opt-in is preserved because the schema marker is present.
+    """
+    version = stored.get("_config_version")
+    if isinstance(version, int) and version >= _STREAMING_DEFAULT_MIGRATION_VERSION:
+        return False
+    stored["streaming"] = False
+    stored["_config_version"] = CONFIG_SCHEMA_VERSION
+    return True
+
+
 def load_config() -> dict:
     os.makedirs(CONFIG_DIR, exist_ok=True)
     from ._secure_io import secure_dir
@@ -170,7 +191,8 @@ def load_config() -> dict:
         return dict(DEFAULTS)
     prompt_migrated = _migrate_cleanup_to_llm_prompt(stored)
     backend_migrated = _migrate_gemini_to_openrouter(stored)
-    migrated = prompt_migrated or backend_migrated
+    streaming_migrated = _migrate_streaming_default(stored)
+    migrated = prompt_migrated or backend_migrated or streaming_migrated
     # Merge with defaults so new fields are always present
     config = dict(DEFAULTS)
     config.update(stored)
@@ -186,6 +208,11 @@ def load_config() -> dict:
             print(
                 "ℹ️  Migrated retired Gemini backend config to OpenRouter. "
                 "Set `openrouter_api_key` or OPENROUTER_API_KEY before using cloud cleanup."
+            )
+        if streaming_migrated:
+            print(
+                "ℹ️  Reset experimental streaming to the reliable batch recorder "
+                "for v0.3.3. Re-enable it from the menu bar if you prefer live results."
             )
     return config
 

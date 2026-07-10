@@ -16,15 +16,34 @@ def _clear_submenu(menu) -> None:
         menu.clear()
 
 
+_HOTKEY_LABELS = {
+    "right_cmd": "Right Command (⌘)",
+    "left_cmd": "Left Command (⌘)",
+    "left_fn": "Fn",
+    "right_alt": "Right Option (⌥)",
+    "left_alt": "Left Option (⌥)",
+    "right_ctrl": "Right Control (⌃)",
+}
+
+
+def _usage_instructions(hotkey: str) -> str:
+    """Return concise, user-facing instructions for the active hotkey."""
+    label = _HOTKEY_LABELS.get(hotkey, hotkey.upper())
+    return (
+        f"Hold {label} in any text field, speak, then release to paste. "
+        "OpenVoiceFlow stays in the menu bar (🎙️✅); click its icon for settings."
+    )
+
+
 def _show_ready_tip(hotkey: str) -> None:
     """Teach first-time users where the app lives and how to dictate."""
     try:
         from . import notify
 
+        label = _HOTKEY_LABELS.get(hotkey, hotkey.upper())
         notify.tip(
-            "OpenVoiceFlow is ready in the menu bar. Click in any text field, "
-            f"hold [{hotkey}], speak, then release to paste.",
-            once_key="menubar_ready",
+            f"menu bar 🎙️✅ — hold {label}, speak, release to paste.",
+            once_key="menubar_ready_v033",
         )
     except Exception:
         pass
@@ -57,6 +76,7 @@ def run_menubar():
             self.start_stop_item = rumps.MenuItem("▶ Start Listening", callback=self.toggle)
             self.status_item = rumps.MenuItem("Status: Stopped")
             self.status_item.set_callback(None)
+            self.usage_item = rumps.MenuItem("❓ How to Use", callback=self.show_usage)
 
             # Backend submenu
             self.backend_menu = rumps.MenuItem("LLM Backend")
@@ -110,6 +130,7 @@ def run_menubar():
             self.menu = [
                 self.start_stop_item,
                 self.status_item,
+                self.usage_item,
                 self.detected_app_item,
                 None,  # separator
                 self.backend_menu,
@@ -191,7 +212,7 @@ def run_menubar():
             return "✓ Launch at Login" if enabled else "  Launch at Login"
 
         def _streaming_label(self) -> str:
-            enabled = self.config.get("streaming", True)
+            enabled = self.config.get("streaming", False)
             return "✓ Streaming Transcription" if enabled else "  Streaming Transcription"
 
         def _auto_style_label(self) -> str:
@@ -338,7 +359,7 @@ def run_menubar():
 
         def toggle_streaming(self, _):
             """Toggle streaming transcription on/off."""
-            current = self.config.get("streaming", True)
+            current = self.config.get("streaming", False)
             self._set_config_flag("streaming", not current)
             self.streaming_item.title = self._streaming_label()
             state_str = "enabled" if not current else "disabled"
@@ -362,6 +383,14 @@ def run_menubar():
             rumps.notification("OpenVoiceFlow", "Auto-Learn", f"Correction learning {state_str}")
 
         # ── Feature handlers ───────────────────────────────────────────────
+
+        def show_usage(self, _):
+            """Show persistent instructions when the user asks for help."""
+            hotkey = self.config.get("hotkey", "right_cmd")
+            rumps.alert(
+                title="How to Use OpenVoiceFlow",
+                message=_usage_instructions(hotkey),
+            )
 
         def show_stats(self, _):
             """Show statistics in a rumps alert dialog."""

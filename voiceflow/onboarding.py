@@ -494,6 +494,9 @@ class OnboardingWizard:
         # reason `log_transcripts` quietly stayed True for fresh wizard
         # users even after the DEFAULTS-level flip in v0.3).
         from .config import DEFAULTS as _CONFIG_DEFAULTS
+        from .config import _migrate_streaming_default
+
+        _migrate_streaming_default(self.config)
         for k, v in _CONFIG_DEFAULTS.items():
             if k not in self.config:
                 self.config[k] = v

@@ -73,7 +73,7 @@ If/when you want `brew tap shimoverse/tap && brew install openvoiceflow`:
 
 ### 4. Apple Developer ID signing + notarization
 
-The release workflow can sign and notarize DMGs when Apple Developer credentials are present. Current v0.3.3 website-hosted DMGs are signed with Developer ID, notarized by Apple, stapled, and verified with Gatekeeper assessment.
+The release workflow can sign and notarize DMGs when Apple Developer credentials are present. Current v0.3.4 website-hosted DMGs are signed with Developer ID, notarized by Apple, stapled, and verified with Gatekeeper assessment.
 
 To produce Apple-certified DMGs for the next tag:
 

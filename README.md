@@ -68,7 +68,8 @@ Your wallet stays full. Your corrections teach the app. You decide what data lea
   ⌨️  Auto-paste — text appears at your cursor in any app
 ```
 
-**Real-time streaming.** Words appear in the overlay as you speak, not after you stop. Powered by `whisper-stream`.
+**Optional real-time streaming.** Turn on the experimental `whisper-stream` mode to see words in the overlay as you
+speak. The reliable batch recorder is the default.
 
 **Context-aware.** OpenVoiceFlow reads the app you're in, the text you have selected, and your personal profile to produce text that fits perfectly.
 
@@ -94,7 +95,7 @@ OpenVoiceFlow is a **menu-bar app**, so it does not open a normal window or
 stay in the Dock. Look for `🎙️✅` at the top-right of the screen. Click in any
 text field, hold the **Right Command (⌘)** key, speak, then release it; the
 transcribed text appears at the cursor. Click the menu-bar icon to pause
-listening or change the hotkey.
+listening, open **How to Use**, or change the hotkey.
 
 > First launch installs everything automatically, walks you through setup, and interviews you so it knows your name, your team, and your jargon from day one.
 
@@ -162,11 +163,12 @@ openvoiceflow --backend ollama    # fully local, $0
 
 Words appear in the floating overlay **as you speak**. No waiting until you release the key.
 
-Powered by `whisper-stream` (Metal-accelerated on Apple Silicon). Samples audio every 3 seconds, transcribes continuously, shows partial results live. Falls back to batch mode on Intel if needed.
+Powered by `whisper-stream` (Metal-accelerated on Apple Silicon). Samples audio every 3 seconds, transcribes
+continuously, and shows partial results live. This mode is opt-in; the reliable batch recorder is the default.
 
 ```bash
-openvoiceflow --streaming on     # default
-openvoiceflow --streaming off    # classic batch mode
+openvoiceflow --streaming on     # opt in to experimental live results
+openvoiceflow --streaming off    # default, reliable batch mode
 ```
 
 ---
@@ -465,7 +467,7 @@ Everything lives in `~/.openvoiceflow/`:
   "auto_paste": true,
   "language": "en",
   "style": "default",
-  "streaming": true,
+  "streaming": false,
   "streaming_step_ms": 3000,
   "auto_style": true,
   "auto_learn": true,

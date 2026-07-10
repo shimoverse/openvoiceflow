@@ -8,7 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] — 2026-07-10
+
 ### Added
+- The menu-bar menu now includes a persistent **How to Use** guide, and the
+  first-run hotkey tip also appears in the floating HUD instead of relying
+  only on a potentially hidden macOS notification.
 - `voiceflow/platform_support.py`: one place for OS, macOS-version,
   architecture (Apple Silicon / Intel / Rosetta), and permission detection.
 - CLI platform gate: on Linux/Windows, `openvoiceflow` now prints a clear
@@ -30,6 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Chromium browsers already used architecture hints).
 
 ### Fixed
+- Short streaming dictations no longer lose the final transcript fragment
+  when `whisper-stream` exits without a trailing newline.
+- Fresh installs now use the reliable batch recorder by default. Experimental
+  real-time streaming remains available through the menu bar or
+  `--streaming on`. Existing v0.3.2 installs are reset to batch mode once and
+  can opt back into streaming afterward.
 - `voiceflow.recorder` no longer imports `sounddevice` at module load —
   the import crashed the whole app (`OSError: PortAudio library not found`)
   on machines without PortAudio before any error handling could run.
@@ -325,7 +336,11 @@ Initial release.
 
 ## Compare links
 
-[Unreleased]: https://github.com/shimoverse/openvoiceflow/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.2...v0.3.3
+[0.3.2]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/shimoverse/openvoiceflow/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/shimoverse/openvoiceflow/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/shimoverse/openvoiceflow/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/shimoverse/openvoiceflow/releases/tag/v0.1.0

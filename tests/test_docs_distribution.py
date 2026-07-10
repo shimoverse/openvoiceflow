@@ -5,9 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
-RELEASE_VERSION = "0.3.3"
-ARM64_SHA256 = "ec4494a1cd2187340b7d888d5cb86957ff8e85b4db0c424c07ef6059a3a0eb31"
-X86_64_SHA256 = "c9f0c6efce08ba7f2bff78e5488f198329cb9f6d63f31966fb9fa937ca6d3f2f"
+RELEASE_VERSION = "0.3.4"
+ARM64_SHA256 = "e31676da9a446fd2df67ea65e5ea79d6060193aada486b1f32dc786f6b7696a8"
+X86_64_SHA256 = "4cdf427885a5f1c11e6b933429335863f1aa08f7090c58be6a84d3cb42c124fe"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html"]
 
 
@@ -239,12 +239,24 @@ def test_previous_release_downloads_redirect_to_fixed_builds():
         for item in config.get("redirects", [])
     }
 
+    for previous_version in ["0.2.0", "0.3.2", "0.3.3"]:
+        for arch in ["arm64", "x86_64"]:
+            source = f"/downloads/OpenVoiceFlow-{previous_version}-{arch}.dmg"
+            assert redirects[source]["destination"] == (
+                f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}-{arch}.dmg"
+            )
+            assert redirects[source]["permanent"] is True
+
+
+def test_unsigned_legacy_downloads_are_not_deployed() -> None:
     for arch in ["arm64", "x86_64"]:
-        source = f"/downloads/OpenVoiceFlow-0.3.2-{arch}.dmg"
-        assert redirects[source]["destination"] == (
-            f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}-{arch}.dmg"
-        )
-        assert redirects[source]["permanent"] is True
+        assert not (DOCS / "downloads" / f"OpenVoiceFlow-0.2.0-{arch}.dmg").exists()
+
+
+def test_release_guide_names_the_current_hosted_version() -> None:
+    release_guide = (ROOT / "RELEASE.md").read_text(encoding="utf-8")
+
+    assert f"Current v{RELEASE_VERSION} website-hosted DMGs" in release_guide
 
 
 def test_llms_txt_points_agents_to_priority_pages():

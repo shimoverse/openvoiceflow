@@ -95,6 +95,30 @@ OpenVoiceFlow may contact these hosts. None are required after first-run setup i
 - **iOS / iPadOS / Android.** Not a mobile app.
 - **Web.** No browser build; the dictation model is system-wide hotkey + paste.
 
+### Behavior on unsupported operating systems
+
+Unsupported does not mean "crashes". If you pip-install OpenVoiceFlow on
+Linux or Windows and run it, the CLI detects the OS at startup
+(`voiceflow/platform_support.py`), prints an explanation of why dictation
+cannot work there plus uninstall guidance (`pip uninstall openvoiceflow`,
+`rm -rf ~/.openvoiceflow`), and exits with code 1 — no traceback, no
+background process, no config files written. Diagnostic commands
+(`--doctor`, `--show-config`, `--version`) keep working so you can inspect
+state before removing it. A CI job on `ubuntu-latest` pins this guarantee.
+
+## Doctor checks (`openvoiceflow --doctor`)
+
+The self-check covers, in order: operating system + version (fails below
+macOS 12, notes releases newer than our tested range), architecture
+(warns when Python runs under Rosetta or when Intel Homebrew is installed
+on Apple Silicon — both silently cost you Metal acceleration), Homebrew,
+whisper.cpp, the whisper model file, the LLM backend/API key, PyObjC,
+tkinter, the three macOS permissions dictation depends on (Microphone,
+Accessibility, Input Monitoring — each with a click-to-fix System
+Settings link), and config file modes. The Microphone check needs
+`pyobjc-framework-AVFoundation` to give a definitive answer; without it
+the doctor reports that macOS will prompt on first recording.
+
 ## "What about X?" mini-FAQ
 
 - **Linux PortAudio support?** Out of scope for v0.3. The transcription core (`sounddevice` + whisper.cpp) is portable in principle, but the menubar, overlay, and Accessibility-API integrations are AppKit-only.

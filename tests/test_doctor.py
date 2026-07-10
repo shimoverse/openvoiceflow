@@ -24,17 +24,15 @@ def test_check_record_has_required_fields() -> None:
     assert c.fix is None  # default
 
 
-def test_check_brew_uses_subprocess_which(monkeypatch) -> None:
+def test_check_brew_uses_shutil_which(monkeypatch) -> None:
+    """Binary discovery goes through shutil.which — portable, no `which`
+    subprocess (which doesn't exist on Windows and would crash there)."""
     from voiceflow import doctor
 
-    def fake_run(cmd, **kwargs):
-        class R:
-            returncode = 0
-            stdout = "/opt/homebrew/bin/brew\n"
-        assert cmd[0] == "command" or cmd[0] == "which", cmd
-        return R()
-
-    monkeypatch.setattr(doctor.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        doctor.shutil, "which",
+        lambda name: "/opt/homebrew/bin/brew" if name == "brew" else None,
+    )
     result = doctor.check_brew()
     assert result.status == doctor.Status.OK
     assert "brew" in result.name.lower()
@@ -43,13 +41,7 @@ def test_check_brew_uses_subprocess_which(monkeypatch) -> None:
 def test_check_brew_fail_when_missing(monkeypatch) -> None:
     from voiceflow import doctor
 
-    def fake_run(cmd, **kwargs):
-        class R:
-            returncode = 1
-            stdout = ""
-        return R()
-
-    monkeypatch.setattr(doctor.subprocess, "run", fake_run)
+    monkeypatch.setattr(doctor.shutil, "which", lambda name: None)
     result = doctor.check_brew()
     assert result.status == doctor.Status.FAIL
     assert result.fix is not None  # must offer a remedy
@@ -120,13 +112,17 @@ def test_check_pyobjc_when_missing_warns(monkeypatch) -> None:
 def test_run_all_checks_returns_list(monkeypatch) -> None:
     from voiceflow import doctor
 
+    # Pretend we're on macOS so the full check list runs on any CI host.
+    monkeypatch.setattr(doctor.platform_support, "is_macos", lambda: True)
+
     # Stub every check so the test doesn't poke at the user's real machine.
     fake = doctor.Check(
         name="stub", status=doctor.Status.OK, description="ok",
     )
     for fn_name in [
-        "check_brew", "check_whisper_cli", "check_model",
-        "check_api_key", "check_pyobjc", "check_tkinter",
+        "check_os", "check_architecture", "check_brew", "check_whisper_cli",
+        "check_model", "check_api_key", "check_pyobjc", "check_tkinter",
+        "check_microphone", "check_accessibility", "check_input_monitoring",
         "check_file_modes",
     ]:
         if fn_name in ("check_model", "check_api_key"):
@@ -137,6 +133,18 @@ def test_run_all_checks_returns_list(monkeypatch) -> None:
     results = doctor.run_all_checks({"llm_backend": "none", "whisper_model": "base.en"})
     assert isinstance(results, list)
     assert len(results) >= 5
+
+
+def test_run_all_checks_non_macos_reports_only_os(monkeypatch) -> None:
+    """Off-macOS the doctor must not emit misleading brew/whisper guidance —
+    just one clear FAIL explaining the platform requirement."""
+    from voiceflow import doctor
+
+    monkeypatch.setattr(doctor.platform_support, "is_macos", lambda: False)
+    results = doctor.run_all_checks({"llm_backend": "none", "whisper_model": "base.en"})
+    assert len(results) == 1
+    assert results[0].status == doctor.Status.FAIL
+    assert "macOS" in results[0].description
 
 
 def test_format_checks_text_renders(monkeypatch) -> None:

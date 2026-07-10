@@ -37,6 +37,51 @@ jobs:
       - name: Tests
         run: pytest -q
 
+  # OpenVoiceFlow is macOS-only, but installing it elsewhere must degrade
+  # to a friendly "unsupported OS" message — never a traceback. This job
+  # pins that guarantee on a real non-Mac host.
+  non-macos-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install package (core deps only — no [all] extras off-macOS)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Every module imports off-macOS
+        run: python -c "import voiceflow, voiceflow.app, voiceflow.recorder, voiceflow.menubar; print('✅ imports survive a non-Mac host')"
+      - name: Bare launch exits with guidance, not a traceback
+        run: |
+          set +e
+          output=$(HOME=$(mktemp -d) openvoiceflow 2>&1)
+          status=$?
+          set -e
+          echo "$output"
+          test "$status" -eq 1
+          echo "$output" | grep -qi "macos"
+          echo "$output" | grep -q "pip uninstall openvoiceflow"
+          ! echo "$output" | grep -q "Traceback"
+      - name: Doctor still works off-macOS (valid JSON, OS check FAILs)
+        run: |
+          set +e
+          output=$(HOME=$(mktemp -d) openvoiceflow --doctor --json 2>/dev/null)
+          status=$?
+          set -e
+          test "$status" -eq 1
+          echo "$output" | python -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          first = data['checks'][0]
+          assert first['status'] == 'FAIL', first
+          assert 'macOS' in first['description'], first
+          print('✅ doctor degrades correctly off-macOS')
+          "
+      - name: Full test suite passes on Linux
+        run: HOME=$(mktemp -d) pytest -q
+
   build:
     runs-on: macos-latest
     steps:

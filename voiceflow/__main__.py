@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from . import __version__
+from . import __version__, platform_support
 from .config import (
     VALID_BACKENDS,
     VALID_HOTKEYS,
@@ -159,6 +159,19 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Platform gate: OpenVoiceFlow is macOS-only. Refuse politely here —
+    # before any config write or heavy import — instead of crashing with a
+    # traceback deeper in the stack (sounddevice/pynput/pbcopy all assume
+    # macOS). Diagnostic commands stay usable so users can inspect state
+    # before uninstalling.
+    if not platform_support.is_macos() and not (args.doctor or args.show_config):
+        print(platform_support.unsupported_os_message(), file=sys.stderr)
+        sys.exit(1)
+
+    old_macos = platform_support.old_macos_warning()
+    if old_macos:
+        print(old_macos, file=sys.stderr)
 
     config = load_config()
 

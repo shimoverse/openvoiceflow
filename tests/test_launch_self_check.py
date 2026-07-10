@@ -58,6 +58,12 @@ def test_validate_setup_fail_calls_notify_error(stub_validate_setup_inputs, monk
 def test_validate_setup_pass_no_notify(stub_validate_setup_inputs, monkeypatch) -> None:
     appmod = stub_validate_setup_inputs
 
+    # Stub the audio backend so the happy path is hermetic on hosts
+    # without PortAudio (e.g. Linux CI).
+    import sys
+    import types
+    monkeypatch.setitem(sys.modules, "sounddevice", types.ModuleType("sounddevice"))
+
     monkeypatch.setattr(appmod, "find_whisper_cpp", lambda: "/opt/homebrew/bin/whisper-cli")
     monkeypatch.setattr(appmod, "get_model_path", lambda name: "/fake/model")
     monkeypatch.setattr(appmod.os.path, "exists", lambda p: True)

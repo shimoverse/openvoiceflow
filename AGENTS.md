@@ -41,6 +41,7 @@ openvoiceflow/
 │   ├── context.py                  ← frontmost-app detection + per-app style
 │   ├── learner.py                  ← auto-learn corrections via AX API
 │   ├── system.py                   ← paste_text, play_sound, log_transcript
+│   ├── platform_support.py         ← OS/arch/permission detection (macOS gate)
 │   ├── overlay.py                  ← PyObjC floating HUD
 │   ├── config.py                   ← DEFAULTS, validate_config, load/save
 │   ├── _secure_io.py               ← chmod-600 helpers (use this for new save sites!)
@@ -183,7 +184,7 @@ Useful for testing changes from the agent's shell. Many of these write to `~/.op
 | `--search QUERY` / `--search-date YYYY-MM-DD` / `--search-last DAYS` / `--limit N` | Full-text search over JSONL transcript logs. |
 | `--stats` | Print local-only usage counters. |
 | `--autostart on\|off` | Install or remove the LaunchAgent. |
-| `--doctor` | **Pending** — not yet implemented. Don't reference in docs as if it exists. |
+| `--doctor` | Self-check: OS, architecture, brew, whisper.cpp, model, API key, macOS permissions, file modes. `--json` for machine-readable output. Works (and reports the platform mismatch) on non-macOS hosts. |
 
 ## Where to ask
 

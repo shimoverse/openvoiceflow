@@ -19,17 +19,24 @@ def paste_text(text: str):
     instead of an invisible stderr line. The user's text is still on
     the clipboard, so a manual ⌘V always works as a fallback.
     """
-    process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
-    process.communicate(text.encode("utf-8"), timeout=5)
-    time.sleep(0.05)
-    # BUG-009 fix: capture return code and report Accessibility errors clearly
-    result = subprocess.run(
-        [
-            "osascript", "-e",
-            'tell application "System Events" to keystroke "v" using command down',
-        ],
-        capture_output=True,
-    )
+    try:
+        process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+        process.communicate(text.encode("utf-8"), timeout=5)
+        time.sleep(0.05)
+        # BUG-009 fix: capture return code and report Accessibility errors clearly
+        result = subprocess.run(
+            [
+                "osascript", "-e",
+                'tell application "System Events" to keystroke "v" using command down',
+            ],
+            capture_output=True,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        # pbcopy/osascript missing (non-macOS or broken PATH) — never crash
+        # the dictation thread over feedback plumbing.
+        from . import notify
+        notify.error(f"Auto-paste unavailable on this system ({exc}).")
+        return
     if result.returncode != 0:
         play_sound("error")
         # System Events → Privacy_AppleEvents (this is the pane macOS opens
@@ -53,24 +60,27 @@ def insert_recording_indicator(indicator: str = "🎙") -> bool:
 
     Returns True if insertion succeeded.
     """
-    original = subprocess.run(["pbpaste"], capture_output=True, timeout=5)
-    process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
-    process.communicate(indicator.encode("utf-8"), timeout=5)
-    _move_caret_to_end()
-    time.sleep(0.03)
-    result = subprocess.run(
-        [
-            "osascript", "-e",
-            'tell application "System Events" to keystroke "v" using command down',
-        ],
-        capture_output=True,
-    )
-    # Give the target app a moment to service the paste before restoring.
-    time.sleep(0.15)
-    if original.returncode == 0:
-        restore = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
-        restore.communicate(original.stdout, timeout=5)
-    return result.returncode == 0
+    try:
+        original = subprocess.run(["pbpaste"], capture_output=True, timeout=5)
+        process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+        process.communicate(indicator.encode("utf-8"), timeout=5)
+        _move_caret_to_end()
+        time.sleep(0.03)
+        result = subprocess.run(
+            [
+                "osascript", "-e",
+                'tell application "System Events" to keystroke "v" using command down',
+            ],
+            capture_output=True,
+        )
+        # Give the target app a moment to service the paste before restoring.
+        time.sleep(0.15)
+        if original.returncode == 0:
+            restore = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+            restore.communicate(original.stdout, timeout=5)
+        return result.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
 
 
 def clear_recording_indicator() -> bool:
@@ -78,26 +88,32 @@ def clear_recording_indicator() -> bool:
 
     Returns True if the delete keystroke was sent successfully.
     """
-    _move_caret_to_end()
-    result = subprocess.run(
-        [
-            "osascript", "-e",
-            'tell application "System Events" to key code 51',
-        ],
-        capture_output=True,
-    )
-    return result.returncode == 0
+    try:
+        _move_caret_to_end()
+        result = subprocess.run(
+            [
+                "osascript", "-e",
+                'tell application "System Events" to key code 51',
+            ],
+            capture_output=True,
+        )
+        return result.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
 
 
 def _move_caret_to_end() -> None:
     """Move insertion point to end of the focused text field (best-effort)."""
-    subprocess.run(
-        [
-            "osascript", "-e",
-            'tell application "System Events" to key code 124 using command down',
-        ],
-        capture_output=True,
-    )
+    try:
+        subprocess.run(
+            [
+                "osascript", "-e",
+                'tell application "System Events" to key code 124 using command down',
+            ],
+            capture_output=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        pass
 
 
 def play_sound(sound_type: str = "start"):
@@ -110,7 +126,10 @@ def play_sound(sound_type: str = "start"):
     }
     path = sounds.get(sound_type)
     if path and os.path.exists(path):
-        subprocess.Popen(["afplay", path])
+        try:
+            subprocess.Popen(["afplay", path])
+        except OSError:
+            pass  # Sound feedback is best-effort
 
 
 def log_transcript(raw: str, cleaned: str, config: dict):

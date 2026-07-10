@@ -9,8 +9,8 @@ import sys
 import tempfile
 import threading
 import time
-from ctypes import CDLL, c_bool
 
+from . import platform_support
 from .config import load_config
 from .llm import cleanup_text
 from .recorder import AudioRecorder
@@ -79,23 +79,9 @@ def _maybe_voice_command_tutor(text_before: str, text_after: str) -> None:
 
 def _is_accessibility_trusted() -> bool:
     """Return True when the process is trusted for macOS Accessibility APIs."""
-    try:
-        from ApplicationServices import (  # type: ignore
-            AXIsProcessTrusted,
-        )
-        return bool(AXIsProcessTrusted())
-    except Exception:
-        pass
-
-    try:
-        app_services = CDLL(
-            "/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices"
-        )
-        app_services.AXIsProcessTrusted.restype = c_bool
-        return bool(app_services.AXIsProcessTrusted())
-    except Exception:
-        # If we cannot query trust state, don't block startup on this check.
-        return True
+    status = platform_support.accessibility_status()
+    # If we cannot query trust state (None), don't block startup on this check.
+    return status is not False
 
 
 def _prompt_accessibility_consent() -> None:
@@ -197,12 +183,15 @@ class OpenVoiceFlow:
             else:
                 errors.append(f"Unknown LLM backend: {backend}")
 
-        # Audio
+        # Audio — sounddevice raises OSError (not ImportError) when the
+        # PortAudio C library itself is missing, so catch both.
         try:
             import sounddevice  # noqa: F401  (availability check)
             print("✅ Audio input available")
         except ImportError:
             errors.append("sounddevice not installed. Run: pip install sounddevice")
+        except OSError as e:
+            errors.append(f"Audio backend unavailable ({e}). Reinstall with: pip install sounddevice")
 
         # Accessibility / input monitoring
         if _is_accessibility_trusted():
@@ -240,8 +229,15 @@ class OpenVoiceFlow:
         return True
 
     def _get_key_map(self):
-        """Build hotkey map for available pynput keys."""
-        from pynput.keyboard import Key
+        """Build hotkey map for available pynput keys.
+
+        Returns an empty map when pynput cannot load (no macOS input
+        backend); callers treat a missing hotkey as "no key events".
+        """
+        try:
+            from pynput.keyboard import Key
+        except Exception:
+            return {}
         definitions = {
             "left_fn": "fn",
             "right_cmd": "cmd_r", "left_cmd": "cmd_l",
@@ -699,7 +695,18 @@ class OpenVoiceFlow:
 
     def run(self):
         """Start the OpenVoiceFlow listener (CLI mode)."""
-        from pynput.keyboard import Listener
+        # pynput needs a macOS input backend; on other systems (or a broken
+        # install) it can raise at import. Exit with guidance, not a traceback.
+        try:
+            from pynput.keyboard import Listener
+        except Exception as e:
+            print(f"❌ Keyboard listener unavailable ({e}).", file=sys.stderr)
+            print(
+                "   OpenVoiceFlow needs macOS to capture the dictation hotkey. "
+                "Reinstall with: pip install pynput",
+                file=sys.stderr,
+            )
+            sys.exit(1)
 
         print("=" * 50)
         print("🎙️  OpenVoiceFlow — Voice Dictation")

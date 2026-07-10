@@ -5,7 +5,18 @@ from __future__ import annotations
 import wave
 
 import numpy as np
-import sounddevice as sd
+
+
+def _import_sounddevice():
+    """Import sounddevice at call time, not module-import time.
+
+    sounddevice loads the PortAudio C library the moment it is imported and
+    raises OSError when it is missing (typical on non-macOS machines). A
+    module-level import would make ``import voiceflow.recorder`` — and with
+    it the whole app — crash before any friendly error handling can run.
+    """
+    import sounddevice as sd
+    return sd
 
 
 class AudioRecorder:
@@ -19,7 +30,13 @@ class AudioRecorder:
         self._stream = None
 
     def start(self):
-        """Start recording audio."""
+        """Start recording audio.
+
+        Raises ImportError/OSError when no audio backend is available;
+        callers (``OpenVoiceFlow.start_recording``) surface that as a
+        user-visible "microphone unavailable" error.
+        """
+        sd = _import_sounddevice()
         self.frames = []
         self.is_recording = True
         self._stream = sd.InputStream(

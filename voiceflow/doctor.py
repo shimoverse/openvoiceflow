@@ -22,12 +22,14 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
+import shutil
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Optional
+
+from . import platform_support
 
 
 class Status(Enum):
@@ -90,23 +92,190 @@ def _tkinter_available() -> bool:
 # ─────────────────────────────────────────────────────────────────────
 
 
-def check_brew() -> Check:
-    try:
-        result = subprocess.run(
-            ["which", "brew"], capture_output=True, text=True, timeout=2,
-        )
-    except (subprocess.SubprocessError, OSError):
+def check_os() -> Check:
+    """Operating system + version. The first gate: everything else is moot
+    on a non-Mac, and old macOS releases miss APIs we rely on."""
+    if not platform_support.is_macos():
         return Check(
-            name="Homebrew",
+            name="Operating system",
             status=Status.FAIL,
-            description="Could not run `which brew`.",
-            fix=Fix(label="Install Homebrew", url="https://brew.sh"),
+            description=(
+                f"OpenVoiceFlow only supports macOS — detected "
+                f"{platform_support.os_label()}. Dictation cannot work here."
+            ),
+            fix=Fix(
+                label="See the support matrix (and uninstall guidance)",
+                url="https://github.com/shimoverse/openvoiceflow/blob/main/docs/COMPATIBILITY.md",
+            ),
         )
-    if result.returncode == 0 and result.stdout.strip():
+    ver = platform_support.macos_version()
+    if ver is None:
+        return Check(
+            name="Operating system",
+            status=Status.WARN,
+            description="macOS detected, but the version could not be determined.",
+        )
+    if ver < platform_support.MIN_MACOS:
+        return Check(
+            name="Operating system",
+            status=Status.FAIL,
+            description=(
+                f"{platform_support.os_label()} is below the supported minimum "
+                f"(macOS {platform_support.MIN_MACOS[0]})."
+            ),
+            fix=Fix(
+                label="Upgrade macOS via System Settings → General → Software Update",
+                url="x-apple.systempreferences:com.apple.Software-Update-Settings.extension",
+            ),
+        )
+    if ver[0] > platform_support.LATEST_TESTED_MACOS:
+        return Check(
+            name="Operating system",
+            status=Status.OK,
+            description=(
+                f"{platform_support.os_label()} — newer than the last "
+                f"maintainer-tested release (macOS {platform_support.LATEST_TESTED_MACOS}); "
+                "expected to work, please file an issue if it doesn't."
+            ),
+        )
+    return Check(
+        name="Operating system",
+        status=Status.OK,
+        description=f"{platform_support.os_label()} (supported).",
+    )
+
+
+def check_architecture() -> Check:
+    """CPU architecture + Rosetta/Homebrew mismatches.
+
+    The classic silent breakage on Apple Silicon: an x86_64 Python or an
+    Intel Homebrew under Rosetta installs an Intel whisper.cpp with no
+    Metal acceleration — everything "works" but transcription crawls.
+    """
+    arch = platform_support.arch()
+    if platform_support.is_rosetta_translated():
+        return Check(
+            name="Architecture",
+            status=Status.WARN,
+            description=(
+                "Python is running under Rosetta (x86_64 translated) on an "
+                "Apple Silicon Mac. whisper.cpp will miss Metal acceleration — "
+                "reinstall a native arm64 Python and Homebrew."
+            ),
+            fix=Fix(label="Native install guide", url="https://brew.sh"),
+        )
+    if platform_support.is_apple_silicon():
+        brew_path = shutil.which("brew") or ""
+        if brew_path.startswith("/usr/local"):
+            return Check(
+                name="Architecture",
+                status=Status.WARN,
+                description=(
+                    f"Apple Silicon ({arch}), but Intel Homebrew found at "
+                    f"{brew_path}. whisper.cpp installed from it runs under "
+                    "Rosetta without Metal — install native Homebrew "
+                    "(/opt/homebrew) and reinstall whisper-cpp."
+                ),
+                fix=Fix(label="Install native Homebrew", url="https://brew.sh"),
+            )
+        return Check(
+            name="Architecture",
+            status=Status.OK,
+            description=f"Apple Silicon ({arch}, native).",
+        )
+    return Check(
+        name="Architecture",
+        status=Status.OK,
+        description=f"Intel ({arch}).",
+    )
+
+
+def check_microphone() -> Check:
+    granted = platform_support.microphone_status()
+    if granted is True:
+        return Check(
+            name="Microphone permission",
+            status=Status.OK,
+            description="Granted.",
+        )
+    if granted is False:
+        return Check(
+            name="Microphone permission",
+            status=Status.FAIL,
+            description="Denied — recordings will be silent.",
+            fix=Fix(
+                label="Grant in System Settings → Privacy & Security → Microphone",
+                url="x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone",
+            ),
+        )
+    return Check(
+        name="Microphone permission",
+        status=Status.OK,
+        description=(
+            "Not determined here — macOS asks on first recording. If "
+            "recordings are silent, grant access in System Settings → "
+            "Privacy & Security → Microphone."
+        ),
+    )
+
+
+def check_accessibility() -> Check:
+    trusted = platform_support.accessibility_status()
+    if trusted is True:
+        return Check(
+            name="Accessibility permission",
+            status=Status.OK,
+            description="Granted — auto-paste can send ⌘V keystrokes.",
+        )
+    if trusted is False:
+        return Check(
+            name="Accessibility permission",
+            status=Status.FAIL,
+            description="Not granted — auto-paste will fail (text stays on the clipboard).",
+            fix=Fix(
+                label="Grant in System Settings → Privacy & Security → Accessibility",
+                url="x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            ),
+        )
+    return Check(
+        name="Accessibility permission",
+        status=Status.WARN,
+        description="Could not query the Accessibility trust state.",
+    )
+
+
+def check_input_monitoring() -> Check:
+    granted = platform_support.input_monitoring_status()
+    if granted is True:
+        return Check(
+            name="Input Monitoring permission",
+            status=Status.OK,
+            description="Granted — the dictation hotkey can be detected.",
+        )
+    if granted is False:
+        return Check(
+            name="Input Monitoring permission",
+            status=Status.FAIL,
+            description="Denied — the hotkey will never fire.",
+            fix=Fix(
+                label="Grant in System Settings → Privacy & Security → Input Monitoring",
+                url="x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent",
+            ),
+        )
+    return Check(
+        name="Input Monitoring permission",
+        status=Status.OK,
+        description="Not determined here — macOS asks when the hotkey listener starts.",
+    )
+
+
+def check_brew() -> Check:
+    path = shutil.which("brew")
+    if path:
         return Check(
             name="Homebrew",
             status=Status.OK,
-            description=f"Found at {result.stdout.strip()}",
+            description=f"Found at {path}",
         )
     return Check(
         name="Homebrew",
@@ -310,14 +479,27 @@ def check_file_modes() -> Check:
 
 
 def run_all_checks(config: dict) -> list:
-    """Run every check and return a list of ``Check`` records."""
+    """Run every check and return a list of ``Check`` records.
+
+    On a non-macOS machine only the OS check runs: every other check (and
+    every fix we could offer, like `brew install`) presumes macOS, so
+    reporting them would only produce misleading guidance.
+    """
+    os_check = check_os()
+    if not platform_support.is_macos():
+        return [os_check]
     return [
+        os_check,
+        check_architecture(),
         check_brew(),
         check_whisper_cli(),
         check_model(config),
         check_api_key(config),
         check_pyobjc(),
         check_tkinter(),
+        check_microphone(),
+        check_accessibility(),
+        check_input_monitoring(),
         check_file_modes(),
     ]
 

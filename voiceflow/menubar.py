@@ -229,7 +229,17 @@ def run_menubar():
                 )
                 return
 
-            from pynput.keyboard import Listener
+            try:
+                from pynput.keyboard import Listener
+            except Exception as e:
+                self.title = "🎙️❌"
+                self.status_item.title = "Status: Keyboard listener unavailable"
+                rumps.notification(
+                    "OpenVoiceFlow", "Keyboard Listener Error",
+                    f"Could not start the hotkey listener ({e}). "
+                    "Reinstall with: pip install pynput",
+                )
+                return
             self.listener = Listener(
                 on_press=self.vf.on_key_press,
                 on_release=self.vf.on_key_release,

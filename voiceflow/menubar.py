@@ -16,6 +16,20 @@ def _clear_submenu(menu) -> None:
         menu.clear()
 
 
+def _show_ready_tip(hotkey: str) -> None:
+    """Teach first-time users where the app lives and how to dictate."""
+    try:
+        from . import notify
+
+        notify.tip(
+            "OpenVoiceFlow is ready in the menu bar. Click in any text field, "
+            f"hold [{hotkey}], speak, then release to paste.",
+            once_key="menubar_ready",
+        )
+    except Exception:
+        pass
+
+
 def run_menubar():
     """Launch OpenVoiceFlow as a menu bar app."""
     if rumps is None:
@@ -229,6 +243,7 @@ def run_menubar():
             hotkey = self.config.get("hotkey", "right_cmd")
             self.start_stop_item.title = "⏸ Stop Listening"
             self.status_item.title = f"Status: Ready — hold [{hotkey}]"
+            _show_ready_tip(hotkey)
             # Refresh detected app label
             self._update_detected_app()
 

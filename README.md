@@ -90,6 +90,12 @@ Public users should download OpenVoiceFlow from the website, not from GitHub. Th
 
 Open the website-hosted DMG, drag OpenVoiceFlow to Applications, then launch it.
 
+OpenVoiceFlow is a **menu-bar app**, so it does not open a normal window or
+stay in the Dock. Look for `🎙️✅` at the top-right of the screen. Click in any
+text field, hold the **Right Command (⌘)** key, speak, then release it; the
+transcribed text appears at the cursor. Click the menu-bar icon to pause
+listening or change the hotkey.
+
 > First launch installs everything automatically, walks you through setup, and interviews you so it knows your name, your team, and your jargon from day one.
 
 <details>

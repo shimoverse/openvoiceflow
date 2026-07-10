@@ -83,7 +83,7 @@ OpenVoiceFlow can work for low-stakes BYOK-tolerant teams. It is **not** a manag
 - **Consider Ollama-only deployments** to keep transcripts on-device. This eliminates the cloud LLM as a sub-processor entirely.
 - **Pre-stage `whisper-cpp` and the model file** via your MDM (Jamf, Mosyle) or a `brew bundle` so the bootstrap doesn't pull from external networks at first launch on a managed Mac.
 - **Ship a managed config** by writing `~/.openvoiceflow/config.json` during provisioning. For lock-down, pin: `update_check: false`, `log_transcripts: false`, `auto_learn: false`, `llm_backend: "ollama"`. (See [`PRIVACY.md`](../PRIVACY.md) for the full config-key list.)
-- **Note that the current v0.3.1 hosted DMGs are Developer ID signed, Apple-notarized, and stapled.** MDM-aware orgs may still want to wrap the install differently (re-sign with an internal Developer ID, ship as a signed `.pkg`, or build from source in-house).
+- **Note that the current v0.3.2 hosted DMGs are Developer ID signed, Apple-notarized, and stapled.** MDM-aware orgs may still want to wrap the install differently (re-sign with an internal Developer ID, ship as a signed `.pkg`, or build from source in-house).
 - **There is no enterprise key-management story.** Each employee's API keys land in their own `~/.openvoiceflow/config.json` (mode 600). No central rotation, no SSO, no SCIM.
 
 If any of the above is a deal-breaker, OpenVoiceFlow is not the right fit and you should choose a vendor with a real procurement contract.

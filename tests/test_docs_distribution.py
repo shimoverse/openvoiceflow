@@ -4,9 +4,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
-RELEASE_VERSION = "0.3.1"
-ARM64_SHA256 = "89203421cedf7dad204ca5b116ff45218f0e242eebb313ad9f5b466a4d3b57be"
-X86_64_SHA256 = "308757a46bb25e42facf99aa58c24826da6ed5c62480727ee905a3034cd29d4d"
+RELEASE_VERSION = "0.3.2"
+ARM64_SHA256 = "53d62c5979ca6218b51f8af81fe8b7efe80fcfe0bb9c9f6eaad81603da846b38"
+X86_64_SHA256 = "accca1e31f74381a69ccfbafa01cb488479ddd814154af7d66e96e9611ae8ff6"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html"]
 
 
@@ -132,8 +132,8 @@ def test_download_page_avoids_duplicate_primary_ctas():
     html = read_doc("download.html")
 
     assert html.count('class="btn btn-primary btn-lg"') <= 1
-    assert html.count('Download OpenVoiceFlow-0.3.1-arm64.dmg') == 1
-    assert html.count('Download OpenVoiceFlow-0.3.1-x86_64.dmg') == 1
+    assert html.count('Download OpenVoiceFlow-0.3.2-arm64.dmg') == 1
+    assert html.count('Download OpenVoiceFlow-0.3.2-x86_64.dmg') == 1
     assert "both Apple Silicon and Intel builds stay visible" in html
 
 

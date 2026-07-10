@@ -105,4 +105,4 @@ This file is regenerated each release. Pull requests that touch `pyproject.toml`
 Last reviewed against:
 
 - `pyproject.toml` runtime deps (core + optional extras).
-- `main` branch at v0.3.1.
+- `main` branch at v0.3.2.

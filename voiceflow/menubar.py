@@ -10,6 +10,12 @@ except ImportError:
     rumps = None
 
 
+def _clear_submenu(menu) -> None:
+    """Clear a rumps submenu only after its native NSMenu exists."""
+    if getattr(menu, "_menu", None) is not None:
+        menu.clear()
+
+
 def run_menubar():
     """Launch OpenVoiceFlow as a menu bar app."""
     if rumps is None:
@@ -130,7 +136,7 @@ def run_menubar():
 
         def _build_backend_menu(self):
             """(Re)build backend submenu with current checkmarks."""
-            self.backend_menu.clear()
+            _clear_submenu(self.backend_menu)
             current_backend = self.config.get("llm_backend", "openrouter")
             for name in list(BACKENDS.keys()) + ["none"]:
                 item = rumps.MenuItem(
@@ -141,7 +147,7 @@ def run_menubar():
 
         def _build_hotkey_menu(self):
             """(Re)build hotkey submenu with current checkmarks."""
-            self.hotkey_menu.clear()
+            _clear_submenu(self.hotkey_menu)
             current_hotkey = self.config.get("hotkey", "right_cmd")
             for hk in ["left_fn", "right_cmd", "right_alt", "left_alt", "f5", "f6", "f7", "f8"]:
                 item = rumps.MenuItem(
@@ -152,7 +158,7 @@ def run_menubar():
 
         def _build_style_menu(self):
             """(Re)build style submenu with current checkmarks."""
-            self.style_menu.clear()
+            _clear_submenu(self.style_menu)
             current_style = self.config.get("style", "default")
             for style_id in VALID_STYLES:
                 label = get_style_label(style_id)

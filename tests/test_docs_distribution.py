@@ -1,12 +1,13 @@
+import json
 from hashlib import sha256
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
-RELEASE_VERSION = "0.3.2"
-ARM64_SHA256 = "53d62c5979ca6218b51f8af81fe8b7efe80fcfe0bb9c9f6eaad81603da846b38"
-X86_64_SHA256 = "accca1e31f74381a69ccfbafa01cb488479ddd814154af7d66e96e9611ae8ff6"
+RELEASE_VERSION = "0.3.3"
+ARM64_SHA256 = "ec4494a1cd2187340b7d888d5cb86957ff8e85b4db0c424c07ef6059a3a0eb31"
+X86_64_SHA256 = "c9f0c6efce08ba7f2bff78e5488f198329cb9f6d63f31966fb9fa937ca6d3f2f"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html"]
 
 
@@ -115,6 +116,9 @@ def test_download_page_uses_website_hosted_assets_and_checksums():
     assert "navigator.userAgentData" in site_js
     assert "applyDownloadRecommendation" in site_js
     assert "download_recommendation_detected" in site_js
+    assert f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg" in site_js
+    assert f"downloads/OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg" in site_js
+    assert "OpenVoiceFlow-0.3.2" not in site_js
     assert "github.com/shimoverse/openvoiceflow/releases/download" not in html
     assert "0.2.0" not in html
     assert "release candidate" not in html.lower()
@@ -132,8 +136,8 @@ def test_download_page_avoids_duplicate_primary_ctas():
     html = read_doc("download.html")
 
     assert html.count('class="btn btn-primary btn-lg"') <= 1
-    assert html.count('Download OpenVoiceFlow-0.3.2-arm64.dmg') == 1
-    assert html.count('Download OpenVoiceFlow-0.3.2-x86_64.dmg') == 1
+    assert html.count(f'Download OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg') == 1
+    assert html.count(f'Download OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg') == 1
     assert "both Apple Silicon and Intel builds stay visible" in html
 
 
@@ -154,37 +158,34 @@ def test_site_claims_match_current_openrouter_default():
     assert "openvoiceflow --set-key gemini" not in combined
 
 
-def test_public_pages_do_not_depend_on_private_github_downloads():
+def test_public_pages_use_hosted_downloads_and_link_public_source():
     combined = "\n".join(path.read_text(encoding="utf-8") for path in DOCS.glob("*.html"))
     assert "github.com/shimoverse/openvoiceflow/releases/download" not in combined
     assert "website-hosted DMG" in combined
-    assert "private GitHub repository" in combined
+    assert 'href="https://github.com/shimoverse/openvoiceflow"' in combined
+    assert "private GitHub repository" not in combined
 
 
-def test_public_pages_do_not_link_to_private_repo_or_github_assets():
+def test_public_pages_do_not_depend_on_github_asset_urls():
     combined = "\n".join(path.read_text(encoding="utf-8") for path in DOCS.glob("*.html"))
     forbidden_public_links = [
-        'href="https://github.com/shimoverse/openvoiceflow',
         "opengraph.githubassets.com/1/shimoverse/openvoiceflow",
-        "img.shields.io/github",
-        "Star on GitHub",
-        "View on GitHub",
-        'GitHub repo</a>',
+        "github.com/shimoverse/openvoiceflow/releases/download",
     ]
     for forbidden in forbidden_public_links:
         assert forbidden not in combined
 
 
-def test_public_positioning_matches_private_launch_phase():
+def test_public_positioning_matches_public_mit_repository():
     combined = "\n".join(path.read_text(encoding="utf-8") for path in DOCS.glob("*.html"))
     for stale_claim in [
-        "open-source",
-        "open source voice typing",
-        "Open source",
-        "MIT-licensed and open to everyone",
+        "source repository stays private",
+        "private during this launch phase",
+        "MIT license planned",
+        "Source access is private",
     ]:
         assert stale_claim not in combined
-    assert "source repository stays private during this launch phase" in combined
+    assert "MIT-licensed and open source" in combined
     assert "website-hosted DMGs" in combined
 
 
@@ -206,7 +207,9 @@ def test_readme_points_public_users_to_website_downloads():
     assert f"{CANONICAL}/downloads/OpenVoiceFlow-{RELEASE_VERSION}-arm64.dmg" in readme
     assert f"{CANONICAL}/downloads/OpenVoiceFlow-{RELEASE_VERSION}-x86_64.dmg" in readme
     assert "website-hosted DMG" in readme
-    assert "Source install currently requires collaborator access" in readme
+    assert "git clone https://github.com/shimoverse/openvoiceflow.git" in readme
+    assert "MIT-licensed open source" in readme
+    assert "private GitHub repository" not in readme
     assert "Grab the latest `.dmg` from [**Releases**]" not in readme
     assert "github.com/shimoverse/openvoiceflow/releases" not in readme
     assert "The only open-source voice dictation app" not in readme
@@ -227,6 +230,21 @@ def test_vercel_root_build_serves_docs_static_site():
     assert "public/" in (ROOT / ".gitignore").read_text(encoding="utf-8")
     assert '[tool.setuptools.packages.find]' in pyproject
     assert 'include = ["voiceflow*"]' in pyproject
+
+
+def test_previous_release_downloads_redirect_to_fixed_builds():
+    config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
+    redirects = {
+        item["source"]: item
+        for item in config.get("redirects", [])
+    }
+
+    for arch in ["arm64", "x86_64"]:
+        source = f"/downloads/OpenVoiceFlow-0.3.2-{arch}.dmg"
+        assert redirects[source]["destination"] == (
+            f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}-{arch}.dmg"
+        )
+        assert redirects[source]["permanent"] is True
 
 
 def test_llms_txt_points_agents_to_priority_pages():

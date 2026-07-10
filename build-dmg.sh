@@ -259,6 +259,8 @@ fi
 "\$PY_RUN" -c "
 import json
 import os
+import subprocess
+import sys
 
 
 cfg_path = os.path.expanduser('~/.openvoiceflow/config.json')
@@ -295,8 +297,10 @@ needs_setup = _needs_setup(cfg)
 
 if needs_setup:
     try:
-        from voiceflow.onboarding import run_onboarding
-        run_onboarding()
+        onboarding_code = 'from voiceflow.onboarding import run_onboarding; run_onboarding()'
+        result = subprocess.run([sys.executable, '-c', onboarding_code], check=False)
+        if result.returncode != 0:
+            print(f'Onboarding process exited with status {result.returncode}')
     except Exception as e:
         print(f'Onboarding error: {e}')
 

@@ -85,8 +85,8 @@ Your wallet stays full. Your corrections teach the app. You decide what data lea
 Public users should download OpenVoiceFlow from the website, not from GitHub. The repository is private during this launch phase, so GitHub release/source URLs can 404 for unauthenticated visitors.
 
 - **Download page:** <https://openvoiceflow.vercel.app/download.html>
-- **Apple Silicon DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.0-arm64.dmg>
-- **Intel DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.0-x86_64.dmg>
+- **Apple Silicon DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.1-arm64.dmg>
+- **Intel DMG:** <https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.1-x86_64.dmg>
 
 Open the website-hosted DMG, drag OpenVoiceFlow to Applications, then launch it.
 

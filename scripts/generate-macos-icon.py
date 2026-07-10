@@ -6,7 +6,6 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter
 
-
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
 DOC_ASSETS = ROOT / "docs" / "assets"

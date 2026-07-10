@@ -4,9 +4,8 @@
 #   dist/OpenVoiceFlow-VERSION-arm64.dmg   (Apple Silicon)
 #   dist/OpenVoiceFlow-VERSION-x86_64.dmg  (Intel)
 #
-# The .app contains ONLY source code + a bash bootstrap launcher.
-# Dependencies are installed NATIVELY on the user's Mac at first launch.
-# No pre-compiled binaries = no Rosetta issues, no wrong-arch crashes.
+# The .app contains a tiny native permissions launcher plus source code and a
+# bash bootstrap. Python dependencies are installed natively on first launch.
 
 set -euo pipefail
 
@@ -23,6 +22,8 @@ DIST_DIR="$SCRIPT_DIR/dist"
 BUILD_ONLY_ARCH="${OVF_BUILD_ARCH_ONLY:-}"
 LOCAL_ONLY_MODE="${OVF_LOCAL_ONLY:-0}"
 ICON_FILE="$SCRIPT_DIR/assets/OpenVoiceFlow.icns"
+ENTITLEMENTS_FILE="$SCRIPT_DIR/assets/OpenVoiceFlow.entitlements"
+LAUNCHER_SOURCE="$SCRIPT_DIR/packaging/OpenVoiceFlowLauncher.m"
 SIGN_IDENTITY="${OVF_SIGN_IDENTITY:-}"
 NOTARIZE="${OVF_NOTARIZE:-0}"
 NOTARY_PROFILE="${OVF_NOTARY_PROFILE:-}"
@@ -36,6 +37,8 @@ echo "================================================"
 
 [[ "$(uname)" != "Darwin" ]] && echo "❌ Requires macOS." && exit 1
 [[ ! -f "$ICON_FILE" ]] && echo "❌ Missing app icon: $ICON_FILE" && exit 1
+[[ ! -f "$ENTITLEMENTS_FILE" ]] && echo "❌ Missing app entitlements: $ENTITLEMENTS_FILE" && exit 1
+[[ ! -f "$LAUNCHER_SOURCE" ]] && echo "❌ Missing native launcher: $LAUNCHER_SOURCE" && exit 1
 
 rm -rf "$DIST_DIR"; mkdir -p "$DIST_DIR"
 
@@ -49,7 +52,8 @@ sign_app_if_requested() {
 
     echo "  🔏 Signing app with: $SIGN_IDENTITY"
     xattr -cr "$APP_DIR" >/dev/null 2>&1 || true
-    /usr/bin/codesign --force --timestamp --options runtime --sign "$SIGN_IDENTITY" "$APP_DIR"
+    /usr/bin/codesign --force --timestamp --options runtime \
+        --entitlements "$ENTITLEMENTS_FILE" --sign "$SIGN_IDENTITY" "$APP_DIR"
     /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 }
 
@@ -125,7 +129,8 @@ PLIST
     # Capture vars before heredoc
     local LAUNCHER_ARCH="$ARCH"
 
-    cat > "$APP_DIR/Contents/MacOS/${APP_NAME}" << LAUNCHER
+    local BOOTSTRAP="$APP_DIR/Contents/Resources/launcher.sh"
+    cat > "$BOOTSTRAP" << LAUNCHER
 #!/bin/bash
 # OpenVoiceFlow bootstrap — installs deps natively, then launches
 
@@ -146,13 +151,6 @@ echo "[\$(date)] Launching on \$(uname -m)"
 notify() { osascript -e "display notification \"\$1\" with title \"OpenVoiceFlow\"" 2>/dev/null || true; }
 fatal()  { osascript -e "display dialog \"\$1\" with title \"OpenVoiceFlow\" buttons {\"OK\"} default button \"OK\" with icon stop" 2>/dev/null; exit 1; }
 alert()  { osascript -e "display dialog \"\$1\" with title \"OpenVoiceFlow\" buttons {\"OK\"} default button \"OK\" with icon note" 2>/dev/null; }
-ask_permission_help() {
-    osascript -e 'display dialog "OpenVoiceFlow needs permissions to work.\n\nOpen Accessibility settings now?" with title "OpenVoiceFlow Permissions" buttons {"Later", "Open Settings"} default button "Open Settings" with icon note' 2>/dev/null
-}
-
-ask_permissions_menu() {
-    osascript -e 'display dialog "OpenVoiceFlow startup checks detected missing permissions. Choose which settings screen to open now." with title "OpenVoiceFlow Permissions" buttons {"Continue", "Microphone", "Accessibility"} default button "Accessibility" with icon note' 2>/dev/null
-}
 
 [[ -f /opt/homebrew/bin/brew ]] && eval "\$(/opt/homebrew/bin/brew shellenv)"
 [[ -f /usr/local/bin/brew   ]] && eval "\$(/usr/local/bin/brew shellenv)"
@@ -263,44 +261,6 @@ if [[ ! -f "\$MODEL" ]]; then
     mv "\$MODEL.download" "\$MODEL"
 fi
 
-AX_OK="\$("\$PY_RUN" - <<'PY'
-try:
-    from ApplicationServices import AXIsProcessTrusted
-    print("1" if AXIsProcessTrusted() else "0")
-except Exception:
-    print("0")
-PY
-)"
-
-if [[ "\$AX_OK" != "1" ]]; then
-    if ask_permission_help | grep -q "Open Settings"; then
-        open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" >/dev/null 2>&1 || true
-    fi
-fi
-
-# Trigger a one-time microphone permission check so OpenVoiceFlow appears
-# in the Microphone privacy list before first dictation.
-"\$PY_RUN" - <<'PY' >/dev/null 2>&1 || true
-try:
-    import sounddevice as sd
-    # Requesting a tiny recording buffer prompts mic permission if needed.
-    rec = sd.rec(1, samplerate=8000, channels=1, dtype='float32')
-    sd.wait()
-except Exception:
-    pass
-PY
-
-# Only surface the permissions menu when a permission is actually missing —
-# unconditionally it would block every launch with a dialog.
-if [[ "\$AX_OK" != "1" ]]; then
-    PERM_CHOICE="\$(ask_permissions_menu || true)"
-    if [[ "\$PERM_CHOICE" == *"Accessibility"* ]]; then
-        open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" >/dev/null 2>&1 || true
-    elif [[ "\$PERM_CHOICE" == *"Microphone"* ]]; then
-        open "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone" >/dev/null 2>&1 || true
-    fi
-fi
-
 "\$PY_RUN" -c "
 import json
 import os
@@ -365,7 +325,10 @@ except Exception as e:
 "
 LAUNCHER
 
-    chmod +x "$APP_DIR/Contents/MacOS/${APP_NAME}"
+    chmod +x "$BOOTSTRAP"
+    /usr/bin/clang -fobjc-arc -fblocks -arch "$ARCH" -mmacosx-version-min=12.0 \
+        "$LAUNCHER_SOURCE" -framework Cocoa -framework AVFoundation \
+        -framework ApplicationServices -o "$APP_DIR/Contents/MacOS/${APP_NAME}"
     sign_app_if_requested "$APP_DIR"
 
     local STAGING="$DIST_DIR/staging-$ARCH"

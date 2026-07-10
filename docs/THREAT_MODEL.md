@@ -128,7 +128,7 @@ Threats we **do not** try to defend against, because either the threat is the us
 
 6. **Supply-chain attack on PyPI.** v0.3 is **not on PyPI yet**, so this is moot today. **It will be the dominant supply-chain concern at v0.4** when we publish. Today, `pip install -e .` from the GitHub repo and the DMG installer are the two entry points; neither pulls a typo-squat-able package name. **(TODO-v0.4-D: sign the GitHub Release and publish to PyPI under the reserved `openvoiceflow` name with Trusted Publisher OIDC.)**
 
-7. **DMG signing / notarization.** The current v0.3.0 website-hosted DMGs are signed with Developer ID, notarized by Apple, and stapled so macOS Gatekeeper can verify them. The release workflow supports the same path when Apple Developer credentials are configured.
+7. **DMG signing / notarization.** The current v0.3.1 website-hosted DMGs are signed with Developer ID, notarized by Apple, and stapled so macOS Gatekeeper can verify them. The release workflow supports the same path when Apple Developer credentials are configured.
 
 8. **Compromised dependencies (unpinned `>=`).** `pyproject.toml` uses `>=` rather than exact pins. A malicious update to a transitive dep could land on next install. **(TODO-v0.4-E: lockfile + Dependabot.)**
 

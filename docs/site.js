@@ -35,15 +35,22 @@
       title: 'Apple Silicon DMG',
       subtitle: 'Recommended for M1, M2, M3, M4, and newer Macs running macOS 12 or later.',
       badge: 'Apple Silicon',
-      confidence: 'Detected from browser architecture hints.',
     },
     x86_64: {
       href: 'downloads/OpenVoiceFlow-0.3.2-x86_64.dmg',
       title: 'Intel DMG',
       subtitle: 'Recommended for x86_64 Intel Macs running macOS 12 or later.',
       badge: 'Intel Mac',
-      confidence: 'Detected from browser architecture hints.',
     },
+  };
+
+  const OS_LABELS = {
+    windows: 'Windows',
+    linux: 'Linux',
+    chromeos: 'ChromeOS',
+    android: 'Android',
+    ios: 'iOS',
+    ipados: 'iPadOS',
   };
 
   function trackRecommendation(result) {
@@ -51,6 +58,7 @@
     window.va('event', {
       name: 'download_recommendation_detected',
       data: {
+        os: result.os || 'unknown',
         arch: result.arch || 'unknown',
         confidence: result.confidence || 'unknown',
         source: result.source || 'unknown',
@@ -66,30 +74,72 @@
     return '';
   }
 
-  async function detectMacArchitecture() {
+  function detectOS() {
     const ua = navigator.userAgent || '';
-    const platform = navigator.platform || '';
     const uaData = navigator.userAgentData;
-    const isMac = /Mac/i.test(platform) || /Macintosh|Mac OS X/i.test(ua);
+    const platform = String((uaData && uaData.platform) || navigator.platform || '').toLowerCase();
+    const isMacLike = platform.includes('mac') || /Macintosh|Mac OS X/i.test(ua);
 
+    if (/android/i.test(ua) || platform.includes('android')) return 'android';
+    if (/iphone|ipod/i.test(ua)) return 'ios';
+    // iPad Safari masquerades as a Mac but reports multitouch.
+    if (/ipad/i.test(ua) || (isMacLike && (navigator.maxTouchPoints || 0) > 1)) return 'ipados';
+    if (/CrOS/.test(ua) || platform.includes('cros') || platform.includes('chrome os')) return 'chromeos';
+    if (platform.includes('win') || /Windows/i.test(ua)) return 'windows';
+    if (isMacLike) return 'macos';
+    if (platform.includes('linux') || /Linux|X11/i.test(ua)) return 'linux';
+    return 'unknown';
+  }
+
+  // Safari never exposes userAgentData, so on Macs fall back to the WebGL
+  // renderer string: Apple Silicon reports "Apple M1/M2/..." GPUs, Intel
+  // Macs report Intel/AMD GPUs. Masked strings ("Apple GPU") stay unknown.
+  function webglArchitectureHint() {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return '';
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      const renderer = String(
+        ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) || ''
+      );
+      if (/Apple M\d/i.test(renderer)) return 'arm64';
+      if (/(intel|amd|radeon|iris|nvidia)/i.test(renderer)) return 'x86_64';
+      return '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  async function detectPlatform() {
+    const os = detectOS();
+    if (os !== 'macos' && os !== 'unknown') {
+      return { os, arch: '', confidence: 'high', source: 'not-mac' };
+    }
+
+    const uaData = navigator.userAgentData;
     if (uaData && typeof uaData.getHighEntropyValues === 'function') {
       try {
         const values = await uaData.getHighEntropyValues(['architecture', 'platform']);
         const hintedPlatform = String(values.platform || uaData.platform || '').toLowerCase();
         const hintedArch = normalizedArchitecture(values.architecture);
         if (hintedPlatform.includes('mac') && hintedArch) {
-          return { arch: hintedArch, confidence: 'high', source: 'userAgentData' };
+          return { os: 'macos', arch: hintedArch, confidence: 'high', source: 'userAgentData' };
         }
       } catch (error) {
         // Architecture hints are optional browser privacy surfaces.
       }
     }
 
-    if (!isMac) {
-      return { arch: '', confidence: 'none', source: 'not-mac' };
+    if (os === 'macos') {
+      const webglArch = webglArchitectureHint();
+      if (webglArch) {
+        return { os: 'macos', arch: webglArch, confidence: 'medium', source: 'webgl' };
+      }
+      return { os: 'macos', arch: '', confidence: 'low', source: 'mac-undetected' };
     }
 
-    return { arch: '', confidence: 'low', source: 'mac-undetected' };
+    return { os: 'unknown', arch: '', confidence: 'none', source: 'os-undetected' };
   }
 
   function setText(id, value) {
@@ -97,10 +147,38 @@
     if (node) node.textContent = value;
   }
 
+  function applyNotMacNotice(result) {
+    const label = OS_LABELS[result.os] || 'this device';
+    // Neutralize the CTA: an <a> without href is a non-interactive
+    // placeholder, so a Windows/Linux visitor can't download a DMG that
+    // will never run for them.
+    cta.removeAttribute('href');
+    cta.setAttribute('aria-disabled', 'true');
+    cta.classList.remove('btn-primary');
+    cta.classList.add('btn-unavailable');
+    cta.textContent = `Not available for ${label}`;
+    setText('downloadKicker', 'macOS required');
+    setText('downloadTitle', 'OpenVoiceFlow is a Mac-only app');
+    setText(
+      'downloadSubtitle',
+      `You appear to be browsing from ${label}. OpenVoiceFlow needs macOS 12 or newer — ` +
+      `there is no ${label} version, and the Mac DMGs will not run on this device. ` +
+      'Downloading for a Mac you own? Both builds stay available below.'
+    );
+    setText('downloadArchBadge', 'macOS 12+ only');
+    setText('downloadConfidence', 'Detection runs locally in your browser; nothing is uploaded.');
+  }
+
   function applyDownloadRecommendation(result) {
     document.querySelectorAll('[data-arch]').forEach(row => {
       row.classList.toggle('is-recommended', row.dataset.arch === result.arch);
     });
+
+    if (result.source === 'not-mac') {
+      applyNotMacNotice(result);
+      trackRecommendation(result);
+      return;
+    }
 
     if (result.arch && builds[result.arch]) {
       const build = builds[result.arch];
@@ -110,32 +188,28 @@
       setText('downloadTitle', build.title);
       setText('downloadSubtitle', build.subtitle);
       setText('downloadArchBadge', build.badge);
-      setText('downloadConfidence', build.confidence);
+      setText(
+        'downloadConfidence',
+        result.source === 'webgl'
+          ? 'Detected from this Mac’s GPU renderer string.'
+          : 'Detected from browser architecture hints.'
+      );
       trackRecommendation(result);
       return;
     }
 
     cta.href = builds.arm64.href;
     cta.textContent = 'Download Apple Silicon DMG';
-
-    if (result.source === 'not-mac') {
-      setText('downloadKicker', 'Mac download only');
-      setText('downloadTitle', 'Download OpenVoiceFlow for macOS');
-      setText('downloadSubtitle', 'OpenVoiceFlow currently ships for macOS 12+ on Apple Silicon and Intel Macs.');
-      setText('downloadArchBadge', 'macOS only');
-      setText('downloadConfidence', 'Both Mac builds are listed below.');
-    } else {
-      setText('downloadKicker', 'Choose your Mac build');
-      setText('downloadTitle', 'Pick Apple Silicon or Intel');
-      setText('downloadSubtitle', 'This browser did not expose enough detail to safely identify your chip.');
-      setText('downloadArchBadge', 'macOS 12+');
-      setText('downloadConfidence', 'Both Mac builds are listed below.');
-    }
+    setText('downloadKicker', 'Choose your Mac build');
+    setText('downloadTitle', 'Pick Apple Silicon or Intel');
+    setText('downloadSubtitle', 'This browser did not expose enough detail to safely identify your chip. Apple menu →  About This Mac shows it: an "Apple M…" chip needs the Apple Silicon DMG, an Intel processor needs the Intel DMG.');
+    setText('downloadArchBadge', 'macOS 12+');
+    setText('downloadConfidence', 'Both Mac builds are listed below.');
 
     trackRecommendation(result);
   }
 
-  detectMacArchitecture().then(applyDownloadRecommendation);
+  detectPlatform().then(applyDownloadRecommendation);
 })();
 
 (() => {

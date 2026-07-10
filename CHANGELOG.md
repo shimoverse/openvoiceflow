@@ -8,6 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `voiceflow/platform_support.py`: one place for OS, macOS-version,
+  architecture (Apple Silicon / Intel / Rosetta), and permission detection.
+- CLI platform gate: on Linux/Windows, `openvoiceflow` now prints a clear
+  "macOS-only" explanation with uninstall guidance and exits cleanly instead
+  of crashing with a traceback. `--doctor` and `--show-config` keep working
+  so users can inspect state first.
+- New doctor checks: operating system + version, architecture (warns on
+  Rosetta-translated Python and Intel Homebrew on Apple Silicon), and the
+  three macOS permissions dictation depends on (Microphone, Accessibility,
+  Input Monitoring) with click-to-fix System Settings links.
+- A launch below the supported macOS floor (12 Monterey) now prints an
+  upgrade warning.
+- CI: new `non-macos-guard` job on `ubuntu-latest` pins the "friendly
+  message, never a traceback" guarantee and runs the full suite on Linux.
+- Website: the download page now detects the visitor's OS. Windows, Linux,
+  ChromeOS, Android, and iPhone/iPad visitors get an inert "Not available
+  for <OS>" notice instead of a live DMG button; Safari-on-Mac visitors get
+  an Apple Silicon / Intel recommendation via a WebGL renderer fallback
+  (Chromium browsers already used architecture hints).
+
+### Fixed
+- `voiceflow.recorder` no longer imports `sounddevice` at module load —
+  the import crashed the whole app (`OSError: PortAudio library not found`)
+  on machines without PortAudio before any error handling could run.
+- `find_whisper_cpp` / the doctor's Homebrew check use `shutil.which`
+  instead of spawning `which`, which crashed on Windows.
+- The keyboard-listener (pynput) import is now guarded in CLI and menu-bar
+  modes: a missing input backend produces a clear error instead of a crash.
+- Clipboard/keystroke/sound helpers (`pbcopy`, `pbpaste`, `osascript`,
+  `afplay`) no longer propagate `FileNotFoundError` when the binaries are
+  missing; failures surface as user-visible notifications.
+- `--autostart` refuses politely off-macOS instead of writing a
+  `~/Library/LaunchAgents` folder on Linux; on macOS it now prefers the
+  supported `launchctl bootstrap`/`bootout` verbs, falling back to the
+  deprecated `load`/`unload`.
+- `validate_setup` reports a broken audio backend (`OSError`) instead of
+  only a missing `sounddevice` package.
+
 ## [0.3.2] — 2026-07-09
 
 ### Fixed

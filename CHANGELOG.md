@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-07-09
+
+### Fixed
+- The DMG bootstrap now executes the virtual-environment Python interpreter at
+  its original path, preventing a silent dynamic-library crash on launch.
+- Native startup failures now show an alert with a direct link to the launcher
+  log instead of making the app appear to do nothing.
+- First-run Tk onboarding runs in an isolated process, so an incompatible
+  system Tk build falls back to local transcription without killing the app.
+- Menu-bar settings no longer clear uninitialized native submenus during
+  startup.
+
 ## [0.3.1] — 2026-07-09
 
 ### Fixed

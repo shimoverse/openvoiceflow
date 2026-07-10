@@ -73,7 +73,45 @@ def test_auto_learn_existing_true_is_preserved(isolated_config: Path) -> None:
     assert config["auto_learn"] is True
 
 
+def test_streaming_default_off_for_fresh_install(isolated_config: Path) -> None:
+    """Fresh installs use the reliable batch recorder until streaming is enabled."""
+    config = cfg.load_config()
+    assert config["streaming"] is False
+
+
+def test_streaming_old_default_true_migrates_off(isolated_config: Path) -> None:
+    """v0.3.2's persisted-on default is reset to the reliable recorder once."""
+    _write(isolated_config, {"streaming": True})
+    config = cfg.load_config()
+    assert config["streaming"] is False
+
+    on_disk = json.loads(isolated_config.read_text())
+    assert on_disk["streaming"] is False
+    assert on_disk["_config_version"] == cfg.CONFIG_SCHEMA_VERSION
+
+
+def test_streaming_reenabled_after_migration_is_preserved(isolated_config: Path) -> None:
+    """After the one-time reset, a user can opt back into streaming."""
+    _write(
+        isolated_config,
+        {"streaming": True, "_config_version": cfg.CONFIG_SCHEMA_VERSION},
+    )
+    config = cfg.load_config()
+    assert config["streaming"] is True
+
+
+def test_streaming_reset_does_not_rerun_after_future_schema_bump(monkeypatch) -> None:
+    """The v1 reset stays one-time when unrelated schema versions are added."""
+    stored = {"streaming": True, "_config_version": 1}
+    monkeypatch.setattr(cfg, "CONFIG_SCHEMA_VERSION", 2)
+
+    assert cfg._migrate_streaming_default(stored) is False
+    assert stored["streaming"] is True
+
+
 def test_default_dict_reflects_privacy_defaults() -> None:
     """``DEFAULTS`` itself encodes the privacy posture; no leakage via direct read."""
     assert cfg.DEFAULTS["log_transcripts"] is False
     assert cfg.DEFAULTS["auto_learn"] is False
+    assert cfg.DEFAULTS["streaming"] is False
+    assert cfg.DEFAULTS["_config_version"] == cfg.CONFIG_SCHEMA_VERSION

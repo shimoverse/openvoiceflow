@@ -100,7 +100,7 @@ def test_success_emits(silent_emitters) -> None:
 
 
 def test_tip_with_once_key_fires_only_once(isolated_seen_tips, silent_emitters) -> None:
-    notif, _ = silent_emitters
+    notif, overlay = silent_emitters
     from voiceflow import notify
 
     notify.tip("Try saying 'comma' for ,", once_key="voice_commands_intro")
@@ -109,6 +109,7 @@ def test_tip_with_once_key_fires_only_once(isolated_seen_tips, silent_emitters) 
 
     # Only the first call should have hit the emitter.
     assert len(notif) == 1
+    assert [call[0] for call in overlay] == ["show_info"]
 
 
 def test_tip_without_once_key_fires_every_time(isolated_seen_tips, silent_emitters) -> None:

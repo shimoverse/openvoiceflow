@@ -159,7 +159,7 @@ The 28 modules under `voiceflow/`, grouped by role.
 ### Configuration & migration
 | Module | Purpose | Public symbols |
 |---|---|---|
-| `config.py` | `DEFAULTS`, validation, load/save with one-time `cleanup_prompt` → `llm_prompt` and retired Gemini → OpenRouter migrations. | `DEFAULTS`, `VALID_HOTKEYS`, `VALID_MODELS`, `VALID_BACKENDS`, `VALID_STYLES`, `load_config()`, `save_config()`, `validate_config()`, `get_api_key()`, `CONFIG_DIR`, `CONFIG_PATH`, `LOG_DIR`, `MODELS_DIR` |
+| `config.py` | `DEFAULTS`, validation, load/save, schema versioning, and one-time migrations (`cleanup_prompt` → `llm_prompt`, retired Gemini → OpenRouter, v0.3.2 streaming default → batch). | `DEFAULTS`, `CONFIG_SCHEMA_VERSION`, `VALID_HOTKEYS`, `VALID_MODELS`, `VALID_BACKENDS`, `VALID_STYLES`, `load_config()`, `save_config()`, `validate_config()`, `get_api_key()`, `CONFIG_DIR`, `CONFIG_PATH`, `LOG_DIR`, `MODELS_DIR` |
 | `_secure_io.py` | Centralized chmod-600 + JSON write helpers for every file under `~/.openvoiceflow/`. | `secure_chmod()`, `secure_write_json()` |
 
 ### Telemetry / lifecycle
@@ -246,11 +246,15 @@ Preserve these — most have explicit tests, the rest are load-bearing for trust
 
 1. **Audio never leaves the Mac.** Only `transcriber.py` and `streamer.py` touch audio, and both call local subprocess binaries. No HTTP client takes audio bytes anywhere.
 2. **Every file under `~/.openvoiceflow/` is mode 600.** New persistence sites must go through `_secure_io.secure_write_json` / `secure_chmod`. Enforced by `tests/test_chmod_600.py`.
-3. **Config migrations run at most once.** `config._migrate_cleanup_to_llm_prompt` and `config._migrate_gemini_to_openrouter` mutate and persist the stored dict; tests in `tests/test_config_migration.py` pin this.
+3. **Config migrations run at most once.** The cleanup-prompt, retired-Gemini,
+   and v0.3.2 streaming-default migrations mutate and persist the stored dict.
+   The streaming reset is fixed to schema v1 so future schema bumps do not
+   override a later user opt-in. Tests in `tests/test_config_migration.py`,
+   `tests/test_privacy_defaults.py`, and `tests/test_onboarding.py` pin this.
 4. **`LLMBackend.cleanup` signature is fixed:** `cleanup(raw_text, context=None, app_context=None, override_style=None) -> str`. All backends conform; the orchestrator passes all four args. Don't break this.
 5. **Voice commands run BEFORE LLM cleanup.** That's how `"new line"` becomes an actual newline at zero added latency, and the LLM sees the formatted text as input.
 6. **Snippets run AFTER cleanup (well, instead of it) and BEFORE paste.** A matched snippet short-circuits the LLM call. Don't move that check.
-7. **Privacy defaults are opt-in.** `log_transcripts` is `False` for fresh installs; `auto_learn` is `False` by default. `tests/test_privacy_defaults.py` pins this. Existing users keep their current setting because `load_config` merges DEFAULTS *under* stored config.
+7. **Privacy defaults are opt-in.** `log_transcripts` is `False` for fresh installs; `auto_learn` is `False` by default. `tests/test_privacy_defaults.py` pins this. Existing stored settings override DEFAULTS, except for explicitly documented one-time migrations such as the v0.3.3 reset of v0.3.2's unreliable streaming default.
 8. **`from __future__ import annotations`** is present in every module so `str | None` annotations don't break Python 3.9. `tests/test_python39_compat.py` asserts this.
 
 ## 9. Build, ship, and CI

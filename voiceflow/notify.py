@@ -221,3 +221,4 @@ def tip(
         seen.add(once_key)
         _save_seen_tips(seen)
     _post_macos_notification(title, message)
+    _overlay_show("show_info", message)

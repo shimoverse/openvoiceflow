@@ -185,6 +185,7 @@ class FloatingOverlay:
             self._label.setTextColor_(NSColor.whiteColor())
             self._label.setFont_(NSFont.systemFontOfSize_weight_(13, 0.3))
             self._label.setAlignment_(NSTextAlignmentCenter)
+            self._label.setAutoresizingMask_(NSViewWidthSizable)
             self._label.setStringValue_("")
             content.addSubview_(self._label)
 
@@ -197,6 +198,19 @@ class FloatingOverlay:
             print(f"⚠️  Overlay init failed: {e}")
             self._initialized = False
 
+    def _resize(self, width: float, height: float | None = None, y: float | None = None):
+        """Resize the HUD and its label, keeping the window centered."""
+        height = self.HEIGHT if height is None else height
+        y = self.MARGIN_BOTTOM if y is None else y
+        screen = NSScreen.mainScreen()
+        if not screen:
+            return
+        screen_frame = screen.frame()
+        x = (screen_frame.size.width - width) / 2
+        frame = NSMakeRect(x, y, width, height)
+        self._window.setFrame_display_(frame, True)
+        self._label.setFrame_(NSMakeRect(10, 5, width - 20, height - 10))
+
     def show_recording(self, style_label: str | None = None, with_context: bool = False):
         """Show recording indicator (red dot + "Recording...").
 
@@ -208,6 +222,31 @@ class FloatingOverlay:
             return
         self._perform_on_main(self._show_recording, style_label, with_context)
 
+    def show_info(self, message: str, duration: float = 6.0):
+        """Show a brief informational tip in the floating HUD."""
+        if not HAS_APPKIT:
+            return
+        self._perform_on_main(self._show_info, message, duration)
+
+    def _show_info(self, message, duration):
+        if not self._initialized:
+            self._setup()
+        if not self._initialized:
+            return
+        self._cancel_hide_timer()
+        self._animator.stopAnimation()
+        display = message if len(message) <= 72 else message[:69] + "..."
+        self._label.setStringValue_(f"💡 {display}")
+        self._label.setTextColor_(NSColor.whiteColor())
+        self._label.setFont_(NSFont.systemFontOfSize_weight_(13, 0.3))
+
+        text_width = max(self.WIDTH, min(650, len(display) * 8 + 40))
+        self._resize(text_width)
+
+        if self._window.alphaValue() < 0.5:
+            self._fade_in()
+        self._schedule_hide(duration)
+
     def _show_recording(self, style_label=None, with_context=False):
         if not self._initialized:
             self._setup()
@@ -215,6 +254,7 @@ class FloatingOverlay:
             return
         self._cancel_hide_timer()
         self._animator.stopAnimation()
+        self._resize(self.WIDTH)
         label = "🔴 Recording"
         if style_label:
             label += f" [{style_label}]"
@@ -237,6 +277,7 @@ class FloatingOverlay:
         self._cancel_hide_timer()
         self._animator.stopAnimation()
         display = text if len(text) <= 35 else "…" + text[-32:]
+        self._resize(max(self.WIDTH, min(400, len(display) * 8 + 40)))
         self._label.setStringValue_(f"🎙 {display}")
         self._label.setTextColor_(NSColor.colorWithWhite_alpha_(0.9, 1.0))
         if self._window.alphaValue() < 0.5:
@@ -252,6 +293,7 @@ class FloatingOverlay:
         if not self._initialized:
             return
         self._cancel_hide_timer()
+        self._resize(self.WIDTH)
         self._label.setStringValue_("Processing...")
         self._label.setTextColor_(NSColor.colorWithWhite_alpha_(0.9, 1.0))
         self._animator.startProcessingAnimation()
@@ -284,12 +326,7 @@ class FloatingOverlay:
 
         # Auto-resize window width for longer text
         text_width = max(self.WIDTH, min(400, len(display) * 9 + 40))
-        screen = NSScreen.mainScreen()
-        if screen:
-            screen_frame = screen.frame()
-            x = (screen_frame.size.width - text_width) / 2
-            frame = NSMakeRect(x, self.MARGIN_BOTTOM, text_width, self.HEIGHT)
-            self._window.setFrame_display_(frame, True)
+        self._resize(text_width)
 
         if self._window.alphaValue() < 0.5:
             self._fade_in()
@@ -322,13 +359,7 @@ class FloatingOverlay:
 
         # Compact pill width
         text_width = max(160, min(350, len(display) * 8 + 40))
-        screen = NSScreen.mainScreen()
-        if screen:
-            screen_frame = screen.frame()
-            x = (screen_frame.size.width - text_width) / 2
-            # Position slightly lower than main overlay
-            frame = NSMakeRect(x, self.MARGIN_BOTTOM - 10, text_width, 32)
-            self._window.setFrame_display_(frame, True)
+        self._resize(text_width, height=32, y=self.MARGIN_BOTTOM - 10)
 
         if self._window.alphaValue() < 0.5:
             self._fade_in()
@@ -346,6 +377,7 @@ class FloatingOverlay:
             return
         self._animator.stopAnimation()
         display = message if len(message) <= 35 else message[:32] + "..."
+        self._resize(max(self.WIDTH, min(400, len(display) * 8 + 40)))
         self._label.setStringValue_(f"❌ {display}")
         self._label.setTextColor_(NSColor.colorWithRed_green_blue_alpha_(1.0, 0.4, 0.4, 1.0))
         if self._window.alphaValue() < 0.5:

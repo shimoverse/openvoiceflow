@@ -309,7 +309,7 @@ class OpenVoiceFlow:
 
     def _streaming_enabled(self) -> bool:
         """Return True if streaming mode is configured and the binary is available."""
-        if not self.config.get("streaming", True):
+        if not self.config.get("streaming", False):
             return False
         from .streamer import find_whisper_stream
         if find_whisper_stream():

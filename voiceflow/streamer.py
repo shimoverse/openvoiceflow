@@ -189,8 +189,6 @@ class StreamingTranscriber:
         """Background thread: read whisper-stream stdout line by line."""
         try:
             for raw_line in self._proc.stdout:
-                if not self._running:
-                    break
                 cleaned = _clean_line(raw_line)
                 if not cleaned:
                     continue

@@ -51,8 +51,15 @@ def _fetch_latest_release() -> dict | None:
         )
         with urllib.request.urlopen(req, timeout=CHECK_TIMEOUT) as resp:
             if resp.status == 200:
-                return json.loads(resp.read().decode("utf-8"))
-    except (urllib.error.URLError, urllib.error.HTTPError, OSError, json.JSONDecodeError):
+                data = json.loads(resp.read().decode("utf-8"))
+                return data if isinstance(data, dict) else None
+    except Exception:
+        # Deliberately broad: this worker's caller (the menubar's manual
+        # "Check for Updates…") relies on ALWAYS getting a callback to
+        # re-enable the menu item. urllib can also leak exceptions outside
+        # URLError — e.g. http.client.BadStatusLine through a broken proxy,
+        # or UnicodeDecodeError from a captive portal answering 200 with
+        # non-UTF-8 — and any escapee would kill the thread silently.
         pass
     return None
 

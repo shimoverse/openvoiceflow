@@ -67,14 +67,26 @@ def search_transcripts(
                         entry = json.loads(line)
                     except json.JSONDecodeError:
                         continue
+                    # A hand-edited or foreign line can be valid JSON but the
+                    # wrong shape (a string, null fields, ...). One bad line
+                    # must not make all history search crash.
+                    if not isinstance(entry, dict):
+                        continue
 
                     raw = entry.get("raw", "")
                     cleaned = entry.get("cleaned", "")
+                    if not isinstance(raw, str):
+                        raw = ""
+                    if not isinstance(cleaned, str):
+                        cleaned = ""
 
                     if query_lower in raw.lower() or query_lower in cleaned.lower():
+                        timestamp = entry.get("timestamp", "")
+                        if not isinstance(timestamp, str):
+                            timestamp = ""
                         matches.append(
                             {
-                                "timestamp": entry.get("timestamp", ""),
+                                "timestamp": timestamp,
                                 "raw": raw,
                                 "cleaned": cleaned,
                                 "file": jsonl_path.name,

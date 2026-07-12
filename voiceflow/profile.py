@@ -28,9 +28,14 @@ def load_profile() -> dict | None:
         return None
     try:
         with open(PROFILE_PATH) as f:
-            return json.load(f)
+            data = json.load(f)
     except (json.JSONDecodeError, ValueError, OSError):
         return None
+    # A profile must be a JSON object; any other shape would crash the
+    # prompt builder inside LLMBackend.__init__ — i.e. every dictation.
+    if not isinstance(data, dict):
+        return None
+    return data
 
 
 def save_profile(profile: dict) -> None:
@@ -55,6 +60,20 @@ def clear_profile() -> None:
         PROFILE_PATH.unlink()
 
 
+def _get_str(profile: dict, key: str) -> str:
+    """Read a string field defensively: null / wrong types become ''."""
+    value = profile.get(key, "")
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _get_str_list(profile: dict, key: str) -> list[str]:
+    """Read a list-of-strings field defensively, dropping non-string items."""
+    value = profile.get(key, [])
+    if not isinstance(value, list):
+        return []
+    return [item.strip() for item in value if isinstance(item, str) and item.strip()]
+
+
 def get_profile_prompt_fragment() -> str:
     """Build a rich LLM system prompt fragment from the stored profile.
 
@@ -71,9 +90,9 @@ def get_profile_prompt_fragment() -> str:
     lines = ["\n\nPERSONAL CONTEXT —"]
 
     # Name + occupation
-    name = profile.get("name", "").strip()
-    occupation = profile.get("occupation", "").strip()
-    industry = profile.get("industry", "").strip()
+    name = _get_str(profile, "name")
+    occupation = _get_str(profile, "occupation")
+    industry = _get_str(profile, "industry")
 
     intro_parts = []
     if name:
@@ -91,8 +110,8 @@ def get_profile_prompt_fragment() -> str:
         lines.append(" ".join(intro_parts))
 
     # Names they mention
-    work_names = [n.strip() for n in profile.get("work_names", []) if n.strip()]
-    home_names = [n.strip() for n in profile.get("home_names", []) if n.strip()]
+    work_names = _get_str_list(profile, "work_names")
+    home_names = _get_str_list(profile, "home_names")
 
     if work_names or home_names:
         lines.append("Names they frequently mention:")
@@ -102,17 +121,17 @@ def get_profile_prompt_fragment() -> str:
             lines.append(f"  - Home: {', '.join(home_names)}")
 
     # Technical / domain-specific terms
-    technical_terms = [t.strip() for t in profile.get("technical_terms", []) if t.strip()]
+    technical_terms = _get_str_list(profile, "technical_terms")
     if technical_terms:
         lines.append(f"Technical terms to spell correctly: {', '.join(technical_terms)}")
 
     # Communication style
-    style = profile.get("communication_style", "").strip()
+    style = _get_str(profile, "communication_style")
     if style:
         lines.append(f"Communication style preference: {style}")
 
     # Free-form context
-    additional = profile.get("additional_context", "").strip()
+    additional = _get_str(profile, "additional_context")
     if additional:
         lines.append(f"Additional context: {additional}")
 
@@ -138,23 +157,20 @@ def profile_to_dictionary(profile: dict) -> list[str]:
     """
     words: list[str] = []
 
-    for name in profile.get("work_names", []):
-        name = name.strip()
-        if name:
+    for name in _get_str_list(profile, "work_names"):
+        if name not in words:
             words.append(name)
 
-    for name in profile.get("home_names", []):
-        name = name.strip()
-        if name and name not in words:
+    for name in _get_str_list(profile, "home_names"):
+        if name not in words:
             words.append(name)
 
-    for term in profile.get("technical_terms", []):
-        term = term.strip()
-        if term and term not in words:
+    for term in _get_str_list(profile, "technical_terms"):
+        if term not in words:
             words.append(term)
 
     # Also add the user's own name (may be multi-word; add each part)
-    own_name = profile.get("name", "").strip()
+    own_name = _get_str(profile, "name")
     if own_name:
         for part in own_name.split():
             part = part.strip()

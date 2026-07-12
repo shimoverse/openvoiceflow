@@ -26,8 +26,21 @@ def load_dictionary() -> list[dict]:
     if not isinstance(entries, list):
         return []
     # Drop malformed entries (e.g. hand-edited without "word") so callers
-    # like add_word/list_words can't crash on a KeyError.
-    return [e for e in entries if isinstance(e, dict) and isinstance(e.get("word"), str)]
+    # like add_word/list_words can't crash on a KeyError. Also sanitize
+    # "aliases": a non-list value or non-string items would crash the LLM
+    # prompt builder (join) — i.e. every dictation.
+    valid: list[dict] = []
+    for e in entries:
+        if not (isinstance(e, dict) and isinstance(e.get("word"), str)):
+            continue
+        aliases = e.get("aliases")
+        if aliases is not None:
+            if isinstance(aliases, list):
+                e["aliases"] = [a for a in aliases if isinstance(a, str)]
+            else:
+                e["aliases"] = []
+        valid.append(e)
+    return valid
 
 
 def save_dictionary(entries: list[dict]):

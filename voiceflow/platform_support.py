@@ -35,15 +35,44 @@ def macos_version() -> Optional[tuple]:
     """Return the macOS version as an int tuple (e.g. ``(14, 5)``).
 
     Returns None off-macOS or when the version cannot be parsed.
+
+    Handles the Big Sur compatibility shim: CPython builds compiled against
+    a pre-11 SDK (e.g. the python.org ``macosx10.9`` installers this project
+    supports) report ``platform.mac_ver() == "10.16"`` on macOS 11+ — taking
+    that at face value made the doctor tell users on supported macOS 13/14
+    to "upgrade macOS". In that case the real version is read from
+    ``sysctl kern.osproductversion``.
     """
     if not is_macos():
         return None
     ver = platform.mac_ver()[0]
+    if ver.startswith("10.16"):
+        real = ""
+        try:
+            result = subprocess.run(
+                ["sysctl", "-n", "kern.osproductversion"],
+                capture_output=True, text=True, timeout=2,
+            )
+            if result.returncode == 0:
+                real = result.stdout.strip()
+        except (subprocess.SubprocessError, OSError):
+            pass
+        if not real:
+            # The shim only proves "macOS 11 or later" — that could still be
+            # below MIN_MACOS. "Unknown" is the only honest answer.
+            return None
+        ver = real
     try:
         parts = tuple(int(p) for p in ver.split(".") if p)
     except ValueError:
         return None
-    return parts or None
+    if not parts:
+        return None
+    # Pad a bare-major report ("12") to ("12", "0") so tuple comparison
+    # against MIN_MACOS = (12, 0) can't false-negative: (12,) < (12, 0).
+    if len(parts) == 1:
+        parts = (parts[0], 0)
+    return parts
 
 
 def os_label() -> str:

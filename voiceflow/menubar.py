@@ -169,12 +169,23 @@ def _app_icon_path() -> str | None:
     return None
 
 
+# True while a _show_alert dialog is on screen. NSAlert activates the app,
+# which would otherwise make the Dock-activation handler pop the status
+# panel on top of every alert this app shows.
+_alert_active = False
+
+
 def _show_alert(**kwargs):
     """Show a native alert with OpenVoiceFlow branding."""
+    global _alert_active
     icon_path = _app_icon_path()
     if icon_path:
         kwargs.setdefault("icon_path", icon_path)
-    return rumps.alert(**kwargs)
+    _alert_active = True
+    try:
+        return rumps.alert(**kwargs)
+    finally:
+        _alert_active = False
 
 
 def _show_notification(title: str, subtitle: str, message: str, **kwargs) -> None:
@@ -200,17 +211,39 @@ def _show_notification(title: str, subtitle: str, message: str, **kwargs) -> Non
             print(f"{title}: {subtitle} {message}".strip(), file=sys.stderr)
 
 
-def _configure_macos_application() -> None:
-    """Keep the Python UI process Dock-less and give alerts our app icon."""
+def _apply_activation_policy(show_dock_icon: bool) -> None:
+    """Show or hide the Dock icon for this UI process.
+
+    Regular puts the app in the Dock and the Cmd-Tab switcher — an
+    always-visible sign it is running (a menu-bar-only icon can hide
+    behind a MacBook notch). Accessory is the pre-0.3.5 Dock-less mode.
+    The bundle plist keeps LSUIElement=true, so the runtime policy is the
+    single source of truth for Dock presence.
+    """
     try:
         from AppKit import (
             NSApplication,
             NSApplicationActivationPolicyAccessory,
-            NSImage,
+            NSApplicationActivationPolicyRegular,
         )
 
+        policy = (
+            NSApplicationActivationPolicyRegular
+            if show_dock_icon
+            else NSApplicationActivationPolicyAccessory
+        )
+        NSApplication.sharedApplication().setActivationPolicy_(policy)
+    except Exception:
+        pass
+
+
+def _configure_macos_application(show_dock_icon: bool = False) -> None:
+    """Set the UI process's Dock presence and give alerts our app icon."""
+    _apply_activation_policy(show_dock_icon)
+    try:
+        from AppKit import NSApplication, NSImage
+
         application = NSApplication.sharedApplication()
-        application.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
         icon_path = _app_icon_path()
         if icon_path:
             icon = NSImage.alloc().initWithContentsOfFile_(icon_path)
@@ -218,6 +251,55 @@ def _configure_macos_application() -> None:
                 application.setApplicationIconImage_(icon)
     except Exception:
         pass
+
+
+# Ignore app activations this soon after launch: macOS may activate the
+# process once as it starts, and that must not pop the status panel.
+_DOCK_ACTIVATION_GRACE_SECONDS = 5.0
+
+
+def _install_dock_activation_handler(app) -> None:
+    """Open the status panel when the user activates us from the Dock.
+
+    A Dock icon that does nothing when clicked is worse than none. The app
+    has no windows, so activation (Dock click or Cmd-Tab) routes to the
+    same native status summary as the "Open OpenVoiceFlow" menu item.
+    Registered once; the handler itself re-checks the config so toggling
+    the Dock icon off also disables it.
+    """
+    if getattr(app, "_dock_activation_observer", None) is not None:
+        return
+    try:
+        import time
+
+        from AppKit import NSNotificationCenter, NSOperationQueue
+
+        started = time.monotonic()
+
+        def _on_did_become_active(_notification):
+            if time.monotonic() - started < _DOCK_ACTIVATION_GRACE_SECONDS:
+                return
+            if not bool(app.config.get("show_dock_icon", True)):
+                return
+            if _alert_active or getattr(app, "_dock_activation_busy", False):
+                return
+            app._dock_activation_busy = True
+            try:
+                app.open_app(None)
+            finally:
+                app._dock_activation_busy = False
+
+        app._dock_activation_observer = (
+            NSNotificationCenter.defaultCenter()
+            .addObserverForName_object_queue_usingBlock_(
+                "NSApplicationDidBecomeActiveNotification",
+                None,
+                NSOperationQueue.mainQueue(),
+                _on_did_become_active,
+            )
+        )
+    except Exception:
+        app._dock_activation_observer = None
 
 
 def _is_current_process(
@@ -265,6 +347,17 @@ def _frontmost_app_is_current_process() -> bool:
         )
     except Exception:
         return False
+
+
+def _settings_pane_for_errors(errors: list[str]) -> tuple[str, str] | None:
+    """Pick the one-click System Settings target for a failed validation."""
+    joined = " ".join(errors)
+    if "Accessibility permission" in joined:
+        return (
+            "Open Accessibility Settings",
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+        )
+    return None
 
 
 def _status_line(running: bool, hotkey: str) -> str:
@@ -409,7 +502,9 @@ def run_menubar():
     )
     from .stats import load_stats
 
-    _configure_macos_application()
+    _configure_macos_application(
+        bool(load_config().get("show_dock_icon", True))
+    )
 
     def make_item(item_id: str, callback=None):
         title, key = _MENU_ITEM_SPECS[item_id]
@@ -500,9 +595,18 @@ def run_menubar():
                 callback=self.toggle_autostart,
             )
             _set_checked(self.autostart_item, self._autostart_enabled())
+            self.dock_icon_item = rumps.MenuItem(
+                "Show in Dock",
+                callback=self.toggle_dock_icon,
+            )
+            _set_checked(
+                self.dock_icon_item,
+                bool(self.config.get("show_dock_icon", True)),
+            )
             advanced_items = (
                 self.streaming_item,
                 self.autostart_item,
+                self.dock_icon_item,
                 None,
                 rumps.MenuItem(
                     "Microphone Settings…",
@@ -680,6 +784,54 @@ def run_menubar():
                     ok="OK",
                 )
 
+        def _present_setup_errors(self):
+            """Surface validation failures front-and-center.
+
+            Notifications need a permission of their own and the status
+            item can hide behind a MacBook notch, so a failed setup uses a
+            modal alert — the one channel that is always visible.
+            """
+            errors = list(getattr(self.vf, "setup_errors", None) or [])
+            details = "\n".join(f"• {e}" for e in errors) or (
+                "Run `openvoiceflow --doctor` in Terminal for a full report."
+            )
+            pane = _settings_pane_for_errors(errors)
+            if pane is None:
+                _show_alert(
+                    title="OpenVoiceFlow — Setup Required",
+                    message=f"Dictation can't start yet:\n\n{details}",
+                    ok="OK",
+                )
+                return
+            pane_label, pane_url = pane
+            result = _show_alert(
+                title="OpenVoiceFlow — Setup Required",
+                message=f"Dictation can't start yet:\n\n{details}",
+                ok=pane_label,
+                cancel="Later",
+            )
+            if _alert_confirmed(result):
+                _open_url(pane_url)
+
+        def _present_dead_hotkey_alert(self, message):
+            """Modal alert from the dead-listener watchdog (daemon thread)."""
+            def _show():
+                _apply_status_bar_state(self, "error")
+                self.status_item.title = "Check Input Monitoring"
+                result = _show_alert(
+                    title="OpenVoiceFlow — Hotkey Not Working",
+                    message=message,
+                    ok="Open Input Monitoring Settings",
+                    cancel="Later",
+                )
+                if _alert_confirmed(result):
+                    _open_url(
+                        "x-apple.systempreferences:com.apple.preference."
+                        "security?Privacy_ListenEvent"
+                    )
+
+            _call_on_main_thread(_show)
+
         def start_listening(self):
             self.vf = OpenVoiceFlow()
             if not self.vf.validate_setup():
@@ -687,11 +839,7 @@ def run_menubar():
                 _set_checked(self.listening_item, False)
                 _apply_status_bar_state(self, "error")
                 self.status_item.title = "Setup Required"
-                _show_notification(
-                    "OpenVoiceFlow",
-                    "Setup Required",
-                    "Open the menu for settings and setup help.",
-                )
+                self._present_setup_errors()
                 return
 
             try:
@@ -713,7 +861,9 @@ def run_menubar():
                 on_release=self.vf.on_key_release,
             )
             self.listener.start()
-            self.vf.start_hotkey_runtime_checks()
+            self.vf.start_hotkey_runtime_checks(
+                on_dead_hotkey=self._present_dead_hotkey_alert,
+            )
             self._running = True
             _set_checked(self.listening_item, True)
             _apply_status_bar_state(self, "ready")
@@ -937,6 +1087,15 @@ def run_menubar():
             except Exception as exc:
                 _show_alert(title="Profile Error", message=str(exc))
 
+        def toggle_dock_icon(self, _):
+            enabled = not bool(self.config.get("show_dock_icon", True))
+            self.config["show_dock_icon"] = enabled
+            save_config(self.config)
+            _set_checked(self.dock_icon_item, enabled)
+            _apply_activation_policy(enabled)
+            if enabled:
+                _install_dock_activation_handler(self)
+
         def toggle_autostart(self, _):
             try:
                 from .autostart import get_autostart_status, set_autostart
@@ -1069,4 +1228,7 @@ def run_menubar():
             self.stop_listening()
             rumps.quit_application()
 
-    OpenVoiceFlowMenuBar().run()
+    app = OpenVoiceFlowMenuBar()
+    if bool(app.config.get("show_dock_icon", True)):
+        _install_dock_activation_handler(app)
+    app.run()

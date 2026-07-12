@@ -128,22 +128,24 @@ def _load_seen_tips() -> set:
     try:
         with open(SEEN_TIPS_PATH) as f:
             data = json.load(f)
-        return set(data.get("seen", []))
+        if not isinstance(data, dict):
+            return set()
+        seen = data.get("seen", [])
+        if not isinstance(seen, list):
+            return set()
+        return {s for s in seen if isinstance(s, str)}
     except (FileNotFoundError, json.JSONDecodeError, OSError, ValueError):
         return set()
 
 
 def _save_seen_tips(seen: set) -> None:
-    """Persist the seen-tips set with mode 0o600."""
+    """Persist the seen-tips set with mode 0o600 (atomic, like the other
+    ~/.openvoiceflow artifacts — no umask window, no truncate-then-crash)."""
     path = SEEN_TIPS_PATH
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w") as f:
-            json.dump({"seen": sorted(seen)}, f, indent=2)
-        try:
-            os.chmod(path, 0o600)
-        except OSError:
-            pass
+        from ._secure_io import secure_write_json
+        secure_write_json(path, {"seen": sorted(seen)})
     except OSError:
         pass
 

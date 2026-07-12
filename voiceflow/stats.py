@@ -23,11 +23,20 @@ def load_stats() -> dict:
     try:
         with open(STATS_PATH) as f:
             stored = json.load(f)
-        merged = dict(defaults)
-        merged.update(stored)
-        return merged
-    except (json.JSONDecodeError, ValueError):
+    except (json.JSONDecodeError, ValueError, OSError):
         return defaults
+    if not isinstance(stored, dict):
+        return defaults
+    # Merge, but never let a wrong-typed value (e.g. "12" instead of 12)
+    # poison the counters — record_dictation does arithmetic on these and
+    # runs after every dictation.
+    merged = dict(defaults)
+    for key, default_value in defaults.items():
+        value = stored.get(key, default_value)
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            value = default_value
+        merged[key] = value
+    return merged
 
 
 def save_stats(stats: dict):

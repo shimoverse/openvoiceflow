@@ -178,11 +178,26 @@ def _show_alert(**kwargs):
 
 
 def _show_notification(title: str, subtitle: str, message: str, **kwargs) -> None:
-    """Show a notification with OpenVoiceFlow branding."""
+    """Show a notification with OpenVoiceFlow branding.
+
+    rumps.notification raises RuntimeError on non-framework Python installs
+    (no Info.plist / CFBundleIdentifier — typical for pyenv/conda; only the
+    DMG bundle ships a plist). Callers rely on this for setup guidance and
+    settings confirmations, so a failure must degrade to the osascript
+    notification path instead of blowing up the calling rumps callback.
+    """
     icon_path = _app_icon_path()
     if icon_path:
         kwargs.setdefault("icon", icon_path)
-    rumps.notification(title, subtitle, message, **kwargs)
+    try:
+        rumps.notification(title, subtitle, message, **kwargs)
+    except Exception:
+        try:
+            from . import notify
+            notify._post_macos_notification(title, message, subtitle=subtitle or None)
+        except Exception:
+            import sys
+            print(f"{title}: {subtitle} {message}".strip(), file=sys.stderr)
 
 
 def _configure_macos_application() -> None:

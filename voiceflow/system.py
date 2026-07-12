@@ -24,13 +24,27 @@ def paste_text(text: str):
         process.communicate(text.encode("utf-8"), timeout=5)
         time.sleep(0.05)
         # BUG-009 fix: capture return code and report Accessibility errors clearly
+        # timeout: osascript blocks indefinitely while macOS shows an
+        # Automation consent dialog; without one, this worker thread hangs
+        # with processing=True and the hotkey never fires again.
         result = subprocess.run(
             [
                 "osascript", "-e",
                 'tell application "System Events" to keystroke "v" using command down',
             ],
             capture_output=True,
+            timeout=10,
         )
+    except subprocess.TimeoutExpired:
+        # osascript blocked (likely a macOS consent dialog). The text is
+        # already on the clipboard, so manual ⌘V still works.
+        play_sound("error")
+        from . import notify
+        notify.error(
+            "Auto-paste timed out — your text is on the clipboard, ⌘V to paste manually. "
+            "If macOS showed a permission dialog, approve it to enable auto-paste."
+        )
+        return
     except (OSError, subprocess.SubprocessError) as exc:
         # pbcopy/osascript missing (non-macOS or broken PATH) — never crash
         # the dictation thread over feedback plumbing.
@@ -72,6 +86,7 @@ def insert_recording_indicator(indicator: str = "🎙") -> bool:
                 'tell application "System Events" to keystroke "v" using command down',
             ],
             capture_output=True,
+            timeout=10,
         )
         # Give the target app a moment to service the paste before restoring.
         time.sleep(0.15)
@@ -96,6 +111,7 @@ def clear_recording_indicator() -> bool:
                 'tell application "System Events" to key code 51',
             ],
             capture_output=True,
+            timeout=10,
         )
         return result.returncode == 0
     except (OSError, subprocess.SubprocessError):
@@ -111,6 +127,7 @@ def _move_caret_to_end() -> None:
                 'tell application "System Events" to key code 124 using command down',
             ],
             capture_output=True,
+            timeout=10,
         )
     except (OSError, subprocess.SubprocessError):
         pass

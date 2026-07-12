@@ -8,6 +8,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- A corrupt or wrong-shaped file in `~/.openvoiceflow/` (snippets, stats,
+  profile, dictionary aliases, transcript logs, seen-tips) can no longer make
+  every dictation fail with a generic error: all user-data loaders now
+  validate shape, drop malformed entries, and degrade to safe defaults.
+  `--show-profile` prints recovery guidance instead of a literal `null` when
+  the profile file is corrupt.
+- Every `osascript`/`launchctl`/`open` subprocess call now has a timeout, so
+  a pending macOS consent dialog or a wedged `launchd` can no longer freeze
+  the hotkey thread permanently. If auto-paste times out, a notification
+  explains that the text is already on the clipboard, ready for ⌘V.
+- Auto-learn no longer records ordinary content edits (e.g. "june" → "july")
+  as permanent corrections: the word-similarity threshold was raised from
+  0.4 to 0.55, calibrated so genuine mishearings ("mir" → "Meer",
+  "recieve" → "receive") are still learned.
+- Setup wizard: an `llm_backend` of `none` no longer breaks the backend
+  screen; switching backends clears the previous backend's prefilled API key
+  instead of finishing without saving a key; a failed final config write now
+  shows an error dialog instead of a Finish button that silently does
+  nothing.
+- Know Me interview: no longer clobbers a configured `--style` (the style
+  radio preselects from config, and styles the interview can't express, like
+  `code` or `email`, are preserved unless actively changed); Enter-key
+  bindings no longer leak between screens; context-menu paste into
+  multi-line fields is no longer dropped; a hand-edited profile can't crash
+  the wizard.
+- Menu bar: notifications fall back to the osascript path when
+  `rumps.notification` is unavailable (non-framework Python installs), and
+  **Check for Updates…** can no longer get stuck on unexpected
+  network/response errors. The duplicate startup update check in menu-bar
+  mode was removed.
+- Overlay: the compact auto-learn pill no longer permanently shrinks the
+  font of every subsequent HUD message.
+- CLI: value-taking flags now reject empty strings (`--search ""` used to
+  launch the app; `--add-command ""` corrupted every dictation); config
+  setters combined with an action flag now print a warning instead of being
+  silently ignored; `--auto-learn`, `--update-check`, and
+  `--log-transcripts` now compose on one command line.
+- Doctor: macOS version detection resolves the "10.16" Big Sur
+  compatibility shim via `sysctl kern.osproductversion` and reports
+  "unknown" (a WARN) rather than false-failing supported systems; bare-major
+  versions ("12") no longer compare below the (12, 0) minimum.
+
+### Added
+- 17 regression tests pinning the defensive-loader, learner-threshold,
+  updater, and macOS-version behaviors (`tests/test_defensive_loaders.py`).
+
+### Changed
+- CI lint now covers the entire repository (`ruff check .`), not just
+  `voiceflow/`.
+
 ## [0.3.4] — 2026-07-10
 
 ### Added

@@ -159,9 +159,15 @@ class OnboardingWizard:
                 backend = self.config.get("llm_backend", "openrouter")
                 if backend == "gemini":
                     backend = "openrouter"
+                # "none" is a legal config value but has no wizard card —
+                # selecting it verbatim left no radio checked and made
+                # show_api_key/show_success crash with KeyError inside the
+                # Tk callback (a Continue button that silently did nothing).
+                if backend not in BACKENDS:
+                    backend = "openrouter"
                 self.selected_backend.set(backend)
                 key_field = f"{backend}_api_key"
-                if self.config.get(key_field):
+                if isinstance(self.config.get(key_field), str) and self.config[key_field]:
                     self.api_key.set(self.config[key_field])
                     self._prefill_key = self.config[key_field]
                     self._prefill_backend = backend
@@ -277,6 +283,18 @@ class OnboardingWizard:
         self._clear()
         backend = self.selected_backend.get()
         info = BACKENDS[backend]
+
+        # The key entry was prefilled from a different backend's stored key:
+        # clear it. Leaving it in place looked configured (masked dots),
+        # passed validation, and was then rightly refused by
+        # save_and_finish's stale_prefill guard — yielding a "You're All
+        # Set!" with no key actually saved.
+        if (
+            self._prefill_backend is not None
+            and backend != self._prefill_backend
+            and self.api_key.get() == self._prefill_key
+        ):
+            self.api_key.set("")
 
         if info.get("no_key"):
             self._show_ollama_setup(info)
@@ -502,7 +520,22 @@ class OnboardingWizard:
                 self.config[k] = v
 
         from ._secure_io import secure_write_json
-        secure_write_json(CONFIG_PATH, self.config)
+        try:
+            secure_write_json(CONFIG_PATH, self.config)
+        except OSError as exc:
+            # Disk full / unwritable ~/.openvoiceflow — surface it instead
+            # of letting the exception die inside the Tk callback (a Finish
+            # button that silently does nothing).
+            try:
+                messagebox.showerror(
+                    "OpenVoiceFlow Setup",
+                    f"Could not save your settings:\n{exc}\n\n"
+                    "Check that your home folder is writable and try again.",
+                    parent=self.root,
+                )
+            except Exception:
+                print(f"❌ Could not save config: {exc}", file=sys.stderr)
+            return
 
         self.show_success()
 

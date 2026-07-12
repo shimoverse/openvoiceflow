@@ -99,12 +99,15 @@ def _launchctl(modern_args: list, legacy_args: list) -> subprocess.CompletedProc
     first keeps us working when Apple eventually removes the legacy verbs,
     and the fallback keeps us working everywhere they still exist.
     """
+    # timeout: a wedged launchd would otherwise hang the CLI indefinitely
+    # with no output. TimeoutExpired propagates to the callers' broad
+    # except handlers, which surface it as a (False, message) result.
     result = subprocess.run(
-        ["launchctl"] + modern_args, capture_output=True, text=True,
+        ["launchctl"] + modern_args, capture_output=True, text=True, timeout=15,
     )
     if result.returncode != 0:
         result = subprocess.run(
-            ["launchctl"] + legacy_args, capture_output=True, text=True,
+            ["launchctl"] + legacy_args, capture_output=True, text=True, timeout=15,
         )
     return result
 

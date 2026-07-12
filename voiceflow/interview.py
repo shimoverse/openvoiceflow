@@ -17,6 +17,8 @@ Visual style matches onboarding.py exactly:
 
 from __future__ import annotations
 
+import sys
+
 try:
     import tkinter as tk
     HAS_TKINTER = True
@@ -24,7 +26,13 @@ except ImportError:
     HAS_TKINTER = False
     tk = None
 
-from .profile import load_profile, profile_to_dictionary, save_profile
+from .profile import (
+    _get_str,
+    _get_str_list,
+    load_profile,
+    profile_to_dictionary,
+    save_profile,
+)
 
 # ── Color palette (matches onboarding.py) ──────────────────────────────────
 BG        = "#1a1a2e"
@@ -84,17 +92,39 @@ class InterviewWizard:
         self._style_var        = tk.StringVar(value="casual")
         self._completed        = False
 
-        # Pre-fill from existing profile (re-run scenario)
+        # Pre-fill from existing profile (re-run scenario). Uses the
+        # defensive accessors — a hand-edited profile with null/wrong-typed
+        # fields must not crash the wizard's constructor.
         existing = load_profile()
+        profile_style = ""
         if existing:
-            self._name_var.set(existing.get("name", ""))
-            self._role_var.set(existing.get("occupation", ""))
-            ind = existing.get("industry", "tech")
+            self._name_var.set(_get_str(existing, "name"))
+            self._role_var.set(_get_str(existing, "occupation"))
+            ind = _get_str(existing, "industry") or "tech"
             self._industry_var.set(ind if ind in INDUSTRIES else "tech")
-            self._work_names_var.set(", ".join(existing.get("work_names", [])))
-            self._home_names_var.set(", ".join(existing.get("home_names", [])))
-            cs = existing.get("communication_style", "casual")
-            self._style_var.set(cs if cs in [s[0] for s in STYLE_OPTIONS] else "casual")
+            self._work_names_var.set(", ".join(_get_str_list(existing, "work_names")))
+            self._home_names_var.set(", ".join(_get_str_list(existing, "home_names")))
+            cs = _get_str(existing, "communication_style")
+            if cs in [s[0] for s in STYLE_OPTIONS]:
+                profile_style = cs
+                self._style_var.set(cs)
+
+        # No style stored in the profile: preselect the radio from the
+        # user's config so an untouched radio round-trips their existing
+        # --style choice instead of silently resetting it to "casual"
+        # when they click Finish.
+        if not profile_style:
+            try:
+                from .config import load_config
+                _reverse_map = {"casual": "casual", "default": "balanced", "formal": "formal"}
+                cfg_style = load_config().get("style")
+                if cfg_style in _reverse_map:
+                    self._style_var.set(_reverse_map[cfg_style])
+            except Exception:
+                pass
+        # Snapshot the preselected value so _sync_style_to_config can tell
+        # an active user choice apart from an untouched default.
+        self._style_initial = self._style_var.get()
 
         # Main container
         self.container = tk.Frame(self.root, bg=BG)
@@ -106,6 +136,13 @@ class InterviewWizard:
 
     def _clear(self):
         """Destroy all widgets in the container."""
+        # Screens bind <Return> on the root window ad hoc; clear it here so
+        # a binding can't leak onto a screen it wasn't meant for (e.g.
+        # Back from the name screen left Enter skipping the Welcome screen).
+        try:
+            self.root.unbind("<Return>")
+        except Exception:
+            pass
         for w in self.container.winfo_children():
             w.destroy()
 
@@ -238,6 +275,22 @@ class InterviewWizard:
             var.set(widget.get("1.0", "end-1c").strip())
 
         widget.bind("<KeyRelease>", _on_key)
+
+        # Also sync on ANY content change via the Text widget's modified
+        # flag. On macOS Aqua a context-menu paste produces no key events,
+        # and clicking a tk.Button doesn't move focus — so KeyRelease and
+        # FocusOut both miss it and the pasted text was silently dropped.
+        widget.edit_modified(False)
+
+        def _on_modified(_e):
+            content = widget.get("1.0", "end-1c").strip()
+            if placeholder and content == placeholder.strip():
+                var.set("")
+            else:
+                var.set(content)
+            widget.edit_modified(False)
+
+        widget.bind("<<Modified>>", _on_modified)
 
         return widget
 
@@ -486,7 +539,23 @@ class InterviewWizard:
     def _save_and_show_done(self):
         """Build the profile dict, persist it, populate the dictionary, show summary."""
         profile = self._build_profile()
-        save_profile(profile)
+        try:
+            save_profile(profile)
+        except OSError as exc:
+            # Disk full / unwritable ~/.openvoiceflow — without this guard
+            # the exception dies inside the Tk callback and the Finish
+            # button silently does nothing.
+            try:
+                from tkinter import messagebox
+                messagebox.showerror(
+                    "OpenVoiceFlow",
+                    f"Could not save your profile:\n{exc}\n\n"
+                    "Check that your home folder is writable and try again.",
+                    parent=self.root,
+                )
+            except Exception:
+                print(f"❌ Could not save profile: {exc}", file=sys.stderr)
+            return
 
         # Auto-populate personal dictionary with all names + terms
         self._populate_dictionary(profile)
@@ -552,7 +621,13 @@ class InterviewWizard:
             pass  # Dictionary errors must not crash the interview
 
     def _sync_style_to_config(self, style: str):
-        """Write the chosen communication style to config.json."""
+        """Write the chosen communication style to config.json.
+
+        Only writes when the user actively made a choice the config doesn't
+        already reflect. The interview can only express casual/balanced/
+        formal — a config style it can't express (code, email) is preserved
+        unless the user actually changed the radio from its preselect.
+        """
         try:
             from .config import VALID_STYLES, load_config, save_config
             # Map interview style names to config VALID_STYLES
@@ -562,8 +637,14 @@ class InterviewWizard:
                 "formal":   "formal",
             }
             config_style = style_map.get(style, "default")
-            if config_style in VALID_STYLES:
-                config = load_config()
+            if config_style not in VALID_STYLES:
+                return
+            config = load_config()
+            current = config.get("style", "default")
+            untouched = style == getattr(self, "_style_initial", None)
+            if current not in style_map.values() and untouched:
+                return  # e.g. --style code: don't clobber it with a default
+            if config_style != current:
                 config["style"] = config_style
                 save_config(config)
         except Exception:

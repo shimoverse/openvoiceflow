@@ -36,7 +36,15 @@ except ImportError:
 # Similarity threshold for word-level corrections
 # ---------------------------------------------------------------------------
 
-_SIMILARITY_THRESHOLD = 0.4  # SequenceMatcher ratio must exceed this value
+# SequenceMatcher ratio must EXCEED this value for a word pair to be
+# learned as a correction. Calibration: genuine mishearings score well
+# above it ("mir"→"Meer" 0.57, "recieve"→"receive" 0.86), while ordinary
+# content edits that a diff can't distinguish from corrections score at
+# or below it ("june"→"july" 0.50, "in"→"on" 0.50, "monday"→"tuesday"
+# 0.46). The old value of 0.4 admitted all of those content edits,
+# permanently poisoning the dictionary — and with it every future LLM
+# cleanup prompt — with rules like '"July" may be misheard as june'.
+_SIMILARITY_THRESHOLD = 0.55
 
 # Watch schedule: seconds after paste_text() at which to sample the text field
 _WATCH_INTERVALS = (5, 10, 15, 20, 30)

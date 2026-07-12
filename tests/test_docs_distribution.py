@@ -246,6 +246,13 @@ def test_previous_release_downloads_redirect_to_fixed_builds():
                 f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}-{arch}.dmg"
             )
             assert redirects[source]["permanent"] is True
+            # A redirected version's binary must not also ship: leaving it in
+            # docs/downloads/ is dead weight the redirect already shadows, and
+            # it contradicts the redirect-and-remove pattern. Only the current
+            # RELEASE_VERSION DMGs are hosted directly.
+            assert not (
+                DOCS / "downloads" / f"OpenVoiceFlow-{previous_version}-{arch}.dmg"
+            ).exists()
 
 
 def test_unsigned_legacy_downloads_are_not_deployed() -> None:

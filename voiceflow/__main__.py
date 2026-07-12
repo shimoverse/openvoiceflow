@@ -160,6 +160,28 @@ def main():
 
     args = parser.parse_args()
 
+    # Reject empty/whitespace-only values for value-taking flags. Truthiness
+    # dispatch below would otherwise treat --search "" as "flag absent" and
+    # fall through to launching the full app — and --add-command with an
+    # empty phrase would match at every word boundary, corrupting every
+    # future dictation until the user figures out --remove-command "".
+    _nonempty_flags = [
+        ("--add-word", args.add_word),
+        ("--remove-word", args.remove_word),
+        ("--remove-snippet", args.remove_snippet),
+        ("--remove-command", args.remove_command),
+        ("--remove-app-style", args.remove_app_style),
+        ("--search", args.search),
+        ("--set-prompt", args.set_prompt),
+        ("--language", args.language),
+        ("--add-snippet TRIGGER", args.add_snippet[0] if args.add_snippet else None),
+        ("--add-command PHRASE", args.add_command[0] if args.add_command else None),
+        ("--app-style APP", args.app_style[0] if args.app_style else None),
+    ]
+    for _flag, _value in _nonempty_flags:
+        if _value is not None and not _value.strip():
+            parser.error(f"{_flag} requires a non-empty value")
+
     # Platform gate: OpenVoiceFlow is macOS-only. Refuse politely here —
     # before any config write or heavy import — instead of crashing with a
     # traceback deeper in the stack (sounddevice/pynput/pbcopy all assume
@@ -182,6 +204,30 @@ def main():
         for e in errors:
             print(f"   • {e}")
         print("   Run: openvoiceflow --setup to fix\n")
+
+    # The action handlers below return before the config setters further
+    # down ever run — warn instead of silently discarding half the command.
+    _early_action = any([
+        args.add_word, args.remove_word, args.list_words,
+        args.add_snippet, args.remove_snippet, args.list_snippets,
+        args.add_command, args.remove_command, args.list_commands,
+        args.voice_commands, args.app_style, args.remove_app_style,
+        args.list_app_styles, args.auto_style,
+        args.profile, args.show_profile, args.clear_profile, args.stats,
+    ])
+    _setters_present = any([
+        args.hotkey, args.model, args.backend, args.set_key,
+        args.set_prompt, args.clear_prompt, args.language, args.style,
+        args.streaming, args.streaming_step is not None, args.auto_learn,
+        args.update_check, args.log_transcripts, args.autostart,
+    ])
+    if _early_action and _setters_present:
+        print(
+            "⚠️  Config-setting flags (--hotkey, --model, --backend, ...) are "
+            "ignored when combined with an action flag — run them as separate "
+            "commands.",
+            file=sys.stderr,
+        )
 
     # --- Dictionary commands ---
     if args.add_word:
@@ -351,7 +397,16 @@ def main():
             print("No profile found. Run: openvoiceflow --profile")
         else:
             profile = load_profile()
-            print(_json.dumps(profile, indent=2))
+            if profile is None:
+                # File exists but is corrupt / wrong shape — say so instead
+                # of printing a literal "null".
+                print(
+                    "⚠️  Profile file exists but could not be read "
+                    "(corrupt or wrong format). Re-create it with: "
+                    "openvoiceflow --profile"
+                )
+            else:
+                print(_json.dumps(profile, indent=2))
         return
 
     if args.clear_profile:
@@ -447,13 +502,16 @@ def main():
         save_config(config)
         print(f"✅ Streaming step size set to: {args.streaming_step} ms")
 
+    # NOTE: no early `return` in the three setters below — they are covered
+    # by the any([...]) gate after the setter block, and returning here would
+    # silently discard any setter that follows on the same command line
+    # (e.g. `--auto-learn on --update-check off` dropped the second flag).
     if args.auto_learn:
         enabled = args.auto_learn == "on"
         config["auto_learn"] = enabled
         save_config(config)
         state = "enabled" if enabled else "disabled"
         print(f"✅ Auto-learn corrections {state}.")
-        return
 
     if args.update_check:
         enabled = args.update_check == "on"
@@ -461,7 +519,6 @@ def main():
         save_config(config)
         state = "enabled" if enabled else "disabled"
         print(f"✅ Update check {state}.")
-        return
 
     if args.log_transcripts:
         enabled = args.log_transcripts == "on"
@@ -469,7 +526,6 @@ def main():
         save_config(config)
         state = "enabled" if enabled else "disabled"
         print(f"✅ Transcript logging {state}.")
-        return
 
     if args.autostart:
         from .autostart import set_autostart
@@ -524,11 +580,15 @@ def main():
         return
 
     # --- Startup update check (non-blocking; honors config["update_check"]) ---
-    try:
-        from .updater import check_for_updates
-        check_for_updates(config=config)
-    except Exception:
-        pass
+    # Skipped in menubar mode: OpenVoiceFlowMenuBar registers its own check
+    # with a rumps-native notification — running both produced two
+    # differently-styled "update available" alerts and two API hits.
+    if not args.menubar:
+        try:
+            from .updater import check_for_updates
+            check_for_updates(config=config)
+        except Exception:
+            pass
 
     if args.onboarding:
         from .onboarding import run_onboarding

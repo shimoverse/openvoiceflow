@@ -247,6 +247,17 @@ class FloatingOverlay:
             self._fade_in()
         self._schedule_hide(duration)
 
+    def _restore_main_font(self):
+        """Reset the label to the standard HUD font.
+
+        _show_learned shrinks the font for its compact pill; every other
+        pill must restore it or the small dim font sticks permanently.
+        """
+        try:
+            self._label.setFont_(NSFont.systemFontOfSize_weight_(13, 0.3))
+        except Exception:
+            pass
+
     def _show_recording(self, style_label=None, with_context=False):
         if not self._initialized:
             self._setup()
@@ -254,6 +265,7 @@ class FloatingOverlay:
             return
         self._cancel_hide_timer()
         self._animator.stopAnimation()
+        self._restore_main_font()
         self._resize(self.WIDTH)
         label = "🔴 Recording"
         if style_label:
@@ -293,6 +305,7 @@ class FloatingOverlay:
         if not self._initialized:
             return
         self._cancel_hide_timer()
+        self._restore_main_font()
         self._resize(self.WIDTH)
         self._label.setStringValue_("Processing...")
         self._label.setTextColor_(NSColor.colorWithWhite_alpha_(0.9, 1.0))
@@ -317,6 +330,7 @@ class FloatingOverlay:
         if not self._initialized:
             return
         self._animator.stopAnimation()
+        self._restore_main_font()
         # Truncate for display
         display = text if len(text) <= 30 else text[:27] + "..."
         if timing:
@@ -376,6 +390,7 @@ class FloatingOverlay:
         if not self._initialized:
             return
         self._animator.stopAnimation()
+        self._restore_main_font()
         display = message if len(message) <= 35 else message[:32] + "..."
         self._resize(max(self.WIDTH, min(400, len(display) * 8 + 40)))
         self._label.setStringValue_(f"❌ {display}")

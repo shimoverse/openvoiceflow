@@ -292,7 +292,12 @@ def test_real_rumps_constructor_builds_the_branded_menu(
     monkeypatch.setattr(context, "get_frontmost_app", lambda: "TextEdit")
     monkeypatch.setattr(context, "get_style_for_app", lambda *_args: "default")
     monkeypatch.setattr(updater, "check_for_updates", lambda **_kwargs: None)
-    monkeypatch.setattr(menubar, "_configure_macos_application", lambda: None)
+    monkeypatch.setattr(
+        menubar, "_configure_macos_application", lambda *_args, **_kwargs: None
+    )
+    monkeypatch.setattr(
+        menubar, "_install_dock_activation_handler", lambda _app: None
+    )
     monkeypatch.setattr(menubar, "_frontmost_app_is_current_process", lambda: False)
     monkeypatch.setattr(
         menubar.rumps,

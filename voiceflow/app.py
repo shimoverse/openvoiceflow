@@ -104,6 +104,7 @@ def _prompt_accessibility_consent() -> None:
             ],
             check=False,
             capture_output=True,
+            timeout=10,
         )
     except Exception:
         pass

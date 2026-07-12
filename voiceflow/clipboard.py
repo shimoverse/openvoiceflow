@@ -48,7 +48,10 @@ def capture_selected_text() -> str | None:
         # 1. Save original clipboard
         original_clipboard = _read_clipboard()
 
-        # 2. Simulate Cmd+C in the frontmost application
+        # 2. Simulate Cmd+C in the frontmost application.
+        # timeout: this runs on the hotkey listener thread; a blocked
+        # osascript (e.g. macOS Automation consent dialog) would otherwise
+        # freeze hotkey handling entirely.
         result = subprocess.run(
             [
                 "osascript",
@@ -56,6 +59,7 @@ def capture_selected_text() -> str | None:
                 'tell application "System Events" to keystroke "c" using command down',
             ],
             capture_output=True,
+            timeout=5,
         )
         if result.returncode != 0:
             # osascript failed (e.g. Accessibility not granted) — bail out cleanly

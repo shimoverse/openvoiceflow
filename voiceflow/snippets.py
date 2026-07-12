@@ -11,14 +11,26 @@ SNIPPETS_PATH = os.path.join(CONFIG_DIR, "snippets.json")
 
 
 def load_snippets() -> dict[str, str]:
-    """Load snippets as {trigger_phrase: expansion_text}."""
+    """Load snippets as {trigger_phrase: expansion_text}.
+
+    Defensive: a corrupt, unreadable, or wrong-shaped snippets.json must
+    never break the dictation pipeline (match_snippet runs on every
+    dictation), so anything unexpected degrades to "no snippets".
+    """
     if not os.path.exists(SNIPPETS_PATH):
         return {}
     try:
         with open(SNIPPETS_PATH) as f:
-            return json.load(f)
-    except (json.JSONDecodeError, ValueError):
+            data = json.load(f)
+    except (json.JSONDecodeError, ValueError, OSError):
         return {}
+    if not isinstance(data, dict):
+        return {}
+    # Keep only well-formed string→string entries.
+    return {
+        k: v for k, v in data.items()
+        if isinstance(k, str) and isinstance(v, str)
+    }
 
 
 def save_snippets(snippets: dict[str, str]):

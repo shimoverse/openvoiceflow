@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Startup now checks the **Input Monitoring** permission — the one the
+  global hotkey listener actually needs. It was never verified (only the
+  doctor knew about it), so a missing grant produced a "Ready" menu with a
+  hotkey that silently never fired. A denied probe warns loudly with a
+  one-click System Settings link but never blocks startup, because
+  Accessibility trust can also grant listen access.
+- A new dead-listener watchdog catches the same failure by measuring
+  reality: if no key events at all arrive within 15 seconds of the
+  listener starting *and* macOS reports Input Monitoring denied, the menu
+  bar shows a front-and-center alert with the fix. An idle user without
+  the permission problem gets a one-time gentle tip instead. (Previously
+  this self-check existed only for the fn/Globe key, never for the
+  default Right Command hotkey.)
+- Setup failures at launch now surface as a **modal alert** with a
+  one-click settings link instead of only a Notification Center banner —
+  notifications require a permission of their own and the status item can
+  hide behind a MacBook notch, so the old failure path could be entirely
+  invisible.
 - A corrupt or wrong-shaped file in `~/.openvoiceflow/` (snippets, stats,
   profile, dictionary aliases, transcript logs, seen-tips) can no longer make
   every dictation fail with a generic error: all user-data loaders now
@@ -52,8 +70,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   versions ("12") no longer compare below the (12, 0) minimum.
 
 ### Added
+- The menu-bar app now shows a **Dock icon** while running (toggleable via
+  **Advanced → Show in Dock**, default on). A menu-bar-only icon can hide
+  behind a MacBook notch, leaving no visible sign the app is running;
+  clicking the Dock icon opens the native status summary with the active
+  dictation shortcut.
 - 17 regression tests pinning the defensive-loader, learner-threshold,
-  updater, and macOS-version behaviors (`tests/test_defensive_loaders.py`).
+  updater, and macOS-version behaviors (`tests/test_defensive_loaders.py`),
+  plus 12 pinning the Input Monitoring gate, dead-listener watchdog, and
+  Dock default (`tests/test_visibility_and_watchdog.py`).
 
 ### Changed
 - CI lint now covers the entire repository (`ruff check .`), not just

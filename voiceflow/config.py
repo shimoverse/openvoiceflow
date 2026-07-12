@@ -38,6 +38,11 @@ DEFAULTS = {
     "language": "en",  # Transcription language (en, es, de, ja, auto, etc.)
     "style": "default",  # Output style: default, casual, formal, code, email
     "launch_at_login": False,  # Auto-start on macOS login
+    # Dock presence for the menu-bar app. A menu-bar-only icon can hide
+    # behind a MacBook notch, leaving no visible sign the app is running;
+    # default on, with "Show in Dock" in the Advanced menu to return to
+    # the lightweight Dock-less mode.
+    "show_dock_icon": True,
     # Per-app automatic style detection (Feature 2)
     "auto_style": True,  # Automatically switch style based on the frontmost app
     "app_styles": {

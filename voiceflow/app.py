@@ -77,6 +77,12 @@ def _maybe_voice_command_tutor(text_before: str, text_after: str) -> None:
         )
 
 
+# Same deep link the doctor's Input Monitoring fix uses.
+_INPUT_MONITORING_SETTINGS_URL = (
+    "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
+)
+
+
 def _is_accessibility_trusted() -> bool:
     """Return True when the process is trusted for macOS Accessibility APIs."""
     status = platform_support.accessibility_status()
@@ -149,9 +155,20 @@ class OpenVoiceFlow:
         self._fn_event_seen = False
         self._recording_indicator_inserted = False
 
+        # Dead-listener watchdog state: True once ANY key event reaches us.
+        # Without Input Monitoring, pynput's listener starts cleanly and
+        # then receives nothing — this flag is how we tell "Ready" apart
+        # from "silently dead".
+        self._any_key_event_seen = False
+
+        # validate_setup results, exposed for the menubar's alert UI.
+        self.setup_errors: list[str] = []
+        self.setup_warnings: list[tuple[str, str]] = []
+
     def validate_setup(self) -> bool:
         """Check that all dependencies are ready."""
         errors = []
+        self.setup_warnings = []
 
         # whisper.cpp
         whisper_bin = self.config.get("whisper_cpp_path") or find_whisper_cpp()
@@ -205,6 +222,34 @@ class OpenVoiceFlow:
                 "then relaunch the app"
             )
 
+        # Input Monitoring — what the global hotkey listener actually needs.
+        # TCC nuance: Accessibility trust often also grants listen access,
+        # so a denied probe does not always mean a dead hotkey. Warn loudly
+        # but never block — a false block would strand working setups. The
+        # dead-listener watchdog escalates if key events genuinely never
+        # arrive.
+        input_monitoring = platform_support.input_monitoring_status()
+        if input_monitoring is True:
+            print("✅ Input Monitoring permission granted")
+        elif input_monitoring is False:
+            warning = (
+                "Input Monitoring permission not granted — the dictation "
+                "hotkey may not respond. Enable OpenVoiceFlow in System "
+                "Settings -> Privacy & Security -> Input Monitoring, then "
+                "relaunch the app."
+            )
+            print(f"⚠️  {warning}")
+            self.setup_warnings.append(("input_monitoring", warning))
+            from . import notify
+            notify.warn(
+                warning,
+                action=(
+                    "Open Input Monitoring Settings",
+                    _INPUT_MONITORING_SETTINGS_URL,
+                ),
+            )
+
+        self.setup_errors = errors
         if errors:
             print("\n❌ Setup issues:")
             for e in errors:
@@ -255,6 +300,7 @@ class OpenVoiceFlow:
 
     def on_key_press(self, key):
         try:
+            self._any_key_event_seen = True
             hotkey = self.config["hotkey"]
             target = self._get_key_map().get(hotkey)
             if hotkey == "left_fn" and target and key == target:
@@ -264,11 +310,72 @@ class OpenVoiceFlow:
         except Exception:
             pass
 
-    def start_hotkey_runtime_checks(self):
-        """Start non-blocking runtime checks for fn hotkey reliability."""
+    # Seconds to wait for the first key event before concluding the listener
+    # is receiving nothing. Long enough that a normal launch-then-type flow
+    # registers an event first; short enough that a dead setup surfaces
+    # while the user is still paying attention.
+    _DEAD_LISTENER_WINDOW = 15
+
+    def _check_dead_listener(self, on_dead_hotkey=None):
+        """Escalate when the listener is up but macOS delivers no events.
+
+        Fires the modal path only when the static Input Monitoring probe
+        agrees the permission is denied — an idle user alone must not
+        trigger the alarm (they get a one-time gentle tip instead).
+        """
+        if self._any_key_event_seen:
+            return
+        from . import notify
+        if platform_support.input_monitoring_status() is False:
+            message = (
+                "OpenVoiceFlow isn't receiving keyboard events, and macOS "
+                "reports Input Monitoring is not granted — the dictation "
+                "hotkey will not work. Enable OpenVoiceFlow in System "
+                "Settings > Privacy & Security > Input Monitoring, then "
+                "relaunch the app."
+            )
+            if on_dead_hotkey is not None:
+                try:
+                    on_dead_hotkey(message)
+                    return
+                except Exception:
+                    pass
+            notify.error(
+                message,
+                action=(
+                    "Open Input Monitoring Settings",
+                    _INPUT_MONITORING_SETTINGS_URL,
+                ),
+            )
+        else:
+            notify.tip(
+                "No key events seen yet. If the dictation hotkey doesn't "
+                "respond, check System Settings > Privacy & Security > "
+                "Input Monitoring and relaunch the app.",
+                once_key="hotkey_no_events",
+            )
+
+    def start_hotkey_runtime_checks(self, on_dead_hotkey=None):
+        """Start non-blocking runtime checks for hotkey reliability.
+
+        ``on_dead_hotkey`` receives a message (from a daemon thread) when
+        the listener has been up for the watch window without a single key
+        event AND Input Monitoring is denied — the signature of a silently
+        dead listener. Menubar mode passes a modal-alert callback; CLI mode
+        falls back to a Notification Center error.
+        """
         if self._fn_probe_started:
             return
         self._fn_probe_started = True
+
+        def _watch_key_events():
+            time.sleep(self._DEAD_LISTENER_WINDOW)
+            self._check_dead_listener(on_dead_hotkey)
+
+        watchdog = threading.Thread(
+            target=_watch_key_events, daemon=True, name="ovf-hotkey-watchdog"
+        )
+        watchdog.start()
 
         if self.config.get("hotkey") != "left_fn":
             return
@@ -301,6 +408,7 @@ class OpenVoiceFlow:
 
     def on_key_release(self, key):
         try:
+            self._any_key_event_seen = True
             hotkey = self.config["hotkey"]
             target = self._get_key_map().get(hotkey)
             if target and key == target and self.is_recording:

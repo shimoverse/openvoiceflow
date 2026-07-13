@@ -33,8 +33,13 @@ def test_launcher_requests_permissions_and_shows_only_one_fallback_dialog() -> N
     assert "AXIsProcessTrustedWithOptions" in launcher_source
     assert "kAXTrustedCheckOptionPrompt" in launcher_source
     assert "Open Microphone Settings" in launcher_source
+    # Input Monitoring is what the pynput hotkey listener actually needs;
+    # without this request the hotkey silently receives no events.
+    assert "IOHIDRequestAccess" in launcher_source
+    assert "kIOHIDRequestTypeListenEvent" in launcher_source
     assert '-framework AVFoundation' in build_script
     assert '-framework ApplicationServices' in build_script
+    assert '-framework IOKit' in build_script
     assert 'Contents/Resources/launcher.sh' in build_script
     assert "ask_permission_help" not in build_script
     assert "ask_permissions_menu" not in build_script

@@ -1,6 +1,7 @@
 #import <AppKit/AppKit.h>
 #import <ApplicationServices/ApplicationServices.h>
 #import <AVFoundation/AVFoundation.h>
+#import <IOKit/hid/IOHIDLib.h>
 
 static BOOL isSmokeTest(void) {
     const char *value = getenv("OVF_SMOKE_TEST");
@@ -64,6 +65,16 @@ static void requestAccessibilityAccess(void) {
     CFRelease(options);
 }
 
+static void requestInputMonitoringAccess(void) {
+    // The dictation hotkey listener (a listen-only CGEventTap) needs the
+    // Input Monitoring TCC service. Request it at first launch so the
+    // prompt is attributed to OpenVoiceFlow.app — without the grant the
+    // listener silently receives no key events and the hotkey looks dead.
+    if (IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) != kIOHIDAccessTypeGranted) {
+        IOHIDRequestAccess(kIOHIDRequestTypeListenEvent);
+    }
+}
+
 static void showBootstrapFailure(int status) {
     NSAlert *alert = [[NSAlert alloc] init];
     alert.messageText = @"OpenVoiceFlow could not finish starting";
@@ -117,6 +128,7 @@ int main(int argc, const char *argv[]) {
                 showMicrophoneHelp();
             }
             requestAccessibilityAccess();
+            requestInputMonitoringAccess();
         }
 
         return runBootstrap(argc, argv);

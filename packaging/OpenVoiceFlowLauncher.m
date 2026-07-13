@@ -1,7 +1,7 @@
 #import <AppKit/AppKit.h>
 #import <ApplicationServices/ApplicationServices.h>
 #import <AVFoundation/AVFoundation.h>
-#import <IOKit/hid/IOHIDLib.h>
+#import <IOKit/hidsystem/IOHIDLib.h>
 
 static BOOL isSmokeTest(void) {
     const char *value = getenv("OVF_SMOKE_TEST");

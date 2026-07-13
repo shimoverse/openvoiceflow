@@ -39,8 +39,16 @@ def render_launcher() -> str:
     script = "LAUNCHER_ARCH=arm64\ncat <<LAUNCHER\n" + body + "\nLAUNCHER\n"
     rendered = subprocess.run(
         ["bash", "-c", script], capture_output=True, text=True, check=True,
-    )
-    return rendered.stdout
+    ).stdout
+    # Neutralize the two hardcoded `eval "$(/opt/homebrew/bin/brew shellenv)"`
+    # probes. On a real macOS runner those files exist and brew shellenv
+    # re-prepends /opt/homebrew/bin ahead of our PATH shims — shadowing the
+    # fake python3/brew/whisper and letting the launcher run real installs.
+    # Pointing them at a nonexistent path keeps the shim PATH authoritative
+    # on every platform; the brew-env import is not what these tests cover.
+    rendered = rendered.replace("/opt/homebrew/bin/brew", "/nonexistent/ovf-test-brew")
+    rendered = rendered.replace("/usr/local/bin/brew", "/nonexistent/ovf-test-brew")
+    return rendered
 
 
 def write_shim(bindir: Path, name: str, body: str) -> None:

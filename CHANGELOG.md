@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — first launch could silently do nothing (no menu bar icon, no wizard)
+These fix the DMG bootstrap layer (`build-dmg.sh` launcher + native launcher),
+complementing the app-level visibility work below.
+- **Stale bootstrap lock.** `~/.openvoiceflow/.bootstrap.lock` survives reboots,
+  and its stored pid could be reused by an unrelated live process — the alive
+  check then matched, so every launch exited silently forever. The lock now
+  only counts when the pid is alive *and* is really our `launcher.sh`.
+- **Command Line Tools stub.** `command -v python3` always succeeds on macOS
+  (Apple ships an installer stub), so a Mac without the Command Line Tools got
+  past the check and failed later with no message. First launch now probes
+  `xcode-select`, triggers the CLT installer, and shows instructions.
+- **Broken venv skipped as "installed".** A macOS/CLT update can break the
+  venv's interpreter or native wheels while the `.ovf-deps-installed` marker
+  stays present, so the bootstrap was skipped and every launch died on import.
+  The launcher now health-checks the venv (imports numpy/sounddevice/pynput/
+  rumps/objc) and rebuilds it when the check fails.
+- **Silent progress + silent fallbacks.** First launch now shows an up-front
+  dialog explaining the ~5-minute setup and where the menu bar icon appears
+  (including the 14"/16" notch tip); the venv/pip steps fail with a visible
+  dialog instead of exiting quietly; a skipped setup wizard and a menu-bar
+  (rumps) failure now say so instead of dropping to an invisible background
+  process.
+- **Input Monitoring permission (native launcher).** The native launcher now
+  proactively requests Input Monitoring (`IOHIDRequestAccess`) at first launch,
+  in addition to Microphone and Accessibility, so the grant is in place before
+  the dead-listener watchdog would ever need to fire.
+
 ### Fixed
 - Startup now checks the **Input Monitoring** permission — the one the
   global hotkey listener actually needs. It was never verified (only the
@@ -70,6 +97,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   versions ("12") no longer compare below the (12, 0) minimum.
 
 ### Added
+- CI now compiles the native launcher (`clang -fsyntax-only`) and runs a
+  functional test suite (`tests/test_launcher_flows.py`) that renders the real
+  `launcher.sh` and exercises the stale-lock, missing-CLT, broken-venv, and
+  first-run-visibility paths with shimmed macOS commands.
 - The menu-bar app now shows a **Dock icon** while running (toggleable via
   **Advanced → Show in Dock**, default on). A menu-bar-only icon can hide
   behind a MacBook notch, leaving no visible sign the app is running;

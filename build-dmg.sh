@@ -184,14 +184,21 @@ _acquire_bootstrap_lock() {
         return 0
     fi
 
-    # Stale lock recovery: clear lock if owner pid is gone.
+    # Stale lock recovery. A bare pid-alive test is NOT enough: the lock
+    # dir survives reboots and after a reboot the stored pid is routinely
+    # reused by an unrelated process — that false positive made every
+    # subsequent launch exit here silently, forever. Only honor the lock
+    # when the pid is alive AND is really our bootstrap script.
     if [[ -f "\$BOOTSTRAP_LOCK_PID" ]]; then
         local owner_pid
         owner_pid="\$(cat "\$BOOTSTRAP_LOCK_PID" 2>/dev/null || true)"
-        if [[ -n "\$owner_pid" ]] && ps -p "\$owner_pid" >/dev/null 2>&1; then
-            notify "OpenVoiceFlow is already starting. Please wait."
+        if [[ -n "\$owner_pid" ]] \
+                && ps -p "\$owner_pid" -o command= 2>/dev/null | grep -q "launcher.sh"; then
+            echo "[\$(date)] bootstrap already running (pid \$owner_pid)"
+            alert "OpenVoiceFlow is already starting — give it a minute.\n\nWhen it is ready the microphone icon appears at the top-right of the menu bar."
             return 1
         fi
+        echo "[\$(date)] clearing stale bootstrap lock (pid \$owner_pid)"
     fi
 
     rm -rf "\$BOOTSTRAP_LOCK_DIR" >/dev/null 2>&1 || true
@@ -200,7 +207,7 @@ _acquire_bootstrap_lock() {
         return 0
     fi
 
-    notify "OpenVoiceFlow is already starting. Please wait."
+    alert "OpenVoiceFlow is already starting — give it a minute.\n\nWhen it is ready the microphone icon appears at the top-right of the menu bar."
     return 1
 }
 
@@ -214,7 +221,14 @@ _release_bootstrap_lock() {
 }
 trap _release_bootstrap_lock EXIT INT TERM
 
-command -v python3 &>/dev/null || fatal "Python 3 not found. Run in Terminal: xcode-select --install"
+# 'command -v python3' proves nothing on macOS: /usr/bin/python3 exists even
+# without the Command Line Tools (it is Apple's installer stub). Probe the
+# toolchain for real, and pop the Apple CLT installer when it is missing.
+if ! xcode-select -p >/dev/null 2>&1; then
+    xcode-select --install >/dev/null 2>&1 || true
+    fatal "OpenVoiceFlow needs Apple's free Command Line Tools (one-time install).\n\nmacOS should now be showing an install prompt - click Install, wait for it to finish, then open OpenVoiceFlow again.\n\nIf no prompt appeared, open Terminal and run: xcode-select --install"
+fi
+python3 -c 'import sys' >/dev/null 2>&1 || fatal "Python 3 is not working on this Mac.\n\nOpen Terminal, run: xcode-select --install\nthen open OpenVoiceFlow again.\n\nLog: \$LOG"
 
 if ! command -v brew &>/dev/null; then
     alert "Homebrew is needed (one-time). Terminal will open to install it.\n\nRelaunch OpenVoiceFlow when the Terminal says Done."
@@ -223,19 +237,45 @@ if ! command -v brew &>/dev/null; then
     exit 0
 fi
 
+# A completion marker (not the venv python) gates the bootstrap: if pip
+# failed after venv creation, checking for \$PY alone would skip the install
+# forever and every launch would die on missing imports.
+DEPS_MARKER="\$VENV/.ovf-deps-installed"
+MODEL="\$HOME_DIR/models/ggml-base.en.bin"
+
+# The marker alone is not proof of health: a macOS or Command Line Tools
+# update can break the venv's python link or its native wheels, after which
+# every launch died silently. Verify the interpreter and imports actually
+# work; rebuild from scratch when they don't.
+if [[ -f "\$PY" && -f "\$DEPS_MARKER" ]]; then
+    if ! "\$PY" -c "import numpy, sounddevice, pynput, rumps, objc" >/dev/null 2>&1; then
+        echo "[\$(date)] venv failed its health check - rebuilding"
+        notify "Repairing OpenVoiceFlow installation..."
+        rm -rf "\$VENV"
+    fi
+fi
+
+# Tell the user what is about to happen BEFORE the silent multi-minute
+# stretch (brew install + pip + 142 MB model). 'display notification'
+# progress lines can be suppressed by macOS, so the one thing the user is
+# guaranteed to see is this dialog.
+FIRST_RUN_WORK=""
+command -v whisper-cli &>/dev/null || command -v whisper-cpp &>/dev/null || FIRST_RUN_WORK=1
+[[ -f "\$PY" && -f "\$DEPS_MARKER" ]] || FIRST_RUN_WORK=1
+[[ -f "\$MODEL" ]] || FIRST_RUN_WORK=1
+if [[ -n "\$FIRST_RUN_WORK" ]]; then
+    alert "First-time setup: OpenVoiceFlow will now install its speech engine and download the speech model. This takes about 5 minutes and needs internet.\n\nThere is no window while this runs. When it finishes, look for the microphone icon at the TOP-RIGHT of the menu bar.\n\nTip: on 14-inch and 16-inch MacBooks a full menu bar hides new icons behind the notch - close a few menu bar apps if you do not see it."
+fi
+
 if ! command -v whisper-cli &>/dev/null && ! command -v whisper-cpp &>/dev/null; then
     notify "Installing whisper-cpp..."
     brew install whisper-cpp || fatal "whisper-cpp install failed. Try: brew install whisper-cpp\nLog: \$LOG"
 fi
 
-# A completion marker (not the venv python) gates the bootstrap: if pip
-# failed after venv creation, checking for \$PY alone would skip the install
-# forever and every launch would die on missing imports.
-DEPS_MARKER="\$VENV/.ovf-deps-installed"
 if [[ ! -f "\$PY" || ! -f "\$DEPS_MARKER" ]]; then
     notify "First run setup (~1 min)..."
-    python3 -m venv "\$VENV"
-    "\$VENV/bin/pip" install -q --upgrade pip
+    python3 -m venv "\$VENV" || fatal "Could not create the Python environment. If macOS just asked to install the Command Line Tools, finish that install and open OpenVoiceFlow again.\n\nLog: \$LOG"
+    "\$VENV/bin/pip" install -q --upgrade pip || fatal "Python package tooling failed to update. Check your internet connection and open OpenVoiceFlow again.\n\nLog: \$LOG"
     "\$VENV/bin/pip" install -q sounddevice numpy pynput rumps pyobjc-framework-Cocoa || fatal "Package install failed. Relaunch OpenVoiceFlow to retry. Log: \$LOG"
     touch "\$DEPS_MARKER"
 fi
@@ -244,11 +284,14 @@ notify "OpenVoiceFlow is launching..."
 
 # Sync source code (supports future updates without reinstall)
 SITE="\$("\$PY" -c "import site; print(site.getsitepackages()[0])" 2>/dev/null)"
-[[ -n "\$SITE" ]] && rm -rf "\$SITE/voiceflow" 2>/dev/null && cp -R "\$RESOURCES/voiceflow" "\$SITE/"
+if [[ -n "\$SITE" ]]; then
+    rm -rf "\$SITE/voiceflow" 2>/dev/null && cp -R "\$RESOURCES/voiceflow" "\$SITE/"
+else
+    echo "[\$(date)] WARN: could not locate site-packages; keeping previously synced app code"
+fi
 
 # --fail + temp-file + move: an HTTP error page or interrupted transfer must
 # never be left at \$MODEL, where it would be treated as a valid model forever.
-MODEL="\$HOME_DIR/models/ggml-base.en.bin"
 if [[ ! -f "\$MODEL" ]]; then
     notify "Downloading speech model (~142 MB, once)..."
     curl -fL --retry 3 --progress-bar -o "\$MODEL.download" \
@@ -293,6 +336,22 @@ def _needs_setup(cfg):
     return not (has_key or backend in ['ollama', 'none'])
 
 
+def _dialog(message):
+    # AppleScript needs double-quoted strings; build them via chr(34) so this
+    # python block stays free of double quotes (it is nested in bash -c).
+    try:
+        q = chr(34)
+        script = ('display dialog ' + q + message + q
+                  + ' with title ' + q + 'OpenVoiceFlow' + q
+                  + ' buttons {' + q + 'OK' + q + '}'
+                  + ' default button ' + q + 'OK' + q
+                  + ' with icon caution')
+        subprocess.run(['osascript', '-e', script], check=False, timeout=120,
+                       capture_output=True)
+    except Exception:
+        pass
+
+
 cfg = _load_cfg()
 needs_setup = _needs_setup(cfg)
 
@@ -306,12 +365,26 @@ if needs_setup:
         print(f'Onboarding error: {e}')
 
     # If onboarding could not complete (for example no tkinter),
-    # fall back to local raw mode so first launch still succeeds.
+    # fall back to local raw mode so first launch still succeeds —
+    # but say so out loud: a silently skipped wizard reads as a hang.
     cfg = _load_cfg()
     if _needs_setup(cfg):
         cfg['llm_backend'] = 'none'
         _save_cfg(cfg)
         print('No API key configured. Falling back to local mode (backend=none).')
+        _dialog('The setup wizard could not open on this Mac, so OpenVoiceFlow '
+                'starts in local-only mode: dictation works, AI text cleanup is off. '
+                'You can add a cleanup provider later from the menu bar or by '
+                'running openvoiceflow --setup in Terminal.')
+
+# The menu bar icon IS the app for the user. If rumps cannot even import,
+# do not fall back to an invisible background listener — fail loudly so the
+# native launcher shows the log dialog (exit status 3).
+try:
+    import rumps  # noqa: F401
+except Exception as e:
+    print(f'rumps unavailable: {e}')
+    sys.exit(3)
 
 try:
     from voiceflow.menubar import run_menubar
@@ -320,6 +393,9 @@ except Exception as e:
     import traceback
     print(f'Menu bar error: {e}')
     traceback.print_exc()
+    _dialog('OpenVoiceFlow could not show its menu bar icon, so it is running '
+            'in background-only mode. The dictation hotkey may still work. '
+            'Details: ~/OpenVoiceFlow/launcher.log')
     from voiceflow.app import OpenVoiceFlow
     OpenVoiceFlow().run()
 "
@@ -328,7 +404,8 @@ LAUNCHER
     chmod +x "$BOOTSTRAP"
     /usr/bin/clang -fobjc-arc -fblocks -arch "$ARCH" -mmacosx-version-min=12.0 \
         "$LAUNCHER_SOURCE" -framework Cocoa -framework AVFoundation \
-        -framework ApplicationServices -o "$APP_DIR/Contents/MacOS/${APP_NAME}"
+        -framework ApplicationServices -framework IOKit \
+        -o "$APP_DIR/Contents/MacOS/${APP_NAME}"
     sign_app_if_requested "$APP_DIR"
 
     local STAGING="$DIST_DIR/staging-$ARCH"

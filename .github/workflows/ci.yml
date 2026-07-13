@@ -95,3 +95,7 @@ jobs:
         run: python -m build
       - name: Twine check
         run: twine check dist/*
+      - name: Native launcher compiles
+        # Syntax/type check only (no signing, no linking) so a broken
+        # OpenVoiceFlowLauncher.m is caught in CI, not at release time.
+        run: clang -fsyntax-only -fobjc-arc -fblocks packaging/OpenVoiceFlowLauncher.m

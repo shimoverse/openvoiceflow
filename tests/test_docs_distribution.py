@@ -5,9 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
-RELEASE_VERSION = "0.3.4"
-ARM64_SHA256 = "e31676da9a446fd2df67ea65e5ea79d6060193aada486b1f32dc786f6b7696a8"
-X86_64_SHA256 = "4cdf427885a5f1c11e6b933429335863f1aa08f7090c58be6a84d3cb42c124fe"
+RELEASE_VERSION = "0.3.5"
+ARM64_SHA256 = "5393deb12e586b433cd7734beda2cd25ca8db8614825d0fb06cf369a6289b195"
+X86_64_SHA256 = "51628f5233693236eef14bb6a0b8d496507bfc2e72e7fd4a7c6d4aca7e48fa7e"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html"]
 
 

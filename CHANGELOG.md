@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] — 2026-07-13
+
 ### Fixed — first launch could silently do nothing (no menu bar icon, no wizard)
 These fix the DMG bootstrap layer (`build-dmg.sh` launcher + native launcher),
 complementing the app-level visibility work below.

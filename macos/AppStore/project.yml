@@ -1,0 +1,70 @@
+name: OpenVoiceFlowStore
+options:
+  bundleIdPrefix: com.shimoverse
+  deploymentTarget:
+    macOS: "13.3"
+  createIntermediateGroups: true
+packages:
+  WhisperBinary:
+    path: WhisperPackage
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    MACOSX_DEPLOYMENT_TARGET: "13.3"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: T7Y3Y5NAVD
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_STRICT_CONCURRENCY: minimal
+targets:
+  OpenVoiceFlowStore:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+    resources:
+      - Resources
+      - BuildResources/Models
+    dependencies:
+      - package: WhisperBinary
+        product: WhisperBinary
+    preBuildScripts:
+      - name: Prepare verified Whisper model
+        path: Scripts/prepare-model.sh
+        basedOnDependencyAnalysis: false
+    settings:
+      base:
+        PRODUCT_NAME: OpenVoiceFlow
+        PRODUCT_MODULE_NAME: OpenVoiceFlowStore
+        PRODUCT_BUNDLE_IDENTIFIER: com.shimoverse.openvoiceflow
+        INFOPLIST_FILE: Config/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Config/OpenVoiceFlowStore.entitlements
+        MARKETING_VERSION: 0.3.5
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: NO
+        COMBINE_HIDPI_IMAGES: YES
+        OTHER_LDFLAGS:
+          - "$(inherited)"
+          - -framework
+          - Carbon
+  OpenVoiceFlowStoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+    dependencies:
+      - target: OpenVoiceFlowStore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shimoverse.openvoiceflow.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/OpenVoiceFlow.app/Contents/MacOS/OpenVoiceFlow"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  OpenVoiceFlowStore:
+    build:
+      targets:
+        OpenVoiceFlowStore: all
+        OpenVoiceFlowStoreTests: [test]
+    test:
+      targets:
+        - OpenVoiceFlowStoreTests

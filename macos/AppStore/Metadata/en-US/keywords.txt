@@ -1,0 +1,1 @@
+voice,dictation,transcription,speech,whisper,local,privacy,productivity,offline,clipboard

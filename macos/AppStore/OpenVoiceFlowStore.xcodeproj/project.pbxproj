@@ -1,0 +1,509 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		119C6C9C13385DA275D564EF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6387635D4F51D78680A90C0 /* AppDelegate.swift */; };
+		1FBF8F0E1FCF68961D09FABA /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68A1E22E8F63F137B17F7BD /* AppModel.swift */; };
+		3B0D15B8028D934851EA1A28 /* OpenVoiceFlowStoreApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5C83F2A6250E1BCBFF1C019 /* OpenVoiceFlowStoreApp.swift */; };
+		4522F9C4975097A4D92DEFD0 /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C40781861A7787AF62DCC9E /* AudioCapture.swift */; };
+		45C61C8779AAE5EC5394A439 /* HotKeyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26A76A1CCFEA3FD2A5F62A10 /* HotKeyMonitor.swift */; };
+		9B8A5FA13D6ACC1F91079B0B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057738F03659F6C0C2923A7F /* ContentView.swift */; };
+		A8DAAE838C61D4C3A97F3E87 /* LocalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E77394DD136BDD1815F4CC1 /* LocalStore.swift */; };
+		BE2342226A96791C486C4053 /* AppModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D08CB94D2420852C240C2468 /* AppModelTests.swift */; };
+		D9CB4D0E071691FDC1655002 /* WhisperBinary in Frameworks */ = {isa = PBXBuildFile; productRef = A0DD0CAB42F40FCBFF153F5F /* WhisperBinary */; };
+		F6A66F1C2FA491830D988CAD /* WhisperContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12193920A848384E8CEE6B3 /* WhisperContext.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		77191CB4F7F17BF9E7970FF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64DE050E87A80281885F95B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01D033828CB9B8E2237616D0;
+			remoteInfo = OpenVoiceFlowStore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		057738F03659F6C0C2923A7F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		0B144D551B0B375C18B0D383 /* WhisperPackage */ = {isa = PBXFileReference; lastKnownFileType = folder; name = WhisperPackage; path = WhisperPackage; sourceTree = SOURCE_ROOT; };
+		0C40781861A7787AF62DCC9E /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
+		0E77394DD136BDD1815F4CC1 /* LocalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStore.swift; sourceTree = "<group>"; };
+		26A76A1CCFEA3FD2A5F62A10 /* HotKeyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyMonitor.swift; sourceTree = "<group>"; };
+		6014CA823E920C0ED7AFCB18 /* OpenVoiceFlowStore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenVoiceFlowStore.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C4BF18AF1903C83E27218C4 /* OpenVoiceFlowStoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenVoiceFlowStoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6387635D4F51D78680A90C0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		C5C83F2A6250E1BCBFF1C019 /* OpenVoiceFlowStoreApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenVoiceFlowStoreApp.swift; sourceTree = "<group>"; };
+		D08CB94D2420852C240C2468 /* AppModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelTests.swift; sourceTree = "<group>"; };
+		E12193920A848384E8CEE6B3 /* WhisperContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperContext.swift; sourceTree = "<group>"; };
+		E68A1E22E8F63F137B17F7BD /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E055BD1BA589F31661D39CF8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9CB4D0E071691FDC1655002 /* WhisperBinary in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2570CA4481ABA89B6979CC16 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				D08CB94D2420852C240C2468 /* AppModelTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		2734335B279D6B85BCF75660 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				B6387635D4F51D78680A90C0 /* AppDelegate.swift */,
+				E68A1E22E8F63F137B17F7BD /* AppModel.swift */,
+				0C40781861A7787AF62DCC9E /* AudioCapture.swift */,
+				057738F03659F6C0C2923A7F /* ContentView.swift */,
+				26A76A1CCFEA3FD2A5F62A10 /* HotKeyMonitor.swift */,
+				0E77394DD136BDD1815F4CC1 /* LocalStore.swift */,
+				C5C83F2A6250E1BCBFF1C019 /* OpenVoiceFlowStoreApp.swift */,
+				E12193920A848384E8CEE6B3 /* WhisperContext.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		58DDD2D6528A074917694329 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				0B144D551B0B375C18B0D383 /* WhisperPackage */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		6B7FF366220B75484C75D9FC = {
+			isa = PBXGroup;
+			children = (
+				58DDD2D6528A074917694329 /* Packages */,
+				2734335B279D6B85BCF75660 /* Sources */,
+				2570CA4481ABA89B6979CC16 /* Tests */,
+				811B3FBBA0459B497C637443 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		811B3FBBA0459B497C637443 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6014CA823E920C0ED7AFCB18 /* OpenVoiceFlowStore.app */,
+				9C4BF18AF1903C83E27218C4 /* OpenVoiceFlowStoreTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		01D033828CB9B8E2237616D0 /* OpenVoiceFlowStore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1FED204E96D0C08DF9A6574F /* Build configuration list for PBXNativeTarget "OpenVoiceFlowStore" */;
+			buildPhases = (
+				15C58D47B34F370DBC3C5462 /* Prepare verified Whisper model */,
+				269A87FC112AB718B62FFEEE /* Sources */,
+				E055BD1BA589F31661D39CF8 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OpenVoiceFlowStore;
+			packageProductDependencies = (
+				A0DD0CAB42F40FCBFF153F5F /* WhisperBinary */,
+			);
+			productName = OpenVoiceFlowStore;
+			productReference = 6014CA823E920C0ED7AFCB18 /* OpenVoiceFlowStore.app */;
+			productType = "com.apple.product-type.application";
+		};
+		94645AFB92CBF9544B5B4B2B /* OpenVoiceFlowStoreTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A30A005CD4AE32DEB5128527 /* Build configuration list for PBXNativeTarget "OpenVoiceFlowStoreTests" */;
+			buildPhases = (
+				D4157E0B9EF977D53F38885D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C9E6F740FA94A5A331B91ACF /* PBXTargetDependency */,
+			);
+			name = OpenVoiceFlowStoreTests;
+			packageProductDependencies = (
+			);
+			productName = OpenVoiceFlowStoreTests;
+			productReference = 9C4BF18AF1903C83E27218C4 /* OpenVoiceFlowStoreTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		64DE050E87A80281885F95B5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					01D033828CB9B8E2237616D0 = {
+						DevelopmentTeam = T7Y3Y5NAVD;
+						ProvisioningStyle = Automatic;
+					};
+					94645AFB92CBF9544B5B4B2B = {
+						DevelopmentTeam = T7Y3Y5NAVD;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 2C2814522B223D26221D76E3 /* Build configuration list for PBXProject "OpenVoiceFlowStore" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6B7FF366220B75484C75D9FC;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				27B4145CBA06F43387013480 /* XCLocalSwiftPackageReference "WhisperPackage" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 811B3FBBA0459B497C637443 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				01D033828CB9B8E2237616D0 /* OpenVoiceFlowStore */,
+				94645AFB92CBF9544B5B4B2B /* OpenVoiceFlowStoreTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		15C58D47B34F370DBC3C5462 /* Prepare verified Whisper model */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Prepare verified Whisper model";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/bash\nset -euo pipefail\n\nROOT=\"${SRCROOT:-$(cd \"$(dirname \"$0\")/..\" && pwd)}\"\nDEST=\"$ROOT/BuildResources/Models/ggml-base.en.bin\"\nLOCAL_SOURCE=\"${OPENVOICEFLOW_MODEL_SOURCE:-$HOME/.openvoiceflow/models/ggml-base.en.bin}\"\nURL=\"https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin\"\nSHA256=\"a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002\"\nEXPECTED_BYTES=147964211\n\nverify_model() {\n    local file=\"$1\"\n    [[ -f \"$file\" ]] || return 1\n    [[ \"$(stat -f %z \"$file\")\" == \"$EXPECTED_BYTES\" ]] || return 1\n    [[ \"$(shasum -a 256 \"$file\" | cut -d ' ' -f 1)\" == \"$SHA256\" ]]\n}\n\nmkdir -p \"$(dirname \"$DEST\")\"\nif verify_model \"$DEST\"; then\n    echo \"Verified bundled Whisper model: $DEST\"\n    exit 0\nfi\nrm -f \"$DEST\" \"$DEST.download\"\n\nif verify_model \"$LOCAL_SOURCE\"; then\n    cp \"$LOCAL_SOURCE\" \"$DEST\"\nelse\n    echo \"Downloading pinned Whisper model data...\"\n    curl -fL --retry 3 --progress-bar -o \"$DEST.download\" \"$URL\"\n    mv \"$DEST.download\" \"$DEST\"\nfi\n\nif ! verify_model \"$DEST\"; then\n    rm -f \"$DEST\"\n    echo \"error: Whisper model failed size/SHA-256 verification\" >&2\n    exit 1\nfi\n\necho \"Prepared checksum-verified model at BuildResources/Models/ggml-base.en.bin\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		269A87FC112AB718B62FFEEE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				119C6C9C13385DA275D564EF /* AppDelegate.swift in Sources */,
+				1FBF8F0E1FCF68961D09FABA /* AppModel.swift in Sources */,
+				4522F9C4975097A4D92DEFD0 /* AudioCapture.swift in Sources */,
+				9B8A5FA13D6ACC1F91079B0B /* ContentView.swift in Sources */,
+				45C61C8779AAE5EC5394A439 /* HotKeyMonitor.swift in Sources */,
+				A8DAAE838C61D4C3A97F3E87 /* LocalStore.swift in Sources */,
+				3B0D15B8028D934851EA1A28 /* OpenVoiceFlowStoreApp.swift in Sources */,
+				F6A66F1C2FA491830D988CAD /* WhisperContext.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4157E0B9EF977D53F38885D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE2342226A96791C486C4053 /* AppModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C9E6F740FA94A5A331B91ACF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01D033828CB9B8E2237616D0 /* OpenVoiceFlowStore */;
+			targetProxy = 77191CB4F7F17BF9E7970FF1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		36F16154A25A06E5C62C14D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.shimoverse.openvoiceflow.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenVoiceFlow.app/Contents/MacOS/OpenVoiceFlow";
+			};
+			name = Release;
+		};
+		46287451E49BFDD98CC2A983 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Config/OpenVoiceFlowStore.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.3.5;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Carbon,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.shimoverse.openvoiceflow;
+				PRODUCT_MODULE_NAME = OpenVoiceFlowStore;
+				PRODUCT_NAME = OpenVoiceFlow;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		5CAA314DE9564CC7C719DBA4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = T7Y3Y5NAVD;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		60852A012C0A13B96A7200F2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.shimoverse.openvoiceflow.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenVoiceFlow.app/Contents/MacOS/OpenVoiceFlow";
+			};
+			name = Debug;
+		};
+		845689B6D1A450040C188692 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Config/OpenVoiceFlowStore.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Config/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.3.5;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Carbon,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.shimoverse.openvoiceflow;
+				PRODUCT_MODULE_NAME = OpenVoiceFlowStore;
+				PRODUCT_NAME = OpenVoiceFlow;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		C88A42EAD116642104DCF477 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = T7Y3Y5NAVD;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1FED204E96D0C08DF9A6574F /* Build configuration list for PBXNativeTarget "OpenVoiceFlowStore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				46287451E49BFDD98CC2A983 /* Debug */,
+				845689B6D1A450040C188692 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2C2814522B223D26221D76E3 /* Build configuration list for PBXProject "OpenVoiceFlowStore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5CAA314DE9564CC7C719DBA4 /* Debug */,
+				C88A42EAD116642104DCF477 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A30A005CD4AE32DEB5128527 /* Build configuration list for PBXNativeTarget "OpenVoiceFlowStoreTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				60852A012C0A13B96A7200F2 /* Debug */,
+				36F16154A25A06E5C62C14D2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		27B4145CBA06F43387013480 /* XCLocalSwiftPackageReference "WhisperPackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = WhisperPackage;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A0DD0CAB42F40FCBFF153F5F /* WhisperBinary */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WhisperBinary;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 64DE050E87A80281885F95B5 /* Project object */;
+}

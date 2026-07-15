@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy — OpenVoiceFlow</title>
+  <meta name="description" content="How OpenVoiceFlow handles dictation, local data, optional cloud cleanup, and privacy controls." />
+  <link rel="canonical" href="https://openvoiceflow.vercel.app/privacy.html" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="nav"><div class="nav-inner container"><a href="index.html" class="nav-logo"><span class="nav-logo-emoji">🎙️</span><span class="nav-logo-text">OpenVoiceFlow</span></a><ul class="nav-links"><li><a href="download.html">Download</a></li><li><a href="support.html">Support</a></li></ul></div></nav>
+  <main class="section page-hero"><div class="container">
+    <div class="section-header"><span class="section-label">Privacy</span><h1 class="section-title">Your words stay yours.</h1><p class="section-sub">OpenVoiceFlow is designed to work on your Mac without an account, tracking, or a hosted OpenVoiceFlow service.</p></div>
+    <article class="wide-card content-card">
+      <h2>What stays on your Mac</h2>
+      <p>Microphone audio is transcribed locally with whisper.cpp. Your profile, dictionary, correction preferences, and local usage insights are stored on your Mac. Audio is temporary and is deleted after processing unless you deliberately save it.</p>
+      <h2>Direct download versus Mac App Store edition</h2>
+      <p>The direct download can optionally send cleaned text to an LLM provider you choose. The planned Mac App Store edition is self-contained: it uses a bundled local speech engine and does not include cloud cleanup, analytics uploads, advertising, or runtime network calls.</p>
+      <h2>Your choices</h2>
+      <ul class="check-list"><li>Local transcript history is off by default in the native app.</li><li>Learning from post-paste corrections is optional and reviewable.</li><li>You can inspect, export, clear, or reset local profile, dictionary, correction, and insight data.</li><li>No OpenVoiceFlow account, telemetry service, or cloud sync is required.</li></ul>
+      <h2>Important direct-download choice</h2>
+      <p>If you select OpenRouter, OpenAI, Anthropic, Groq, or another cloud cleanup backend in the direct build, that provider receives the text you ask it to clean and any selected context enabled in your settings. Choose <strong>none</strong> or a local backend when you do not want text sent to a provider.</p>
+      <h2>Full technical policy</h2>
+      <p>The repository keeps the detailed, versioned <a href="https://github.com/shimoverse/openvoiceflow/blob/main/PRIVACY.md">Privacy Policy</a>, including the direct-build data inventory and controls.</p>
+    </article>
+  </div></main>
+</body>
+</html>

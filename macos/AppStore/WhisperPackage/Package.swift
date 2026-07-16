@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "WhisperBinary",
-    platforms: [.macOS(.v13_3)],
+    platforms: [.macOS(.v13)],
     products: [
         .library(name: "WhisperBinary", targets: ["whisper"]),
     ],

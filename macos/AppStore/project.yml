@@ -33,6 +33,9 @@ targets:
         basedOnDependencyAnalysis: false
     settings:
       base:
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "3rd Party Mac Developer Application"
+        PROVISIONING_PROFILE_SPECIFIER: "OpenVoiceFlow Mac App Store Profile"
         PRODUCT_NAME: OpenVoiceFlow
         PRODUCT_MODULE_NAME: OpenVoiceFlowStore
         PRODUCT_BUNDLE_IDENTIFIER: com.shimoverse.openvoiceflow

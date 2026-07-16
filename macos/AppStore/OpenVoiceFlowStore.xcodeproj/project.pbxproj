@@ -158,7 +158,7 @@
 				TargetAttributes = {
 					01D033828CB9B8E2237616D0 = {
 						DevelopmentTeam = T7Y3Y5NAVD;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 					94645AFB92CBF9544B5B4B2B = {
 						DevelopmentTeam = T7Y3Y5NAVD;
@@ -268,6 +268,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Config/OpenVoiceFlowStore.entitlements;
+				CODE_SIGN_IDENTITY = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -285,6 +287,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.shimoverse.openvoiceflow;
 				PRODUCT_MODULE_NAME = OpenVoiceFlowStore;
 				PRODUCT_NAME = OpenVoiceFlow;
+				PROVISIONING_PROFILE_SPECIFIER = "OpenVoiceFlow Mac App Store Profile";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -378,6 +381,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Config/OpenVoiceFlowStore.entitlements;
+				CODE_SIGN_IDENTITY = "3rd Party Mac Developer Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -395,6 +400,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.shimoverse.openvoiceflow;
 				PRODUCT_MODULE_NAME = OpenVoiceFlowStore;
 				PRODUCT_NAME = OpenVoiceFlow;
+				PROVISIONING_PROFILE_SPECIFIER = "OpenVoiceFlow Mac App Store Profile";
 				SDKROOT = macosx;
 			};
 			name = Release;

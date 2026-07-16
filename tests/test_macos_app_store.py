@@ -15,7 +15,9 @@ def test_store_target_has_separate_xcodegen_project_and_bundle_identifier():
     assert "OpenVoiceFlowStore" in project
     assert "com.shimoverse.openvoiceflow" in project
     assert "macOS: \"13.3\"" in project
-    assert "CODE_SIGN_STYLE: Automatic" in project
+    assert "CODE_SIGN_STYLE: Manual" in project
+    assert 'CODE_SIGN_IDENTITY: "3rd Party Mac Developer Application"' in project
+    assert 'PROVISIONING_PROFILE_SPECIFIER: "OpenVoiceFlow Mac App Store Profile"' in project
     assert "PRODUCT_BUNDLE_IDENTIFIER: com.shimoverse.openvoiceflow" in project
 
 
@@ -142,3 +144,14 @@ def test_store_build_resources_are_not_committed():
         text=True,
     )
     assert tracked.returncode != 0
+
+
+def test_archive_script_pins_full_xcode_installation():
+    script = (STORE / "Scripts" / "archive-app-store.sh").read_text(encoding="utf-8")
+
+    assert "DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer" in script
+    assert "xcodebuild" in script
+    export_options = (STORE / "Config" / "ExportOptions.plist").read_text(encoding="utf-8")
+    assert "3rd Party Mac Developer Application" in export_options
+    assert "3rd Party Mac Developer Installer" in export_options
+    assert "OpenVoiceFlow Mac App Store Profile" in export_options

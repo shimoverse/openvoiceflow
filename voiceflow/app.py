@@ -389,31 +389,26 @@ class OpenVoiceFlow:
         if self.config.get("hotkey") != "left_fn":
             return
 
-        key_map = self._get_key_map()
-        if "left_fn" not in key_map:
-            from . import notify
-            notify.tip(
-                "OpenVoiceFlow cannot detect the fn/globe key on this setup. "
-                "Switch hotkey to right option with: openvoiceflow --hotkey right_alt",
-                once_key="fn_hotkey_not_supported",
-            )
-            return
-
-        def _watch_fn_events():
-            # Give the user a short window to press fn once after activation.
-            time.sleep(12)
-            if self._fn_event_seen:
+        # The Fn / 🌐 Globe key cannot be a hotkey with the current engine:
+        # pynput's macOS backend has no fn key at all (no Key.fn, and no
+        # entry in its modifier-flag table), so a fn hotkey NEVER fires. This
+        # is deterministic — not a per-machine "may not respond" — so surface
+        # it immediately and loudly (the old 12 s Notification Center tip was
+        # both slow and easy to miss) and steer the user to a working key.
+        message = (
+            "The Fn / 🌐 Globe key can't be used as the dictation hotkey — "
+            "macOS doesn't expose it to apps. Switch to Right Command (the "
+            "default) from the menu bar under Dictation Shortcut, or run: "
+            "openvoiceflow --hotkey right_cmd"
+        )
+        from . import notify
+        if on_dead_hotkey is not None:
+            try:
+                on_dead_hotkey(message)  # menubar → modal alert
                 return
-            from . import notify
-            notify.tip(
-                "No fn key events detected yet. macOS may reserve Globe/fn shortcuts. "
-                "Try System Settings > Keyboard > Press Globe key, or switch hotkey: "
-                "openvoiceflow --hotkey right_alt",
-                once_key="fn_hotkey_no_events",
-            )
-
-        thread = threading.Thread(target=_watch_fn_events, daemon=True, name="ovf-fn-watchdog")
-        thread.start()
+            except Exception:
+                pass
+        notify.error(message)
 
     def on_key_release(self, key):
         try:

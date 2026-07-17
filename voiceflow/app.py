@@ -161,6 +161,15 @@ class OpenVoiceFlow:
         # from "silently dead".
         self._any_key_event_seen = False
 
+        # Serializes the recording start/stop transition so the pynput
+        # callback thread, the max-duration watchdog, and the menubar's
+        # abort path can't drive a dictation into a half-stopped state.
+        self._lifecycle_lock = threading.Lock()
+        # Force-stops a recording if the key-release event is ever missed
+        # (a stalled consent dialog can disable the event tap and swallow it),
+        # which would otherwise leave the mic + whisper-stream running forever.
+        self._max_record_timer: threading.Timer | None = None
+
         # validate_setup results, exposed for the menubar's alert UI.
         self.setup_errors: list[str] = []
         self.setup_warnings: list[tuple[str, str]] = []
@@ -450,11 +459,23 @@ class OpenVoiceFlow:
             "Check the microphone and Input Monitoring permissions."
         )
 
+    # Hard ceiling on a single dictation. Long enough for a genuine
+    # multi-minute dictation, short enough that a lost key-release doesn't
+    # strand the mic + whisper-stream indefinitely.
+    _MAX_RECORDING_SECONDS = 300
+
     def start_recording(self):
         """Start recording — debounced to prevent duplicate key events.
 
         The window is short (0.2 s) so a genuine immediate retry after a
         too-short attempt still works; it only filters event bounce.
+
+        This runs on the pynput event-tap callback thread, which macOS
+        disables if it blocks too long. So the microphone is armed *first*
+        (fast), and the ~150 ms of ``osascript`` context capture (selected
+        text, frontmost app) is moved to a short-lived worker thread — a
+        stalled ``osascript`` (e.g. a consent dialog) can no longer wedge
+        the event tap or delay the key-release handler.
         """
         now = time.time()
         if now - self._last_press_time < 0.2:
@@ -466,35 +487,15 @@ class OpenVoiceFlow:
             self._watcher.stop()
             self._watcher = None
 
-        # ── Feature: Selected text context (Feature 4) ─────────────────────
-        # Capture selected text BEFORE starting audio (Cmd+C takes ~150ms).
-        # Done first so the clipboard is restored before we begin recording.
+        # Reset per-dictation context; the worker below fills it in. Snapshot
+        # readers (stop_and_process) tolerate it still being empty on an
+        # ultra-short dictation, which is below the 0.3 s floor anyway.
         self._selected_text_context = None
-        if self.config.get("selected_text_context", True):
-            try:
-                from .clipboard import capture_selected_text
-                self._selected_text_context = capture_selected_text()
-            except Exception:
-                pass  # Never let clipboard capture block recording
-
-        # ── Feature: Per-app context detection (Feature 2) ─────────────────
         self._current_app = ""
         self._current_style = self.config.get("style", "default")
-        if self.config.get("auto_style", True):
-            try:
-                from .context import get_frontmost_app, get_style_for_app
-                self._current_app = get_frontmost_app()
-                self._current_style = get_style_for_app(self._current_app, self.config)
-            except Exception:
-                pass  # Never let app detection block recording
+        self._recording_indicator_inserted = False
 
         self.is_recording = True
-        # Typed 🎙 indicator is opt-in: it edits the user's document and can
-        # misfire if focus changes mid-dictation. The overlay HUD is the
-        # default recording feedback.
-        self._recording_indicator_inserted = False
-        if self.config.get("recording_indicator", False):
-            self._recording_indicator_inserted = insert_recording_indicator("🎙")
 
         if self._streaming_enabled():
             # ── Feature: Streaming transcription (Feature 1) ────────────────
@@ -542,14 +543,85 @@ class OpenVoiceFlow:
         if self.config["sound_feedback"]:
             play_sound("start")
         if self._overlay:
-            self._overlay.show_recording(
-                style_label=self._current_style if self._current_app else None,
-                with_context=bool(self._selected_text_context),
+            self._overlay.show_recording()
+
+        # Force-stop if the key-release is ever missed.
+        self._start_max_duration_timer()
+
+        # Capture selected-text + app context OFF the event-tap thread.
+        threading.Thread(
+            target=self._capture_context, daemon=True, name="ovf-context-capture",
+        ).start()
+
+    def _capture_context(self):
+        """Best-effort selected-text + frontmost-app capture (worker thread).
+
+        Runs the ~150 ms of osascript/Accessibility work off the pynput
+        callback thread. Results land in instance attributes that
+        stop_and_process snapshots at key-release.
+        """
+        if self.config.get("selected_text_context", True):
+            try:
+                from .clipboard import capture_selected_text
+                self._selected_text_context = capture_selected_text()
+            except Exception:
+                pass
+        if self.config.get("auto_style", True):
+            try:
+                from .context import get_frontmost_app, get_style_for_app
+                app = get_frontmost_app()
+                self._current_app = app
+                self._current_style = get_style_for_app(app, self.config)
+            except Exception:
+                pass
+        # Typed 🎙 indicator is opt-in: it edits the user's document, so it
+        # also stays off the event-tap thread.
+        if self.config.get("recording_indicator", False):
+            try:
+                self._recording_indicator_inserted = insert_recording_indicator("🎙")
+            except Exception:
+                pass
+
+    def _start_max_duration_timer(self):
+        self._cancel_max_duration_timer()
+        timer = threading.Timer(self._MAX_RECORDING_SECONDS, self._on_max_duration)
+        timer.daemon = True
+        timer.name = "ovf-max-record"
+        self._max_record_timer = timer
+        timer.start()
+
+    def _cancel_max_duration_timer(self):
+        timer = self._max_record_timer
+        self._max_record_timer = None
+        if timer is not None:
+            timer.cancel()
+
+    def _on_max_duration(self):
+        """Watchdog: a recording that outran the ceiling lost its key-release."""
+        if not self.is_recording:
+            return
+        print(f"⏱️  Recording hit the {self._MAX_RECORDING_SECONDS}s ceiling — stopping.")
+        try:
+            from . import notify
+            notify.warn(
+                "Dictation reached the maximum length and was stopped "
+                "automatically. Processing what was captured."
             )
+        except Exception:
+            pass
+        self.stop_and_process()
 
     def stop_and_process(self):
-        """Stop recording and process — no debounce, use press timestamp for duration check."""
-        self.is_recording = False
+        """Stop recording and process.
+
+        Guarded so only one caller (the key-release, the max-duration
+        watchdog, or an abort) drives the stop transition; the rest return.
+        """
+        with self._lifecycle_lock:
+            if not self.is_recording:
+                return
+            self.is_recording = False
+        self._cancel_max_duration_timer()
         if self._recording_indicator_inserted:
             clear_recording_indicator()
             self._recording_indicator_inserted = False
@@ -587,16 +659,26 @@ class OpenVoiceFlow:
                     play_sound("error")
                 return
 
-            self.processing = True
-            thread = threading.Thread(
-                target=self._process_streaming_result,
-                args=(raw_text, duration, current_app, current_style, selected_context),
-                daemon=True,
+            self._start_processing(
+                self._process_streaming_result,
+                (raw_text, duration, current_app, current_style, selected_context),
             )
-            thread.start()
         else:
             # ── Batch stop path ─────────────────────────────────────────────
-            self.recorder.stop()
+            try:
+                self.recorder.stop()
+            except Exception as e:
+                # Device unplugged mid-recording, etc. Surface it instead of
+                # dropping the dictation silently and leaving the overlay
+                # stuck on the "Recording" pill.
+                print(f"❌ Failed to stop recorder: {e}")
+                if self._overlay:
+                    self._overlay.show_error("Recording error")
+                if self.config["sound_feedback"]:
+                    play_sound("error")
+                from . import notify
+                notify.error(f"Recording stopped unexpectedly ({e}).")
+                return
             if self.config["sound_feedback"]:
                 play_sound("stop")
 
@@ -610,13 +692,22 @@ class OpenVoiceFlow:
                     self._overlay.hide()
                 return
 
-            self.processing = True
-            thread = threading.Thread(
-                target=self._process_audio,
-                args=(current_app, current_style, selected_context),
-                daemon=True,
+            self._start_processing(
+                self._process_audio,
+                (current_app, current_style, selected_context),
             )
-            thread.start()
+
+    def _start_processing(self, target, args):
+        """Spawn a processing worker, rolling back ``processing`` if the
+        thread can't start (otherwise the hotkey is wedged forever)."""
+        self.processing = True
+        try:
+            threading.Thread(target=target, args=args, daemon=True).start()
+        except Exception as e:
+            self.processing = False
+            print(f"❌ Could not start processing thread: {e}")
+            if self._overlay:
+                self._overlay.hide()
 
     def _process_streaming_result(
         self,

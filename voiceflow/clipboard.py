@@ -28,11 +28,39 @@ def _read_clipboard() -> str:
 
 def _write_clipboard(text: str) -> None:
     """Write text to clipboard via pbcopy."""
+    process = None
     try:
         process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
         process.communicate(text.encode("utf-8"), timeout=3)
+    except subprocess.TimeoutExpired:
+        # communicate() does NOT reap the child on timeout — kill it so a
+        # hung pbcopy doesn't leak a process + pipe fds.
+        if process is not None:
+            process.kill()
+            process.wait()
     except Exception:
         pass
+
+
+def _pasteboard_has_nontext_only() -> bool:
+    """True when the clipboard holds non-text data (image/file) and no string.
+
+    ``pbpaste`` can only render text, so a copy+restore round-trip silently
+    destroys an image or file on the clipboard. When PyObjC is available we
+    detect that case and skip capture entirely. Returns False (proceed) when
+    PyObjC is absent or the clipboard is empty/has text.
+    """
+    try:
+        from AppKit import NSPasteboard, NSPasteboardTypeString
+    except Exception:
+        return False
+    try:
+        pb = NSPasteboard.generalPasteboard()
+        if pb.availableTypeFromArray_([NSPasteboardTypeString]) is not None:
+            return False  # a string is present → safe to round-trip
+        return bool(pb.pasteboardItems())  # items but no string → non-text
+    except Exception:
+        return False
 
 
 def capture_selected_text() -> str | None:
@@ -45,6 +73,12 @@ def capture_selected_text() -> str | None:
     The total time cost of this function is roughly 150-200ms.
     """
     try:
+        # 0. Preserve non-text clipboard contents. If the clipboard holds an
+        # image or file (no text), the Cmd+C round-trip below would destroy
+        # it — skip capture entirely and leave it untouched.
+        if _pasteboard_has_nontext_only():
+            return None
+
         # 1. Save original clipboard
         original_clipboard = _read_clipboard()
 
@@ -75,11 +109,12 @@ def capture_selected_text() -> str | None:
         selected_text: str | None = None
         if new_clipboard != original_clipboard and new_clipboard.strip():
             selected_text = new_clipboard[:MAX_CONTEXT_CHARS]
-            # 6. Restore the original clipboard. Only done when Cmd+C actually
-            # replaced it: pbpaste can't represent non-text contents (images,
-            # files), so writing back when nothing changed would overwrite
-            # them with empty text.
-            _write_clipboard(original_clipboard)
+            # 6. Restore the original clipboard — but only if it was genuine
+            # prior text. Never `pbcopy ""`: an empty original means it was
+            # either empty already or non-text, and writing empty would
+            # replace the user's selection (now on the clipboard) with nothing.
+            if original_clipboard:
+                _write_clipboard(original_clipboard)
 
         return selected_text
 

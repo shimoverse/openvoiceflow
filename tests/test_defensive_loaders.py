@@ -246,7 +246,7 @@ def test_updater_fetch_tolerates_exotic_failures(monkeypatch) -> None:
 
     class _FakeResp:
         status = 200
-        def read(self):
+        def read(self, *args):
             return b"\xff\xfe garbage"  # not UTF-8
         def __enter__(self):
             return self
@@ -257,7 +257,7 @@ def test_updater_fetch_tolerates_exotic_failures(monkeypatch) -> None:
     assert upd._fetch_latest_release() is None  # must not raise
 
     class _ListResp(_FakeResp):
-        def read(self):
+        def read(self, *args):
             return b'["not", "a", "dict"]'
 
     monkeypatch.setattr(upd.urllib.request, "urlopen", lambda *a, **kw: _ListResp())

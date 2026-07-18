@@ -7,7 +7,7 @@ import os
 import urllib.error
 import urllib.request
 
-from .base import LLMBackend
+from .base import LLMBackend, read_json_capped
 
 
 class AnthropicBackend(LLMBackend):
@@ -66,7 +66,7 @@ class AnthropicBackend(LLMBackend):
         )
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode())
+                data = read_json_capped(resp)
                 return data["content"][0]["text"].strip()
         except urllib.error.HTTPError as e:
             error_body = e.read().decode("utf-8", errors="replace")

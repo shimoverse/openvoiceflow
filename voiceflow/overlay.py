@@ -31,11 +31,28 @@ try:
         NSWindowCollectionBehaviorStationary,
         NSWindowLevelFloating,
         NSWindowStyleMaskBorderless,
+        NSWorkspace,
     )
-    from Foundation import NSDefaultRunLoopMode, NSObject, NSRunLoop, NSTimer
+    from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
     HAS_APPKIT = True
 except ImportError:
     HAS_APPKIT = False
+
+
+def _reduce_motion() -> bool:
+    """True when the user has enabled Accessibility → Reduce Motion.
+
+    HIG requires honoring it; the HUD then snaps instead of fading. Best
+    effort — any failure falls back to animating (the current behavior).
+    """
+    if not HAS_APPKIT:
+        return False
+    try:
+        return bool(
+            NSWorkspace.sharedWorkspace().accessibilityDisplayShouldReduceMotion()
+        )
+    except Exception:
+        return False
 
 
 class OverlayState:
@@ -73,7 +90,7 @@ if HAS_APPKIT:
             self._timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
                 0.4, self, b"animateDots:", None, True
             )
-            NSRunLoop.currentRunLoop().addTimer_forMode_(self._timer, NSDefaultRunLoopMode)
+            NSRunLoop.currentRunLoop().addTimer_forMode_(self._timer, NSRunLoopCommonModes)
 
         def stopAnimation(self):
             if self._timer:
@@ -412,18 +429,34 @@ class FloatingOverlay:
         self._fade_out()
 
     def _fade_in(self):
-        """Animate fade in."""
+        """Fade the HUD in (snap if Reduce Motion is on)."""
         self._window.orderFront_(None)
+        if _reduce_motion():
+            self._window.setAlphaValue_(0.95)
+            return
         NSAnimationContext.beginGrouping()
         NSAnimationContext.currentContext().setDuration_(0.2)
         self._window.animator().setAlphaValue_(0.95)
         NSAnimationContext.endGrouping()
 
     def _fade_out(self):
-        """Animate fade out."""
+        """Fade the HUD out, then order it out of every Space's window list.
+
+        Leaving an alpha-0 window on screen keeps it in the window list of
+        every Space (CanJoinAllSpaces|Stationary). ``orderOut_`` after the
+        fade removes it. Snaps when Reduce Motion is on.
+        """
+        window = self._window
+        if _reduce_motion():
+            window.setAlphaValue_(0.0)
+            window.orderOut_(None)
+            return
         NSAnimationContext.beginGrouping()
         NSAnimationContext.currentContext().setDuration_(0.3)
-        self._window.animator().setAlphaValue_(0.0)
+        NSAnimationContext.currentContext().setCompletionHandler_(
+            lambda: window.orderOut_(None)
+        )
+        window.animator().setAlphaValue_(0.0)
         NSAnimationContext.endGrouping()
 
     def _schedule_hide(self, delay: float):
@@ -434,7 +467,7 @@ class FloatingOverlay:
         )
         # Monkey-patch the animator to call our hide
         self._animator._overlay = self
-        NSRunLoop.currentRunLoop().addTimer_forMode_(self._hide_timer, NSDefaultRunLoopMode)
+        NSRunLoop.currentRunLoop().addTimer_forMode_(self._hide_timer, NSRunLoopCommonModes)
 
     def _cancel_hide_timer(self):
         if self._hide_timer:

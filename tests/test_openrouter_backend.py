@@ -42,7 +42,7 @@ def test_openrouter_cleanup_posts_openai_compatible_payload(monkeypatch) -> None
         def __exit__(self, exc_type, exc, tb):
             return False
 
-        def read(self):
+        def read(self, *args):
             return json.dumps({"choices": [{"message": {"content": " cleaned text "}}]}).encode()
 
     def fake_urlopen(req, timeout):

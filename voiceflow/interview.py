@@ -80,8 +80,10 @@ class InterviewWizard:
         y = (sy - h) // 3
         self.root.geometry(f"{w}x{h}+{x}+{y}")
 
-        # Bind Escape to skip/cancel
-        self.root.bind("<Escape>", lambda e: self._skip())
+        # Bind Escape to skip/cancel — but NOT while the user is typing in a
+        # text field. A global Escape-destroys-everything binding turned an
+        # ordinary "clear the field" keypress into total data loss.
+        self.root.bind("<Escape>", self._on_escape)
 
         # Interview state
         self._name_var         = tk.StringVar()
@@ -698,6 +700,29 @@ class InterviewWizard:
         self._primary_button("Start Dictating 🎙️", self._finish)
 
     # ── Skip / Finish ──────────────────────────────────────────────────────
+
+    # Tk widget classes that accept text entry — Escape must not abandon the
+    # wizard while focus is in one of these.
+    _TEXT_ENTRY_WIDGETS = ("Entry", "TEntry", "Text", "TText")
+
+    def _on_escape(self, event=None):
+        """Skip the interview, unless a text field is focused.
+
+        When typing, Escape is a field-level gesture (clear/blur), not
+        "throw away everything I entered". In that case we drop focus back to
+        the window instead of destroying the wizard.
+        """
+        try:
+            focused = self.root.focus_get()
+        except Exception:
+            focused = None
+        if focused is not None and focused.winfo_class() in self._TEXT_ENTRY_WIDGETS:
+            try:
+                self.root.focus_set()  # blur the field; keep the wizard open
+            except Exception:
+                pass
+            return
+        self._skip()
 
     def _skip(self):
         """Close the window.

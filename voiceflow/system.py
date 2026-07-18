@@ -11,6 +11,21 @@ from datetime import datetime
 from .config import LOG_DIR
 
 
+def _kill_quietly(proc) -> None:
+    """Reap a Popen child that outlived its timeout.
+
+    ``Popen.communicate(timeout=…)`` raises but does NOT terminate the child,
+    so without this a hung pbcopy leaks a process and its pipe fds.
+    """
+    if proc is None:
+        return
+    try:
+        proc.kill()
+        proc.wait(timeout=1)
+    except Exception:
+        pass
+
+
 def paste_text(text: str):
     """Copy text to clipboard and paste at cursor (macOS).
 
@@ -19,6 +34,7 @@ def paste_text(text: str):
     instead of an invisible stderr line. The user's text is still on
     the clipboard, so a manual ⌘V always works as a fallback.
     """
+    process = None
     try:
         process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
         process.communicate(text.encode("utf-8"), timeout=5)
@@ -38,6 +54,7 @@ def paste_text(text: str):
     except subprocess.TimeoutExpired:
         # osascript blocked (likely a macOS consent dialog). The text is
         # already on the clipboard, so manual ⌘V still works.
+        _kill_quietly(process)
         play_sound("error")
         from . import notify
         notify.error(
@@ -74,6 +91,8 @@ def insert_recording_indicator(indicator: str = "🎙") -> bool:
 
     Returns True if insertion succeeded.
     """
+    process = None
+    restore = None
     try:
         original = subprocess.run(["pbpaste"], capture_output=True, timeout=5)
         process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
@@ -94,6 +113,10 @@ def insert_recording_indicator(indicator: str = "🎙") -> bool:
             restore = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
             restore.communicate(original.stdout, timeout=5)
         return result.returncode == 0
+    except subprocess.TimeoutExpired:
+        _kill_quietly(process)
+        _kill_quietly(restore)
+        return False
     except (OSError, subprocess.SubprocessError):
         return False
 
@@ -154,10 +177,13 @@ def log_transcript(raw: str, cleaned: str, config: dict):
     if not config.get("log_transcripts"):
         return
 
-    from ._secure_io import secure_chmod
+    from ._secure_io import secure_chmod, secure_dir
 
-    # BUG-020 fix: ensure log directory exists before writing
+    # BUG-020 fix: ensure log directory exists before writing.
+    # secure_dir keeps it owner-only (0700) — the date-named filenames
+    # themselves reveal usage days, so the directory shouldn't be listable.
     LOG_DIR.mkdir(parents=True, exist_ok=True)
+    secure_dir(str(LOG_DIR))
     now = datetime.now()
 
     def _open_append_600(path):

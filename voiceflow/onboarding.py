@@ -425,11 +425,13 @@ class OnboardingWizard:
         self._title("Choose Your Hotkey")
         self._subtitle("Hold this key to start dictating. Release to stop and paste.")
 
+        # NB: fn / Globe is intentionally omitted — macOS doesn't expose that
+        # key to apps, so it can't be used as a push-to-talk hotkey here.
         hotkeys = [
             ("right_cmd", "Right ⌘ Command", "Recommended — default hotkey"),
             ("right_alt", "Right ⌥ Option", "Good alternative"),
-            ("left_fn", "Left fn / Globe", "Optional — may be reserved by macOS"),
             ("left_alt", "Left ⌥ Option", "If right side is awkward"),
+            ("right_ctrl", "Right ⌃ Control", "Another modifier option"),
             ("f5", "F5", "Traditional push-to-talk"),
             ("f6", "F6", "Alternative function key"),
         ]

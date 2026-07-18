@@ -101,7 +101,12 @@ def test_hotkey_menu_offers_every_supported_shortcut_with_human_labels() -> None
 
     choices = _hotkey_choices("right_cmd")
 
-    assert [choice[0] for choice in choices] == VALID_HOTKEYS
+    # Every valid hotkey EXCEPT fn (macOS doesn't expose it to apps, so it
+    # can't work as a hotkey — it's hidden from the picker unless it's the
+    # current setting; see test_fn_hotkey.py).
+    expected = [hk for hk in VALID_HOTKEYS if hk != "left_fn"]
+    assert [choice[0] for choice in choices] == expected
+    assert "left_fn" not in [choice[0] for choice in choices]
     assert dict((hotkey, label) for hotkey, label, _checked in choices)["right_cmd"] == "Right Command (⌘)"
     assert dict((hotkey, label) for hotkey, label, _checked in choices)["f12"] == "F12"
     assert sum(checked for _hotkey, _label, checked in choices) == 1

@@ -7,7 +7,7 @@ import os
 import urllib.error
 import urllib.request
 
-from .base import LLMBackend
+from .base import LLMBackend, read_json_capped
 
 OPENROUTER_DEFAULT_MODEL = "google/gemma-4-31b-it"
 
@@ -71,7 +71,7 @@ class OpenRouterBackend(LLMBackend):
         )
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode())
+                data = read_json_capped(resp)
                 return data["choices"][0]["message"]["content"].strip()
         except urllib.error.HTTPError as e:
             error_body = e.read().decode("utf-8", errors="replace")

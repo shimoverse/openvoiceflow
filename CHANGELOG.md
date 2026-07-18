@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6] — 2026-07-18
+
+### Fixed — Fn / 🌐 Globe key no longer fails silently
+- **Fn was never a working hotkey.** macOS doesn't deliver the Fn/Globe key to
+  `pynput`, so selecting it left dictation permanently dead with no feedback.
+  Choosing Fn now surfaces an immediate modal explaining the limitation and
+  pointing at Right Command (the default), the menu-bar picker hides Fn unless
+  it's the current (legacy) selection, and onboarding no longer offers it.
+
 ### Fixed — production-hardening pass (end-to-end audit follow-up)
 - **Hotkey can't be wedged by a consent dialog.** The microphone is now armed
   on the event-tap thread and the ~150 ms of `osascript` context capture runs
@@ -506,7 +515,8 @@ Initial release.
 
 ## Compare links
 
-[Unreleased]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.5...HEAD
+[Unreleased]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.6...HEAD
+[0.3.6]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.2...v0.3.3

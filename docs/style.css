@@ -392,7 +392,7 @@ img, canvas { max-width: 100%; }
 }
 
 /* ─── Sections ───────────────────────────────────────────────────────── */
-.section { padding-bottom: 56px; }
+.section { padding-bottom: 76px; }
 
 /* ─── USP pillars ────────────────────────────────────────────────────── */
 .usp-grid {
@@ -410,6 +410,15 @@ img, canvas { max-width: 100%; }
 
 .usp-card .mono-kicker { display: block; margin-bottom: 12px; }
 
+.usp-value {
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--acc);
+  margin-bottom: 10px;
+}
+
 .usp-title {
   font-size: 22px;
   font-weight: 700;
@@ -418,7 +427,7 @@ img, canvas { max-width: 100%; }
   margin-bottom: 8px;
 }
 
-.usp-body { font-size: 13.5px; line-height: 1.7; color: var(--ink-2); }
+.usp-body { font-size: 14px; line-height: 1.6; color: var(--ink-2); }
 
 /* ─── Stat band (free-forever section) ───────────────────────────────── */
 .stat-row {
@@ -529,20 +538,20 @@ img, canvas { max-width: 100%; }
 .cta-footnote { font-size: 11px; color: var(--ink-2); }
 
 .section-title {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-bottom: 4px;
 }
 
 .section-sub {
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--ink-2);
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .section-title + .card-grid,
-.section-title + .step-grid { margin-top: 18px; }
+.section-title + .step-grid { margin-top: 22px; }
 
 /* Cards */
 .card-grid {
@@ -1011,7 +1020,7 @@ img, canvas { max-width: 100%; }
   .nav-hamburger { display: flex; }
   .nav-drawer.open { display: flex; }
   .hero-inner { padding-top: 44px; padding-bottom: 40px; }
-  .section { padding-bottom: 40px; }
+  .section { padding-bottom: 52px; }
   .privacy-title { font-size: 24px; }
   .download-panel { padding: 20px; }
   .download-panel-actions { min-width: 100%; }

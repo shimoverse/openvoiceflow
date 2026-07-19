@@ -7,7 +7,7 @@
   <meta name="description" content="Free push-to-talk voice dictation for macOS. Audio transcription runs locally with whisper.cpp; optional LLM cleanup uses the backend you choose." />
   <meta name="keywords" content="voice dictation macOS, Wispr Flow alternative, whisper dictation, free voice dictation mac, local transcription" />
   <meta property="og:title" content="OpenVoiceFlow — Free Voice Dictation for macOS" />
-  <meta property="og:description" content="Speak. It types. Your audio never leaves your Mac. Free push-to-talk dictation with local whisper.cpp transcription." />
+  <meta property="og:description" content="Speak. It types. Free forever, and your audio never leaves your Mac. Push-to-talk dictation with local whisper.cpp transcription." />
   <meta property="og:url" content="https://openvoiceflow.vercel.app/" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -70,14 +70,14 @@
   </nav>
 
   <main>
-    <!-- ─── Hero ─────────────────────────────────────────── -->
+    <!-- ─── 1 · Hero: what it is, both USPs above the fold ── -->
     <section class="container hero-inner" aria-label="Introduction">
-      <span class="hero-badge"><span class="badge-dot"></span>100% ON-DEVICE AUDIO · OPEN SOURCE · $0</span>
+      <span class="hero-badge"><span class="badge-dot"></span>FREE FOREVER · 100% LOCAL AUDIO · OPEN SOURCE</span>
       <h1 class="hero-title">Speak. It types.<br />Nothing leaves your&nbsp;Mac.</h1>
       <p class="hero-sub answer-block">OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. Hold a key, talk, release — polished text lands at your cursor in any app. Whisper runs on your Mac, not in a cloud. Free forever, MIT-licensed.</p>
       <div class="hero-cta-row">
         <a class="btn btn-primary btn-lg" href="download.html">Download for Mac</a>
-        <a class="btn btn-outline btn-lg" href="https://github.com/shimoverse/openvoiceflow">View source ↗</a>
+        <a class="btn btn-outline btn-lg" href="how-it-works.html">See how it works</a>
       </div>
       <div class="hero-trust">Signed &amp; notarized · macOS 12+ · Apple Silicon &amp; Intel · no account, ever</div>
 
@@ -93,8 +93,26 @@
       </div>
     </section>
 
-    <!-- ─── How it works ─────────────────────────────────── -->
+    <!-- ─── 2 · The two USPs, named ────────────────────────── -->
+    <section class="container section" aria-label="Why OpenVoiceFlow">
+      <div class="usp-grid">
+        <div class="usp-card">
+          <span class="mono-kicker">USP 01 · FREE FOREVER</span>
+          <h2 class="usp-title">$0 today. $0 in five years.</h2>
+          <p class="usp-body">MIT-licensed open source. No subscription, no account, no trial clock, no "Pro" tier waiting to ransom your workflow. Whisper is free to run and your Mac provides the compute — there is nothing to sell you.</p>
+        </div>
+        <div class="usp-card">
+          <span class="mono-kicker">USP 02 · EVERYTHING LOCAL</span>
+          <h2 class="usp-title">Your audio never leaves this machine.</h2>
+          <p class="usp-body">Transcription happens on your Mac, in a model you can point at. It works in airplane mode. The cloud touches nothing unless you explicitly add your own API key — and even then, only text, never your voice.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 3 · How it works ───────────────────────────────── -->
     <section class="container section" aria-label="How it works">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-sub">One key. Three beats. Any app on your Mac.</p>
       <div class="card-grid">
         <div class="card">
           <span class="mono-kicker">01 · Hold</span>
@@ -114,8 +132,10 @@
       </div>
     </section>
 
-    <!-- ─── Privacy ──────────────────────────────────────── -->
+    <!-- ─── 4 · USP deep-dive: Everything local ────────────── -->
     <section class="container section" aria-label="Privacy">
+      <h2 class="section-title">Everything local</h2>
+      <p class="section-sub">"Local" is the architecture, not a marketing adjective.</p>
       <div class="privacy-panel">
         <div class="privacy-grid">
           <div class="privacy-copy">
@@ -138,10 +158,30 @@
       </div>
     </section>
 
-    <!-- ─── Compare ──────────────────────────────────────── -->
-    <section class="container section" aria-label="Comparison with Wispr Flow">
-      <h2 class="section-title">The $144-a-year question</h2>
-      <p class="section-sub">Wispr Flow is a fine product. It is also a subscription to someone else's cloud.</p>
+    <!-- ─── 5 · Features: what the product actually is ─────── -->
+    <section class="container section" aria-label="Features">
+      <h2 class="section-title">Everything you need. Nothing you don't.</h2>
+      <p class="section-sub">Built for people who care about quality, privacy, and getting things done.</p>
+      <div class="card-grid">
+        <div class="card"><span class="mono-kicker">Streaming</span><div class="card-title">Real-time overlay</div><div class="card-body">Watch words appear in the overlay as you speak with optional streaming mode — not just after you stop.</div></div>
+        <div class="card"><span class="mono-kicker">Profile</span><div class="card-title">Know-Me interview</div><div class="card-body">A short first-launch Q&amp;A learns your name, team, and jargon so cleanup writes like you.</div></div>
+        <div class="card"><span class="mono-kicker">Auto-learn</span><div class="card-title">Fix it once</div><div class="card-body">Correct a mis-heard word once and your personal dictionary remembers it forever.</div></div>
+        <div class="card"><span class="mono-kicker">Context</span><div class="card-title">Per-app style</div><div class="card-body">Casual in Slack and iMessage, formal in Mail, terse in your editor — tone adapts to the frontmost app.</div></div>
+        <div class="card"><span class="mono-kicker">Commands</span><div class="card-title">Voice punctuation</div><div class="card-body">&ldquo;New line&rdquo;, &ldquo;comma&rdquo;, &ldquo;period&rdquo; — natural phrases become punctuation and formatting.</div></div>
+        <div class="card"><span class="mono-kicker">Snippets</span><div class="card-title">Say it, expand it</div><div class="card-body">Voice-triggered text expansion for the sentences you type twenty times a day.</div></div>
+      </div>
+    </section>
+
+    <!-- ─── 6 · USP deep-dive: Free forever ────────────────── -->
+    <section class="container section" aria-label="Free forever and comparison with Wispr Flow">
+      <h2 class="section-title">Free forever</h2>
+      <p class="section-sub">Wispr Flow is a fine product. It is also $144 a year for a subscription to someone else's cloud.</p>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-value">$0</div><div class="stat-label">Annual cost</div></div>
+        <div class="stat-card stat-accent"><div class="stat-value">$144</div><div class="stat-label">Saved vs Wispr Flow, every year</div></div>
+        <div class="stat-card"><div class="stat-value">MIT</div><div class="stat-label">License</div></div>
+        <div class="stat-card"><div class="stat-value">6</div><div class="stat-label">Cleanup backends to choose from</div></div>
+      </div>
       <div class="compare-table">
         <div class="compare-grid">
           <div class="compare-head-dim" aria-hidden="true">&nbsp;</div><div class="compare-head">OpenVoiceFlow</div><div class="compare-head-dim">Wispr Flow</div>
@@ -157,9 +197,24 @@
       <p class="compare-footnote">Competitor details per their published pricing and docs, July 2026.</p>
     </section>
 
-    <!-- ─── Install ──────────────────────────────────────── -->
+    <!-- ─── 7 · Pick your backend ──────────────────────────── -->
+    <section class="container section" aria-label="Cleanup backend options">
+      <h2 class="section-title">Pick your backend.</h2>
+      <p class="section-sub">From fully local (zero cost, zero cloud) to ultra-fast API. You decide what runs where.</p>
+      <div class="card-grid backend-grid">
+        <div class="card backend-card is-flagged"><span class="backend-flag">DEFAULT CLOUD PATH</span><span class="mono-kicker">OpenRouter Gemma 4</span><div class="backend-meta"><span class="backend-cost">Free tier available</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">The default cloud cleanup path — google/gemma-4-31b-it through OpenRouter, with your own key.</div><code class="code-block backend-cmd">openvoiceflow --backend openrouter --set-key openrouter YOUR_KEY</code></div>
+        <div class="card backend-card"><span class="mono-kicker">Groq</span><div class="backend-meta"><span class="backend-cost">Free tier / ~$1 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">Fastest inference around — Llama on Groq's custom silicon, with your own key.</div><code class="code-block backend-cmd">openvoiceflow --set-key groq YOUR_KEY</code></div>
+        <div class="card backend-card"><span class="mono-kicker">OpenAI</span><div class="backend-meta"><span class="backend-cost">~$5 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">GPT-4o mini. Great for complex cleanup and nuanced rewrites.</div><code class="code-block backend-cmd">openvoiceflow --set-key openai YOUR_KEY</code></div>
+        <div class="card backend-card"><span class="mono-kicker">Claude</span><div class="backend-meta"><span class="backend-cost">~$5 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">Anthropic's Claude Haiku. Exceptional writing quality and tone.</div><code class="code-block backend-cmd">openvoiceflow --set-key claude YOUR_KEY</code></div>
+        <div class="card backend-card is-flagged is-local"><span class="backend-flag local">100% LOCAL</span><span class="mono-kicker">Ollama</span><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Fully offline. Llama 3, Mistral, or any local model. Air-gapped privacy.</div><code class="code-block backend-cmd">openvoiceflow --backend ollama</code></div>
+        <div class="card backend-card is-local"><span class="mono-kicker">None — Whisper only</span><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Raw Whisper output, no LLM cleanup. Minimal and lightning fast.</div><code class="code-block backend-cmd">openvoiceflow --backend none</code></div>
+      </div>
+      <p class="backend-note"><strong>All options:</strong> audio transcription is <em>always</em> local via Whisper. Only the cleanup call goes to an API — and only if you choose one.</p>
+    </section>
+
+    <!-- ─── 8 · Install ────────────────────────────────────── -->
     <section class="container section" aria-label="Installation overview">
-      <h2 class="section-title">Installed in 60 seconds</h2>
+      <h2 class="section-title">Up and running in 60 seconds.</h2>
       <div class="step-grid">
         <div class="step-card"><div class="step-num">1</div><h3>Download the DMG</h3><p>Apple-notarized — Gatekeeper verifies it before first launch. No warnings to click through.</p></div>
         <div class="step-card"><div class="step-num">2</div><h3>Drag to Applications</h3><p>The classic move. No installer wizard, no launch agents you didn't ask for.</p></div>
@@ -167,7 +222,7 @@
       </div>
     </section>
 
-    <!-- ─── FAQ ──────────────────────────────────────────── -->
+    <!-- ─── 9 · FAQ ────────────────────────────────────────── -->
     <section class="container section faq" aria-label="Frequently asked questions">
       <h2 class="section-title">Questions</h2>
       <details>
@@ -190,6 +245,19 @@
         <summary>Where does my data live?</summary>
         <p>In <code>~/.openvoiceflow</code> on your Mac — transcripts, dictionary, profile, keys. Delete that folder and every trace is gone. Nothing is synced anywhere.</p>
       </details>
+    </section>
+
+    <!-- ─── 10 · Closing CTA ───────────────────────────────── -->
+    <section class="container section" aria-label="Get started">
+      <div class="cta-panel">
+        <h2 class="cta-title">Start dictating for free.<br />Right now.</h2>
+        <p class="cta-sub">No account. No credit card. Local audio transcription. You choose the cleanup backend.</p>
+        <div class="hero-cta-row">
+          <a class="btn btn-primary btn-lg" href="download.html">Download for Mac — Free</a>
+          <a class="btn btn-outline btn-lg" href="install.html">Install guide</a>
+        </div>
+        <p class="cta-footnote">macOS 12+ · Monterey → Sequoia · Apple Silicon &amp; Intel</p>
+      </div>
     </section>
   </main>
 

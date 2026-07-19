@@ -60,6 +60,14 @@ final class AppController: ObservableObject {
 
     // MARK: listening lifecycle
 
+    /// Prepares the local speech engine for onboarding and forwards only
+    /// WhisperKit's real transfer fraction to the onboarding view.
+    func prepareModelForOnboarding(
+        progress: @escaping Transcriber.DownloadProgressObserver
+    ) async throws {
+        try await transcriber.warmUp(progress: progress)
+    }
+
     /// Begin listening for the hotkey. Returns false if the tap couldn't start
     /// (missing Accessibility/Input Monitoring) so the UI can surface it.
     @discardableResult

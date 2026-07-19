@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Entry point. A menu-bar (`LSUIElement`) app: no Dock icon by default, a
@@ -6,33 +7,61 @@ import SwiftUI
 @main
 struct OpenVoiceFlowApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    @StateObject private var controller = AppController()
     @StateObject private var icon = StatusIconAnimator()
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent(controller: controller)
+            MenuContent(controller: delegate.controller, showOnboarding: delegate.showOnboarding)
         } label: {
-            MenuBarLabel(controller: controller, icon: icon)
+            MenuBarLabel(controller: delegate.controller, icon: icon)
         }
 
         Window("OpenVoiceFlow", id: "dashboard") {
-            DashboardView(controller: controller)
+            DashboardView(controller: delegate.controller)
         }
         .windowResizability(.contentSize)
         .defaultSize(width: 1000, height: 660)
-
-        Window("Welcome to OpenVoiceFlow", id: "onboarding") {
-            OnboardingView(controller: controller)
-        }
-        .windowResizability(.contentSize)
     }
 }
 
-/// Kicks off listening (or onboarding) once the app finishes launching.
+/// Owns the first-run window because accessory/menu-bar apps do not reliably
+/// present dormant SwiftUI Window scenes at launch.
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    let controller = AppController()
+    private var onboardingWindow: NSWindow?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        #if DEBUG
+        let forceOnboarding = ProcessInfo.processInfo.arguments.contains("-ovf-force-onboarding")
+        #else
+        let forceOnboarding = false
+        #endif
+        guard forceOnboarding || !controller.settings.didOnboard else { return }
+        DispatchQueue.main.async { [weak self] in self?.showOnboarding() }
+    }
+
+    func showOnboarding() {
+        if let onboardingWindow {
+            onboardingWindow.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 640, height: 440),
+            styleMask: [.titled, .closable, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Welcome to OpenVoiceFlow"
+        window.isReleasedWhenClosed = false
+        window.contentViewController = NSHostingController(rootView: OnboardingView(controller: controller))
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        onboardingWindow = window
     }
 }
 
@@ -53,6 +82,7 @@ private struct MenuBarLabel: View {
 /// custom blur panel is a later window-style upgrade if ever wanted.
 private struct MenuContent: View {
     @ObservedObject var controller: AppController
+    let showOnboarding: () -> Void
     @Environment(\.openWindow) private var openWindow
 
     /// The models the design's picker offers (WhisperKit names + sizes).
@@ -132,7 +162,7 @@ private struct MenuContent: View {
         // 10–11. Windows + updates.
         Button("Open Dashboard…") { openWindow(id: "dashboard"); NSApp.activate(ignoringOtherApps: true) }
             .keyboardShortcut("d")
-        Button("Setup & Permissions…") { openWindow(id: "onboarding"); NSApp.activate(ignoringOtherApps: true) }
+        Button("Setup & Permissions…") { showOnboarding() }
         Button("Check for Updates…") {
             // Sparkle wiring is a Mac-build step (BUILD_RUNBOOK.md phase 4).
             NSWorkspace.shared.open(URL(string: "https://openvoiceflow.vercel.app/download.html")!)

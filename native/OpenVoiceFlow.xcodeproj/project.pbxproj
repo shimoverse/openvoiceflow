@@ -1,0 +1,428 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */; };
+		2976A8647F7E72B7567DFD8F /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */; };
+		5458F764832C39AC0FE89B4D /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = EEDE1A79E67D869664D18AA7 /* WhisperKit */; };
+		55CC1617ADA91CEB95284F35 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */; };
+		58610B34F43FC25577A44A79 /* StatusIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */; };
+		5FCD48CA7BD55A3679BA97C7 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 2DE9E8769AA4E1A2BA1F1885 /* Sparkle */; };
+		6013198D531D8368BE4E28C3 /* Transcriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F80FE49FD6670719657437 /* Transcriber.swift */; };
+		61FF22353B12BB2CD6A316B6 /* HUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B693C11C689950AA094C951 /* HUDController.swift */; };
+		766ACDD229EB0376746A7003 /* Paster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D72CC634525CAF888070FE /* Paster.swift */; };
+		7A219E134ECEA45F37A4A0F2 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB13BCD2402178510295FCF /* DesignTokens.swift */; };
+		8D95E21B1C470A7D28C9D177 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */; };
+		BA9ACF75EAA0238774612B88 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57717557E0BEAB2E410856EE /* Settings.swift */; };
+		CA92CBBBC8BD5A1940B73C18 /* OpenVoiceFlow.icns in Resources */ = {isa = PBXBuildFile; fileRef = 88504725BADFBD0FD83F77BB /* OpenVoiceFlow.icns */; };
+		E7D6DB42A76697F5E75E3FD9 /* CleanupProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */; };
+		E97FF93C2CB6F5D37F081A7F /* Permissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF148CC7407807156F032DE /* Permissions.swift */; };
+		ED692D08BF81FCFEDD2CA514 /* OpenVoiceFlowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */; };
+		FFC25E3AEBF348F41F0EEC56 /* AppController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AEE4987BADD8952A8D2BD91 /* AppController.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1AEE4987BADD8952A8D2BD91 /* AppController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppController.swift; sourceTree = "<group>"; };
+		2B693C11C689950AA094C951 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
+		2BF148CC7407807156F032DE /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
+		34D72CC634525CAF888070FE /* Paster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Paster.swift; sourceTree = "<group>"; };
+		3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
+		4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		57717557E0BEAB2E410856EE /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenVoiceFlowApp.swift; sourceTree = "<group>"; };
+		88504725BADFBD0FD83F77BB /* OpenVoiceFlow.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = OpenVoiceFlow.icns; sourceTree = "<group>"; };
+		96F80FE49FD6670719657437 /* Transcriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transcriber.swift; sourceTree = "<group>"; };
+		9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		B841C09A127623BFF5AD56DA /* OpenVoiceFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenVoiceFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyEngine.swift; sourceTree = "<group>"; };
+		DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupProvider.swift; sourceTree = "<group>"; };
+		E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusIcon.swift; sourceTree = "<group>"; };
+		EFB13BCD2402178510295FCF /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F1B6E2505DD81BB40F2406F7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5458F764832C39AC0FE89B4D /* WhisperKit in Frameworks */,
+				5FCD48CA7BD55A3679BA97C7 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		34D009C17B85ED343C46DD8A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				88504725BADFBD0FD83F77BB /* OpenVoiceFlow.icns */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		8BA7997FC8D751AFD981D2DB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B841C09A127623BFF5AD56DA /* OpenVoiceFlow.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CB13A88628BC460CF4F3673D = {
+			isa = PBXGroup;
+			children = (
+				34D009C17B85ED343C46DD8A /* Resources */,
+				DD654F0EE6C7E9469B713471 /* Sources */,
+				8BA7997FC8D751AFD981D2DB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DD654F0EE6C7E9469B713471 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				E14222C49F4793213DF778D7 /* OpenVoiceFlow */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		E14222C49F4793213DF778D7 /* OpenVoiceFlow */ = {
+			isa = PBXGroup;
+			children = (
+				1AEE4987BADD8952A8D2BD91 /* AppController.swift */,
+				3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */,
+				DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */,
+				9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */,
+				EFB13BCD2402178510295FCF /* DesignTokens.swift */,
+				CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */,
+				2B693C11C689950AA094C951 /* HUDController.swift */,
+				4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */,
+				7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */,
+				34D72CC634525CAF888070FE /* Paster.swift */,
+				2BF148CC7407807156F032DE /* Permissions.swift */,
+				57717557E0BEAB2E410856EE /* Settings.swift */,
+				E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */,
+				96F80FE49FD6670719657437 /* Transcriber.swift */,
+			);
+			path = OpenVoiceFlow;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B81E084A2EAAAFADEE5A0B23 /* OpenVoiceFlow */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4A8C0030488276A058ABE07C /* Build configuration list for PBXNativeTarget "OpenVoiceFlow" */;
+			buildPhases = (
+				B4C032419BDAF0FC463E4A44 /* Sources */,
+				AFC55BEB18FC2DAB3ED486EE /* Resources */,
+				F1B6E2505DD81BB40F2406F7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OpenVoiceFlow;
+			packageProductDependencies = (
+				EEDE1A79E67D869664D18AA7 /* WhisperKit */,
+				2DE9E8769AA4E1A2BA1F1885 /* Sparkle */,
+			);
+			productName = OpenVoiceFlow;
+			productReference = B841C09A127623BFF5AD56DA /* OpenVoiceFlow.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8CEBC55DAF4A8F6E1F023107 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = E56907D040D0046CA025180F /* Build configuration list for PBXProject "OpenVoiceFlow" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CB13A88628BC460CF4F3673D;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				35FFF8CF04AA49671A2131F6 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				D879B600B183C19A02BAAB48 /* XCRemoteSwiftPackageReference "WhisperKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8BA7997FC8D751AFD981D2DB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B81E084A2EAAAFADEE5A0B23 /* OpenVoiceFlow */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AFC55BEB18FC2DAB3ED486EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA92CBBBC8BD5A1940B73C18 /* OpenVoiceFlow.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B4C032419BDAF0FC463E4A44 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FFC25E3AEBF348F41F0EEC56 /* AppController.swift in Sources */,
+				2976A8647F7E72B7567DFD8F /* AudioCapture.swift in Sources */,
+				E7D6DB42A76697F5E75E3FD9 /* CleanupProvider.swift in Sources */,
+				8D95E21B1C470A7D28C9D177 /* DashboardView.swift in Sources */,
+				7A219E134ECEA45F37A4A0F2 /* DesignTokens.swift in Sources */,
+				61FF22353B12BB2CD6A316B6 /* HUDController.swift in Sources */,
+				1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */,
+				55CC1617ADA91CEB95284F35 /* OnboardingView.swift in Sources */,
+				ED692D08BF81FCFEDD2CA514 /* OpenVoiceFlowApp.swift in Sources */,
+				766ACDD229EB0376746A7003 /* Paster.swift in Sources */,
+				E97FF93C2CB6F5D37F081A7F /* Permissions.swift in Sources */,
+				BA9ACF75EAA0238774612B88 /* Settings.swift in Sources */,
+				58610B34F43FC25577A44A79 /* StatusIcon.swift in Sources */,
+				6013198D531D8368BE4E28C3 /* Transcriber.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		94E84E5D7468A904814E681C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		DC5C756A635D042634404952 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+		DF88B5E1F52AFE3773E50410 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = OpenVoiceFlow.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.4.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.openvoiceflow;
+				PRODUCT_NAME = OpenVoiceFlow;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E8C15DE81768C90B67E1170F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = OpenVoiceFlow.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.4.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.openvoiceflow;
+				PRODUCT_NAME = OpenVoiceFlow;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4A8C0030488276A058ABE07C /* Build configuration list for PBXNativeTarget "OpenVoiceFlow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E8C15DE81768C90B67E1170F /* Debug */,
+				DF88B5E1F52AFE3773E50410 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E56907D040D0046CA025180F /* Build configuration list for PBXProject "OpenVoiceFlow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				94E84E5D7468A904814E681C /* Debug */,
+				DC5C756A635D042634404952 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		35FFF8CF04AA49671A2131F6 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.4;
+			};
+		};
+		D879B600B183C19A02BAAB48 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.18.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2DE9E8769AA4E1A2BA1F1885 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35FFF8CF04AA49671A2131F6 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+		EEDE1A79E67D869664D18AA7 /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D879B600B183C19A02BAAB48 /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 8CEBC55DAF4A8F6E1F023107 /* Project object */;
+}

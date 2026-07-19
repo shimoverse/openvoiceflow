@@ -6,10 +6,11 @@
     <key>CFBundleDisplayName</key><string>OpenVoiceFlow</string>
     <key>CFBundleIdentifier</key><string>app.openvoiceflow</string>
     <key>CFBundleExecutable</key><string>OpenVoiceFlow</string>
+    <key>CFBundleIconFile</key><string>OpenVoiceFlow.icns</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>0.4.0</string>
     <key>CFBundleVersion</key><string>1</string>
-    <key>LSMinimumSystemVersion</key><string>13.0</string>
+    <key>LSMinimumSystemVersion</key><string>14.0</string>
     <!-- Menu-bar agent: no Dock icon, no main window on launch. -->
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>

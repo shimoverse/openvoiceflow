@@ -5,6 +5,8 @@ import WhisperKit
 /// whisper.cpp subprocess + HuggingFace model download of the Python app;
 /// the model is managed by WhisperKit and can be bundled for offline use.
 actor Transcriber {
+    typealias DownloadProgressObserver = @Sendable (Double) -> Void
+
     private var kit: WhisperKit?
     private let modelName: String
 
@@ -12,30 +14,46 @@ actor Transcriber {
         self.modelName = model
     }
 
-    /// Load the model once (lazily). Safe to call repeatedly.
+    /// Load the model once (lazily). The observer receives only actual
+    /// WhisperKit transfer progress, normalized to 0...1.
     ///
-    /// Self-heals a corrupt model: an interrupted HuggingFace download leaves
-    /// a truncated `.mlmodelc`, and CoreML then fails to "build the model
-    /// execution plan" (error −14) on every launch forever. On the first load
-    /// failure we delete the on-disk model variant and retry once with a
-    /// clean re-download; only a second failure is surfaced to the UI.
-    func warmUp() async throws {
-        guard kit == nil else { return }
-        // On the Mac, prefer a bundled model directory so first run is offline:
-        //   WhisperKitConfig(modelFolder: Bundle.main.resourceURL?.appending(path: "models"))
-        // Falling back to WhisperKit's managed download during development.
+    /// An interrupted HuggingFace download can leave a truncated `.mlmodelc`.
+    /// On the first load failure, remove that cached variant and retry with a
+    /// fresh download; a second failure is returned to the caller.
+    func warmUp(progress observer: @escaping DownloadProgressObserver = { _ in }) async throws {
+        guard kit == nil else {
+            observer(1)
+            return
+        }
+
         do {
-            kit = try await WhisperKit(WhisperKitConfig(model: modelName))
+            kit = try await downloadAndLoad(progress: observer)
         } catch {
             purgeDownloadedModel()
-            kit = try await WhisperKit(WhisperKitConfig(model: modelName))
+            kit = try await downloadAndLoad(progress: observer)
         }
+        observer(1)
+    }
+
+    private func downloadAndLoad(progress observer: @escaping DownloadProgressObserver) async throws -> WhisperKit {
+        let modelFolder = try await WhisperKit.download(variant: modelName) { progress in
+            guard progress.totalUnitCount > 0 else { return }
+            let fraction = Double(progress.completedUnitCount) / Double(progress.totalUnitCount)
+            observer(min(max(fraction, 0), 1))
+        }
+        return try await WhisperKit(
+            WhisperKitConfig(
+                modelFolder: modelFolder.path,
+                verbose: false,
+                prewarm: true,
+                load: true,
+                download: false
+            )
+        )
     }
 
     /// Remove every on-disk variant of this model from WhisperKit's default
-    /// download location (~/Documents/huggingface/models/argmaxinc/
-    /// whisperkit-coreml/), so the retry starts from a clean download instead
-    /// of recompiling the same corrupt files.
+    /// download location so the retry starts with fresh model files.
     private func purgeDownloadedModel() {
         let fm = FileManager.default
         let repo = fm.urls(for: .documentDirectory, in: .userDomainMask)[0]

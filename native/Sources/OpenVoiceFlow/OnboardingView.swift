@@ -234,7 +234,6 @@ private struct GettingReadyStep: View {
     @State private var failed = false
     @State private var failureDetail: String?
     @State private var showDetail = false
-    @State private var timer: Timer?
 
     private let accent = DT.emberDark
 
@@ -293,22 +292,28 @@ private struct GettingReadyStep: View {
         }
         .padding(.top, 24)
         .onAppear(perform: start)
-        .onDisappear { timer?.invalidate() }
     }
 
-    /// Development stand-in: simulated progress. The Mac build replaces this
-    /// with Transcriber.warmUp() driving real WhisperKit progress; on a
-    /// thrown error set failed=true and failureDetail=error description —
-    /// Transcriber already self-heals one corrupt download before throwing.
+    /// Starts WhisperKit preparation. The progress bar is driven only by the
+    /// framework's download callback; errors retain their original detail for
+    /// the existing disclosure UI.
     private func start() {
-        guard progress < 100, !done else { return }
-        timer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { t in
-            Task { @MainActor in
-                progress = min(100, progress + Double.random(in: 0.8...2.2))
-                if progress >= 100 {
-                    t.invalidate()
-                    done = true
+        guard !done else { return }
+        failed = false
+        failureDetail = nil
+        showDetail = false
+
+        Task {
+            do {
+                try await controller.prepareModelForOnboarding { fraction in
+                    Task { @MainActor in
+                        progress = min(max(fraction * 100, 0), 100)
+                    }
                 }
+                done = true
+            } catch {
+                failed = true
+                failureDetail = error.localizedDescription
             }
         }
     }

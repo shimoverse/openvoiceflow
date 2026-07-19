@@ -7,7 +7,7 @@
   <meta name="description" content="Free push-to-talk voice dictation for macOS. Audio transcription runs locally with whisper.cpp; optional LLM cleanup uses the backend you choose." />
   <meta name="keywords" content="voice dictation macOS, Wispr Flow alternative, whisper dictation, free voice dictation mac, local transcription" />
   <meta property="og:title" content="OpenVoiceFlow — Free Voice Dictation for macOS" />
-  <meta property="og:description" content="Free push-to-talk voice dictation for macOS with local whisper.cpp transcription and optional LLM cleanup." />
+  <meta property="og:description" content="Speak. It types. Free forever, and your audio never leaves your Mac. Push-to-talk dictation with local whisper.cpp transcription." />
   <meta property="og:url" content="https://openvoiceflow.vercel.app/" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -15,13 +15,8 @@
   <meta name="twitter:description" content="Free voice dictation for macOS. $0 forever." />
   <link rel="canonical" href="https://openvoiceflow.vercel.app/" />
 
-  <!-- Emoji favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎙️</text></svg>" />
-
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Waveform-ring favicon (brand glyph) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23E8974E' stroke-width='13' stroke-linecap='round' stroke-dasharray='186 28' transform='rotate(-58 50 50)'/%3E%3C/svg%3E" />
 
   <link rel="stylesheet" href="style.css" />
 
@@ -54,879 +49,233 @@
 </head>
 <body>
 
-  <!-- ─── NAV ─────────────────────────────────────────── -->
-  <nav class="nav" id="nav">
+  <nav class="nav" id="nav" aria-label="Main">
     <div class="nav-inner container">
-      <a href="#" class="nav-logo">
-        <span class="nav-logo-emoji">🎙️</span>
-        <span class="nav-logo-text">OpenVoiceFlow</span>
-      </a>
+      <a href="index.html" class="nav-logo"><canvas class="nav-glyph" data-wf="glyph" aria-hidden="true"></canvas><span class="nav-logo-text">OpenVoiceFlow</span></a>
       <ul class="nav-links">
-        <li><a href="download.html">Download</a></li>
+        <li><a href="how-it-works.html">How it works</a></li>
         <li><a href="install.html">Install</a></li>
-        <li><a href="how-it-works.html">How It Works</a></li>
-        <li><a href="#features">Features</a></li>
-        <li>
-          <a href="download.html" class="btn btn-primary btn-sm">
-            Download
-          </a>
-        </li>
+        <li><a href="https://github.com/shimoverse/openvoiceflow">GitHub ↗</a></li>
+        <li><a href="download.html" class="btn btn-primary">Download</a></li>
       </ul>
-      <button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
-        <span></span><span></span><span></span>
-      </button>
+      <button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer"><span></span><span></span><span></span></button>
     </div>
-    <!-- Mobile drawer -->
     <div class="nav-drawer" id="navDrawer">
+      <a href="index.html">Home</a>
       <a href="download.html">Download</a>
       <a href="install.html">Install</a>
-      <a href="how-it-works.html">How It Works</a>
-      <a href="#features">Features</a>
+      <a href="how-it-works.html">How it works</a>
       <a href="download.html" class="btn btn-primary">Download for Mac</a>
     </div>
   </nav>
 
-  <!-- ─── HERO ─────────────────────────────────────────── -->
-  <section class="hero" id="hero">
-    <div class="hero-glow"></div>
-    <div class="container hero-inner">
-      <div class="hero-badge fade-in">
-        <span class="badge-dot"></span>
-        MIT-licensed and open source · 100% Free
+  <main>
+    <!-- ─── 1 · Hero: what it is, both USPs above the fold ── -->
+    <section class="container hero-inner" aria-label="Introduction">
+      <span class="hero-badge"><span class="badge-dot"></span>FREE FOREVER · 100% LOCAL AUDIO · OPEN SOURCE</span>
+      <h1 class="hero-title">Speak. It types.<br />Nothing leaves your&nbsp;Mac.</h1>
+      <p class="hero-sub answer-block">OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. Hold a key, talk, release — polished text lands at your cursor in any app. Whisper runs on your Mac, not in a cloud. Free forever, MIT-licensed.</p>
+      <div class="hero-cta-row">
+        <a class="btn btn-primary btn-lg" href="download.html">Download for Mac</a>
+        <a class="btn btn-outline btn-lg" href="how-it-works.html">See how it works</a>
       </div>
-      <h1 class="hero-title fade-in fade-in-delay-1">
-        <span class="hero-emoji">🎙️</span>
-        OpenVoiceFlow
-      </h1>
-      <p class="hero-tagline fade-in fade-in-delay-2">
-        Your voice, your rules, your Mac.
-      </p>
-      <p class="hero-sub fade-in fade-in-delay-3">
-        Free push-to-talk dictation for macOS.<br class="desktop-only" />
-        <span class="accent">Audio transcribes locally.</span> Optional cleanup uses the backend you choose.
-      </p>
-      <div class="answer-card fade-in fade-in-delay-3">
-        <strong>OpenVoiceFlow is a free push-to-talk voice dictation app for macOS</strong> that records locally, transcribes audio with whisper.cpp, optionally cleans the text with OpenRouter Gemma 4, Groq, OpenAI, Anthropic, Ollama, or no cleanup, and pastes the result at your cursor.
-      </div>
-      <div class="hero-ctas fade-in fade-in-delay-4">
-        <a href="download.html" class="btn btn-primary btn-lg">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 12-4-4m4 4 4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
-          Download for Mac
-        </a>
-        <a href="how-it-works.html" class="btn btn-outline btn-lg">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-          See how it works
-        </a>
-      </div>
-      <div class="hero-meta fade-in fade-in-delay-4">
-        <span>macOS 12+</span>
-        <span class="meta-sep">·</span>
-        <span>Apple Silicon &amp; Intel</span>
-        <span class="meta-sep">·</span>
-        <span>Whisper-powered</span>
-        <span class="meta-sep">·</span>
-        <span>No account required</span>
-      </div>
+      <div class="hero-trust">Signed &amp; notarized · macOS 12+ · Apple Silicon &amp; Intel · no account, ever</div>
 
-      <!-- Animated Terminal demo card -->
-      <div class="hero-terminal fade-in fade-in-delay-5" id="animTerminal">
-        <div class="terminal-titlebar">
-          <span class="dot dot-red"></span>
-          <span class="dot dot-yellow"></span>
-          <span class="dot dot-green"></span>
-          <span class="terminal-title">OpenVoiceFlow</span>
-        </div>
-        <div class="terminal-body" id="termBody">
-          <!-- Lines injected by JS -->
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── HOW IT WORKS ──────────────────────────────────── -->
-  <section class="section" id="how-it-works">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="section-label">The pipeline</span>
-        <h2 class="section-title">How It Works</h2>
-        <p class="section-sub">Hold a key. Speak. Release. Perfect text at your cursor — anywhere on your Mac.</p>
-      </div>
-
-      <div class="pipeline reveal">
-        <div class="pipeline-step">
-          <div class="pipeline-icon">🎤</div>
-          <div class="pipeline-content">
-            <div class="pipeline-step-label">Step 1</div>
-            <div class="pipeline-step-title">Speak naturally</div>
-            <div class="pipeline-step-desc">Hold your hotkey. Talk.</div>
-          </div>
-        </div>
-        <div class="pipeline-connector">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
-        <div class="pipeline-step">
-          <div class="pipeline-icon">🔊</div>
-          <div class="pipeline-content">
-            <div class="pipeline-step-label">Step 2</div>
-            <div class="pipeline-step-title">Whisper transcribes</div>
-            <div class="pipeline-step-desc">Local. Metal GPU. Fast.</div>
-          </div>
-        </div>
-        <div class="pipeline-connector">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
-        <div class="pipeline-step">
-          <div class="pipeline-icon">🧠</div>
-          <div class="pipeline-content">
-            <div class="pipeline-step-label">Step 3</div>
-            <div class="pipeline-step-title">LLM cleans up</div>
-            <div class="pipeline-step-desc">Fillers removed. Context applied.</div>
-          </div>
-        </div>
-        <div class="pipeline-connector">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
-        <div class="pipeline-step">
-          <div class="pipeline-icon">⌨️</div>
-          <div class="pipeline-content">
-            <div class="pipeline-step-label">Step 4</div>
-            <div class="pipeline-step-title">Perfect text</div>
-            <div class="pipeline-step-desc">At cursor. Any app.</div>
+      <div class="hero-demo" aria-hidden="true">
+        <div class="typed-box"><span id="typedDemo">Ship the beta tonight — the release notes are already in the doc.</span><span class="caret"></span></div>
+        <div class="hero-cap-row">
+          <div class="hero-cap">
+            <span class="hero-chip" id="heroChip">⌘<small>HELD</small></span>
+            <canvas data-wf="hero"></canvas>
+            <span class="hero-status" id="heroStatus">listening</span>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ─── PERFORMANCE STATS BAR ─────────────────────────── -->
-  <section class="section stats-section" id="stats">
-    <div class="container">
-      <div class="stats-bar reveal">
-        <div class="stats-item">
-          <div class="stats-number gradient-text" data-target="120" data-prefix="~" data-suffix="ms">~0ms</div>
-          <div class="stats-label">Transcription latency</div>
+    <!-- ─── 2 · The two USPs, named ────────────────────────── -->
+    <section class="container section" aria-label="Why OpenVoiceFlow">
+      <div class="usp-grid">
+        <div class="usp-card">
+          <span class="mono-kicker">USP 01 · FREE FOREVER</span>
+          <h2 class="usp-title">$0 today. $0 in five years.</h2>
+          <p class="usp-body">MIT-licensed open source. No subscription, no account, no trial clock, no "Pro" tier waiting to ransom your workflow. Whisper is free to run and your Mac provides the compute — there is nothing to sell you.</p>
         </div>
-        <div class="stats-divider"></div>
-        <div class="stats-item">
-          <div class="stats-number gradient-text" data-target="6" data-prefix="" data-suffix="">0</div>
-          <div class="stats-label">AI backends</div>
-        </div>
-        <div class="stats-divider"></div>
-        <div class="stats-item">
-          <div class="stats-number gradient-text" data-target="24" data-prefix="" data-suffix="">0</div>
-          <div class="stats-label">Voice commands</div>
-        </div>
-        <div class="stats-divider"></div>
-        <div class="stats-item">
-          <div class="stats-number gradient-text" data-target="100" data-prefix="" data-suffix="+">0+</div>
-          <div class="stats-label">Languages supported</div>
+        <div class="usp-card">
+          <span class="mono-kicker">USP 02 · EVERYTHING LOCAL</span>
+          <h2 class="usp-title">Your audio never leaves this machine.</h2>
+          <p class="usp-body">Transcription happens on your Mac, in a model you can point at. It works in airplane mode. The cloud touches nothing unless you explicitly add your own API key — and even then, only text, never your voice.</p>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ─── FEATURES ──────────────────────────────────────── -->
-  <section class="section section-alt" id="features">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="section-label">What you get</span>
-        <h2 class="section-title">Everything you need.<br />Nothing you don't.</h2>
-        <p class="section-sub">Built for people who care about quality, privacy, and getting things done.</p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card reveal">
-          <div class="feature-icon">⚡</div>
-          <h3 class="feature-title">Real-Time Streaming</h3>
-          <p class="feature-desc">Words appear in the overlay as you speak — not after you stop.</p>
+    <!-- ─── 3 · How it works ───────────────────────────────── -->
+    <section class="container section" aria-label="How it works">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-sub">One key. Three beats. Any app on your Mac.</p>
+      <div class="card-grid">
+        <div class="card">
+          <span class="mono-kicker">01 · Hold</span>
+          <span class="key-chip">⌘ <small>right</small></span>
+          <div class="card-body">One key, anywhere in macOS. Your pick: Right ⌘, Right ⌥ or Right ⌃.</div>
         </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🧬</div>
-          <h3 class="feature-title">Smart Profile</h3>
-          <p class="feature-desc">Learns your name, team, and jargon on first launch.</p>
+        <div class="card">
+          <span class="mono-kicker">02 · Speak</span>
+          <canvas data-wf="card" aria-hidden="true"></canvas>
+          <div class="card-body">Whisper transcribes on your Mac with whisper.cpp — Metal-accelerated on Apple Silicon. Airplane mode changes nothing.</div>
         </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🔁</div>
-          <h3 class="feature-title">Auto-Learn</h3>
-          <p class="feature-desc">Fix a typo once — it learns forever. Gets smarter daily.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🎯</div>
-          <h3 class="feature-title">Per-App Context</h3>
-          <p class="feature-desc">Adapts tone and style for Slack, VS Code, Gmail, and more.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🗣️</div>
-          <h3 class="feature-title">Voice Commands</h3>
-          <p class="feature-desc">"New line", "comma", "period" — natural punctuation control.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon">🔒</div>
-          <h3 class="feature-title">100% Local Audio</h3>
-          <p class="feature-desc">Your voice never leaves your Mac. Ever. Full stop.</p>
+        <div class="card">
+          <span class="mono-kicker">03 · Release</span>
+          <div class="card-lede">Polished text at your cursor<span class="caret-sm"></span></div>
+          <div class="card-body">Optional cleanup fixes ums and grammar — local Ollama, your own cloud key, or off entirely. <a href="how-it-works.html">See the full pipeline →</a></div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ─── GET STARTED IN 60 SECONDS ────────────────────── -->
-  <section class="section" id="get-started">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="section-label">Get started</span>
-        <h2 class="section-title">Up and running in 60 seconds.</h2>
-        <p class="section-sub">One command. Or click to download. You're dictating in under a minute.</p>
-      </div>
-
-      <div class="install-wrap reveal">
-        <!-- Primary: DMG Download -->
-        <a href="download.html" class="install-dmg-btn">
-          <svg class="macos-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-          </svg>
-          <div class="install-dmg-text">
-            <span class="install-dmg-title">Download for macOS</span>
-            <span class="install-dmg-sub">Free · Apple Silicon &amp; Intel · macOS 12+</span>
+    <!-- ─── 4 · USP deep-dive: Everything local ────────────── -->
+    <section class="container section" aria-label="Privacy">
+      <h2 class="section-title">Everything local</h2>
+      <p class="section-sub">"Local" is the architecture, not a marketing adjective.</p>
+      <div class="privacy-panel">
+        <div class="privacy-grid">
+          <div class="privacy-copy">
+            <div class="privacy-title">Your voice never leaves your&nbsp;Mac.</div>
+            <div class="privacy-body">Not &ldquo;encrypted in transit.&rdquo; Not &ldquo;anonymized.&rdquo; <b>Not sent.</b> Audio goes from your microphone into a model running on your machine, and is discarded the moment text exists. The only required network call is the one-time model download. Cloud text cleanup happens only if you add your own API key — and it only ever sees text, never audio.</div>
+            <div class="privacy-note">Don't take our word for it — <a href="https://github.com/shimoverse/openvoiceflow">read the source</a>. That's the point of open source.</div>
           </div>
-          <svg class="install-dmg-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 12-4-4m4 4 4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
-        </a>
-
-        <div class="install-divider">
-          <span>or read setup details</span>
-        </div>
-
-        <!-- Terminal one-liner -->
-        <div class="install-terminal">
-          <div class="install-terminal-inner">
-            <span class="install-prompt">$</span>
-            <code class="install-cmd" id="installCmd">https://openvoiceflow.vercel.app/download.html</code>
-            <button class="install-copy-btn" id="installCopyBtn" aria-label="Copy install command">
-              <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              <span class="copy-label">Copy</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── COMPARISON ────────────────────────────────────── -->
-  <section class="section section-alt" id="compare">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="section-label">See the difference</span>
-        <h2 class="section-title">Why switch from Wispr Flow?</h2>
-        <p class="section-sub">Same quality. Zero cost. Total transparency.</p>
-      </div>
-
-      <div class="table-scroll-hint reveal">
-        <span>←</span> Swipe to compare <span>→</span>
-      </div>
-      <div class="table-wrap reveal">
-        <table class="compare-table">
-          <thead>
-            <tr>
-              <th class="col-feature">Feature</th>
-              <th class="col-ovf">
-                <div class="th-inner">
-                  <span class="th-emoji">🎙️</span>
-                  <span class="th-name">OpenVoiceFlow</span>
-                  <span class="th-badge">Free</span>
-                </div>
-              </th>
-              <th>
-                <div class="th-inner th-competitor">
-                  <span class="th-name">Wispr Flow</span>
-                  <span class="th-price">$144/yr</span>
-                </div>
-              </th>
-              <th>
-                <div class="th-inner th-competitor">
-                  <span class="th-name">Superwhisper</span>
-                  <span class="th-price">$85/yr</span>
-                </div>
-              </th>
-              <th>
-                <div class="th-inner th-competitor">
-                  <span class="th-name">VoiceInk</span>
-                  <span class="th-price">Free (GPL)</span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="col-feature">Annual Cost</td>
-              <td class="col-ovf highlight-cell">
-                <span class="check">✓</span> <strong class="green">$0–3</strong>
-              </td>
-              <td><span class="cross">✗</span> $144</td>
-              <td><span class="cross">✗</span> $85</td>
-              <td><span class="check">✓</span> Free</td>
-            </tr>
-            <tr>
-              <td class="col-feature">Source repository</td>
-              <td class="col-ovf highlight-cell"><span class="check">✓</span> MIT</td>
-              <td><span class="cross">✗</span></td>
-              <td><span class="cross">✗</span></td>
-              <td><span class="partial">~</span> GPL (limited)</td>
-            </tr>
-            <tr>
-              <td class="col-feature">Local Audio</td>
-              <td class="col-ovf highlight-cell"><span class="check">✓</span></td>
-              <td><span class="cross">✗</span> Cloud</td>
-              <td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
-            </tr>
-            <tr>
-              <td class="col-feature">Auto-Learn</td>
-              <td class="col-ovf highlight-cell"><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
-              <td><span class="partial">~</span> Partial</td>
-              <td><span class="cross">✗</span></td>
-            </tr>
-            <tr>
-              <td class="col-feature">Per-App Context</td>
-              <td class="col-ovf highlight-cell"><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
-            </tr>
-            <tr>
-              <td class="col-feature">Voice Commands</td>
-              <td class="col-ovf highlight-cell"><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
-              <td><span class="partial">~</span> Basic</td>
-              <td><span class="partial">~</span> Basic</td>
-            </tr>
-            <tr>
-              <td class="col-feature">Real-Time Streaming</td>
-              <td class="col-ovf highlight-cell"><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
-              <td><span class="cross">✗</span></td>
-              <td><span class="cross">✗</span></td>
-            </tr>
-            <tr>
-              <td class="col-feature">Selected Text Context</td>
-              <td class="col-ovf highlight-cell"><span class="check">✓</span></td>
-              <td><span class="check">✓</span></td>
-              <td><span class="partial">~</span> Partial</td>
-              <td><span class="cross">✗</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── BACKENDS ─────────────────────────────────────── -->
-  <section class="section" id="backends">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="section-label">Your choice</span>
-        <h2 class="section-title">Pick your backend.</h2>
-        <p class="section-sub">From fully local (zero cost, zero cloud) to ultra-fast API. You decide what runs where.</p>
-      </div>
-
-      <div class="backends-grid">
-        <div class="backend-card backend-recommended reveal">
-          <div class="backend-badge">Recommended</div>
-          <div class="backend-icon">✨</div>
-          <div class="backend-name">OpenRouter Gemma 4</div>
-          <div class="backend-cost">OpenRouter pricing/free tiers</div>
-          <div class="backend-privacy privacy-mid">Audio stays local</div>
-          <div class="backend-desc">Default cloud cleanup path using google/gemma-4-31b-it through OpenRouter.</div>
-          <code class="backend-cmd">openvoiceflow --backend openrouter --set-key openrouter YOUR_KEY</code>
-        </div>
-        <div class="backend-card reveal">
-          <div class="backend-icon">⚡</div>
-          <div class="backend-name">Groq</div>
-          <div class="backend-cost">Free tier / ~$1/yr</div>
-          <div class="backend-privacy privacy-mid">API call</div>
-          <div class="backend-desc">Fastest inference on the planet. Llama on Groq's custom silicon.</div>
-          <code class="backend-cmd">openvoiceflow --set-key groq YOUR_KEY</code>
-        </div>
-        <div class="backend-card reveal">
-          <div class="backend-icon">🤖</div>
-          <div class="backend-name">OpenAI</div>
-          <div class="backend-cost">~$5/yr</div>
-          <div class="backend-privacy privacy-mid">API call</div>
-          <div class="backend-desc">GPT-4o mini. Great for complex cleanup and nuanced rewrites.</div>
-          <code class="backend-cmd">openvoiceflow --set-key openai YOUR_KEY</code>
-        </div>
-        <div class="backend-card reveal">
-          <div class="backend-icon">🌟</div>
-          <div class="backend-name">Claude</div>
-          <div class="backend-cost">~$5/yr</div>
-          <div class="backend-privacy privacy-mid">API call</div>
-          <div class="backend-desc">Anthropic's Claude Haiku. Exceptional writing quality and tone.</div>
-          <code class="backend-cmd">openvoiceflow --set-key claude YOUR_KEY</code>
-        </div>
-        <div class="backend-card backend-local reveal">
-          <div class="backend-badge backend-badge-green">100% Local</div>
-          <div class="backend-icon">🦙</div>
-          <div class="backend-name">Ollama</div>
-          <div class="backend-cost text-green">$0 / forever</div>
-          <div class="backend-privacy privacy-local">Never leaves Mac</div>
-          <div class="backend-desc">Fully offline. Llama 3, Mistral, or any local model. Air-gapped privacy.</div>
-          <code class="backend-cmd">openvoiceflow --backend ollama</code>
-        </div>
-        <div class="backend-card reveal">
-          <div class="backend-icon">⚙️</div>
-          <div class="backend-name">None (Whisper only)</div>
-          <div class="backend-cost text-green">$0 / forever</div>
-          <div class="backend-privacy privacy-local">Never leaves Mac</div>
-          <div class="backend-desc">Raw Whisper output only. No LLM cleanup. Minimal and lightning fast.</div>
-          <code class="backend-cmd">openvoiceflow --backend none</code>
-        </div>
-      </div>
-
-      <div class="backends-note reveal">
-        <span class="note-icon">💡</span>
-        <strong>All options:</strong> Audio transcription is <em>always</em> local via Whisper. Only the cleanup LLM call goes to an API (if you choose one).
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── FAQ ──────────────────────────────────────────── -->
-  <section class="section section-alt" id="faq">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="section-label">Common questions</span>
-        <h2 class="section-title">FAQ</h2>
-        <p class="section-sub">Everything you want to know before you install.</p>
-      </div>
-
-      <div class="faq-list reveal" id="faqList">
-
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Is it really free?</span>
-            <span class="faq-icon" aria-hidden="true">+</span>
-          </button>
-          <div class="faq-answer">
-            <div class="faq-answer-inner">
-              Yes. The signed DMG is free, and the source repository is public under the MIT License. Use Ollama for $0/forever, or choose a cloud LLM backend if you want hosted cleanup.
+          <div class="privacy-box">
+            <div class="privacy-box-label">YOUR MAC — AUDIO NEVER LEAVES THIS BOX</div>
+            <div class="pipe-row">
+              <span class="pipe-chip">mic</span><span class="pipe-arrow">→</span>
+              <span class="pipe-chip">Whisper</span><span class="pipe-arrow">→</span>
+              <span class="pipe-chip">cleanup</span><span class="pipe-arrow">→</span>
+              <span class="pipe-chip dest">your cursor</span>
             </div>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Does my audio leave my Mac?</span>
-            <span class="faq-icon" aria-hidden="true">+</span>
-          </button>
-          <div class="faq-answer">
-            <div class="faq-answer-inner">
-              Never. Whisper runs 100% locally on your Mac using Metal GPU acceleration. Only the cleaned-up text goes to an LLM API (if you choose one). With Ollama, nothing leaves your Mac at all.
-            </div>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>How does it compare to macOS built-in dictation?</span>
-            <span class="faq-icon" aria-hidden="true">+</span>
-          </button>
-          <div class="faq-answer">
-            <div class="faq-answer-inner">
-              macOS dictation is basic transcription with no cleanup, no context awareness, no learning. OpenVoiceFlow removes fillers ("um", "uh"), understands corrections ("no wait"), adapts to each app, and learns your vocabulary.
-            </div>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>What if I don't have an API key?</span>
-            <span class="faq-icon" aria-hidden="true">+</span>
-          </button>
-          <div class="faq-answer">
-            <div class="faq-answer-inner">
-              Use Ollama (fully local, free), choose no cleanup, or configure a paid/free-tier cloud provider such as OpenRouter, Groq, OpenAI, or Anthropic with your own key.
-            </div>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Does it work on Intel Macs?</span>
-            <span class="faq-icon" aria-hidden="true">+</span>
-          </button>
-          <div class="faq-answer">
-            <div class="faq-answer-inner">
-              Yes. Both Apple Silicon and Intel are supported. Streaming mode uses Metal GPU on Apple Silicon; Intel falls back to CPU-based batch mode.
-            </div>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Can I use it offline?</span>
-            <span class="faq-icon" aria-hidden="true">+</span>
-          </button>
-          <div class="faq-answer">
-            <div class="faq-answer-inner">
-              Yes. With the Ollama backend + local Whisper model, everything runs offline. No internet needed.
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── SOCIAL PROOF ──────────────────────────────────── -->
-  <section class="section" id="community">
-    <div class="container">
-      <div class="community-wrap reveal">
-        <div class="community-text">
-          <span class="section-label">Open source</span>
-          <h2 class="section-title">Built for Mac users<br />who want voice without lock-in.</h2>
-          <p class="section-sub">OpenVoiceFlow is MIT-licensed and open source. Install the verified website-hosted DMGs or inspect and build the public source on GitHub.</p>
-          <p class="community-cta-text">If this saves you $144 a year, share the download page with another Mac user who wants local-audio dictation.</p>
-          <div class="community-actions">
-            <a href="download.html" class="btn btn-primary btn-lg">
-              Download for Mac
-            </a>
-            <a href="install.html" class="btn btn-outline btn-lg">
-              Install guide
-            </a>
-            <a href="https://github.com/shimoverse/openvoiceflow" class="btn btn-outline btn-lg">
-              View source
-            </a>
-          </div>
-        </div>
-        <div class="community-stats">
-          <div class="stat-card">
-            <div class="stat-value">$0</div>
-            <div class="stat-label">Annual cost</div>
-          </div>
-          <div class="stat-card stat-card-accent">
-            <div class="stat-value">$144</div>
-            <div class="stat-label">You save vs Wispr Flow</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">MIT</div>
-            <div class="stat-label">License</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">100%</div>
-            <div class="stat-label">Local audio</div>
+            <canvas data-wf="pline" aria-hidden="true"></canvas>
+            <div class="privacy-box-note">With Ollama or cleanup off, no byte crosses this border at all.</div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ─── FINAL CTA ─────────────────────────────────────── -->
-  <section class="section cta-section">
-    <div class="container">
-      <div class="cta-wrap reveal">
-        <div class="cta-glow"></div>
+    <!-- ─── 5 · Features: what the product actually is ─────── -->
+    <section class="container section" aria-label="Features">
+      <h2 class="section-title">Everything you need. Nothing you don't.</h2>
+      <p class="section-sub">Built for people who care about quality, privacy, and getting things done.</p>
+      <div class="card-grid">
+        <div class="card"><span class="mono-kicker">Streaming</span><div class="card-title">Real-time overlay</div><div class="card-body">Watch words appear in the overlay as you speak with optional streaming mode — not just after you stop.</div></div>
+        <div class="card"><span class="mono-kicker">Profile</span><div class="card-title">Know-Me interview</div><div class="card-body">A short first-launch Q&amp;A learns your name, team, and jargon so cleanup writes like you.</div></div>
+        <div class="card"><span class="mono-kicker">Auto-learn</span><div class="card-title">Fix it once</div><div class="card-body">Correct a mis-heard word once and your personal dictionary remembers it forever.</div></div>
+        <div class="card"><span class="mono-kicker">Context</span><div class="card-title">Per-app style</div><div class="card-body">Casual in Slack and iMessage, formal in Mail, terse in your editor — tone adapts to the frontmost app.</div></div>
+        <div class="card"><span class="mono-kicker">Commands</span><div class="card-title">Voice punctuation</div><div class="card-body">&ldquo;New line&rdquo;, &ldquo;comma&rdquo;, &ldquo;period&rdquo; — natural phrases become punctuation and formatting.</div></div>
+        <div class="card"><span class="mono-kicker">Snippets</span><div class="card-title">Say it, expand it</div><div class="card-body">Voice-triggered text expansion for the sentences you type twenty times a day.</div></div>
+      </div>
+    </section>
+
+    <!-- ─── 6 · USP deep-dive: Free forever ────────────────── -->
+    <section class="container section" aria-label="Free forever and comparison with Wispr Flow">
+      <h2 class="section-title">Free forever</h2>
+      <p class="section-sub">Wispr Flow is a fine product. It is also $144 a year for a subscription to someone else's cloud.</p>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-value">$0</div><div class="stat-label">Annual cost</div></div>
+        <div class="stat-card stat-accent"><div class="stat-value">$144</div><div class="stat-label">Saved vs Wispr Flow, every year</div></div>
+        <div class="stat-card"><div class="stat-value">MIT</div><div class="stat-label">License</div></div>
+        <div class="stat-card"><div class="stat-value">6</div><div class="stat-label">Cleanup backends to choose from</div></div>
+      </div>
+      <div class="compare-table">
+        <div class="compare-grid">
+          <div class="compare-head-dim" aria-hidden="true">&nbsp;</div><div class="compare-head">OpenVoiceFlow</div><div class="compare-head-dim">Wispr Flow</div>
+          <div class="compare-label">Price</div><div class="compare-us-strong">$0, forever</div><div class="compare-them">$12/mo — $144/yr</div>
+          <div class="compare-label">Transcription</div><div class="compare-us">On this Mac</div><div class="compare-them">Their cloud</div>
+          <div class="compare-label">Works offline</div><div class="compare-yes">Yes</div><div class="compare-them">No</div>
+          <div class="compare-label">Your audio leaves the machine</div><div class="compare-yes">Never</div><div class="compare-them">Uploaded to transcribe</div>
+          <div class="compare-label">Source code</div><div class="compare-us">Open — MIT</div><div class="compare-them">Closed</div>
+          <div class="compare-label">Account required</div><div class="compare-yes">No</div><div class="compare-them">Yes</div>
+          <div class="compare-label">AI cleanup</div><div class="compare-us">Your choice — local Ollama, or your own API key</div><div class="compare-them">Their pipeline</div>
+        </div>
+      </div>
+      <p class="compare-footnote">Competitor details per their published pricing and docs, July 2026.</p>
+    </section>
+
+    <!-- ─── 7 · Pick your backend ──────────────────────────── -->
+    <section class="container section" aria-label="Cleanup backend options">
+      <h2 class="section-title">Pick your backend.</h2>
+      <p class="section-sub">From fully local (zero cost, zero cloud) to ultra-fast API. You decide what runs where.</p>
+      <div class="card-grid backend-grid">
+        <div class="card backend-card is-flagged"><span class="backend-flag">DEFAULT CLOUD PATH</span><span class="mono-kicker">OpenRouter Gemma 4</span><div class="backend-meta"><span class="backend-cost">Free tier available</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">The default cloud cleanup path — google/gemma-4-31b-it through OpenRouter, with your own key.</div><code class="code-block backend-cmd">openvoiceflow --backend openrouter --set-key openrouter YOUR_KEY</code></div>
+        <div class="card backend-card"><span class="mono-kicker">Groq</span><div class="backend-meta"><span class="backend-cost">Free tier / ~$1 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">Fastest inference around — Llama on Groq's custom silicon, with your own key.</div><code class="code-block backend-cmd">openvoiceflow --set-key groq YOUR_KEY</code></div>
+        <div class="card backend-card"><span class="mono-kicker">OpenAI</span><div class="backend-meta"><span class="backend-cost">~$5 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">GPT-4o mini. Great for complex cleanup and nuanced rewrites.</div><code class="code-block backend-cmd">openvoiceflow --set-key openai YOUR_KEY</code></div>
+        <div class="card backend-card"><span class="mono-kicker">Claude</span><div class="backend-meta"><span class="backend-cost">~$5 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">Anthropic's Claude Haiku. Exceptional writing quality and tone.</div><code class="code-block backend-cmd">openvoiceflow --set-key claude YOUR_KEY</code></div>
+        <div class="card backend-card is-flagged is-local"><span class="backend-flag local">100% LOCAL</span><span class="mono-kicker">Ollama</span><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Fully offline. Llama 3, Mistral, or any local model. Air-gapped privacy.</div><code class="code-block backend-cmd">openvoiceflow --backend ollama</code></div>
+        <div class="card backend-card is-local"><span class="mono-kicker">None — Whisper only</span><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Raw Whisper output, no LLM cleanup. Minimal and lightning fast.</div><code class="code-block backend-cmd">openvoiceflow --backend none</code></div>
+      </div>
+      <p class="backend-note"><strong>All options:</strong> audio transcription is <em>always</em> local via Whisper. Only the cleanup call goes to an API — and only if you choose one.</p>
+    </section>
+
+    <!-- ─── 8 · Install ────────────────────────────────────── -->
+    <section class="container section" aria-label="Installation overview">
+      <h2 class="section-title">Up and running in 60 seconds.</h2>
+      <div class="step-grid">
+        <div class="step-card"><div class="step-num">1</div><h3>Download the DMG</h3><p>Apple-notarized — Gatekeeper verifies it before first launch. No warnings to click through.</p></div>
+        <div class="step-card"><div class="step-num">2</div><h3>Drag to Applications</h3><p>The classic move. No installer wizard, no launch agents you didn't ask for.</p></div>
+        <div class="step-card"><div class="step-num">3</div><h3>Say hello</h3><p>First launch runs a one-time setup (~5 minutes: speech engine + model) with each permission explained before macOS asks. <a href="install.html">Full install guide →</a></p></div>
+      </div>
+    </section>
+
+    <!-- ─── 9 · FAQ ────────────────────────────────────────── -->
+    <section class="container section faq" aria-label="Frequently asked questions">
+      <h2 class="section-title">Questions</h2>
+      <details>
+        <summary>Really free? What's the catch?</summary>
+        <p>MIT-licensed, community-built, no account, no telemetry. Whisper is free to run; your Mac provides the compute. There is nothing to sell you.</p>
+      </details>
+      <details>
+        <summary>How accurate is it?</summary>
+        <p>Whisper runs on-device with your pick of models from tiny to large — trade speed for accuracy per your Mac. Your personal dictionary fixes names and jargon once, forever, and the Know-Me interview teaches cleanup your tone.</p>
+      </details>
+      <details>
+        <summary>Does AI cleanup send my text to the cloud?</summary>
+        <p>Only if you add your own API key for a cloud provider — the default cloud path is OpenRouter Gemma 4, and keys are stored only on your Mac. Choose local Ollama, or turn cleanup off entirely, for a fully on-device flow. Audio never goes anywhere, regardless.</p>
+      </details>
+      <details>
+        <summary>Which Macs?</summary>
+        <p>macOS 12 Monterey or newer. Apple Silicon flies; Intel Macs work with smaller models. Setup is honest with you about what your hardware can handle.</p>
+      </details>
+      <details>
+        <summary>Where does my data live?</summary>
+        <p>In <code>~/.openvoiceflow</code> on your Mac — transcripts, dictionary, profile, keys. Delete that folder and every trace is gone. Nothing is synced anywhere.</p>
+      </details>
+    </section>
+
+    <!-- ─── 10 · Closing CTA ───────────────────────────────── -->
+    <section class="container section" aria-label="Get started">
+      <div class="cta-panel">
         <h2 class="cta-title">Start dictating for free.<br />Right now.</h2>
         <p class="cta-sub">No account. No credit card. Local audio transcription. You choose the cleanup backend.</p>
-        <div class="cta-buttons">
-          <a href="download.html" class="btn btn-primary btn-xl">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 12-4-4m4 4 4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>
-            Download for Mac — Free
-          </a>
+        <div class="hero-cta-row">
+          <a class="btn btn-primary btn-lg" href="download.html">Download for Mac — Free</a>
+          <a class="btn btn-outline btn-lg" href="install.html">Install guide</a>
         </div>
-        <p class="cta-footnote">macOS 12 · Monterey · Ventura · Sonoma · Sequoia · Apple Silicon · Intel</p>
+        <p class="cta-footnote">macOS 12+ · Monterey → Sequoia · Apple Silicon &amp; Intel</p>
       </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <!-- ─── FOOTER ────────────────────────────────────────── -->
+  <!-- ─── Footer ─────────────────────────────────────────── -->
   <footer class="footer">
     <div class="container footer-inner">
-      <div class="footer-brand">
-        <a href="#" class="nav-logo">
-          <span class="nav-logo-emoji">🎙️</span>
-          <span class="nav-logo-text">OpenVoiceFlow</span>
-        </a>
-        <p class="footer-tagline">Made with 🎤 for Mac users who want local-audio dictation</p>
-      </div>
-      <nav class="footer-links">
+      <canvas class="footer-glyph" data-wf="glyph" aria-hidden="true"></canvas>
+      <p class="footer-copy">© 2026 OpenVoiceFlow contributors. MIT License · made for people who talk faster than they type.</p>
+      <nav class="footer-links" aria-label="Footer">
         <a href="download.html">Download</a>
         <a href="install.html">Install</a>
         <a href="how-it-works.html">How it works</a>
         <a href="https://github.com/shimoverse/openvoiceflow">Source</a>
         <a href="llms.txt">llms.txt</a>
       </nav>
-      <p class="footer-copy">© 2026 OpenVoiceFlow contributors. MIT License.</p>
     </div>
   </footer>
 
-  <script>
-    // ─── Smooth scroll ─────────────────────────────────────
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-      a.addEventListener('click', e => {
-        const id = a.getAttribute('href').slice(1);
-        const el = document.getElementById(id);
-        if (!el) return;
-        e.preventDefault();
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // Close mobile drawer
-        document.getElementById('navDrawer').classList.remove('open');
-        document.getElementById('navHamburger').classList.remove('active');
-      });
-    });
-
-    // ─── Nav scroll shadow ─────────────────────────────────
-    const nav = document.getElementById('nav');
-    window.addEventListener('scroll', () => {
-      nav.classList.toggle('scrolled', window.scrollY > 20);
-    }, { passive: true });
-
-    // ─── Hamburger menu ────────────────────────────────────
-    const hamburger = document.getElementById('navHamburger');
-    const drawer = document.getElementById('navDrawer');
-    function setDrawerOpen(open) {
-      hamburger.classList.toggle('active', open);
-      drawer.classList.toggle('open', open);
-      hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
-    }
-    hamburger.addEventListener('click', () => {
-      setDrawerOpen(!drawer.classList.contains('open'));
-    });
-    drawer.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => setDrawerOpen(false));
-    });
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') setDrawerOpen(false);
-    });
-
-    // ─── Intersection Observer (reveal on scroll) ──────────
-    const revealEls = document.querySelectorAll('.reveal');
-    const revealObserver = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
-    revealEls.forEach(el => revealObserver.observe(el));
-
-    // ─── Hero fade-ins (immediate) ─────────────────────────
-    document.querySelectorAll('.fade-in').forEach((el, i) => {
-      setTimeout(() => el.classList.add('visible'), i * 80);
-    });
-
-    // ─── Animated Terminal ─────────────────────────────────
-    (function initAnimTerminal() {
-      const termBody = document.getElementById('termBody');
-      if (!termBody) return;
-
-      const STEPS = [
-        {
-          emoji: '🎤',
-          label: 'You say:',
-          text: '"um hey uh can you schedule a meeting for Thursday no wait Friday"',
-          cls: 't-text',
-          showArrow: false
-        },
-        {
-          emoji: '🔊',
-          label: 'Whisper:',
-          text: 'local transcription · Metal GPU · ~120ms',
-          cls: 't-text',
-          showArrow: true
-        },
-        {
-          emoji: '🧠',
-          label: 'LLM:',
-          text: 'cleaning fillers, applying your context…',
-          cls: 't-text',
-          showArrow: true
-        },
-        {
-          emoji: '⌨️',
-          label: 'Output:',
-          text: '"Hey, can you schedule a meeting for Friday?"',
-          cls: 't-accent',
-          showArrow: true
-        }
-      ];
-
-      const CHAR_DELAY = 40;    // ms per character
-      const LINE_PAUSE = 800;   // ms between lines
-      const LOOP_PAUSE = 4000;  // ms idle before restarting
-      const CURSOR_HTML = '<span class="term-cursor">▋</span>';
-
-      function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-      }
-
-      async function typeText(el, text, cls) {
-        el.innerHTML = CURSOR_HTML;
-        for (let i = 0; i < text.length; i++) {
-          await sleep(CHAR_DELAY);
-          const span = document.createElement('span');
-          span.className = cls;
-          span.textContent = text.slice(0, i + 1);
-          el.innerHTML = '';
-          el.appendChild(span);
-          el.innerHTML += CURSOR_HTML;
-        }
-        // Remove cursor after line finishes
-        await sleep(200);
-        const cursorEl = el.querySelector('.term-cursor');
-        if (cursorEl) cursorEl.remove();
-      }
-
-      async function runAnimation() {
-        termBody.innerHTML = '';
-
-        for (let i = 0; i < STEPS.length; i++) {
-          const step = STEPS[i];
-
-          // Arrow separator (before step, except first)
-          if (step.showArrow) {
-            const arrowEl = document.createElement('div');
-            arrowEl.className = 'terminal-arrow term-arrow-hidden';
-            arrowEl.textContent = '↓';
-            termBody.appendChild(arrowEl);
-            await sleep(120);
-            arrowEl.classList.remove('term-arrow-hidden');
-            arrowEl.classList.add('term-arrow-visible');
-            await sleep(LINE_PAUSE / 2);
-          }
-
-          // Line wrapper
-          const lineEl = document.createElement('div');
-          lineEl.className = 'terminal-line';
-
-          const emojiSpan = document.createElement('span');
-          emojiSpan.className = 't-dim';
-          emojiSpan.textContent = step.emoji + ' ';
-          lineEl.appendChild(emojiSpan);
-
-          const labelSpan = document.createElement('span');
-          labelSpan.className = 't-muted';
-          labelSpan.textContent = step.label + ' ';
-          lineEl.appendChild(labelSpan);
-
-          const textContainer = document.createElement('span');
-          lineEl.appendChild(textContainer);
-
-          termBody.appendChild(lineEl);
-
-          // Scroll terminal into view if needed
-          termBody.scrollTop = termBody.scrollHeight;
-
-          // Type the text
-          await typeText(textContainer, step.text, step.cls);
-          await sleep(LINE_PAUSE);
-        }
-
-        // Pause before loop
-        await sleep(LOOP_PAUSE);
-        // Fade out and restart
-        termBody.style.opacity = '0';
-        termBody.style.transition = 'opacity 0.4s ease';
-        await sleep(450);
-        termBody.style.opacity = '1';
-        termBody.style.transition = 'opacity 0.4s ease';
-        await sleep(200);
-        runAnimation();
-      }
-
-      // Start after hero fade-in settles
-      setTimeout(runAnimation, 900);
-    })();
-
-    // ─── Copy install command ──────────────────────────────
-    (function initCopyBtn() {
-      const btn = document.getElementById('installCopyBtn');
-      if (!btn) return;
-      btn.addEventListener('click', () => {
-        const cmd = 'https://openvoiceflow.vercel.app/download.html';
-        navigator.clipboard.writeText(cmd).then(() => {
-          btn.classList.add('copied');
-          setTimeout(() => btn.classList.remove('copied'), 2000);
-        }).catch(() => {
-          // Fallback for older browsers
-          const ta = document.createElement('textarea');
-          ta.value = cmd;
-          ta.style.position = 'fixed';
-          ta.style.opacity = '0';
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          btn.classList.add('copied');
-          setTimeout(() => btn.classList.remove('copied'), 2000);
-        });
-      });
-    })();
-
-    // ─── Stats count-up animation ──────────────────────────
-    (function initStatsCountup() {
-      const statNums = document.querySelectorAll('.stats-number[data-target]');
-      if (!statNums.length) return;
-
-      function animateCountUp(el) {
-        const target = parseInt(el.dataset.target, 10);
-        const prefix = el.dataset.prefix || '';
-        const suffix = el.dataset.suffix || '';
-        const duration = 1200;
-        const startTime = performance.now();
-
-        function update(now) {
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          // Ease out cubic
-          const eased = 1 - Math.pow(1 - progress, 3);
-          const current = Math.round(eased * target);
-          el.textContent = prefix + current + suffix;
-          if (progress < 1) requestAnimationFrame(update);
-        }
-        requestAnimationFrame(update);
-      }
-
-      const statsObserver = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.querySelectorAll('.stats-number[data-target]').forEach(animateCountUp);
-            statsObserver.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.3 });
-
-      const statsBar = document.querySelector('.stats-bar');
-      if (statsBar) statsObserver.observe(statsBar);
-    })();
-
-    // ─── FAQ accordion ────────────────────────────────────
-    (function initFAQ() {
-      const faqList = document.getElementById('faqList');
-      if (!faqList) return;
-
-      faqList.addEventListener('click', e => {
-        const btn = e.target.closest('.faq-question');
-        if (!btn) return;
-
-        const item = btn.closest('.faq-item');
-        const isOpen = btn.getAttribute('aria-expanded') === 'true';
-
-        // Close all
-        faqList.querySelectorAll('.faq-item').forEach(i => {
-          i.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
-          i.classList.remove('open');
-        });
-
-        // Open clicked if it was closed
-        if (!isOpen) {
-          btn.setAttribute('aria-expanded', 'true');
-          item.classList.add('open');
-        }
-      });
-    })();
-  </script>
   <script src="site.js"></script>
 </body>
 </html>

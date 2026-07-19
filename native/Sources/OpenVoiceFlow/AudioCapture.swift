@@ -11,6 +11,10 @@ final class AudioCapture {
     private let lock = NSLock()
     private var isRunning = false
 
+    /// Per-buffer RMS level (0…1-ish), called on the audio thread ~43×/s.
+    /// The HUD waveform feeds from this (design: RMS buckets → 80 ms EMA).
+    var onLevel: ((Double) -> Void)?
+
     /// WhisperKit's expected input format.
     private let targetFormat = AVAudioFormat(
         commonFormat: .pcmFormatFloat32,
@@ -86,5 +90,10 @@ final class AudioCapture {
         let frames = Int(out.frameLength)
         let chunk = Array(UnsafeBufferPointer(start: channel, count: frames))
         lock.withLock { samples.append(contentsOf: chunk) }
+        if let onLevel, frames > 0 {
+            var sum: Float = 0
+            for i in 0..<frames { sum += channel[i] * channel[i] }
+            onLevel(Double(sqrt(sum / Float(frames))))
+        }
     }
 }

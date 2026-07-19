@@ -102,3 +102,41 @@ shipping product until native reaches parity + passes a real on-device test.
 | `llm/*` | `CleanupProvider.swift` |
 | `config.py` + keys in JSON | `Settings.swift` + **Keychain** |
 | doctor / permissions | `Permissions.swift` |
+
+---
+
+## Phase D — Design implementation (added after the Claude Design hand-off)
+
+The full design system landed in `native/design/*.dc.html` (raw sources) and
+is now implemented in Swift:
+
+- `DesignTokens.swift` — every color/radius/spring token + the shared
+  `Voiceline` waveform math (envelope, window, wobble — verbatim from design).
+- `HUDController.swift` — all HUD states from phase 01: summon (90 ms fade +
+  9 px rise), listening with live RMS-driven wave (dim/ember split at
+  amp 0.04), transcribing coil (1.1 rev/s), cleanup shimmer (150 px/s),
+  success tick, three error states with action buttons + exact copy,
+  long-dictation timer promotion, max-duration amber countdown, Reduce
+  Motion variants (9-dot meter / 3 pulsing dots), VoiceOver labels.
+- `StatusIcon.swift` — the 24×16 template menu-bar glyph, all six states
+  drawn from the phase-02 math, animated at 20 fps only while
+  listening/working and never under Reduce Motion.
+- `OpenVoiceFlowApp.swift` — the phase-02 dropdown item-for-item (header
+  state lines, Start/Stop ⌘⇧D, Pause for 1 hour/Resume, Hotkey/Model/Cleanup
+  submenus with captions, Open Dashboard ⌘D, Quit ⌘Q).
+- `DashboardView.swift` — phase 03: 212 pt sidebar, Home stats + week chart,
+  designed empty states for History/Dictionary/Snippets, Styles rows,
+  Know-Me, grouped Settings. Data stores are the next milestone; the empty
+  states are the designed default until then.
+- `OnboardingView.swift` — phase 04: welcome, three permission primings with
+  mock-dialog previews, keycap hotkey picker + 700 ms rehearsal, narrated
+  model download checklist, say-hello finale.
+- `native/assets/` — phase 06 renders: appicon-1024(+light), dmg-bg@2x,
+  og-card, readme-banner, favicon.svg (all generated from the spec's math).
+
+**Mac-build follow-ups for this phase**: wire `ModelDownloadStep` progress to
+WhisperKit's real download callback; feed `AudioCapture.onLevel` timing from
+`CADisplayLink` if the Canvas timeline judders; convert appicon PNGs via
+`iconutil`/Icon Composer into `AppIcon.icon`; export `ovf-mb-*@{1x,2x}.pdf`
+from `StatusIconRenderer` if template PDFs are preferred over runtime
+drawing; hook `Check for Updates…` to Sparkle.

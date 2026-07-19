@@ -1,20 +1,26 @@
 import SwiftUI
 
 /// Entry point. A menu-bar (`LSUIElement`) app: no Dock icon by default, a
-/// `MenuBarExtra` for control, and a first-run onboarding window.
+/// `MenuBarExtra` for control (design phase 02), a dashboard window (phase
+/// 03), and first-run onboarding (phase 04).
 @main
 struct OpenVoiceFlowApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var controller = AppController()
-    @State private var showOnboarding = false
+    @StateObject private var icon = StatusIconAnimator()
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent(controller: controller, showOnboarding: $showOnboarding)
+            MenuContent(controller: controller)
         } label: {
-            Image(systemName: controller.isRecording ? "waveform.circle.fill"
-                  : (controller.isListening ? "waveform" : "waveform.slash"))
+            MenuBarLabel(controller: controller, icon: icon)
         }
+
+        Window("OpenVoiceFlow", id: "dashboard") {
+            DashboardView(controller: controller)
+        }
+        .windowResizability(.contentSize)
+        .defaultSize(width: 1000, height: 660)
 
         Window("Welcome to OpenVoiceFlow", id: "onboarding") {
             OnboardingView(controller: controller)
@@ -30,41 +36,140 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// The menu-bar dropdown.
-private struct MenuContent: View {
+/// The template status icon, animated while listening/working (design 02).
+private struct MenuBarLabel: View {
     @ObservedObject var controller: AppController
-    @Binding var showOnboarding: Bool
-    @Environment(\.openWindow) private var openWindow
+    @ObservedObject var icon: StatusIconAnimator
 
     var body: some View {
-        Button(controller.isListening ? "Pause Listening" : "Start Listening") {
-            controller.isListening ? controller.stopListening() : { _ = controller.startListening() }()
+        Image(nsImage: icon.image)
+            .onAppear { icon.set(controller.iconState) }
+            .onChange(of: controller.iconState) { icon.set($0) }
+    }
+}
+
+/// The dropdown, item-for-item from the design (phase 02 §2). System menu
+/// rendering (menu-style MenuBarExtra) keeps it HIG-native; the design's
+/// custom blur panel is a later window-style upgrade if ever wanted.
+private struct MenuContent: View {
+    @ObservedObject var controller: AppController
+    @Environment(\.openWindow) private var openWindow
+
+    /// The models the design's picker offers (WhisperKit names + sizes).
+    private static let models: [(id: String, label: String)] = [
+        ("tiny", "tiny — 39 MB"),
+        ("small", "small — 466 MB"),
+        ("medium", "medium — 1.5 GB"),
+        ("large-v3-turbo", "large-v3-turbo — 1.6 GB"),
+    ]
+
+    var body: some View {
+        // 1. Header (non-interactive state summary).
+        Text(headerTitle)
+        Text(headerSubtitle)
+        Divider()
+
+        // 3–4. Primary actions.
+        Button(controller.isListening || controller.isWorking ? "Stop Dictation" : "Start Dictation") {
+            if controller.isListening { controller.stopListening() } else { _ = controller.startListening() }
+        }
+        .keyboardShortcut("d", modifiers: [.command, .shift])
+
+        Button(controller.isPaused ? "Resume" : "Pause for 1 hour") {
+            controller.isPaused ? controller.resume() : controller.pause()
         }
         Divider()
 
-        Menu("Dictation Shortcut") {
-            // fn is offered here too — unlike the Python app it actually works.
+        // 6. Hotkey picker.
+        Menu("Hotkey — \(controller.settings.hotkey.displayName)") {
             ForEach(Hotkey.allCases, id: \.self) { key in
-                Button {
-                    controller.updateHotkey(key)
-                } label: {
-                    Label(key.displayName, systemImage: controller.settings.hotkey == key ? "checkmark" : "")
+                Toggle(isOn: .constant(controller.settings.hotkey == key)) {
+                    Text(key == .rightCommand ? "\(key.displayName)  (default)" : key.displayName)
                 }
+                .onTapGesture { controller.updateHotkey(key) }
             }
+            Divider()
+            Text("Hold to talk · release to transcribe")
         }
 
-        Menu("AI Cleanup") {
-            ForEach(Backend.allCases, id: \.self) { backend in
-                Button(backend.rawValue.capitalized) {
+        // 7. Model picker.
+        Menu("Model — \(controller.settings.whisperModel)") {
+            ForEach(Self.models, id: \.id) { model in
+                Button {
+                    controller.settings.whisperModel = model.id
+                    controller.settings.save()
+                } label: {
+                    if controller.settings.whisperModel == model.id {
+                        Label(model.label, systemImage: "checkmark")
+                    } else {
+                        Text(model.label)
+                    }
+                }
+            }
+            Divider()
+            Text("Runs on this Mac — downloads once")
+        }
+
+        // 8. Cleanup picker (design order: on-device first).
+        Menu("Cleanup — \(cleanupLabel(controller.settings.backend))") {
+            ForEach([Backend.ollama, .anthropic, .openai, .groq, .openrouter, .none], id: \.self) { backend in
+                Button {
                     controller.settings.backend = backend
                     controller.settings.save()
+                } label: {
+                    if controller.settings.backend == backend {
+                        Label(cleanupLabel(backend), systemImage: "checkmark")
+                    } else {
+                        Text(cleanupLabel(backend))
+                    }
                 }
             }
+            Divider()
+            Text("Cloud keys live in your Keychain")
         }
-
-        Button("Setup & Permissions…") { openWindow(id: "onboarding") }
         Divider()
+
+        // 10–11. Windows + updates.
+        Button("Open Dashboard…") { openWindow(id: "dashboard"); NSApp.activate(ignoringOtherApps: true) }
+            .keyboardShortcut("d")
+        Button("Setup & Permissions…") { openWindow(id: "onboarding"); NSApp.activate(ignoringOtherApps: true) }
+        Button("Check for Updates…") {
+            // Sparkle wiring is a Mac-build step (BUILD_RUNBOOK.md phase 4).
+            NSWorkspace.shared.open(URL(string: "https://openvoiceflow.vercel.app/download.html")!)
+        }
+        Divider()
+
+        // 13. Quit, always last, behind a separator.
         Button("Quit OpenVoiceFlow") { NSApplication.shared.terminate(nil) }
             .keyboardShortcut("q")
+    }
+
+    private var headerTitle: String {
+        if controller.lastError != nil { return controller.lastError! }
+        if let until = controller.pausedUntil {
+            return "Paused until \(until.formatted(date: .omitted, time: .shortened))"
+        }
+        if controller.isRecording { return "Listening…" }
+        if controller.isWorking { return "Transcribing…" }
+        return "Ready"
+    }
+
+    private var headerSubtitle: String {
+        if controller.lastError != nil { return "Pick an input in Sound settings" }
+        if controller.isPaused { return "Hotkey ignored while paused" }
+        if controller.isRecording { return "Release to transcribe" }
+        if controller.isWorking { return "On-device Whisper" }
+        return "Hold \(controller.settings.hotkey.glyph) to dictate"
+    }
+
+    private func cleanupLabel(_ backend: Backend) -> String {
+        switch backend {
+        case .ollama: return "On-device · Ollama"
+        case .anthropic: return "Anthropic"
+        case .openai: return "OpenAI"
+        case .groq: return "Groq"
+        case .openrouter: return "OpenRouter"
+        case .none: return "None — raw transcript"
+        }
     }
 }

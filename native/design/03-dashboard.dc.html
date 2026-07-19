@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{{const W=new URLSearchParams(location.search).get("theme");if(W==="light"||W==="dark"){document.documentElement.dataset.theme=W}}{if(new URLSearchParams(location.search).get("_omthumb")==="1"){const W=(q)=>{const X=q.focus;if(!X)return;q.focus=function(H){X.call(this,{...H,preventScroll:true})}};W(HTMLElement.prototype);W(SVGElement.prototype);if(typeof MathMLElement!=="undefined"){W(MathMLElement.prototype)}const $=(q)=>{q.removeAttribute("autofocus");q.inert=true;if(!(q instanceof HTMLElement))q.removeAttribute("tabindex")};const z=(q)=>{if(q.hasAttribute("autofocus"))$(q);for(const X of q.querySelectorAll("[autofocus]")){$(X)}};z(document.documentElement);new MutationObserver((q)=>{for(const X of q){for(const H of X.addedNodes){if(H.nodeType===1)z(H)}}}).observe(document,{childList:true,subtree:true})}}{const W=()=>{try{if(document.querySelector('meta[name="color-scheme"]'))return;const $=getComputedStyle(document.documentElement).getPropertyValue("color-scheme").trim();if($&&$!=="normal")return;const z=(j)=>{if(!j)return null;const F=getComputedStyle(j).backgroundColor.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/);if(!F)return null;const G=F[4]==null?1:parseFloat(F[4])/(F[4].endsWith("%")?100:1);if(G<0.99)return null;return[+F[1],+F[2],+F[3]]};const q=z(document.body)||z(document.documentElement);if(!q)return;const X=(j)=>{const F=j/255;return F<=0.04045?F/12.92:((F+0.055)/1.055)**2.4};const H=0.2126*X(q[0])+0.7152*X(q[1])+0.0722*X(q[2]);document.documentElement.style.setProperty("color-scheme",H<0.4?"dark":"light")}catch{}};if(document.readyState==="complete")W();else window.addEventListener("load",W)}var b=["https://claude.ai","https://preview.claude.ai","https://423e8509-755f-4bc2-9189-efd7c75a2e24.claudeusercontent.com"];var p=true;var u=30000;var d=3000;document.addEventListener("DOMContentLoaded",()=>{const W=window.Babel;const $="om-src-id";if(W&&W.registerPlugin&&!(W.availablePlugins&&W.availablePlugins[$])){W.registerPlugin($,({types:H})=>({visitor:{JSXOpeningElement(j,F){const G=j.node;if(G.name&&G.name.type==="JSXMemberExpression")return;for(let Q=0;Q<G.attributes.length;Q++){const V=G.attributes[Q];if(V.type==="JSXAttribute"&&V.name&&V.name.name==="data-om-id")return}const P=F.file&&F.file.opts&&F.file.opts.filename||"?";const R=G.loc&&G.loc.start;const J=`jsx:${P}:${G.start??0}:${R?R.line:0}:${R?R.column+1:0}`;G.attributes.push(H.jsxAttribute(H.jsxIdentifier("data-om-id"),H.stringLiteral(J)))}}}))}const z="om-text-extract";let q=false;if(p&&W&&W.registerPlugin&&!(W.availablePlugins&&W.availablePlugins[z])){const H=window.React;if(H&&H.useSyncExternalStore&&H.createElement){q=true;const j={};const F=new Set;let G=0;window.__omTextO=j;window.__omTextSet=(J)=>{for(const Q in J){const V=J[Q];if(V==null)delete j[Q];else j[Q]=V}G++;F.forEach((Q)=>Q())};const P=(J)=>{F.add(J);return()=>F.delete(J)};const R=()=>G;window.__OmT=function J(Q){H.useSyncExternalStore(P,R,R);return H.createElement("span",{"data-om-text":Q.i,className:"__om-t"},Q.i in j?j[Q.i]:Q.children)};W.registerPlugin(z,({types:J})=>{const Q={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const V={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const Y=(K,M)=>J.logicalExpression("??",J.memberExpression(J.logicalExpression("||",J.memberExpression(J.identifier("window"),J.identifier("__omTextO")),J.objectExpression([])),J.stringLiteral(K),true),M);const Z=(K)=>K.file&&K.file.opts&&K.file.opts.filename||"?";const B=(K)=>K.file&&K.file.code||"";const U=(K,M)=>{const L=(D)=>D&&D.start!=null&&D.end!=null&&(D.type==="StringLiteral"||D.type==="TemplateLiteral"&&D.expressions.length===0)?[D.start,D.end]:null;const N=L(M);if(N)return N;if(M&&M.type==="Identifier"){const D=K.scope.getBinding(M.name);if(D&&D.constant&&D.path.node.type==="VariableDeclarator"){return L(D.path.node.init)}}return null};const x=(K,M,L)=>{const N=K.node;let D=false;const f=(w,A)=>{D=true;return J.jsxElement(J.jsxOpeningElement(J.jsxIdentifier("__OmT"),[J.jsxAttribute(J.jsxIdentifier("i"),J.stringLiteral(w))],false),J.jsxClosingElement(J.jsxIdentifier("__OmT")),[A],false)};const C=N.children.map((w)=>{if(w.type==="JSXText"){if(w.start==null||w.end==null)return w;const A=L.slice(w.start,w.end);const S=A.length-A.trimStart().length;const O=A.length-A.trimEnd().length;if(S+O>=A.length)return w;return f(`txt:${M}:${w.start+S}:${w.end-O}`,w)}if(w.type==="JSXExpressionContainer"){const A=U(K,w.expression);if(A)return f(`str:${M}:${A[0]}:${A[1]}`,w)}return w});if(D)N.children=C};return{visitor:{JSXOpeningElement(K,M){const L=K.node;const N=Z(M);const D={};for(let f=0;f<L.attributes.length;f++){const C=L.attributes[f];if(C.type!=="JSXAttribute"||!C.name)continue;const w=C.name.name;if(!V[w])continue;if(!C.value||C.value.type!=="StringLiteral")continue;if(C.value.start==null||C.value.end==null)continue;const A=`txt:${N}:${C.value.start}:${C.value.end}`;D[w]=A;C.value=J.jsxExpressionContainer(Y(A,J.stringLiteral(C.value.value)))}if(Object.keys(D).length){L.attributes.push(J.jsxAttribute(J.jsxIdentifier("data-om-text-attrs"),J.stringLiteral(JSON.stringify(D))))}},JSXElement(K,M){const L=K.node.openingElement;const N=L&&L.name&&L.name.name;if(N==="__OmT")return;if(typeof N==="string"&&Q[N])return;x(K,Z(M),B(M))},JSXFragment(K,M){x(K,Z(M),B(M))}}}})}}const X=q?["transform-react-jsx-source",$,z]:["transform-react-jsx-source",$];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((H,j)=>{const F=H.getAttribute("data-plugins")||"";const G=X.filter((P)=>F.indexOf(P)<0);if(G.length){H.setAttribute("data-plugins",F?`${F},${G.join(",")}`:G.join(","))}if(!H.hasAttribute("data-filename")){H.setAttribute("data-filename",H.getAttribute("src")||`inline-${j}`)}})});var I=window.parent;var g="not editable here — open the project in the Claude Design editor to save";var n=()=>Promise.resolve({persisted:false,noHost:true,reason:g});var k=n;var v="data/storage.json";var l=()=>{try{const W=new URL(document.baseURI);const $=W.pathname.match(/\/projects\/([^/]+)\/serve\//);if($)return $[1];return W.hostname.split(".")[0]||""}catch{return location.hostname.split(".")[0]||""}};var o=()=>{try{const W=new URL(document.baseURI);const $=W.pathname.indexOf("/serve/");if($>=0)return W.origin+W.pathname.slice(0,$+"/serve/".length)+v}catch{}return"./"+v};var E=null;var _=()=>{if(!E){E=fetch(o(),{cache:"no-store"}).then((W)=>{if(W.ok)return W.text();return W.status===404?"":null}).catch(()=>null).then((W)=>{if(W===null){E=null;return null}const $=new Map;if(!W)return $;let z;try{z=JSON.parse(W)}catch{console.warn("[omelette.storage] "+v+" is not valid JSON; treating the store as unreadable so a save cannot overwrite the "+"hand-edited bytes. Fix the JSON (or delete the file) to re-enable persistence.");E=null;return null}if(z===null||typeof z!=="object"||Array.isArray(z)){console.warn("[omelette.storage] "+v+" doesn't hold a JSON object; treating the store as unreadable so a save cannot "+"overwrite the hand-edited bytes. Make the top level a JSON object to re-enable persistence.");E=null;return null}const q=z;if("data"in q){const X=q.data;if(X===null||typeof X!=="object"||Array.isArray(X)){console.warn("[omelette.storage] "+v+' has a "data" field that is not a JSON object; treating the store as unreadable so a '+'save cannot overwrite the hand-edited bytes. Make "data" a JSON object to re-enable persistence.');E=null;return null}const H=q._meta;const j=H!==null&&typeof H==="object"?H.project:undefined;if(typeof j==="string"&&j!==""&&j!==l())return $;for(const F of Object.keys(X))$.set(F,X[F]);return $}for(const X of Object.keys(q)){if(X!=="_meta")$.set(X,q[X])}return $})}return E};var y=(W)=>k(v,JSON.stringify({_meta:{project:l(),version:1},data:Object.fromEntries(W)},null,2));var m=Promise.resolve();var T=(W)=>{const $=m.then(W);m=$.then(()=>{return},()=>{return});return $};var s=/sk-(?:ant-)?[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[a-z]-[A-Za-z0-9][A-Za-z0-9-]{9,}|AIza[0-9A-Za-z_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;var a=/password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|credential/i;var r=(W,$,z)=>{if(s.test($)||a.test(W)&&typeof z==="string"&&z.length>=8){console.warn('[omelette.storage] the value for "'+W+'" looks like a credential. The storage file is a plaintext project file — visible to '+"everyone with project access and copied when the project is duplicated. Do not store secrets here.")}};var c={persisted:false,reason:"could not load the existing store — not overwriting it"};var i={persisted:false,reason:"stored value changed since a failed read — re-read this key before saving"};var h=new Set;var t={get:(W)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.get: key must be a string"))}return T(_).then(($)=>{if($===null){h.add(W);return null}h.delete(W);if(!$.has(W))return null;const z=$.get(W);return z==null?null:JSON.parse(JSON.stringify(z))})},set:(W,$)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.set: key must be a string"))}let z;try{z=JSON.stringify($)}catch(X){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable ("+String(X)+")"))}if(z===undefined){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable"))}r(W,z,$);const q=JSON.parse(z);return T(()=>_().then((X)=>{if(X===null)return c;if(h.has(W)){if(X.has(W))return i;h.delete(W)}X.set(W,q);return y(X)}))},delete:(W)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.delete: key must be a string"))}return T(()=>_().then(($)=>{if($===null)return c;if(h.has(W)){if($.has(W))return i;h.delete(W)}$.delete(W);return y($)}))},keys:()=>T(_).then((W)=>W===null?[]:Array.from(W.keys()))};window.omelette={writeFile:(W,$)=>k(W,$).then((z)=>{if(!z.persisted&&!z.noHost){throw new Error(z.reason||"write failed")}}),storage:t};if(I&&I!==window){const W=(J,Q)=>{try{I.postMessage({__omelette_log:true,type:J,data:Q},"*")}catch{}};["log","warn","error"].forEach((J)=>{const Q=console[J];console[J]=(...V)=>{const Y=V.map((Z)=>{try{return typeof Z==="object"?JSON.stringify(Z):String(Z)}catch{try{return String(Z)}catch{return"[unstringifiable]"}}}).join(" ");W(J,Y);Q.apply(console,V)}});window.addEventListener("error",(J)=>{const Q=J.target;if(Q&&Q!==window&&Q.tagName){const V=Q.src||Q.href||"";W("resource_error",`${Q.tagName} failed to load: ${V}`)}else{W("error",`${J.message||"Unknown error"} at ${J.filename||"?"}:${J.lineno||0}:${J.colno||0}`)}},true);window.addEventListener("unhandledrejection",(J)=>{const Q=J.reason;const V=Q instanceof Error?`${Q.message} ${Q.stack}`:String(Q);W("error",`Unhandled rejection: ${V}`)});window.addEventListener("click",(J)=>{if(J.defaultPrevented||J.button!==0)return;if(J.metaKey||J.ctrlKey||J.shiftKey||J.altKey)return;const Q=J.composedPath?J.composedPath():[];const V=["button","input","select","textarea","summary","label"];let Y=null;for(const x of Q){if(!(x instanceof Element))continue;if(x.localName==="a"){if(!(x instanceof HTMLAnchorElement))return;Y=x;break}if(V.indexOf(x.localName)!==-1)return}if(!Y)return;if(Y.isContentEditable)return;const Z=Y.closest("[contenteditable]");if(Z&&Z.getAttribute("contenteditable")!=="false")return;const B=(Y.getAttribute("target")||"_self").toLowerCase();if(B!=="_self"&&B!=="_top"&&B!=="_parent")return;let U;try{U=new URL(Y.href)}catch{return}if(U.protocol!=="http:"&&U.protocol!=="https:")return;if(location.origin==="null")return;if(U.origin===location.origin)return;J.preventDefault();window.open(U.href,"_blank","noopener,noreferrer")});const $=()=>{try{I.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(window.ResizeObserver)new ResizeObserver($).observe(document.documentElement);const z=()=>{$();if(!document.querySelector('script[type="text/babel"],script[type="text/jsx"]'))return;const J=()=>document.getElementById("root")||document.querySelector("body > div[id]");const Q=J()?.firstElementChild??null;let V=0;const Y=()=>{const Z=J();if(Z&&Z.firstElementChild!==Q||++V>30){$();return}setTimeout(Y,100)};setTimeout(Y,100)};if(document.readyState==="complete")z();else window.addEventListener("load",z);const q={};let X=0;const H=(J)=>new Promise((Q,V)=>{if(!b.length){V(new Error("claude.complete: no parent origin"));return}const Y=`c${++X}`;const Z=()=>setTimeout(()=>{delete q[Y];V(new Error(`claude.complete: no data for ${u/1000}s`))},u);const B=Z();q[Y]={resolve:Q,reject:V,text:"",t:B,arm:Z};try{for(const U of b){I.postMessage({__om_api:true,id:Y,body:J},U)}}catch(U){clearTimeout(B);delete q[Y];V(U)}});const j=8;const F=async(J,Q)=>{if(!Array.isArray(J.messages)){throw new Error("claude.complete: tools require a messages array")}const V=J.messages.slice();const Y={...J,tools:J.tools.map((U)=>{if(U===null||typeof U!=="object")return U;const x={};for(const K of Object.keys(U)){if(typeof U[K]!=="function")x[K]=U[K]}return x})};const Z=Y.tool_choice;const B=Z!=null&&(Z.type==="any"||Z.type==="tool")?{...Y,tool_choice:Z.disable_parallel_tool_use!==undefined?{type:"auto",disable_parallel_tool_use:Z.disable_parallel_tool_use}:{type:"auto"}}:Y;for(let U=0;U<j;U++){const x=await H({...U===0?Y:B,messages:V});const K=x.message;const M=K&&Array.isArray(K.content)?K.content:null;const L=M?M.filter((D)=>D?.type==="tool_use"):[];if(K?.stop_reason!=="tool_use"||L.length===0){return x.text}const N=[];for(const D of L){const f=Q.get(D.name);if(!f){N.push({type:"tool_result",tool_use_id:D.id,content:`no handler for tool "${D.name}"`,is_error:true});continue}try{const C=await f(D.input);const w=typeof C==="string"?C:R(C)??"";N.push({type:"tool_result",tool_use_id:D.id,content:w})}catch(C){N.push({type:"tool_result",tool_use_id:D.id,content:String(C?.message??C??"tool handler failed"),is_error:true})}}V.push({role:"assistant",content:M},{role:"user",content:N})}throw new Error(`claude.complete: exceeded ${j} tool turns`)};window.claude={complete(J){const Q=J;if(Q!==null&&typeof Q==="object"&&Array.isArray(Q.tools)&&Q.tools.some((V)=>V!==null&&typeof V==="object"&&typeof V.run==="function")){const V=new Map;for(const Y of Q.tools){if(Y!==null&&typeof Y==="object"&&typeof Y.run==="function"){V.set(String(Y.name),Y.run)}}return F(Q,V)}return H(J).then((V)=>V.text)}};const G={};let P=0;k=(J,Q)=>new Promise((V)=>{if(!b.length){V({persisted:false,noHost:true,reason:g});return}const Y=`f${++P}`;const Z=setTimeout(()=>{delete G[Y];V({persisted:false,noHost:true,reason:g})},d);G[Y]={settle:V,t:Z};try{for(const B of b){I.postMessage({__om_file:true,id:Y,op:"write",path:J,content:Q},B)}}catch{clearTimeout(Z);delete G[Y];V({persisted:false,noHost:true,reason:g})}});const R=(J)=>{try{return JSON.stringify(J)}catch{return JSON.stringify(String(J))}};window.addEventListener("message",(J)=>{if(b.indexOf(J.origin)<0)return;if(J.source!==I)return;const Q=J.data;if(!Q)return;if(Q.type==="omelette-preview-refresh"){if(typeof Q.token!=="string"||!/^[0-9a-f.-]+(\.(rc|pr-[0-9]+))?(\.[0-9]+\.[0-9a-f]{16})?$/.test(Q.token))return;const Z=Math.max(1,Math.floor((Q.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+Q.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+Z;return}if(Q.__om_file_r){const Z=G[Q.id];if(!Z)return;clearTimeout(Z.t);delete G[Q.id];Z.settle(Q.ok?{persisted:true}:{persisted:false,reason:Q.error||"write failed"});return}if(Q.__om_api_r){const Z=q[Q.id];if(!Z)return;if(Q.error!=null){clearTimeout(Z.t);delete q[Q.id];Z.reject(new Error(Q.error));return}if(Q.chunk!=null){clearTimeout(Z.t);Z.t=Z.arm();Z.text+=Q.chunk;return}if(Q.done){clearTimeout(Z.t);delete q[Q.id];Z.resolve({text:Q.text!=null?Q.text:Z.text,message:Q.message});return}return}if(!Q.__om_eval)return;const V=Q;const Y=(Z)=>{J.source.postMessage({...Z,__om_eval_r:1,id:V.id},J.origin)};try{const Z=(0,eval)(V.code);if(Z&&typeof Z.then==="function"){Z.then((B)=>Y({ok:1,v:R(B)}),(B)=>Y({ok:0,e:String(B)}))}else{Y({ok:1,v:R(Z)})}}catch(Z){Y({ok:0,e:String(Z)})}})}})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenVoiceFlow — Dashboard</title>
+<style>
+html,body{margin:0;padding:0;background:#F4F2EC;color:#26221B;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+p{text-wrap:pretty}
+a{color:#9A5A1E;text-decoration:none}
+a:hover{color:#7C4715;text-decoration:underline}
+@keyframes ovfSkel{0%{opacity:.45}50%{opacity:.9}100%{opacity:.45}}
+</style>
+</helmet>
+<div style="max-width:1180px;margin:0 auto;padding:44px 40px 80px">
+<header data-screen-label="Header" style="display:flex;align-items:center;gap:14px;padding-bottom:28px;border-bottom:1px solid #E4DFD3;flex-wrap:wrap">
+  <div style="font-size:18px;font-weight:700;letter-spacing:-0.02em">OpenVoiceFlow</div>
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.06em">PHASE 3 / 6 · DASHBOARD</div>
+  <div style="flex:1"></div>
+  <div style="display:flex;gap:10px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px"><a href="OpenVoiceFlow - System + HUD.dc.html">01 HUD</a><a href="OpenVoiceFlow - Menu Bar.dc.html">02 Menu bar</a><span style="color:#26221B;font-weight:700">03 Dashboard</span><a href="OpenVoiceFlow - Onboarding.dc.html">04 Onboarding</a><a href="OpenVoiceFlow - Website.dc.html">05 Website</a><a href="OpenVoiceFlow - Assets + Rationale.dc.html">06 Assets</a></div>
+</header>
+
+<section data-screen-label="Dashboard window" style="padding:36px 0">
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">DATA</span>
+    <span onClick="{{ dmFill }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ cs.filled }}" style-hover="background:#F1EEE6">Filled</span>
+    <span onClick="{{ dmEmpty }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ cs.empty }}" style-hover="background:#F1EEE6">Empty (first run)</span>
+    <span onClick="{{ dmLoad }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ cs.loading }}" style-hover="background:#F1EEE6">Loading</span>
+    <span style="width:12px"></span>
+    <span onClick="{{ tgTheme }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ cs.dark }}" style-hover="background:#F1EEE6">Dark</span>
+  </div>
+  <div style="border-radius:14px;overflow:hidden;border:1px solid #E0DACC;box-shadow:0 24px 60px rgba(40,35,20,.14);display:flex;min-height:660px;background:{{ th.win }}">
+    <div style="width:212px;flex:none;background:{{ th.side }};border-right:1px solid {{ th.hair }};display:flex;flex-direction:column;padding:12px 10px">
+      <div style="display:flex;align-items:center;gap:6px;padding:4px 6px 14px"><span style="width:11px;height:11px;border-radius:6px;background:#EC6A5E"></span><span style="width:11px;height:11px;border-radius:6px;background:#F4BF4F"></span><span style="width:11px;height:11px;border-radius:6px;background:#61C554"></span></div>
+      <div style="display:flex;align-items:center;gap:9px;padding:2px 8px 14px"><canvas ref="{{ reg.glyph }}" style="width:22px;height:22px"></canvas><span style="font-size:13px;font-weight:700;color:{{ th.ink }}">OpenVoiceFlow</span></div>
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="7">
+        <div onClick="{{ n.go }}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:13px;cursor:pointer;color:{{ th.ink }};{{ n.on }}" style-hover="background:{{ th.hov }}"><span style="width:6px;height:6px;border-radius:3px;{{ n.dot }}"></span>{{ n.label }}</div>
+      </sc-for>
+      <div style="flex:1"></div>
+      <div style="padding:8px 10px;font-size:11px;color:{{ th.ink2 }};display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:3px;background:#7FAF8A"></span>v0.4.0 · up to date</div>
+    </div>
+    <div style="flex:1;min-width:0;padding:26px 30px;color:{{ th.ink }}">
+
+      <sc-if value="{{ is.home }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px">Good morning, Alex.</div>
+        <div style="font-size:12.5px;color:{{ th.ink2 }};margin-bottom:20px">You've spoken 2,148 words today — about 22 minutes you didn't spend typing.</div>
+        <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+            <div style="height:92px;border-radius:12px;background:{{ th.fill }};animation:ovfSkel 1.4s ease-in-out infinite"></div>
+            <div style="height:92px;border-radius:12px;background:{{ th.fill }};animation:ovfSkel 1.4s ease-in-out infinite .15s"></div>
+            <div style="height:92px;border-radius:12px;background:{{ th.fill }};animation:ovfSkel 1.4s ease-in-out infinite .3s"></div>
+            <div style="height:92px;border-radius:12px;background:{{ th.fill }};animation:ovfSkel 1.4s ease-in-out infinite .45s"></div>
+          </div>
+          <div style="height:180px;border-radius:12px;background:{{ th.fill }};animation:ovfSkel 1.4s ease-in-out infinite .6s"></div>
+          <div style="margin-top:12px;font-size:11px;color:{{ th.ink2 }}">Skeletons fade in after 120 ms — never a spinner for local data.</div>
+        </sc-if>
+        <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px">
+            <div style="border:1px solid {{ th.hair }};border-radius:12px;padding:14px 16px;background:{{ th.card }}"><div style="font-size:11px;color:{{ th.ink2 }};margin-bottom:6px">Words dictated</div><div style="font-size:26px;font-weight:700;letter-spacing:-0.02em">{{ statWords }}</div><div style="font-size:11px;color:#7FAF8A;font-weight:600">{{ statWordsSub }}</div></div>
+            <div style="border:1px solid {{ th.hair }};border-radius:12px;padding:14px 16px;background:{{ th.card }}"><div style="font-size:11px;color:{{ th.ink2 }};margin-bottom:6px">Time saved</div><div style="font-size:26px;font-weight:700;letter-spacing:-0.02em">{{ statTime }}</div><div style="font-size:11px;color:{{ th.ink2 }}">vs typing at 40 wpm</div></div>
+            <div style="border:1px solid {{ th.hair }};border-radius:12px;padding:14px 16px;background:{{ th.card }}"><div style="font-size:11px;color:{{ th.ink2 }};margin-bottom:6px">Streak</div><div style="font-size:26px;font-weight:700;letter-spacing:-0.02em">{{ statStreak }}</div><div style="font-size:11px;color:{{ th.ink2 }}">days in a row</div></div>
+            <div style="border:1px solid {{ th.hair }};border-radius:12px;padding:14px 16px;background:{{ th.card }}"><div style="font-size:11px;color:{{ th.ink2 }};margin-bottom:6px">Speaking pace</div><div style="font-size:26px;font-weight:700;letter-spacing:-0.02em">{{ statWpm }}</div><div style="font-size:11px;color:{{ th.ink2 }}">{{ statWpmSub }}</div></div>
+          </div>
+          <div style="border:1px solid {{ th.hair }};border-radius:12px;padding:16px;background:{{ th.card }};margin-bottom:20px">
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px"><span style="font-size:13px;font-weight:700">This week</span><span style="font-size:11px;color:{{ th.ink2 }}">words per day</span></div>
+            <div style="display:flex;align-items:flex-end;gap:10px;height:110px">
+              <sc-for list="{{ chart }}" as="b" hint-placeholder-count="7">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end"><div style="width:100%;max-width:44px;border-radius:6px 6px 2px 2px;height:{{ b.h }};background:{{ b.c }}"></div><span style="font-size:10px;color:{{ th.ink2 }}">{{ b.d }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><span style="font-size:13px;font-weight:700">Recent</span><span onClick="{{ goHistory }}" style="font-size:11.5px;color:#B4661F;cursor:pointer">See all →</span></div>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;gap:10px;align-items:center;padding:9px 4px;border-top:1px solid {{ th.hair }}"><span style="font-size:11px;color:{{ th.ink2 }};width:56px;flex:none">9:41 AM</span><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:{{ th.fill }};color:{{ th.ink2 }};flex:none">Mail</span><span style="font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Can we move standup to 10 tomorrow? I have a dentist appointment at 9.</span></div>
+            <div style="display:flex;gap:10px;align-items:center;padding:9px 4px;border-top:1px solid {{ th.hair }}"><span style="font-size:11px;color:{{ th.ink2 }};width:56px;flex:none">9:12 AM</span><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:{{ th.fill }};color:{{ th.ink2 }};flex:none">Slack</span><span style="font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Shipping the native HUD behind a flag today — review by EOD?</span></div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ is.history }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;flex:1">History</div>
+          <span style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:{{ th.fill }};font-size:12px;color:{{ th.ink2 }};min-width:200px">⌕ Search transcripts…</span>
+          <span style="padding:6px 10px;border-radius:8px;border:1px solid {{ th.hair }};font-size:12px;color:{{ th.ink2 }}">All apps ▾</span>
+        </div>
+        <sc-if value="{{ emptyish }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px dashed {{ th.hair }};border-radius:14px;padding:56px 20px;display:flex;flex-direction:column;align-items:center;gap:10px">
+            <canvas ref="{{ reg.emptyline }}" style="width:220px;height:34px"></canvas>
+            <div style="font-size:14px;font-weight:600">Nothing here yet</div>
+            <div style="font-size:12.5px;color:{{ th.ink2 }};text-align:center;max-width:320px">Hold {{ hk }} in any app and say hello. Every take lands here — searchable, on this Mac only.</div>
+            <span style="margin-top:6px;padding:8px 16px;border-radius:8px;background:#B4661F;color:#FFF;font-size:12.5px;font-weight:600;cursor:pointer">Try it now</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ filled }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:{{ th.ink2 }};margin:6px 0">TODAY</div>
+          <sc-for list="{{ histToday }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;gap:10px;align-items:center;padding:10px 6px;border-top:1px solid {{ th.hair }};border-radius:6px" style-hover="background:{{ th.hov }}"><span style="font-size:11px;color:{{ th.ink2 }};width:56px;flex:none">{{ r.t }}</span><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:{{ th.fill }};color:{{ th.ink2 }};flex:none">{{ r.app }}</span><span style="font-size:12.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.txt }}</span><span style="font-size:11px;color:{{ th.ink2 }};flex:none">{{ r.n }} words</span><span style="font-size:11px;color:#B4661F;flex:none;cursor:pointer">Copy</span></div>
+          </sc-for>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.05em;color:{{ th.ink2 }};margin:16px 0 6px">YESTERDAY</div>
+          <sc-for list="{{ histYest }}" as="r" hint-placeholder-count="2">
+            <div style="display:flex;gap:10px;align-items:center;padding:10px 6px;border-top:1px solid {{ th.hair }};border-radius:6px" style-hover="background:{{ th.hov }}"><span style="font-size:11px;color:{{ th.ink2 }};width:56px;flex:none">{{ r.t }}</span><span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:{{ th.fill }};color:{{ th.ink2 }};flex:none">{{ r.app }}</span><span style="font-size:12.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.txt }}</span><span style="font-size:11px;color:{{ th.ink2 }};flex:none">{{ r.n }} words</span><span style="font-size:11px;color:#B4661F;flex:none;cursor:pointer">Copy</span></div>
+          </sc-for>
+          <div style="margin-top:14px;font-size:11px;color:{{ th.ink2 }}">Raw audio is discarded after transcription. Text history lives in ~/Library — delete any row, day, or everything in Settings › Privacy.</div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ is.dict }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px">Dictionary</div>
+        <div style="font-size:12.5px;color:{{ th.ink2 }};margin-bottom:18px">Names and jargon Whisper gets wrong — corrected before cleanup ever runs.</div>
+        <sc-if value="{{ emptyish }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px dashed {{ th.hair }};border-radius:14px;padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="font-size:14px;font-weight:600">No corrections yet</div>
+            <div style="font-size:12.5px;color:{{ th.ink2 }};text-align:center;max-width:340px">When a transcript gets a name wrong, fix it once in History — it lands here and never happens again.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ filled }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px;margin-bottom:14px"><span style="flex:1;max-width:340px;padding:7px 12px;border-radius:8px;background:{{ th.fill }};font-size:12.5px;color:{{ th.ink2 }}">When it hears… → write…</span><span style="padding:7px 14px;border-radius:8px;background:#B4661F;color:#FFF;font-size:12.5px;font-weight:600;cursor:pointer">Add</span></div>
+          <sc-for list="{{ dict }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex;gap:12px;align-items:center;padding:10px 6px;border-top:1px solid {{ th.hair }}"><span style="font-size:12.5px;color:{{ th.ink2 }};width:200px;flex:none;font-style:italic">"{{ r.a }}"</span><span style="color:{{ th.ink2 }}">→</span><span style="font-size:12.5px;font-weight:600;flex:1">{{ r.b }}</span><span style="font-size:11px;color:{{ th.ink2 }}">fixed {{ r.n }}×</span></div>
+          </sc-for>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ is.snip }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px">Snippets</div>
+        <div style="font-size:12.5px;color:{{ th.ink2 }};margin-bottom:18px">Say the trigger, get the expansion — mid-dictation.</div>
+        <sc-if value="{{ emptyish }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px dashed {{ th.hair }};border-radius:14px;padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="font-size:14px;font-weight:600">No snippets yet</div>
+            <div style="font-size:12.5px;color:{{ th.ink2 }};text-align:center;max-width:340px">Try one: trigger "my address", expansion your street address. Then just say it.</div>
+            <span style="margin-top:6px;padding:8px 16px;border-radius:8px;background:#B4661F;color:#FFF;font-size:12.5px;font-weight:600;cursor:pointer">New snippet</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ filled }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">
+            <sc-for list="{{ snips }}" as="s" hint-placeholder-count="3">
+              <div style="border:1px solid {{ th.hair }};border-radius:12px;padding:14px 16px;background:{{ th.card }}"><div style="display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:{{ th.fill }};color:#B4661F;margin-bottom:8px">"{{ s.t }}"</div><div style="font-size:12.5px;line-height:1.55;color:{{ th.ink }}">{{ s.x }}</div><div style="font-size:11px;color:{{ th.ink2 }};margin-top:8px">used {{ s.n }}×</div></div>
+            </sc-for>
+            <div style="border:1px dashed {{ th.hair }};border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:{{ th.ink2 }};cursor:pointer" style-hover="background:{{ th.hov }}">+ New snippet</div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ is.styles }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px">Styles</div>
+        <div style="font-size:12.5px;color:{{ th.ink2 }};margin-bottom:18px">Cleanup adapts to where you're typing. Detected from the frontmost app.</div>
+        <sc-for list="{{ styles }}" as="s" hint-placeholder-count="4">
+          <div style="display:flex;gap:14px;align-items:center;padding:13px 6px;border-top:1px solid {{ th.hair }};flex-wrap:wrap">
+            <span style="width:30px;height:30px;border-radius:8px;background:{{ th.fill }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:{{ th.ink2 }};flex:none">{{ s.mono }}</span>
+            <span style="font-size:13px;font-weight:600;width:90px;flex:none">{{ s.app }}</span>
+            <span style="display:flex;border:1px solid {{ th.hair }};border-radius:8px;overflow:hidden;flex:none;font-size:11.5px">
+              <span style="padding:5px 11px;{{ s.c1 }}">Casual</span><span style="padding:5px 11px;border-left:1px solid {{ th.hair }};border-right:1px solid {{ th.hair }};{{ s.c2 }}">Neutral</span><span style="padding:5px 11px;{{ s.c3 }}">Formal</span>
+            </span>
+            <span style="font-size:11.5px;color:{{ th.ink2 }};font-style:italic;flex:1;min-width:200px">{{ s.ex }}</span>
+          </div>
+        </sc-for>
+        <div style="margin-top:14px;font-size:11px;color:{{ th.ink2 }}">VS Code and terminals default to <b>verbatim</b> — cleanup off, punctuation literal.</div>
+      </sc-if>
+
+      <sc-if value="{{ is.know }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px">Know-Me</div>
+        <div style="font-size:12.5px;color:{{ th.ink2 }};margin-bottom:18px">A two-minute interview that teaches cleanup your voice. Stored locally, editable, deletable.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+          <div style="border:1px solid {{ th.hair }};border-radius:12px;padding:18px;background:{{ th.card }}">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px">Profile</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px">
+              <div style="display:flex;gap:8px"><span style="color:{{ th.ink2 }};width:74px;flex:none">Name</span><span>Alex Chen — sign off as "Alex"</span></div>
+              <div style="display:flex;gap:8px"><span style="color:{{ th.ink2 }};width:74px;flex:none">Work</span><span>iOS engineer, small startup</span></div>
+              <div style="display:flex;gap:8px"><span style="color:{{ th.ink2 }};width:74px;flex:none">Tone</span><span>concise · no exclamation marks · Oxford comma</span></div>
+              <div style="display:flex;gap:8px;align-items:flex-start"><span style="color:{{ th.ink2 }};width:74px;flex:none">Jargon</span><span style="display:flex;flex-wrap:wrap;gap:5px"><span style="padding:2px 8px;border-radius:6px;background:{{ th.fill }};font-size:11px">WhisperKit</span><span style="padding:2px 8px;border-radius:6px;background:{{ th.fill }};font-size:11px">TestFlight</span><span style="padding:2px 8px;border-radius:6px;background:{{ th.fill }};font-size:11px">Priya</span><span style="padding:2px 8px;border-radius:6px;background:{{ th.fill }};font-size:11px">RMS buckets</span></span></div>
+            </div>
+            <span style="display:inline-block;margin-top:14px;padding:7px 14px;border-radius:8px;border:1px solid {{ th.hair }};font-size:12px;font-weight:600;cursor:pointer" style-hover="background:{{ th.hov }}">Re-run interview (2 min)</span>
+          </div>
+          <div style="border:1px solid {{ th.hair }};border-radius:12px;padding:18px;background:{{ th.card }}">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px">What it does</div>
+            <div style="font-size:11px;color:{{ th.ink2 }};margin-bottom:4px">YOU SAID</div>
+            <div style="font-size:12.5px;font-style:italic;color:{{ th.ink2 }};margin-bottom:12px">"um yeah so tell priya we should ship the hud thing on friday i think"</div>
+            <div style="font-size:11px;color:{{ th.ink2 }};margin-bottom:4px">IT TYPES</div>
+            <div style="font-size:13px;font-weight:600;line-height:1.5">Priya — let's ship the HUD on Friday.</div>
+            <div style="margin-top:14px;font-size:11px;color:{{ th.ink2 }}">The profile is a local prompt fragment. It never syncs, and "None" backend ignores it entirely.</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.settings }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:18px">Settings</div>
+        <div style="display:flex;flex-direction:column;gap:16px;max-width:620px">
+          <div style="border:1px solid {{ th.hair }};border-radius:12px;background:{{ th.card }};overflow:hidden">
+            <div style="padding:9px 16px;font-size:11px;font-weight:700;letter-spacing:.05em;color:{{ th.ink2 }};border-bottom:1px solid {{ th.hair }}">DICTATION</div>
+            <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid {{ th.hair }};font-size:13px"><span style="flex:1">Hotkey</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;padding:3px 8px;border-radius:6px;background:{{ th.fill }}">{{ hk }}</span><span style="color:{{ th.ink2 }};margin-left:8px">›</span></div>
+            <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid {{ th.hair }};font-size:13px"><span style="flex:1">Max take length</span><span style="color:{{ th.ink2 }}">5 minutes</span><span style="color:{{ th.ink2 }};margin-left:8px">›</span></div>
+            <div style="display:flex;align-items:center;padding:11px 16px;font-size:13px"><span style="flex:1">Sounds</span><span style="width:38px;height:22px;border-radius:11px;background:#7FAF8A;position:relative"><span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:9px;background:#FFF;box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></div>
+          </div>
+          <div style="border:1px solid {{ th.hair }};border-radius:12px;background:{{ th.card }};overflow:hidden">
+            <div style="padding:9px 16px;font-size:11px;font-weight:700;letter-spacing:.05em;color:{{ th.ink2 }};border-bottom:1px solid {{ th.hair }}">TRANSCRIPTION — ON THIS MAC</div>
+            <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid {{ th.hair }};font-size:13px"><span style="flex:1">Whisper model</span><span style="color:{{ th.ink2 }}">large-v3-turbo · 1.6 GB · downloaded</span><span style="color:{{ th.ink2 }};margin-left:8px">›</span></div>
+            <div style="display:flex;align-items:center;padding:11px 16px;font-size:13px"><span style="flex:1">Language</span><span style="color:{{ th.ink2 }}">Automatic</span><span style="color:{{ th.ink2 }};margin-left:8px">›</span></div>
+          </div>
+          <div style="border:1px solid {{ th.hair }};border-radius:12px;background:{{ th.card }};overflow:hidden">
+            <div style="padding:9px 16px;font-size:11px;font-weight:700;letter-spacing:.05em;color:{{ th.ink2 }};border-bottom:1px solid {{ th.hair }}">AI CLEANUP</div>
+            <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid {{ th.hair }};font-size:13px"><span style="flex:1">Backend</span><span style="color:{{ th.ink2 }}">On-device · Ollama (llama3.2)</span><span style="color:{{ th.ink2 }};margin-left:8px">›</span></div>
+            <div style="display:flex;align-items:center;padding:11px 16px;font-size:13px"><span style="flex:1">Cloud API key</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:{{ th.ink2 }}">••••••••</span><span style="font-size:10px;font-weight:700;color:#7FAF8A;border:1px solid #7FAF8A;border-radius:5px;padding:1px 6px;margin-left:8px">KEYCHAIN</span></div>
+          </div>
+          <div style="border:1px solid {{ th.hair }};border-radius:12px;background:{{ th.card }};overflow:hidden">
+            <div style="padding:9px 16px;font-size:11px;font-weight:700;letter-spacing:.05em;color:{{ th.ink2 }};border-bottom:1px solid {{ th.hair }}">PRIVACY + UPDATES</div>
+            <div style="display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid {{ th.hair }};font-size:13px"><span style="flex:1">All data stays in ~/Library/Application Support/OpenVoiceFlow</span><span style="font-size:12px;color:#B4661F;cursor:pointer">Export…</span><span style="font-size:12px;color:#C7402C;cursor:pointer;margin-left:12px">Delete all…</span></div>
+            <div style="display:flex;align-items:center;padding:11px 16px;font-size:13px"><span style="flex:1">Automatic updates (Sparkle)</span><span style="width:38px;height:22px;border-radius:11px;background:#7FAF8A;position:relative"><span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:9px;background:#FFF;box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+  <p style="margin:14px 0 0;font-size:12px;color:#8A8375">Sidebar restraint on purpose: text + selection tint, no icon zoo — Things 3 discipline. Stats celebrate <b>outcomes</b> (words, time back), never engagement.</p>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab:'home', theme:'dark', dm:'filled' };
+  ensure(){ if(!this.cv) this.cv=new Map(); }
+  reg(mode){ const k='r_'+mode; if(!this[k]) this[k]=el=>{ this.ensure(); if(el) this.cv.set(mode,{el}); else this.cv.delete(mode); }; return this[k]; }
+  componentDidMount(){ this.ensure(); this.tick=this.tick.bind(this); this.raf=requestAnimationFrame(this.tick); }
+  componentWillUnmount(){ cancelAnimationFrame(this.raf); }
+  ring(ctx,w,h,t,color,lw){ const cx=w/2,cy=h/2,R=Math.min(w,h)*0.34,g=0.62,off=-1.0; ctx.beginPath();
+    for(let a=off+g/2;a<=off+2*Math.PI-g/2;a+=0.045){ const r=R*(1+0.10*Math.sin(a*5-t*0.7)); const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r; a<=off+g/2+0.05?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.lineWidth=lw; ctx.lineCap='round'; ctx.strokeStyle=color; ctx.stroke(); }
+  tick(now){ this.ensure(); const t=now/1000, d=Math.min(2,window.devicePixelRatio||1);
+    for(const [mode,c] of this.cv){ const el=c.el,w=el.clientWidth,hh=el.clientHeight; if(!w||!hh)continue; if(el.width!==(w*d|0)||el.height!==(hh*d|0)){el.width=w*d|0;el.height=hh*d|0;} const ctx=el.getContext('2d'); ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,w,hh);
+      if(mode==='glyph') this.ring(ctx,w,hh,t,'#C97B35',2);
+      else { const mid=hh/2; ctx.beginPath(); for(let x=0;x<=w;x+=2){ const y=mid+Math.sin(x*0.045-t*1.7)*1.3*Math.pow(Math.max(0,Math.sin(Math.PI*x/w)),0.85); x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=this.state.theme==='dark'?'rgba(214,208,194,.5)':'rgba(58,52,40,.4)'; ctx.stroke(); } }
+    this.raf=requestAnimationFrame(this.tick); }
+  renderVals(){ const st=this.state, dark=st.theme==='dark';
+    const th = dark ? { win:'#1D1B18', side:'#191714', card:'#211F1B', fill:'rgba(255,255,255,.06)', ink:'#EAE6DD', ink2:'#96907F', hair:'rgba(255,255,255,.09)', hov:'rgba(255,255,255,.06)' }
+      : { win:'#FCFBF8', side:'#F4F2EC', card:'#FFFFFF', fill:'rgba(0,0,0,.05)', ink:'#26221B', ink2:'#847D6E', hair:'rgba(0,0,0,.08)', hov:'rgba(0,0,0,.04)' };
+    const A='background:#26221B;color:#F4F2EC;border-color:#26221B;';
+    const empty=st.dm==='empty', loading=st.dm==='loading';
+    const tabs=[['home','Home'],['history','History'],['dict','Dictionary'],['snip','Snippets'],['styles','Styles'],['know','Know-Me'],['settings','Settings']];
+    const navItems=tabs.map(([id,label])=>({ label, go:()=>this.setState({tab:id}),
+      on: st.tab===id?('background:'+(dark?'rgba(232,151,78,.14)':'rgba(180,102,31,.10)')+';font-weight:600;'):'',
+      dot: st.tab===id?'background:#C97B35;':'background:transparent;' }));
+    const days=['M','T','W','T','F','S','S'], vals=[1840,2210,980,0,2630,1902,2148], mx=2630;
+    const chart=days.map((d,i)=>({ d, h:(empty||loading?4:Math.max(3,Math.round(vals[i]/mx*100)))+'%', c: i===6?'#C97B35':(dark?'rgba(255,255,255,.14)':'rgba(0,0,0,.12)') }));
+    return { th, navItems, chart,
+      reg:{ glyph:this.reg('glyph'), emptyline:this.reg('emptyline') },
+      is:{ home:st.tab==='home', history:st.tab==='history', dict:st.tab==='dict', snip:st.tab==='snip', styles:st.tab==='styles', know:st.tab==='know', settings:st.tab==='settings' },
+      cs:{ filled:st.dm==='filled'?A:'', empty:empty?A:'', loading:loading?A:'', dark:dark?A:'' },
+      dmFill:()=>this.setState({dm:'filled'}), dmEmpty:()=>this.setState({dm:'empty'}), dmLoad:()=>this.setState({dm:'loading'}),
+      tgTheme:()=>this.setState(s=>({theme:s.theme==='dark'?'light':'dark'})),
+      goHistory:()=>this.setState({tab:'history'}),
+      loading, notLoading:!loading, emptyish:empty, filled:!empty,
+      hk:'Right ⌘',
+      statWords: empty?'0':'128,411', statWordsSub: empty?'say something!':'+2,148 today',
+      statTime: empty?'0 min':'9 h 12 m', statStreak: empty?'—':'14', statWpm: empty?'—':'162 wpm', statWpmSub: empty?'':'3.4× your typing',
+      histToday:[ {t:'9:41 AM',app:'Mail',txt:'Can we move standup to 10 tomorrow? I have a dentist appointment at 9.',n:13},
+        {t:'9:12 AM',app:'Slack',txt:'Shipping the native HUD behind a flag today — review by EOD?',n:12},
+        {t:'8:55 AM',app:'Notes',txt:'Idea: the DMG background should use the Voiceline as the drag path itself.',n:14} ],
+      histYest:[ {t:'4:55 PM',app:'VS Code',txt:'TODO: debounce the RMS buckets before the EMA pass, forty-three buckets at sixty hertz.',n:15},
+        {t:'2:10 PM',app:'Mail',txt:'Thanks Priya — merged. Release notes are drafted in the usual doc.',n:11} ],
+      dict:[ {a:'open voice flow',b:'OpenVoiceFlow',n:41},{a:'pria / prya',b:'Priya',n:32},{a:'whisper kit',b:'WhisperKit',n:18},{a:'oh llama',b:'Ollama',n:12} ],
+      snips:[ {t:'my address',x:'2482 Fulton St, Apt 3, San Francisco, CA 94118',n:23},{t:'standup link',x:'https://meet.example.com/ovf-daily — every weekday 10:00',n:57},{t:'sign off',x:'Best,\u2028Alex Chen · iOS',n:104} ],
+      styles:[ {mono:'iM',app:'iMessage',c1:'background:#C97B35;color:#FFF;font-weight:600;',c2:'',c3:'',ex:'"lol ok — moving standup to 10"'},
+        {mono:'Ma',app:'Mail',c1:'',c2:'',c3:'background:#C97B35;color:#FFF;font-weight:600;',ex:'"Could we move standup to 10:00 tomorrow?"'},
+        {mono:'Sl',app:'Slack',c1:'',c2:'background:#C97B35;color:#FFF;font-weight:600;',c3:'',ex:'"Can we move standup to 10 tomorrow?"'},
+        {mono:'VS',app:'VS Code',c1:'',c2:'',c3:'',ex:'verbatim — cleanup off'} ] }; }
+}
+</script>
+</body>
+</html>

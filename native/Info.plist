@@ -17,8 +17,19 @@
     <!-- TCC usage strings (shown in the OS consent dialogs). -->
     <key>NSMicrophoneUsageDescription</key>
     <string>OpenVoiceFlow uses the microphone to transcribe your voice while you dictate.</string>
-    <!-- Sparkle appcast (fill in when hosting). -->
+    <!-- Sparkle in-app updates. The appcast is served from the website root. -->
     <key>SUFeedURL</key><string>https://openvoiceflow.vercel.app/appcast.xml</string>
     <key>SUEnableInstallerLauncherService</key><false/>
+    <!-- Only check on launch/schedule, never auto-download silently. -->
+    <key>SUScheduledCheckInterval</key><integer>86400</integer>
+    <!--
+      SUPublicEDKey: the EdDSA public key that verifies appcast signatures.
+      Deliberately absent until the keypair is generated on the Mac
+      (`generate_keys` in the Sparkle tools) — Sparkle refuses unsigned
+      updates when it is missing, which is the safe default. The release
+      pipeline (release-native.yml) signs each DMG with the private half;
+      add the printed public key here in the same commit. See BUILD_RUNBOOK.md.
+    -->
+    <!-- <key>SUPublicEDKey</key><string>PASTE_PUBLIC_KEY_HERE</string> -->
 </dict>
 </plist>

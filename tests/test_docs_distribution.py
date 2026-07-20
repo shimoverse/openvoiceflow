@@ -5,9 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
-RELEASE_VERSION = "0.3.5"
-ARM64_SHA256 = "5393deb12e586b433cd7734beda2cd25ca8db8614825d0fb06cf369a6289b195"
-X86_64_SHA256 = "51628f5233693236eef14bb6a0b8d496507bfc2e72e7fd4a7c6d4aca7e48fa7e"
+RELEASE_VERSION = "0.3.6"
+ARM64_SHA256 = "c81cc45663cc415218f54680ad5bc884769507df8617ab73997f1e7a71e157da"
+X86_64_SHA256 = "2dd42025c2741e15d230ab82b9b3c621acb51ab0ad6fe08adfc76110258f8f71"
 PUBLIC_PAGES = ["", "download.html", "install.html", "how-it-works.html"]
 
 
@@ -239,7 +239,7 @@ def test_previous_release_downloads_redirect_to_fixed_builds():
         for item in config.get("redirects", [])
     }
 
-    for previous_version in ["0.2.0", "0.3.2", "0.3.3"]:
+    for previous_version in ["0.2.0", "0.3.2", "0.3.3", "0.3.4", "0.3.5"]:
         for arch in ["arm64", "x86_64"]:
             source = f"/downloads/OpenVoiceFlow-{previous_version}-{arch}.dmg"
             assert redirects[source]["destination"] == (

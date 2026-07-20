@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sparkle appcast for the native OpenVoiceFlow app. The app's Info.plist points
+  its SUFeedURL here, so this URL must always resolve to a valid feed.
+
+  This is the placeholder feed: an empty channel means a running app that checks
+  for updates cleanly reports "you're up to date" instead of hitting a 404.
+
+  The native release pipeline (release-native.yml) generates the real,
+  EdDSA-signed feed and the publish step overwrites this file with it — one
+  <item> per release, each with a signed <enclosure>. Do not hand-edit the
+  signed feed; regenerate it from the pipeline.
+-->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>OpenVoiceFlow</title>
+    <link>https://openvoiceflow.vercel.app/appcast.xml</link>
+    <description>OpenVoiceFlow native app updates.</description>
+    <language>en</language>
+  </channel>
+</rss>

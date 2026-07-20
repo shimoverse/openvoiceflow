@@ -12,6 +12,7 @@ struct OnboardingView: View {
     @ObservedObject var controller: AppController
     @State private var step = 0
     @State private var granted: [Permission: Bool] = [:]
+    @State private var requested: Set<Permission> = []
     @State private var downloadDone = false
     @State private var helloDone = false
 
@@ -155,28 +156,46 @@ struct OnboardingView: View {
 
     private func permissionRow(_ permission: Permission, name: String, why: String) -> some View {
         let isGranted = granted[permission] ?? false
-        return HStack(spacing: 12) {
-            Circle()
-                .fill(isGranted ? DT.moss : .white.opacity(0.15))
-                .frame(width: 8, height: 8)
-            Text(name)
-                .font(.system(size: 13.5, weight: .semibold))
-                .foregroundStyle(Color(hex: 0xEAE6DD))
-            Text(why)
-                .font(.system(size: 12.5)).foregroundStyle(Color(hex: 0x96907F))
-            Spacer()
-            if isGranted {
-                Text("✓").font(.system(size: 13, weight: .bold)).foregroundStyle(DT.moss)
-            } else {
-                Button("Allow") {
-                    permission.request()
-                    refreshGrants()
+        let wasRequested = requested.contains(permission)
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 12) {
+                Circle()
+                    .fill(isGranted ? DT.moss : .white.opacity(0.15))
+                    .frame(width: 8, height: 8)
+                Text(name)
+                    .font(.system(size: 13.5, weight: .semibold))
+                    .foregroundStyle(Color(hex: 0xEAE6DD))
+                Text(why)
+                    .font(.system(size: 12.5)).foregroundStyle(Color(hex: 0x96907F))
+                Spacer()
+                if isGranted {
+                    Text("✓").font(.system(size: 13, weight: .bold)).foregroundStyle(DT.moss)
+                } else {
+                    Button("Allow") {
+                        permission.request()
+                        requested.insert(permission)
+                        refreshGrants()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color(hex: 0x1A1508))
+                    .padding(.horizontal, 14).padding(.vertical, 6)
+                    .background(Capsule().fill(accent))
                 }
-                .buttonStyle(.plain)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color(hex: 0x1A1508))
-                .padding(.horizontal, 14).padding(.vertical, 6)
-                .background(Capsule().fill(accent))
+            }
+            // Escape hatch: Allow was clicked but the grant hasn't landed
+            // (denied dialog, or a dev build macOS attributes to Terminal/
+            // Xcode so the app never appears in the Settings list).
+            if wasRequested && !isGranted {
+                HStack(spacing: 10) {
+                    Button("Open System Settings") { NSWorkspace.shared.open(permission.settingsURL) }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .foregroundStyle(accent)
+                    Text("Not listed? Click + and add OpenVoiceFlow from Applications.")
+                        .font(.system(size: 11)).foregroundStyle(Color(hex: 0x6B6558))
+                }
+                .padding(.leading, 20)
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 13)

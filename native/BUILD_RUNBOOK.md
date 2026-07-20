@@ -140,3 +140,32 @@ WhisperKit's real download callback; feed `AudioCapture.onLevel` timing from
 `iconutil`/Icon Composer into `AppIcon.icon`; export `ovf-mb-*@{1x,2x}.pdf`
 from `StatusIconRenderer` if template PDFs are preferred over runtime
 drawing; hook `Check for Updates…` to Sparkle.
+
+---
+
+## Phase E — Feature parity port (dictionary, snippets, styles, profile, history)
+
+The Python feature modules are now ported to Swift and wired into the app:
+
+- `FeatureStores.swift` — `ProfileStore`, `DictionaryStore`, `SnippetStore`,
+  `StyleStore`, `HistoryStore` (+ derived stats: words today/total, streak,
+  last-7-days). All persist as JSON in Application Support/OpenVoiceFlow,
+  each an `ObservableObject` with a `promptFragment` mirroring the Python
+  `get_*_prompt_fragment` helpers.
+- `KnowMeInterview.swift` — the light 5-question interview; answers write the
+  profile and seed the dictionary (double coverage, like `profile_to_dictionary`).
+- `CleanupProvider.swift` — `cleanup(_:style:context:)` now injects the
+  personal-context fragment (profile + dictionary + snippet hints) into the
+  system prompt.
+- `AppController.process()` — snippet exact-trigger short-circuit (no LLM),
+  per-app style resolution from the frontmost app, personal context into
+  cleanup, and history/stats logging on every dictation.
+- `DashboardView.swift` — Home stats + week chart, History, Dictionary,
+  Snippets, Styles, and Know-Me panes are now bound to the live stores
+  (add/remove/edit all persist); the interview opens as a sheet.
+
+**Mac-build note for this phase**: this is Linux-authored Swift — expect the
+compile to surface real fixes (SwiftUI `Picker` tag types, `@ObservedObject`
+init ordering, WhisperKit API drift). Fix without simplifying the behavior;
+the stores' JSON shapes intentionally match the Python files so a user's
+`~/.openvoiceflow/*.json` data could later be migrated.

@@ -33,6 +33,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        // Start Sparkle at launch so background appcast checks run on schedule.
+        _ = UpdaterController.shared
         #if DEBUG
         let forceOnboarding = ProcessInfo.processInfo.arguments.contains("-ovf-force-onboarding")
         #else
@@ -163,10 +165,8 @@ private struct MenuContent: View {
         Button("Open Dashboard…") { openWindow(id: "dashboard"); NSApp.activate(ignoringOtherApps: true) }
             .keyboardShortcut("d")
         Button("Setup & Permissions…") { showOnboarding() }
-        Button("Check for Updates…") {
-            // Sparkle wiring is a Mac-build step (BUILD_RUNBOOK.md phase 4).
-            NSWorkspace.shared.open(URL(string: "https://openvoiceflow.vercel.app/download.html")!)
-        }
+        Button("Check for Updates…") { UpdaterController.shared.checkForUpdates() }
+            .disabled(!UpdaterController.shared.canCheckForUpdates)
         Divider()
 
         // 13. Quit, always last, behind a separator.

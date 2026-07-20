@@ -1,0 +1,136 @@
+name: Release (native app)
+
+# Tag-driven native release. Push a `native-v*` tag → a signed, Apple-notarized,
+# stapled universal DMG builds on a macOS runner and attaches to the GitHub
+# Release. A `-rc*`/`-beta*` suffix marks it a pre-release. Kept on its own tag
+# namespace so it never collides with the Python `v*` release (release.yml).
+#
+# Signing reuses the SAME secrets as release.yml — nothing new to configure for
+# code signing. The one new (optional) secret is SPARKLE_ED_PRIVATE_KEY, which
+# turns on appcast generation for in-app updates.
+
+on:
+  push:
+    tags:
+      - "native-v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing native-v* tag to build/upload a DMG for"
+        required: true
+        type: string
+
+jobs:
+  build-native-dmg:
+    runs-on: macos-14
+    permissions:
+      contents: write
+    env:
+      # All present ⇒ a real signed+notarized build; otherwise the job fails
+      # rather than publish an unsigned DMG.
+      HAS_APPLE_SIGNING: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 != '' && secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD != '' && secrets.APPLE_KEYCHAIN_PASSWORD != '' && secrets.APPLE_NOTARY_KEY_BASE64 != '' && secrets.APPLE_NOTARY_KEY_ID != '' && secrets.APPLE_NOTARY_ISSUER_ID != '' && secrets.APPLE_CODESIGN_IDENTITY != '' }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
+
+      - name: Classify tag (version ↔ project.yml, pre-release)
+        id: classify
+        run: |
+          set -euo pipefail
+          RAW_TAG="${{ inputs.release_tag || github.ref_name }}"
+          TAG="${RAW_TAG#refs/tags/}"
+          if [[ "$TAG" != native-v* ]]; then
+            echo "::error::native release tag must start with native-v; got $TAG"; exit 1
+          fi
+          TAG_VERSION="${TAG#native-v}"                       # e.g. 0.4.0 or 0.4.0-rc1
+          BASE_VERSION="$(echo "$TAG_VERSION" | sed -E 's/-(rc|alpha|beta)[0-9]*$//')"
+          PROJ_VERSION="$(grep -E 'MARKETING_VERSION:' native/project.yml | head -1 | sed -E 's/.*: *"?([0-9.]+)"?.*/\1/')"
+          echo "tag=$TAG_VERSION base=$BASE_VERSION project=$PROJ_VERSION"
+          if [[ "$BASE_VERSION" != "$PROJ_VERSION" ]]; then
+            echo "::error::tag base $BASE_VERSION != native/project.yml MARKETING_VERSION $PROJ_VERSION"; exit 1
+          fi
+          if [[ "$BASE_VERSION" != "$TAG_VERSION" ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "release_tag=$TAG"    >> "$GITHUB_OUTPUT"
+          echo "version=$BASE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Guard — require signing secrets
+        if: env.HAS_APPLE_SIGNING != 'true'
+        run: |
+          echo "::error::Apple signing/notarization secrets are missing; refusing to publish an unsigned native DMG."
+          echo "Configure the same secrets release.yml uses (APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64, …)."
+          exit 1
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Prepare Apple Developer ID signing assets
+        env:
+          APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
+          APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD }}
+          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          APPLE_NOTARY_KEY_BASE64: ${{ secrets.APPLE_NOTARY_KEY_BASE64 }}
+          APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/openvoiceflow-signing.keychain-db"
+          CERT_PATH="$RUNNER_TEMP/developer-id-application.p12"
+          NOTARY_KEY_PATH="$RUNNER_TEMP/AuthKey_${APPLE_NOTARY_KEY_ID}.p8"
+
+          echo "$APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          echo "$APPLE_NOTARY_KEY_BASE64" | base64 --decode > "$NOTARY_KEY_PATH"
+
+          security create-keychain -p "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH" -T /usr/bin/codesign
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          echo "OVF_NOTARY_KEY=$NOTARY_KEY_PATH" >> "$GITHUB_ENV"
+
+      - name: Build signed + notarized universal DMG
+        id: build
+        env:
+          OVF_VERSION: ${{ steps.classify.outputs.version }}
+          OVF_SIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
+          OVF_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          OVF_NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          # Team id lives inside the identity string: "… (TEAMID)".
+          OVF_TEAM_ID="$(echo "$OVF_SIGN_IDENTITY" | sed -nE 's/.*\(([A-Z0-9]{10})\).*/\1/p')"
+          [[ -n "$OVF_TEAM_ID" ]] || { echo "::error::could not parse team id from APPLE_CODESIGN_IDENTITY"; exit 1; }
+          export OVF_TEAM_ID OVF_NOTARIZE=1
+          chmod +x native/scripts/build-app.sh
+          bash native/scripts/build-app.sh
+
+      - name: Generate Sparkle appcast (if key present)
+        env:
+          OVF_VERSION: ${{ steps.classify.outputs.version }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          chmod +x native/scripts/appcast.sh
+          bash native/scripts/appcast.sh
+
+      - name: Upload DMG (+ appcast) to the Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.classify.outputs.release_tag }}
+          files: |
+            native/dist/*.dmg
+            native/dist/appcast.xml
+          prerelease: ${{ steps.classify.outputs.is_prerelease == 'true' }}
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -169,3 +169,43 @@ compile to surface real fixes (SwiftUI `Picker` tag types, `@ObservedObject`
 init ordering, WhisperKit API drift). Fix without simplifying the behavior;
 the stores' JSON shapes intentionally match the Python files so a user's
 `~/.openvoiceflow/*.json` data could later be migrated.
+
+---
+
+## Phase F — signed release + in-app updates (the finish line)
+
+Sparkle is now instantiated (`Updater.swift`; started at launch in
+`OpenVoiceFlowApp`; the menu-bar **Check for Updates…** drives a manual check),
+and a full release pipeline exists:
+
+- **`.github/workflows/release-native.yml`** — push a `native-v*` tag → a
+  macOS runner builds a **universal, Developer-ID-signed, Apple-notarized,
+  stapled** DMG and attaches it (plus `appcast.xml`) to the GitHub Release.
+  A `-rc*`/`-beta*` suffix marks it a pre-release. It **reuses the same Apple
+  secrets as `release.yml`** — no new signing secrets.
+- **`native/scripts/build-app.sh`** — `xcodegen → archive (arm64+x86_64) →
+  export (developer-id) → notarize app → staple → DMG → notarize DMG →
+  staple`. Runnable locally: `OVF_NOTARIZE=0 bash native/scripts/build-app.sh`
+  for an unsigned smoke build.
+- **`native/scripts/appcast.sh`** — signs the DMG with the Sparkle EdDSA key
+  and writes `dist/appcast.xml`. No-op (release still ships the DMG) until the
+  key exists.
+
+**The only remaining Mac-gated steps** (see `native/RELEASE_NATIVE_RUNBOOK.md`
+for the copy-paste version):
+
+1. **Generate the Sparkle keypair once** (`generate_keys` from the Sparkle
+   tools). Add the printed **public** key to `Info.plist` as `SUPublicEDKey`
+   (uncomment the placeholder) in the same commit; add the **private** key as
+   the repo secret `SPARKLE_ED_PRIVATE_KEY`.
+2. **Confirm the Apple secrets** already used by `release.yml` are present
+   (they are, since the Python DMGs ship signed).
+3. **Push the tag** `native-v0.4.0` (a `native-v0.4.0-rc1` first is wise). Tag
+   pushes are blocked from the Linux agent — this is yours.
+4. The pipeline publishes the notarized DMG + appcast to the Release. **Merge
+   the staged website PR** (`docs/` already prepped for 0.4.0) once the DMG is
+   downloadable, or drop the DMG into `docs/downloads/` per that PR.
+
+CI note: `ci.yml` compiles the *Python* app only — the native Swift is not in
+CI, so a `swift build` (or the archive step above) on your Mac is what
+validates `Updater.swift` and the Phase E stores.

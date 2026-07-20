@@ -8,7 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */; };
+		21718FD49AAD5FFDCB42DF41 /* KnowMeInterview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */; };
 		2976A8647F7E72B7567DFD8F /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */; };
+		2BECEA0193E7CFDB54AFEC47 /* FeatureStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C990C954D554F3DB4F1C0F /* FeatureStores.swift */; };
 		5458F764832C39AC0FE89B4D /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = EEDE1A79E67D869664D18AA7 /* WhisperKit */; };
 		55CC1617ADA91CEB95284F35 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */; };
 		58610B34F43FC25577A44A79 /* StatusIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */; };
@@ -34,12 +36,14 @@
 		3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
 		4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		57717557E0BEAB2E410856EE /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowMeInterview.swift; sourceTree = "<group>"; };
 		7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenVoiceFlowApp.swift; sourceTree = "<group>"; };
 		88504725BADFBD0FD83F77BB /* OpenVoiceFlow.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = OpenVoiceFlow.icns; sourceTree = "<group>"; };
 		96F80FE49FD6670719657437 /* Transcriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transcriber.swift; sourceTree = "<group>"; };
 		9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		B841C09A127623BFF5AD56DA /* OpenVoiceFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenVoiceFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyEngine.swift; sourceTree = "<group>"; };
+		D7C990C954D554F3DB4F1C0F /* FeatureStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureStores.swift; sourceTree = "<group>"; };
 		DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupProvider.swift; sourceTree = "<group>"; };
 		E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusIcon.swift; sourceTree = "<group>"; };
 		EFB13BCD2402178510295FCF /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
@@ -99,8 +103,10 @@
 				DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */,
 				9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */,
 				EFB13BCD2402178510295FCF /* DesignTokens.swift */,
+				D7C990C954D554F3DB4F1C0F /* FeatureStores.swift */,
 				CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */,
 				2B693C11C689950AA094C951 /* HUDController.swift */,
+				7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */,
 				4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */,
 				7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */,
 				34D72CC634525CAF888070FE /* Paster.swift */,
@@ -191,8 +197,10 @@
 				E7D6DB42A76697F5E75E3FD9 /* CleanupProvider.swift in Sources */,
 				8D95E21B1C470A7D28C9D177 /* DashboardView.swift in Sources */,
 				7A219E134ECEA45F37A4A0F2 /* DesignTokens.swift in Sources */,
+				2BECEA0193E7CFDB54AFEC47 /* FeatureStores.swift in Sources */,
 				61FF22353B12BB2CD6A316B6 /* HUDController.swift in Sources */,
 				1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */,
+				21718FD49AAD5FFDCB42DF41 /* KnowMeInterview.swift in Sources */,
 				55CC1617ADA91CEB95284F35 /* OnboardingView.swift in Sources */,
 				ED692D08BF81FCFEDD2CA514 /* OpenVoiceFlowApp.swift in Sources */,
 				766ACDD229EB0376746A7003 /* Paster.swift in Sources */,

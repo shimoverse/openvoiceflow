@@ -8,8 +8,24 @@ import SwiftUI
 /// never engagement.
 struct DashboardView: View {
     @ObservedObject var controller: AppController
+    // Observe the stores directly so pane edits refresh live.
+    @ObservedObject private var history: HistoryStore
+    @ObservedObject private var dictionary: DictionaryStore
+    @ObservedObject private var snippets: SnippetStore
+    @ObservedObject private var styleStore: StyleStore
+    @ObservedObject private var profileStore: ProfileStore
     @State private var pane: Pane = .home
+    @State private var showInterview = false
     @Environment(\.colorScheme) private var scheme
+
+    init(controller: AppController) {
+        self.controller = controller
+        self.history = controller.historyStore
+        self.dictionary = controller.dictionaryStore
+        self.snippets = controller.snippetStore
+        self.styleStore = controller.styleStore
+        self.profileStore = controller.profileStore
+    }
 
     enum Pane: String, CaseIterable {
         case home = "Home"
@@ -96,15 +112,18 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 18) {
                 switch pane {
                 case .home: home
-                case .history: history
-                case .dictionary: dictionary
-                case .snippets: snippets
+                case .history: historyPane
+                case .dictionary: dictionaryPane
+                case .snippets: snippetsPane
                 case .styles: styles
                 case .knowMe: knowMe
                 case .settings: settingsPane
                 }
             }
             .padding(.bottom, 30)
+        }
+        .sheet(isPresented: $showInterview) {
+            KnowMeInterview(controller: controller)
         }
     }
 
@@ -124,12 +143,14 @@ struct DashboardView: View {
             paneTitle(greeting, homeSubtitle)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 12)], spacing: 12) {
-                statCard("Words dictated", value: controller.wordsToday > 0 ? "\(controller.wordsToday)" : "0",
+                let total = controller.historyStore.totalWords
+                let streak = controller.historyStore.streak
+                statCard("Words dictated", value: total > 0 ? "\(total)" : "0",
                          sub: controller.wordsToday > 0 ? "+\(controller.wordsToday) today" : "say something!",
                          subColor: controller.wordsToday > 0 ? DT.moss : ink2)
                 statCard("Time saved", value: timeSaved, sub: "vs typing at 40 wpm", subColor: ink2)
-                statCard("Streak", value: "—", sub: "days in a row", subColor: ink2)
-                statCard("Speaking pace", value: "—", sub: nil, subColor: ink2)
+                statCard("Streak", value: streak > 0 ? "\(streak)" : "—", sub: "days in a row", subColor: ink2)
+                statCard("This week", value: "\(controller.historyStore.lastWeek.reduce(0, +))", sub: "words", subColor: ink2)
             }
 
             weekChart
@@ -161,8 +182,10 @@ struct DashboardView: View {
     }
 
     private var timeSaved: String {
-        let minutes = Int(Double(controller.wordsToday) / 40.0)
-        return minutes > 0 ? "\(minutes) min" : "0 min"
+        // vs typing at 40 wpm, over all history.
+        let minutes = Int(Double(controller.historyStore.totalWords) / 40.0)
+        if minutes >= 60 { return "\(minutes / 60) h \(minutes % 60) m" }
+        return "\(minutes) min"
     }
 
     private func statCard(_ label: String, value: String, sub: String?, subColor: Color) -> some View {
@@ -212,52 +235,110 @@ struct DashboardView: View {
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(hair))
     }
 
-    /// Today's live count in the last slot; history store fills the rest later.
-    private var weekValues: [Int] {
-        var values = [Int](repeating: 0, count: 7)
-        values[6] = controller.wordsToday
-        return values
-    }
+    /// Real last-7-days totals from the history store.
+    private var weekValues: [Int] { controller.historyStore.lastWeek }
 
-    // MARK: History (designed empty state until the store exists)
+    // MARK: History
 
-    private var history: some View {
-        VStack(alignment: .leading, spacing: 18) {
+    @ViewBuilder private var historyPane: some View {
+        VStack(alignment: .leading, spacing: 14) {
             paneTitle("History")
-            emptyPanel(
-                title: "Nothing here yet",
-                body: "Hold \(controller.settings.hotkey.displayName) in any app and say hello. Every take lands here — searchable, on this Mac only.",
-                button: "Try it now"
-            )
-            Text("Raw audio is discarded after transcription. Text history lives in ~/Library — delete any row, day, or everything in Settings › Privacy.")
-                .font(.system(size: 11)).foregroundStyle(ink2)
+            if history.entries.isEmpty {
+                emptyPanel(
+                    title: "Nothing here yet",
+                    body: "Hold \(controller.settings.hotkey.displayName) in any app and say hello. Every take lands here — on this Mac only.",
+                    button: nil
+                )
+            } else {
+                ForEach(history.entries) { entry in
+                    HStack(spacing: 12) {
+                        Text(entry.timestamp, format: .dateTime.hour().minute())
+                            .font(.system(size: 11)).foregroundStyle(ink2).frame(width: 56, alignment: .leading)
+                        Text(entry.app).font(.system(size: 10, weight: .bold)).foregroundStyle(ink2)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(RoundedRectangle(cornerRadius: 5).fill(fill))
+                        Text(entry.text).font(.system(size: 12.5)).foregroundStyle(ink).lineLimit(1)
+                        Spacer()
+                        Text("\(entry.words)").font(.system(size: 11)).foregroundStyle(ink2)
+                        Button("Copy") {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(entry.text, forType: .string)
+                        }
+                        .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(DT.emberLight)
+                    }
+                    .padding(.vertical, 10)
+                    .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
+                }
+                Text("Raw audio is discarded after transcription. Delete everything from Settings › Privacy.")
+                    .font(.system(size: 11)).foregroundStyle(ink2).padding(.top, 6)
+            }
         }
     }
 
     // MARK: Dictionary
 
-    private var dictionary: some View {
-        VStack(alignment: .leading, spacing: 18) {
+    @ViewBuilder private var dictionaryPane: some View {
+        VStack(alignment: .leading, spacing: 14) {
             paneTitle("Dictionary", "Names and jargon Whisper gets wrong — corrected before cleanup ever runs.")
-            emptyPanel(
-                title: "No corrections yet",
-                body: "When a transcript gets a name wrong, fix it once in History — it lands here and never happens again.",
-                button: nil
-            )
+            addRow(placeholder: "Add a word (e.g. WhisperKit)") { dictionary.add(word: $0) }
+            if dictionary.entries.isEmpty {
+                emptyPanel(title: "No corrections yet",
+                           body: "Add a word above, or run the Know-Me interview to seed names and jargon automatically.",
+                           button: nil)
+            } else {
+                ForEach(dictionary.entries) { entry in
+                    HStack {
+                        Text(entry.word).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
+                        if !entry.aliases.isEmpty {
+                            Text("↤ \(entry.aliases.joined(separator: ", "))")
+                                .font(.system(size: 11)).foregroundStyle(ink2)
+                        }
+                        Spacer()
+                        Button { dictionary.remove(entry) } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(ink2)
+                        }.buttonStyle(.plain)
+                    }
+                    .padding(.vertical, 9)
+                    .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
+                }
+            }
         }
     }
 
     // MARK: Snippets
 
-    private var snippets: some View {
-        VStack(alignment: .leading, spacing: 18) {
+    @ViewBuilder private var snippetsPane: some View {
+        VStack(alignment: .leading, spacing: 14) {
             paneTitle("Snippets", "Say the trigger, get the expansion — mid-dictation.")
-            emptyPanel(
-                title: "No snippets yet",
-                body: "Try one: trigger \"my address\", expansion your street address. Then just say it.",
-                button: "New snippet"
-            )
+            SnippetAddRow(fill: fill, ink: ink, ink2: ink2, accent: DT.emberLight) { trigger, expansion in
+                snippets.add(trigger: trigger, expansion: expansion)
+            }
+            if snippets.snippets.isEmpty {
+                emptyPanel(title: "No snippets yet",
+                           body: "Try one: trigger \"my address\", expansion your street address. Then just say it.",
+                           button: nil)
+            } else {
+                ForEach(snippets.snippets) { snip in
+                    HStack(alignment: .top, spacing: 12) {
+                        Text(snip.trigger).font(.system(size: 11, weight: .bold)).foregroundStyle(DT.emberLight)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(fill))
+                        Text(snip.expansion).font(.system(size: 12.5)).foregroundStyle(ink)
+                        Spacer()
+                        Button { snippets.remove(snip) } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(ink2)
+                        }.buttonStyle(.plain)
+                    }
+                    .padding(.vertical, 10)
+                    .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
+                }
+            }
         }
+    }
+
+    /// A one-field add row used by the Dictionary pane.
+    private func addRow(placeholder: String, onAdd: @escaping (String) -> Void) -> some View {
+        InlineAddField(placeholder: placeholder, fill: fill, ink: ink, accent: DT.emberLight, onAdd: onAdd)
     }
 
     // MARK: Styles
@@ -266,39 +347,41 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 0) {
             paneTitle("Styles", "Cleanup adapts to where you're typing. Detected from the frontmost app.")
                 .padding(.bottom, 12)
-            ForEach(defaultStyleRows, id: \.app) { row in
+            ForEach(styleStore.map.sorted(by: { $0.key < $1.key }), id: \.key) { app, styleID in
                 HStack(spacing: 12) {
-                    Text(row.monogram)
+                    Text(monogram(app))
                         .font(.system(size: 11, weight: .bold)).foregroundStyle(ink2)
                         .frame(width: 30, height: 30)
                         .background(RoundedRectangle(cornerRadius: 7).fill(fill))
-                    Text(row.app).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
-                        .frame(width: 90, alignment: .leading)
-                    Picker("", selection: .constant(row.style)) {
-                        Text("Casual").tag("Casual")
-                        Text("Neutral").tag("Neutral")
-                        Text("Formal").tag("Formal")
+                    Text(app).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
+                        .frame(width: 150, alignment: .leading)
+                    Picker("", selection: styleBinding(for: app)) {
+                        Text("Casual").tag("casual")
+                        Text("Neutral").tag("default")
+                        Text("Formal").tag("formal")
+                        Text("Code").tag("code")
+                        Text("Email").tag("email")
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 220)
-                    Text(row.example).font(.system(size: 11.5)).italic().foregroundStyle(ink2)
+                    .labelsHidden()
+                    .frame(width: 130)
                     Spacer()
                 }
-                .padding(.vertical, 13)
+                .padding(.vertical, 11)
                 .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
             }
-            Text("VS Code and terminals default to verbatim — cleanup off, punctuation literal.")
+            Text("Cleanup uses the frontmost app's style automatically; the menu-bar Style is the fallback.")
                 .font(.system(size: 11)).foregroundStyle(ink2)
                 .padding(.top, 12)
         }
     }
 
-    private var defaultStyleRows: [(monogram: String, app: String, style: String, example: String)] {
-        [
-            ("iM", "iMessage", "Casual", "lol ok — moving standup to 10"),
-            ("Ma", "Mail", "Formal", "Could we move standup to 10:00 tomorrow?"),
-            ("Sl", "Slack", "Neutral", "Can we move standup to 10 tomorrow?"),
-        ]
+    private func styleBinding(for app: String) -> Binding<String> {
+        Binding(get: { styleStore.map[app] ?? "default" },
+                set: { styleStore.map[app] = $0 })
+    }
+
+    private func monogram(_ app: String) -> String {
+        String(app.split(separator: " ").prefix(2).compactMap { $0.first }).uppercased()
     }
 
     // MARK: Know-Me
@@ -309,10 +392,24 @@ struct DashboardView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 14)], spacing: 14) {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Profile").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
-                    Text("Run the interview and cleanup learns your name, your team's jargon, and how you like to sound.")
-                        .font(.system(size: 12.5)).foregroundStyle(ink2)
-                    Button("Run interview (2 min)") {}
-                        .buttonStyle(.bordered)
+                    if profileStore.hasProfile {
+                        profileRow("Name", profileStore.profile.name)
+                        profileRow("Work", profileStore.profile.occupation)
+                        profileRow("People", profileStore.profile.workNames.joined(separator: ", "))
+                        profileRow("Jargon", profileStore.profile.technicalTerms.joined(separator: ", "))
+                        profileRow("Tone", profileStore.profile.communicationStyle)
+                        HStack(spacing: 12) {
+                            Button("Re-run interview") { showInterview = true }.buttonStyle(.bordered)
+                            Button("Clear") { profileStore.profile = Profile() }
+                                .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(DT.destructive)
+                        }
+                        .padding(.top, 4)
+                    } else {
+                        Text("Run the interview and cleanup learns your name, your team's jargon, and how you like to sound.")
+                            .font(.system(size: 12.5)).foregroundStyle(ink2)
+                        Button("Run interview (2 min)") { showInterview = true }
+                            .buttonStyle(.borderedProminent).tint(DT.emberWave)
+                    }
                 }
                 .padding(18)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -334,6 +431,15 @@ struct DashboardView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: 12).fill(card))
                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(hair))
+            }
+        }
+    }
+
+    @ViewBuilder private func profileRow(_ label: String, _ value: String) -> some View {
+        if !value.isEmpty {
+            HStack(alignment: .top, spacing: 8) {
+                Text(label).font(.system(size: 12)).foregroundStyle(ink2).frame(width: 54, alignment: .leading)
+                Text(value).font(.system(size: 12.5)).foregroundStyle(ink)
             }
         }
     }
@@ -524,5 +630,75 @@ private struct EmptyWave: View {
             let color = scheme == .dark ? DT.dimWaveDark : DT.dimWaveLight
             ctx.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: 2, lineCap: .round))
         }
+    }
+}
+
+/// A single-field "type + Enter (or Add)" row used by the Dictionary pane.
+private struct InlineAddField: View {
+    let placeholder: String
+    let fill: Color
+    let ink: Color
+    let accent: Color
+    let onAdd: (String) -> Void
+    @State private var text = ""
+
+    var body: some View {
+        HStack(spacing: 8) {
+            TextField(placeholder, text: $text)
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+                .padding(9)
+                .background(RoundedRectangle(cornerRadius: 8).fill(fill))
+                .onSubmit(commit)
+            Button("Add") { commit() }
+                .buttonStyle(.plain)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 14).padding(.vertical, 8)
+                .background(RoundedRectangle(cornerRadius: 8).fill(accent))
+        }
+    }
+
+    private func commit() {
+        let value = text.trimmingCharacters(in: .whitespaces)
+        guard !value.isEmpty else { return }
+        onAdd(value)
+        text = ""
+    }
+}
+
+/// A trigger + expansion add row used by the Snippets pane.
+private struct SnippetAddRow: View {
+    let fill: Color
+    let ink: Color
+    let ink2: Color
+    let accent: Color
+    let onAdd: (String, String) -> Void
+    @State private var trigger = ""
+    @State private var expansion = ""
+
+    var body: some View {
+        HStack(spacing: 8) {
+            TextField("trigger", text: $trigger)
+                .textFieldStyle(.plain).font(.system(size: 13)).frame(width: 140)
+                .padding(9).background(RoundedRectangle(cornerRadius: 8).fill(fill))
+            TextField("expands to…", text: $expansion)
+                .textFieldStyle(.plain).font(.system(size: 13))
+                .padding(9).background(RoundedRectangle(cornerRadius: 8).fill(fill))
+                .onSubmit(commit)
+            Button("Add") { commit() }
+                .buttonStyle(.plain)
+                .font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+                .padding(.horizontal, 14).padding(.vertical, 8)
+                .background(RoundedRectangle(cornerRadius: 8).fill(accent))
+        }
+    }
+
+    private func commit() {
+        let t = trigger.trimmingCharacters(in: .whitespaces)
+        let e = expansion.trimmingCharacters(in: .whitespaces)
+        guard !t.isEmpty, !e.isEmpty else { return }
+        onAdd(t, e)
+        trigger = ""; expansion = ""
     }
 }

@@ -2,8 +2,18 @@ import Foundation
 
 /// Cleans up a raw transcript (removes fillers, fixes grammar, applies style).
 /// Mirrors the Python `llm/` backends but with async/await `URLSession`.
+///
+/// `context` is the personal-context fragment (profile + dictionary + snippet
+/// hints) built by the caller and injected into the system prompt, so the
+/// first dictation already knows the user's names, jargon, and corrections.
 protocol CleanupProvider {
-    func cleanup(_ raw: String, style: Settings.Style) async throws -> String
+    func cleanup(_ raw: String, style: Settings.Style, context: String) async throws -> String
+}
+
+extension CleanupProvider {
+    func cleanup(_ raw: String, style: Settings.Style) async throws -> String {
+        try await cleanup(raw, style: style, context: "")
+    }
 }
 
 enum CleanupFactory {
@@ -22,7 +32,7 @@ enum CleanupFactory {
 
 /// backend == none → raw whisper output, no network.
 struct PassthroughCleanup: CleanupProvider {
-    func cleanup(_ raw: String, style: Settings.Style) async throws -> String { raw }
+    func cleanup(_ raw: String, style: Settings.Style, context: String) async throws -> String { raw }
 }
 
 private let systemPrompt = """
@@ -72,14 +82,14 @@ struct OpenAICompatibleCleanup: CleanupProvider {
         }
     }
 
-    func cleanup(_ raw: String, style: Settings.Style) async throws -> String {
+    func cleanup(_ raw: String, style: Settings.Style, context: String) async throws -> String {
         guard !apiKey.isEmpty else { return raw }
         var req = URLRequest(url: endpoint)
         req.httpMethod = "POST"
         req.timeoutInterval = 10
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let sys = systemPrompt + styleSuffix(style)
+        let sys = systemPrompt + styleSuffix(style) + context
         let body: [String: Any]
         if backend == .anthropic {
             req.setValue(apiKey, forHTTPHeaderField: "x-api-key")
@@ -123,14 +133,14 @@ struct OllamaCleanup: CleanupProvider {
     let model: String
     var baseURL = "http://localhost:11434"
 
-    func cleanup(_ raw: String, style: Settings.Style) async throws -> String {
+    func cleanup(_ raw: String, style: Settings.Style, context: String) async throws -> String {
         guard let url = URL(string: "\(baseURL)/api/generate"),
               url.scheme == "http" || url.scheme == "https" else { return raw }
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.timeoutInterval = 120
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let prompt = systemPrompt + styleSuffix(style) + "\n\nInput:\n" + raw
+        let prompt = systemPrompt + styleSuffix(style) + context + "\n\nInput:\n" + raw
         req.httpBody = try JSONSerialization.data(withJSONObject: [
             "model": model, "prompt": prompt, "stream": false,
             "options": ["temperature": 0.1],

@@ -15,8 +15,17 @@ final class AppController: ObservableObject {
     @Published private(set) var isWorking = false
     @Published private(set) var pausedUntil: Date?
     @Published private(set) var lastError: String?
-    @Published private(set) var wordsToday = 0
     @Published var settings: Settings
+
+    // Ported feature stores (dictionary, snippets, styles, profile, history).
+    let profileStore = ProfileStore()
+    let dictionaryStore = DictionaryStore()
+    let snippetStore = SnippetStore()
+    let styleStore = StyleStore()
+    let historyStore = HistoryStore()
+
+    /// Today's dictated words — read straight from the persisted stats.
+    var wordsToday: Int { historyStore.wordsToday }
 
     private let log = Logger(subsystem: "app.openvoiceflow", category: "controller")
     private let hotkey: HotkeyEngine
@@ -156,25 +165,54 @@ final class AppController: ObservableObject {
     private func process(_ samples: [Float]) async {
         isWorking = true
         defer { isWorking = false }
+        // The app the user dictated into — for per-app style + history.
+        let frontApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "Unknown"
         do {
             let raw = try await transcriber.transcribe(samples, language: settings.language)
             guard !raw.isEmpty else {
                 hud.show(.error(.timeout))
                 return
             }
+
+            // Voice snippet: an exact trigger expands directly, no LLM call.
+            if let expansion = snippetStore.match(raw) {
+                deliver(expansion, app: frontApp)
+                return
+            }
+
             hud.show(.cleaning)
+            // Per-app style overrides the manual default (design 03 "Styles").
+            let style = styleStore.styleForFrontmostApp(fallback: settings.style)
+            // Personal context: profile + dictionary + snippet hints.
+            let context = profileStore.promptFragment
+                + dictionaryStore.promptFragment
+                + snippetHints()
             let provider = CleanupFactory.make(settings)
-            let cleaned = (try? await provider.cleanup(raw, style: settings.style)) ?? raw
-            let words = cleaned.split(whereSeparator: \.isWhitespace).count
-            if settings.autoPaste { Paster.paste(cleaned) }
-            wordsToday += words
-            lastError = nil
-            // Success holds ~1.8 s in the design's sequencing.
-            hud.show(.result(words: words), autoHideAfter: 1.8)
+            let cleaned = (try? await provider.cleanup(raw, style: style, context: context)) ?? raw
+            deliver(cleaned, app: frontApp)
         } catch {
             log.error("dictation failed: \(error.localizedDescription)")
             lastError = "Dictation failed"
             hud.show(.error(.timeout))
         }
+    }
+
+    /// Paste, log to history, bump stats, and flash the success HUD.
+    private func deliver(_ text: String, app: String) {
+        let words = text.split(whereSeparator: \.isWhitespace).count
+        if settings.autoPaste { Paster.paste(text) }
+        historyStore.record(app: app, text: text, words: words)
+        lastError = nil
+        hud.show(.result(words: words), autoHideAfter: 1.8)  // holds ~1.8 s
+    }
+
+    /// Tell the LLM to echo a snippet trigger verbatim so match() can expand it
+    /// even after cleanup rewording (mirrors get_snippets_prompt_fragment).
+    private func snippetHints() -> String {
+        let triggers = snippetStore.snippets.map { "  - \"\($0.trigger)\"" }
+        guard !triggers.isEmpty else { return "" }
+        return "\n\nVoice snippets — if the user says EXACTLY one of these triggers "
+            + "(and nothing else meaningful), output the trigger unchanged:\n"
+            + triggers.joined(separator: "\n")
     }
 }

@@ -53,6 +53,7 @@ def test_legacy_split_downloads_redirect_to_the_universal_native_dmg():
 
 
 def test_public_downloads_remain_website_hosted():
-    combined = "\n".join((DOCS / name).read_text(encoding="utf-8") for name in ["download.html", "install.html", "how-it-works.html"])
+    pages = ["download.html", "install.html", "how-it-works.html"]
+    combined = "\n".join((DOCS / name).read_text(encoding="utf-8") for name in pages)
     assert "github.com/shimoverse/openvoiceflow/releases/download" not in combined
     assert CANONICAL in (DOCS / "download.html").read_text(encoding="utf-8")

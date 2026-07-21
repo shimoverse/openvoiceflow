@@ -22,3 +22,7 @@ htmlcov/
 *.pyo
 public/
 node_modules/
+macos/AppStore/BuildResources/
+macos/AppStore/.derived-data/
+macos/AppStore/.archives/
+macos/AppStore/.swiftpm/

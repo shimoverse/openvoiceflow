@@ -1,0 +1,6 @@
+{
+  "filename": "ggml-base.en.bin",
+  "source": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin",
+  "sha256": "a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002",
+  "bytes": 147964211
+}

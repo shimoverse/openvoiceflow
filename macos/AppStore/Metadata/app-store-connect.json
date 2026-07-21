@@ -1,0 +1,11 @@
+{
+  "bundleId": "com.shimoverse.openvoiceflow",
+  "primaryLocale": "en-US",
+  "sku": "OPENVOICEFLOW-MAC-001",
+  "primaryCategory": "PRODUCTIVITY",
+  "secondaryCategory": "UTILITIES",
+  "privacyPolicyUrl": "https://openvoiceflow.vercel.app/privacy.html",
+  "supportUrl": "https://openvoiceflow.vercel.app/support.html",
+  "marketingUrl": "https://openvoiceflow.vercel.app/",
+  "price": "FREE"
+}

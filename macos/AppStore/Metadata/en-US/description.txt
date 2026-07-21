@@ -1,0 +1,18 @@
+OpenVoiceFlow turns speech into text privately on your Mac.
+
+Hold Control+Option+Space, speak naturally, then release. OpenVoiceFlow transcribes the recording locally with whisper.cpp and copies the result to your clipboard, ready to paste wherever you need it.
+
+PRIVATE BY DESIGN
+• Audio stays on your Mac.
+• Transcription runs locally.
+• No account or subscription.
+• No analytics, advertising, or tracking.
+• No transcript upload.
+
+BUILT FOR EVERYDAY WRITING
+Use OpenVoiceFlow for messages, notes, email drafts, documents, and any other text workflow. A clear status window and menu-bar waveform make it easy to see when the app is listening or transcribing.
+
+STORE-SAFE MAC EXPERIENCE
+The Mac App Store edition is completely self-contained and sandboxed. It includes its local speech engine and model, requires only microphone access, and places finished text on the clipboard for you to paste with Command+V.
+
+OpenVoiceFlow is free and open source under the MIT License.

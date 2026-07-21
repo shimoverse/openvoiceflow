@@ -1,0 +1,1 @@
+Local voice transcription with a clearer native Mac experience. Hold Control+Option+Space to record, release to transcribe, and paste the copied result anywhere.

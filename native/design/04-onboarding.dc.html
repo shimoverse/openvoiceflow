@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{{const W=new URLSearchParams(location.search).get("theme");if(W==="light"||W==="dark"){document.documentElement.dataset.theme=W}}{if(new URLSearchParams(location.search).get("_omthumb")==="1"){const W=(q)=>{const X=q.focus;if(!X)return;q.focus=function(H){X.call(this,{...H,preventScroll:true})}};W(HTMLElement.prototype);W(SVGElement.prototype);if(typeof MathMLElement!=="undefined"){W(MathMLElement.prototype)}const $=(q)=>{q.removeAttribute("autofocus");q.inert=true;if(!(q instanceof HTMLElement))q.removeAttribute("tabindex")};const z=(q)=>{if(q.hasAttribute("autofocus"))$(q);for(const X of q.querySelectorAll("[autofocus]")){$(X)}};z(document.documentElement);new MutationObserver((q)=>{for(const X of q){for(const H of X.addedNodes){if(H.nodeType===1)z(H)}}}).observe(document,{childList:true,subtree:true})}}{const W=()=>{try{if(document.querySelector('meta[name="color-scheme"]'))return;const $=getComputedStyle(document.documentElement).getPropertyValue("color-scheme").trim();if($&&$!=="normal")return;const z=(j)=>{if(!j)return null;const F=getComputedStyle(j).backgroundColor.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/);if(!F)return null;const G=F[4]==null?1:parseFloat(F[4])/(F[4].endsWith("%")?100:1);if(G<0.99)return null;return[+F[1],+F[2],+F[3]]};const q=z(document.body)||z(document.documentElement);if(!q)return;const X=(j)=>{const F=j/255;return F<=0.04045?F/12.92:((F+0.055)/1.055)**2.4};const H=0.2126*X(q[0])+0.7152*X(q[1])+0.0722*X(q[2]);document.documentElement.style.setProperty("color-scheme",H<0.4?"dark":"light")}catch{}};if(document.readyState==="complete")W();else window.addEventListener("load",W)}var b=["https://claude.ai","https://preview.claude.ai","https://423e8509-755f-4bc2-9189-efd7c75a2e24.claudeusercontent.com"];var p=true;var u=30000;var d=3000;document.addEventListener("DOMContentLoaded",()=>{const W=window.Babel;const $="om-src-id";if(W&&W.registerPlugin&&!(W.availablePlugins&&W.availablePlugins[$])){W.registerPlugin($,({types:H})=>({visitor:{JSXOpeningElement(j,F){const G=j.node;if(G.name&&G.name.type==="JSXMemberExpression")return;for(let Q=0;Q<G.attributes.length;Q++){const V=G.attributes[Q];if(V.type==="JSXAttribute"&&V.name&&V.name.name==="data-om-id")return}const P=F.file&&F.file.opts&&F.file.opts.filename||"?";const R=G.loc&&G.loc.start;const J=`jsx:${P}:${G.start??0}:${R?R.line:0}:${R?R.column+1:0}`;G.attributes.push(H.jsxAttribute(H.jsxIdentifier("data-om-id"),H.stringLiteral(J)))}}}))}const z="om-text-extract";let q=false;if(p&&W&&W.registerPlugin&&!(W.availablePlugins&&W.availablePlugins[z])){const H=window.React;if(H&&H.useSyncExternalStore&&H.createElement){q=true;const j={};const F=new Set;let G=0;window.__omTextO=j;window.__omTextSet=(J)=>{for(const Q in J){const V=J[Q];if(V==null)delete j[Q];else j[Q]=V}G++;F.forEach((Q)=>Q())};const P=(J)=>{F.add(J);return()=>F.delete(J)};const R=()=>G;window.__OmT=function J(Q){H.useSyncExternalStore(P,R,R);return H.createElement("span",{"data-om-text":Q.i,className:"__om-t"},Q.i in j?j[Q.i]:Q.children)};W.registerPlugin(z,({types:J})=>{const Q={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const V={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const Y=(K,M)=>J.logicalExpression("??",J.memberExpression(J.logicalExpression("||",J.memberExpression(J.identifier("window"),J.identifier("__omTextO")),J.objectExpression([])),J.stringLiteral(K),true),M);const Z=(K)=>K.file&&K.file.opts&&K.file.opts.filename||"?";const B=(K)=>K.file&&K.file.code||"";const U=(K,M)=>{const L=(D)=>D&&D.start!=null&&D.end!=null&&(D.type==="StringLiteral"||D.type==="TemplateLiteral"&&D.expressions.length===0)?[D.start,D.end]:null;const N=L(M);if(N)return N;if(M&&M.type==="Identifier"){const D=K.scope.getBinding(M.name);if(D&&D.constant&&D.path.node.type==="VariableDeclarator"){return L(D.path.node.init)}}return null};const x=(K,M,L)=>{const N=K.node;let D=false;const f=(w,A)=>{D=true;return J.jsxElement(J.jsxOpeningElement(J.jsxIdentifier("__OmT"),[J.jsxAttribute(J.jsxIdentifier("i"),J.stringLiteral(w))],false),J.jsxClosingElement(J.jsxIdentifier("__OmT")),[A],false)};const C=N.children.map((w)=>{if(w.type==="JSXText"){if(w.start==null||w.end==null)return w;const A=L.slice(w.start,w.end);const S=A.length-A.trimStart().length;const O=A.length-A.trimEnd().length;if(S+O>=A.length)return w;return f(`txt:${M}:${w.start+S}:${w.end-O}`,w)}if(w.type==="JSXExpressionContainer"){const A=U(K,w.expression);if(A)return f(`str:${M}:${A[0]}:${A[1]}`,w)}return w});if(D)N.children=C};return{visitor:{JSXOpeningElement(K,M){const L=K.node;const N=Z(M);const D={};for(let f=0;f<L.attributes.length;f++){const C=L.attributes[f];if(C.type!=="JSXAttribute"||!C.name)continue;const w=C.name.name;if(!V[w])continue;if(!C.value||C.value.type!=="StringLiteral")continue;if(C.value.start==null||C.value.end==null)continue;const A=`txt:${N}:${C.value.start}:${C.value.end}`;D[w]=A;C.value=J.jsxExpressionContainer(Y(A,J.stringLiteral(C.value.value)))}if(Object.keys(D).length){L.attributes.push(J.jsxAttribute(J.jsxIdentifier("data-om-text-attrs"),J.stringLiteral(JSON.stringify(D))))}},JSXElement(K,M){const L=K.node.openingElement;const N=L&&L.name&&L.name.name;if(N==="__OmT")return;if(typeof N==="string"&&Q[N])return;x(K,Z(M),B(M))},JSXFragment(K,M){x(K,Z(M),B(M))}}}})}}const X=q?["transform-react-jsx-source",$,z]:["transform-react-jsx-source",$];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((H,j)=>{const F=H.getAttribute("data-plugins")||"";const G=X.filter((P)=>F.indexOf(P)<0);if(G.length){H.setAttribute("data-plugins",F?`${F},${G.join(",")}`:G.join(","))}if(!H.hasAttribute("data-filename")){H.setAttribute("data-filename",H.getAttribute("src")||`inline-${j}`)}})});var I=window.parent;var g="not editable here — open the project in the Claude Design editor to save";var n=()=>Promise.resolve({persisted:false,noHost:true,reason:g});var k=n;var v="data/storage.json";var l=()=>{try{const W=new URL(document.baseURI);const $=W.pathname.match(/\/projects\/([^/]+)\/serve\//);if($)return $[1];return W.hostname.split(".")[0]||""}catch{return location.hostname.split(".")[0]||""}};var o=()=>{try{const W=new URL(document.baseURI);const $=W.pathname.indexOf("/serve/");if($>=0)return W.origin+W.pathname.slice(0,$+"/serve/".length)+v}catch{}return"./"+v};var E=null;var _=()=>{if(!E){E=fetch(o(),{cache:"no-store"}).then((W)=>{if(W.ok)return W.text();return W.status===404?"":null}).catch(()=>null).then((W)=>{if(W===null){E=null;return null}const $=new Map;if(!W)return $;let z;try{z=JSON.parse(W)}catch{console.warn("[omelette.storage] "+v+" is not valid JSON; treating the store as unreadable so a save cannot overwrite the "+"hand-edited bytes. Fix the JSON (or delete the file) to re-enable persistence.");E=null;return null}if(z===null||typeof z!=="object"||Array.isArray(z)){console.warn("[omelette.storage] "+v+" doesn't hold a JSON object; treating the store as unreadable so a save cannot "+"overwrite the hand-edited bytes. Make the top level a JSON object to re-enable persistence.");E=null;return null}const q=z;if("data"in q){const X=q.data;if(X===null||typeof X!=="object"||Array.isArray(X)){console.warn("[omelette.storage] "+v+' has a "data" field that is not a JSON object; treating the store as unreadable so a '+'save cannot overwrite the hand-edited bytes. Make "data" a JSON object to re-enable persistence.');E=null;return null}const H=q._meta;const j=H!==null&&typeof H==="object"?H.project:undefined;if(typeof j==="string"&&j!==""&&j!==l())return $;for(const F of Object.keys(X))$.set(F,X[F]);return $}for(const X of Object.keys(q)){if(X!=="_meta")$.set(X,q[X])}return $})}return E};var y=(W)=>k(v,JSON.stringify({_meta:{project:l(),version:1},data:Object.fromEntries(W)},null,2));var m=Promise.resolve();var T=(W)=>{const $=m.then(W);m=$.then(()=>{return},()=>{return});return $};var s=/sk-(?:ant-)?[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[a-z]-[A-Za-z0-9][A-Za-z0-9-]{9,}|AIza[0-9A-Za-z_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;var a=/password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|credential/i;var r=(W,$,z)=>{if(s.test($)||a.test(W)&&typeof z==="string"&&z.length>=8){console.warn('[omelette.storage] the value for "'+W+'" looks like a credential. The storage file is a plaintext project file — visible to '+"everyone with project access and copied when the project is duplicated. Do not store secrets here.")}};var c={persisted:false,reason:"could not load the existing store — not overwriting it"};var i={persisted:false,reason:"stored value changed since a failed read — re-read this key before saving"};var h=new Set;var t={get:(W)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.get: key must be a string"))}return T(_).then(($)=>{if($===null){h.add(W);return null}h.delete(W);if(!$.has(W))return null;const z=$.get(W);return z==null?null:JSON.parse(JSON.stringify(z))})},set:(W,$)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.set: key must be a string"))}let z;try{z=JSON.stringify($)}catch(X){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable ("+String(X)+")"))}if(z===undefined){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable"))}r(W,z,$);const q=JSON.parse(z);return T(()=>_().then((X)=>{if(X===null)return c;if(h.has(W)){if(X.has(W))return i;h.delete(W)}X.set(W,q);return y(X)}))},delete:(W)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.delete: key must be a string"))}return T(()=>_().then(($)=>{if($===null)return c;if(h.has(W)){if($.has(W))return i;h.delete(W)}$.delete(W);return y($)}))},keys:()=>T(_).then((W)=>W===null?[]:Array.from(W.keys()))};window.omelette={writeFile:(W,$)=>k(W,$).then((z)=>{if(!z.persisted&&!z.noHost){throw new Error(z.reason||"write failed")}}),storage:t};if(I&&I!==window){const W=(J,Q)=>{try{I.postMessage({__omelette_log:true,type:J,data:Q},"*")}catch{}};["log","warn","error"].forEach((J)=>{const Q=console[J];console[J]=(...V)=>{const Y=V.map((Z)=>{try{return typeof Z==="object"?JSON.stringify(Z):String(Z)}catch{try{return String(Z)}catch{return"[unstringifiable]"}}}).join(" ");W(J,Y);Q.apply(console,V)}});window.addEventListener("error",(J)=>{const Q=J.target;if(Q&&Q!==window&&Q.tagName){const V=Q.src||Q.href||"";W("resource_error",`${Q.tagName} failed to load: ${V}`)}else{W("error",`${J.message||"Unknown error"} at ${J.filename||"?"}:${J.lineno||0}:${J.colno||0}`)}},true);window.addEventListener("unhandledrejection",(J)=>{const Q=J.reason;const V=Q instanceof Error?`${Q.message} ${Q.stack}`:String(Q);W("error",`Unhandled rejection: ${V}`)});window.addEventListener("click",(J)=>{if(J.defaultPrevented||J.button!==0)return;if(J.metaKey||J.ctrlKey||J.shiftKey||J.altKey)return;const Q=J.composedPath?J.composedPath():[];const V=["button","input","select","textarea","summary","label"];let Y=null;for(const x of Q){if(!(x instanceof Element))continue;if(x.localName==="a"){if(!(x instanceof HTMLAnchorElement))return;Y=x;break}if(V.indexOf(x.localName)!==-1)return}if(!Y)return;if(Y.isContentEditable)return;const Z=Y.closest("[contenteditable]");if(Z&&Z.getAttribute("contenteditable")!=="false")return;const B=(Y.getAttribute("target")||"_self").toLowerCase();if(B!=="_self"&&B!=="_top"&&B!=="_parent")return;let U;try{U=new URL(Y.href)}catch{return}if(U.protocol!=="http:"&&U.protocol!=="https:")return;if(location.origin==="null")return;if(U.origin===location.origin)return;J.preventDefault();window.open(U.href,"_blank","noopener,noreferrer")});const $=()=>{try{I.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(window.ResizeObserver)new ResizeObserver($).observe(document.documentElement);const z=()=>{$();if(!document.querySelector('script[type="text/babel"],script[type="text/jsx"]'))return;const J=()=>document.getElementById("root")||document.querySelector("body > div[id]");const Q=J()?.firstElementChild??null;let V=0;const Y=()=>{const Z=J();if(Z&&Z.firstElementChild!==Q||++V>30){$();return}setTimeout(Y,100)};setTimeout(Y,100)};if(document.readyState==="complete")z();else window.addEventListener("load",z);const q={};let X=0;const H=(J)=>new Promise((Q,V)=>{if(!b.length){V(new Error("claude.complete: no parent origin"));return}const Y=`c${++X}`;const Z=()=>setTimeout(()=>{delete q[Y];V(new Error(`claude.complete: no data for ${u/1000}s`))},u);const B=Z();q[Y]={resolve:Q,reject:V,text:"",t:B,arm:Z};try{for(const U of b){I.postMessage({__om_api:true,id:Y,body:J},U)}}catch(U){clearTimeout(B);delete q[Y];V(U)}});const j=8;const F=async(J,Q)=>{if(!Array.isArray(J.messages)){throw new Error("claude.complete: tools require a messages array")}const V=J.messages.slice();const Y={...J,tools:J.tools.map((U)=>{if(U===null||typeof U!=="object")return U;const x={};for(const K of Object.keys(U)){if(typeof U[K]!=="function")x[K]=U[K]}return x})};const Z=Y.tool_choice;const B=Z!=null&&(Z.type==="any"||Z.type==="tool")?{...Y,tool_choice:Z.disable_parallel_tool_use!==undefined?{type:"auto",disable_parallel_tool_use:Z.disable_parallel_tool_use}:{type:"auto"}}:Y;for(let U=0;U<j;U++){const x=await H({...U===0?Y:B,messages:V});const K=x.message;const M=K&&Array.isArray(K.content)?K.content:null;const L=M?M.filter((D)=>D?.type==="tool_use"):[];if(K?.stop_reason!=="tool_use"||L.length===0){return x.text}const N=[];for(const D of L){const f=Q.get(D.name);if(!f){N.push({type:"tool_result",tool_use_id:D.id,content:`no handler for tool "${D.name}"`,is_error:true});continue}try{const C=await f(D.input);const w=typeof C==="string"?C:R(C)??"";N.push({type:"tool_result",tool_use_id:D.id,content:w})}catch(C){N.push({type:"tool_result",tool_use_id:D.id,content:String(C?.message??C??"tool handler failed"),is_error:true})}}V.push({role:"assistant",content:M},{role:"user",content:N})}throw new Error(`claude.complete: exceeded ${j} tool turns`)};window.claude={complete(J){const Q=J;if(Q!==null&&typeof Q==="object"&&Array.isArray(Q.tools)&&Q.tools.some((V)=>V!==null&&typeof V==="object"&&typeof V.run==="function")){const V=new Map;for(const Y of Q.tools){if(Y!==null&&typeof Y==="object"&&typeof Y.run==="function"){V.set(String(Y.name),Y.run)}}return F(Q,V)}return H(J).then((V)=>V.text)}};const G={};let P=0;k=(J,Q)=>new Promise((V)=>{if(!b.length){V({persisted:false,noHost:true,reason:g});return}const Y=`f${++P}`;const Z=setTimeout(()=>{delete G[Y];V({persisted:false,noHost:true,reason:g})},d);G[Y]={settle:V,t:Z};try{for(const B of b){I.postMessage({__om_file:true,id:Y,op:"write",path:J,content:Q},B)}}catch{clearTimeout(Z);delete G[Y];V({persisted:false,noHost:true,reason:g})}});const R=(J)=>{try{return JSON.stringify(J)}catch{return JSON.stringify(String(J))}};window.addEventListener("message",(J)=>{if(b.indexOf(J.origin)<0)return;if(J.source!==I)return;const Q=J.data;if(!Q)return;if(Q.type==="omelette-preview-refresh"){if(typeof Q.token!=="string"||!/^[0-9a-f.-]+(\.(rc|pr-[0-9]+))?(\.[0-9]+\.[0-9a-f]{16})?$/.test(Q.token))return;const Z=Math.max(1,Math.floor((Q.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+Q.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+Z;return}if(Q.__om_file_r){const Z=G[Q.id];if(!Z)return;clearTimeout(Z.t);delete G[Q.id];Z.settle(Q.ok?{persisted:true}:{persisted:false,reason:Q.error||"write failed"});return}if(Q.__om_api_r){const Z=q[Q.id];if(!Z)return;if(Q.error!=null){clearTimeout(Z.t);delete q[Q.id];Z.reject(new Error(Q.error));return}if(Q.chunk!=null){clearTimeout(Z.t);Z.t=Z.arm();Z.text+=Q.chunk;return}if(Q.done){clearTimeout(Z.t);delete q[Q.id];Z.resolve({text:Q.text!=null?Q.text:Z.text,message:Q.message});return}return}if(!Q.__om_eval)return;const V=Q;const Y=(Z)=>{J.source.postMessage({...Z,__om_eval_r:1,id:V.id},J.origin)};try{const Z=(0,eval)(V.code);if(Z&&typeof Z.then==="function"){Z.then((B)=>Y({ok:1,v:R(B)}),(B)=>Y({ok:0,e:String(B)}))}else{Y({ok:1,v:R(Z)})}}catch(Z){Y({ok:0,e:String(Z)})}})}})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenVoiceFlow — Onboarding</title>
+<style>
+html,body{margin:0;padding:0;background:#F4F2EC;color:#26221B;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+p{text-wrap:pretty}
+a{color:#9A5A1E;text-decoration:none}
+a:hover{color:#7C4715;text-decoration:underline}
+@keyframes ovfCaret{0%,55%{opacity:1}56%,100%{opacity:0}}
+</style>
+</helmet>
+<div style="max-width:1140px;margin:0 auto;padding:44px 40px 80px">
+<header data-screen-label="Header" style="display:flex;align-items:center;gap:14px;padding-bottom:28px;border-bottom:1px solid #E4DFD3;flex-wrap:wrap">
+  <div style="font-size:18px;font-weight:700;letter-spacing:-0.02em">OpenVoiceFlow</div>
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.06em">PHASE 4 / 6 · ONBOARDING</div>
+  <div style="flex:1"></div>
+  <div style="display:flex;gap:10px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px"><a href="OpenVoiceFlow - System + HUD.dc.html">01 HUD</a><a href="OpenVoiceFlow - Menu Bar.dc.html">02 Menu bar</a><a href="OpenVoiceFlow - Dashboard.dc.html">03 Dashboard</a><span style="color:#26221B;font-weight:700">04 Onboarding</span><a href="OpenVoiceFlow - Website.dc.html">05 Website</a><a href="OpenVoiceFlow - Assets + Rationale.dc.html">06 Assets</a></div>
+</header>
+
+<section data-screen-label="Onboarding stage" style="padding:36px 0">
+  <div style="font-size:20px;font-weight:700;letter-spacing:-0.015em;margin-bottom:6px">Seven screens to the aha moment.</div>
+  <p style="margin:0 0 16px;font-size:13px;color:#6E6759;max-width:660px">Each permission is primed in-context <i>before</i> macOS asks, so the system dialog never surprises. Click through — and flip a failure path to see the recovery designs.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">FAILURE PATH</span>
+    <span onClick="{{ fNone }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ cs.none }}" style-hover="background:#F1EEE6">None</span>
+    <span onClick="{{ fDenied }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ cs.denied }}" style-hover="background:#F1EEE6">Permission denied</span>
+    <span onClick="{{ fDl }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ cs.dl }}" style-hover="background:#F1EEE6">Download fails</span>
+    <span onClick="{{ fMac }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ cs.mac }}" style-hover="background:#F1EEE6">Unsupported Mac</span>
+  </div>
+  <div style="position:relative;min-height:640px;border-radius:16px;overflow:hidden;background:linear-gradient(165deg,#26241F 0%,#161511 70%,#12110E 100%);border:1px solid #E0DACC;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+    <div style="width:760px;max-width:100%;border-radius:14px;background:#211F1B;border:1px solid rgba(255,255,255,.08);box-shadow:0 30px 80px rgba(0,0,0,.5);color:#EAE6DD">
+      <div style="display:flex;align-items:center;gap:6px;padding:11px 13px">
+        <span style="width:11px;height:11px;border-radius:6px;background:#EC6A5E"></span><span style="width:11px;height:11px;border-radius:6px;background:rgba(255,255,255,.15)"></span><span style="width:11px;height:11px;border-radius:6px;background:rgba(255,255,255,.15)"></span>
+        <span style="flex:1"></span>
+        <span style="display:flex;gap:5px;padding-right:6px">
+          <sc-for list="{{ dotsArr }}" as="d" hint-placeholder-count="7"><span style="width:6px;height:6px;border-radius:3px;{{ d.s }}"></span></sc-for>
+        </span>
+      </div>
+
+      <sc-if value="{{ isMacFail }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:34px 56px 46px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-top:16px">This Mac will struggle with local Whisper</div>
+          <div style="font-size:13px;line-height:1.65;color:#96907F;max-width:440px">OpenVoiceFlow runs best on Apple Silicon, or a 2018+ Intel Mac with 4 GB free. We can still set you up with the <b>tiny</b> model — accuracy drops, but it stays 100% on-device.</div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <span onClick="{{ fNone }}" style="padding:9px 18px;border-radius:9px;background:#E8974E;color:#1A1508;font-size:13px;font-weight:700;cursor:pointer">Continue with tiny (slower)</span>
+            <span style="padding:9px 18px;border-radius:9px;border:1px solid rgba(255,255,255,.15);font-size:13px;font-weight:600;cursor:pointer">Quit</span>
+          </div>
+          <div style="font-size:11px;color:#96907F">No cloud fallback is offered — that would break the one promise we make.</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ notMacFail }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:14px 56px 44px;min-height:430px;display:flex;flex-direction:column">
+
+        <sc-if value="{{ is0 }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;margin:auto 0">
+            <canvas ref="{{ reg.glyph }}" style="width:72px;height:72px"></canvas>
+            <div style="font-size:30px;font-weight:700;letter-spacing:-0.025em">Speak. It types.</div>
+            <div style="font-size:13.5px;line-height:1.65;color:#96907F;max-width:400px">Hold a key, talk, let go — polished text appears at your cursor in any app. Free and open source.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+              <span style="padding:4px 10px;border-radius:999px;border:1px solid rgba(127,175,138,.5);color:#7FAF8A;font-size:11px;font-weight:700">100% ON-DEVICE</span>
+              <span style="padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.15);color:#96907F;font-size:11px;font-weight:600">NO ACCOUNT</span>
+              <span style="padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.15);color:#96907F;font-size:11px;font-weight:600">WORKS OFFLINE</span>
+            </div>
+            <div style="font-size:11px;color:#96907F">Setup takes about two minutes — three permissions, one download, one hello.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPerm }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;margin:auto 0">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#E8974E;font-weight:700">PERMISSION {{ permIdx }} OF 3</div>
+              <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em">{{ permTitle }}</div>
+              <div style="font-size:13px;line-height:1.7;color:#96907F">{{ permWhy }}</div>
+              <div style="font-size:11.5px;line-height:1.6;color:#96907F;border-left:2px solid rgba(255,255,255,.12);padding-left:10px">{{ permNote }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+              <sc-if value="{{ permDialog }}" hint-placeholder-val="{{ true }}">
+                <div style="width:270px;border-radius:12px;background:#2B2925;border:1px solid rgba(255,255,255,.10);box-shadow:0 18px 40px rgba(0,0,0,.4);padding:18px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px">
+                  <canvas ref="{{ reg.dlgGlyph }}" style="width:36px;height:36px"></canvas>
+                  <div style="font-size:12.5px;font-weight:700;line-height:1.45">"OpenVoiceFlow" would like to {{ permAsk }}</div>
+                  <div style="font-size:11px;color:#96907F;line-height:1.5">{{ permPurpose }}</div>
+                  <div style="display:flex;gap:8px;margin-top:6px;width:100%">
+                    <span style="flex:1;padding:6px 0;border-radius:7px;border:1px solid rgba(255,255,255,.15);font-size:12px;text-align:center;cursor:pointer">Don't Allow</span>
+                    <span style="flex:1;padding:6px 0;border-radius:7px;background:#E8974E;color:#1A1508;font-size:12px;font-weight:700;text-align:center;cursor:pointer">Allow</span>
+                  </div>
+                </div>
+                <div style="font-size:11px;color:#96907F">↑ what macOS will show — we ask only when you click Continue</div>
+              </sc-if>
+              <sc-if value="{{ permToggle }}" hint-placeholder-val="{{ false }}">
+                <div style="width:290px;border-radius:12px;background:#2B2925;border:1px solid rgba(255,255,255,.10);box-shadow:0 18px 40px rgba(0,0,0,.4);padding:14px 16px">
+                  <div style="font-size:11px;color:#96907F;margin-bottom:10px">System Settings › Privacy &amp; Security › {{ permPane }}</div>
+                  <div style="display:flex;align-items:center;gap:10px"><canvas ref="{{ reg.dlgGlyph }}" style="width:22px;height:22px"></canvas><span style="font-size:13px;font-weight:600;flex:1">OpenVoiceFlow</span><span style="width:38px;height:22px;border-radius:11px;background:#7FAF8A;position:relative"><span style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:9px;background:#FFF"></span></span></div>
+                </div>
+                <div style="font-size:11px;color:#96907F">↑ one toggle — we detect it the instant you flip it, no restart</div>
+              </sc-if>
+              <sc-if value="{{ denied }}" hint-placeholder-val="{{ false }}">
+                <div style="width:290px;border-radius:10px;border:1px solid rgba(240,140,30,.4);background:rgba(240,140,30,.08);padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+                  <div style="font-size:12px;font-weight:700;color:#E8974E">Denied — that's okay.</div>
+                  <div style="font-size:11.5px;line-height:1.6;color:#C9C3B4">Flip it on in System Settings › Privacy &amp; Security › {{ permPane }}. We re-check every time this window comes forward.</div>
+                  <span style="align-self:flex-start;padding:6px 12px;border-radius:7px;background:#E8974E;color:#1A1508;font-size:11.5px;font-weight:700;cursor:pointer">Open System Settings</span>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ is4 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px;margin:auto 0">
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;letter-spacing:-0.02em">Pick your talk key</div><div style="font-size:12.5px;color:#96907F;margin-top:4px">Hold it to talk, release to type. Right ⌘ suits most right hands.</div></div>
+            <div style="display:flex;gap:5px;justify-content:center;align-items:stretch">
+              <span onClick="{{ pickFn }}" style="padding:14px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.14);font-size:11px;cursor:pointer;{{ ks.fn }}">fn</span>
+              <span style="padding:14px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.08);font-size:11px;color:#6B6558">⌃</span>
+              <span style="padding:14px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.08);font-size:11px;color:#6B6558">⌥</span>
+              <span style="padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.08);font-size:11px;color:#6B6558">⌘</span>
+              <span style="padding:14px 0;border-radius:8px;border:1px solid rgba(255,255,255,.08);width:200px"></span>
+              <span onClick="{{ pickCmd }}" style="padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.14);font-size:11px;cursor:pointer;{{ ks.cmd }}">⌘</span>
+              <span onClick="{{ pickOpt }}" style="padding:14px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.14);font-size:11px;cursor:pointer;{{ ks.opt }}">⌥</span>
+              <span onClick="{{ pickCtl }}" style="padding:14px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.14);font-size:11px;cursor:pointer;{{ ks.ctl }}">⌃</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;justify-content:center;padding:14px;border-radius:12px;background:rgba(255,255,255,.04)">
+              <span style="font-size:12.5px;color:#96907F">Rehearse it:</span>
+              <span onMouseDown="{{ rehDown }}" onMouseUp="{{ rehUp }}" onMouseLeave="{{ rehUp }}" onTouchStart="{{ rehDown }}" onTouchEnd="{{ rehUp }}" style="padding:9px 18px;border-radius:9px;background:#E8974E;color:#1A1508;font-size:12.5px;font-weight:700;cursor:pointer;user-select:none">{{ rehLabel }}</span>
+              <span style="font-size:12.5px;font-weight:600;color:#7FAF8A;{{ rehOkS }}">✓ Nice — that's the whole gesture.</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ is5 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px;margin:auto 0">
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;letter-spacing:-0.02em">Downloading your model</div><div style="font-size:12.5px;color:#96907F;margin-top:4px">whisper-large-v3-turbo · 1.6 GB · the only download this app will ever need</div></div>
+            <div style="border-radius:12px;background:rgba(255,255,255,.04);padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums">{{ dlPct }}</span><span style="font-size:11.5px;color:#96907F">{{ dlEta }}</span></div>
+              <div style="height:6px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden"><div style="height:100%;border-radius:3px;background:{{ dlBarC }};width:{{ dlW }};transition:width .2s linear"></div></div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">
+                <sc-for list="{{ dlSteps }}" as="s" hint-placeholder-count="4"><span style="{{ s.c }}">{{ s.t }}</span></sc-for>
+              </div>
+            </div>
+            <sc-if value="{{ dlFailed }}" hint-placeholder-val="{{ false }}">
+              <div style="border-radius:10px;border:1px solid rgba(240,140,30,.4);background:rgba(240,140,30,.08);padding:12px 14px;display:flex;align-items:center;gap:12px">
+                <div style="flex:1;font-size:12px;line-height:1.6;color:#C9C3B4"><b style="color:#E8974E">Connection dropped at 43%.</b> Partial download kept — resume picks up exactly here. Or switch to <b>small</b> (466 MB) and upgrade later.</div>
+                <span onClick="{{ dlRetry }}" style="padding:7px 14px;border-radius:8px;background:#E8974E;color:#1A1508;font-size:12px;font-weight:700;cursor:pointer;flex:none">Resume</span>
+              </div>
+            </sc-if>
+            <div style="font-size:11px;color:#96907F;text-align:center">While you wait: transcription happens on the Neural Engine. After this screen, airplane mode changes nothing.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ is6 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px;margin:auto 0;align-items:center">
+            <div style="text-align:center"><div style="font-size:24px;font-weight:700;letter-spacing:-0.02em">Say hello</div><div style="font-size:12.5px;color:#96907F;margin-top:4px">Hold {{ hkName }} and say: <i>"Hello from my own two vocal cords."</i></div></div>
+            <div style="width:420px;max-width:100%;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:14px 16px;font-size:13.5px;line-height:1.6;min-height:52px">{{ dictTyped }}<span style="display:inline-block;width:2px;height:15px;vertical-align:-2px;background:#E8974E;animation:ovfCaret 1.05s step-end infinite"></span></div>
+            <div style="display:flex;align-items:center;gap:10px;height:44px;border-radius:22px;padding:0 14px;min-width:280px;background:rgba(32,30,26,.9);border:1px solid rgba(255,255,255,.10);box-shadow:0 18px 40px rgba(0,0,0,.5);{{ miniHudS }}">
+              <span style="display:flex;align-items:center;gap:5px;height:23px;padding:0 8px;border-radius:6px;background:rgba(255,255,255,.08);color:#CFC9BB;font-size:12.5px;font-weight:600">{{ hkGlyph }}<span style="font-size:8.5px;font-weight:600;opacity:.6">HELD</span></span>
+              <canvas ref="{{ reg.wave }}" style="flex:1;height:32px"></canvas>
+            </div>
+            <span onMouseDown="{{ dictDown }}" onMouseUp="{{ dictUp }}" onMouseLeave="{{ dictUp }}" onTouchStart="{{ dictDown }}" onTouchEnd="{{ dictUp }}" style="padding:10px 20px;border-radius:10px;background:#E8974E;color:#1A1508;font-size:13px;font-weight:700;cursor:pointer;user-select:none">{{ dictLabel }}</span>
+            <div style="font-size:12.5px;font-weight:600;color:#7FAF8A;{{ dictOkS }}">That's it. You're set — we live in the menu bar now. ↗</div>
+          </div>
+        </sc-if>
+
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:0 56px 26px">
+        <span onClick="{{ goBack }}" style="font-size:12.5px;color:#96907F;cursor:pointer;{{ backS }}">‹ Back</span>
+        <span style="flex:1"></span>
+        <span style="font-size:11px;color:#96907F">{{ stepHint }}</span>
+        <span onClick="{{ goNext }}" style="padding:9px 20px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;{{ nextS }}">{{ nextLabel }}</span>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:16px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:6px">Priming beats pleading</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Each screen explains the why in our voice <i>before</i> the macOS dialog appears, and previews exactly what the system will show — so the scary system prompt is expected, not alarming.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:6px">The wait builds trust</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The model download is the longest moment we'll ever make you wait — so it narrates what's happening locally (download → checksum → Neural Engine compile) and ends with the offline promise.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:6px">Rehearsal, then the real thing</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The hotkey is rehearsed on screen 5, then used for real on screen 7 — the aha is doing the actual gesture, not reading about it. Ends pointing at the menu bar: the app's permanent home.</div></div>
+  </div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { step:0, fail:'none', hk:'Right ⌘', dlP:0, rehHeld:false, rehOK:false, dictPhase:'idle', dictTyped:'' };
+  ensure(){ if(!this.cv) this.cv=new Map(); }
+  reg(mode){ const k='r_'+mode; if(!this[k]) this[k]=el=>{ this.ensure(); if(el) this.cv.set(mode,{el}); else this.cv.delete(mode); }; return this[k]; }
+  componentDidMount(){ this.ensure(); this.amp=0; this.tgt=0; this.sylT=0; this.tick=this.tick.bind(this); this.raf=requestAnimationFrame(this.tick);
+    this.dl=setInterval(()=>{ const st=this.state; if(st.step===5){ if(st.fail==='dl'&&st.dlP>=43){ return; } if(st.dlP<100) this.setState(s=>({dlP:Math.min(100,s.dlP+0.8+Math.random()*1.4)})); } },120); }
+  componentWillUnmount(){ cancelAnimationFrame(this.raf); clearInterval(this.dl); if(this.rehT)clearTimeout(this.rehT); if(this.ty)clearInterval(this.ty); }
+  S(t){ const gate=(Math.sin(t*0.9)+Math.sin(t*0.53+1.2))>0.9?0.06:1; let v=(Math.sin(t*2.3)+Math.sin(t*3.85+1.4)+Math.sin(t*5.9+0.4))/3; v=Math.max(0,v*0.75+0.5); return Math.min(1,v*gate); }
+  win(u){ return Math.pow(Math.max(0,Math.sin(Math.PI*u)),0.85); }
+  ring(ctx,w,h,t,color,lw){ const cx=w/2,cy=h/2,R=Math.min(w,h)*0.34,g=0.62,off=-1.0; ctx.beginPath();
+    for(let a=off+g/2;a<=off+2*Math.PI-g/2;a+=0.045){ const r=R*(1+0.10*Math.sin(a*5-t*0.7)); const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r; a<=off+g/2+0.05?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.lineWidth=lw; ctx.lineCap='round'; ctx.strokeStyle=color; ctx.stroke(); }
+  tick(now){ this.ensure(); const t=now/1000, dt=Math.min(50,now-(this._last||now)); this._last=now;
+    const talking=this.state.dictPhase==='listen';
+    if(talking){ if(now>this.sylT){ this.sylT=now+90+Math.random()*190; const r=Math.random(); this.tgt=r<0.18?0.04:0.25+Math.random()*0.7; } } else this.tgt=0;
+    this.amp+=(this.tgt-this.amp)*(1-Math.exp(-dt/70));
+    const d=Math.min(2,window.devicePixelRatio||1);
+    for(const [mode,c] of this.cv){ const el=c.el,w=el.clientWidth,hh=el.clientHeight; if(!w||!hh)continue; if(el.width!==(w*d|0)||el.height!==(hh*d|0)){el.width=w*d|0;el.height=hh*d|0;} const ctx=el.getContext('2d'); ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,w,hh);
+      if(mode==='glyph'||mode==='dlgGlyph') this.ring(ctx,w,hh,t,'#E8974E',mode==='glyph'?3:2);
+      else { const mid=hh/2; ctx.beginPath(); for(let x=0;x<=w;x+=2){ const u=x/w; const a=talking?this.amp:0; const y=mid+(a<0.03?Math.sin(x*0.045-t*1.7)*1.15:0)+a*hh*0.30*(Math.sin(x*0.052+t*6.6)*0.55+Math.sin(x*0.117-t*9.4)*0.26+Math.sin(x*0.026+t*3.2)*0.42)*this.win(u); x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=talking&&this.amp>0.06?'#E8974E':'rgba(214,208,194,.5)'; if(talking&&this.amp>0.12){ctx.shadowColor='#E8974E';ctx.shadowBlur=7;} ctx.stroke(); ctx.shadowBlur=0; } }
+    this.raf=requestAnimationFrame(this.tick); }
+  renderVals(){ const st=this.state, step=st.step, A='background:#26221B;color:#F4F2EC;border-color:#26221B;';
+    const permIdx=step; const isPerm=step>=1&&step<=3;
+    const perms={1:{title:'Let it hear you',why:'Microphone access feeds your voice straight into Whisper — a model running on this Mac. The network is not involved; audio is discarded right after transcription.',ask:'access the microphone.',purpose:'Dictation happens on this Mac. Audio is never uploaded.',note:'macOS will ask once, with the dialog on the right. Deny it and dictation simply can\u2019t hear you.',pane:'Microphone',dialog:true},
+      2:{title:'Let it type for you',why:'This is how text lands at your cursor: OpenVoiceFlow pastes on your behalf. macOS files that power under "Accessibility."',ask:'',purpose:'',note:'No dialog for this one — macOS sends you to a toggle. One flip; we detect it instantly.',pane:'Accessibility',dialog:false},
+      3:{title:'Let it feel the hotkey',why:'Input Monitoring lets the app notice your talk key held down even while another app has focus. We watch one key — not your typing.',ask:'monitor input from your keyboard.',purpose:'Only the dictation hotkey is observed.',note:'This is the scariest-sounding permission, so we say the honest sentence first: one key, nothing else, verifiable in the source.',pane:'Input Monitoring',dialog:true}};
+    const p=perms[permIdx]||perms[1];
+    const dlDone=st.dlP>=100, dlFailed=st.fail==='dl'&&st.dlP>=43&&!dlDone;
+    const dlSteps=[ {t:(st.dlP>0?'✓':'·')+' Contact huggingface.co (the only network call)',c:'color:'+(st.dlP>0?'#7FAF8A':'#6B6558')+';'},
+      {t:(st.dlP>=70?'✓':st.dlP>0?'…':'·')+' Download weights — 1.6 GB',c:'color:'+(st.dlP>=70?'#7FAF8A':st.dlP>0?'#C9C3B4':'#6B6558')+';'},
+      {t:(st.dlP>=85?'✓':st.dlP>=70?'…':'·')+' Verify SHA-256 checksum',c:'color:'+(st.dlP>=85?'#7FAF8A':st.dlP>=70?'#C9C3B4':'#6B6558')+';'},
+      {t:(dlDone?'✓':st.dlP>=85?'…':'·')+' Compile for the Neural Engine',c:'color:'+(dlDone?'#7FAF8A':st.dlP>=85?'#C9C3B4':'#6B6558')+';'} ];
+    const canNext = step===4?true : step===5?(dlDone||dlFailed===false&&false)||dlDone : step===6?st.dictPhase==='done' : true;
+    const nextLabel = step===0?'Get started': step===6?'Finish': step===5&&!dlDone?'Downloading…':'Continue';
+    const hkGlyph={'Right ⌘':'⌘','fn Globe':'fn','Right ⌥':'⌥','Right ⌃':'⌃'}[st.hk]||'⌘';
+    const K=on=>on?'background:#E8974E;color:#1A1508;border-color:#E8974E;font-weight:700;':'color:#C9C3B4;';
+    return {
+      reg:{ glyph:this.reg('glyph'), dlgGlyph:this.reg('dlgGlyph'), wave:this.reg('wave') },
+      cs:{ none:st.fail==='none'?A:'', denied:st.fail==='denied'?A:'', dl:st.fail==='dl'?A:'', mac:st.fail==='mac'?A:'' },
+      fNone:()=>this.setState({fail:'none'}), fDenied:()=>this.setState({fail:'denied',step:Math.min(Math.max(st.step,1),3)===st.step?st.step:1}), fDl:()=>this.setState({fail:'dl',step:5,dlP:43}), fMac:()=>this.setState({fail:'mac'}),
+      isMacFail:st.fail==='mac', notMacFail:st.fail!=='mac',
+      dotsArr:[0,1,2,3,4,5,6].map(i=>({s: i<=step?'background:#E8974E;':'background:rgba(255,255,255,.18);'})),
+      is0:step===0, isPerm, is4:step===4, is5:step===5, is6:step===6,
+      permIdx, permTitle:p.title, permWhy:p.why, permAsk:p.ask, permPurpose:p.purpose, permNote:p.note, permPane:p.pane,
+      permDialog:isPerm&&p.dialog&&st.fail!=='denied', permToggle:isPerm&&!p.dialog&&st.fail!=='denied', denied:isPerm&&st.fail==='denied',
+      ks:{ fn:K(st.hk==='fn Globe'), cmd:K(st.hk==='Right ⌘'), opt:K(st.hk==='Right ⌥'), ctl:K(st.hk==='Right ⌃') },
+      pickFn:()=>this.setState({hk:'fn Globe',rehOK:false}), pickCmd:()=>this.setState({hk:'Right ⌘',rehOK:false}), pickOpt:()=>this.setState({hk:'Right ⌥',rehOK:false}), pickCtl:()=>this.setState({hk:'Right ⌃',rehOK:false}),
+      rehDown:()=>{ this.setState({rehHeld:true}); this.rehT=setTimeout(()=>this.setState({rehOK:true}),700); },
+      rehUp:()=>{ if(this.rehT)clearTimeout(this.rehT); this.setState({rehHeld:false}); },
+      rehLabel: st.rehHeld?'Keep holding…':'Hold me like it\u2019s '+st.hk, rehOkS: st.rehOK?'opacity:1;':'opacity:0;',
+      dlPct:Math.floor(st.dlP)+'%', dlW:Math.floor(st.dlP)+'%', dlBarC: dlFailed?'#E0523A':'#E8974E',
+      dlEta: dlDone?'done — compiled for this Mac':dlFailed?'stalled':'~'+Math.max(2,Math.round((100-st.dlP)*0.55))+' s left on 300 Mbps', dlSteps, dlFailed,
+      dlRetry:()=>this.setState({fail:'none'}),
+      hkName:st.hk, hkGlyph,
+      dictTyped:st.dictTyped, dictLabel: st.dictPhase==='listen'?'Release to transcribe': st.dictPhase==='done'?'Again':'Hold + say it',
+      dictOkS: st.dictPhase==='done'?'opacity:1;':'opacity:0;', miniHudS: st.dictPhase==='listen'?'opacity:1;':'opacity:.35;',
+      dictDown:()=>{ if(this.ty){clearInterval(this.ty);this.ty=null;} this.setState({dictPhase:'listen',dictTyped:''}); },
+      dictUp:()=>{ if(this.state.dictPhase!=='listen')return; const txt='Hello from my own two vocal cords.'; let i=0; this.setState({dictPhase:'done'});
+        this.ty=setInterval(()=>{ i+=2; this.setState({dictTyped:txt.slice(0,i)}); if(i>=txt.length){clearInterval(this.ty);this.ty=null;} },20); },
+      goBack:()=>this.setState({step:Math.max(0,step-1)}), backS: step===0?'opacity:0;pointer-events:none;':'',
+      goNext:()=>{ if(step===5&&!dlDone) return; if(step===6){ if(st.dictPhase!=='done')return; this.setState({step:0,dlP:0,rehOK:false,dictPhase:'idle',dictTyped:'',fail:'none'}); return; } this.setState({step:Math.min(6,step+1)}); },
+      nextS: (step===5&&!dlDone)||(step===6&&st.dictPhase!=='done')?'background:rgba(255,255,255,.10);color:#6B6558;cursor:default;':'background:#E8974E;color:#1A1508;',
+      nextLabel,
+      stepHint:['','macOS asks after you click Continue','one toggle in System Settings','macOS asks after you click Continue','','minutes-long waits deserve narration','hold, speak, release'][step]||'' }; }
+}
+</script>
+</body>
+</html>

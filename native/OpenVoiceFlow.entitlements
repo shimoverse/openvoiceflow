@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Microphone capture for dictation. -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <!-- Network for optional LLM cleanup (OpenRouter/OpenAI/…); Ollama/none stay local. -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!--
+      Accessibility (paste + hotkey CGEventTap) and Input Monitoring are TCC
+      services, granted by the user at runtime — NOT entitlements. Do not add
+      app-sandbox: a global CGEventTap + arbitrary-app paste can't run
+      sandboxed. Ship hardened-runtime + notarized instead.
+    -->
+</dict>
+</plist>

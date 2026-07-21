@@ -30,6 +30,6 @@
       pipeline (release-native.yml) signs each DMG with the private half;
       add the printed public key here in the same commit. See BUILD_RUNBOOK.md.
     -->
-    <!-- <key>SUPublicEDKey</key><string>PASTE_PUBLIC_KEY_HERE</string> -->
+    <key>SUPublicEDKey</key><string>PBw5H5WuZzXg4XrkOBSKF1aptFmpxjgesASYm5VridE=</string>
 </dict>
 </plist>

@@ -11,6 +11,7 @@
 		21718FD49AAD5FFDCB42DF41 /* KnowMeInterview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */; };
 		2976A8647F7E72B7567DFD8F /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */; };
 		2BECEA0193E7CFDB54AFEC47 /* FeatureStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C990C954D554F3DB4F1C0F /* FeatureStores.swift */; };
+		4308540024A6D657C26C204E /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB20C94F8274CB426A4A7DE /* Updater.swift */; };
 		5458F764832C39AC0FE89B4D /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = EEDE1A79E67D869664D18AA7 /* WhisperKit */; };
 		55CC1617ADA91CEB95284F35 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */; };
 		58610B34F43FC25577A44A79 /* StatusIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */; };
@@ -35,6 +36,7 @@
 		34D72CC634525CAF888070FE /* Paster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Paster.swift; sourceTree = "<group>"; };
 		3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
 		4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		4AB20C94F8274CB426A4A7DE /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		57717557E0BEAB2E410856EE /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowMeInterview.swift; sourceTree = "<group>"; };
 		7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenVoiceFlowApp.swift; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 				57717557E0BEAB2E410856EE /* Settings.swift */,
 				E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */,
 				96F80FE49FD6670719657437 /* Transcriber.swift */,
+				4AB20C94F8274CB426A4A7DE /* Updater.swift */,
 			);
 			path = OpenVoiceFlow;
 			sourceTree = "<group>";
@@ -208,6 +211,7 @@
 				BA9ACF75EAA0238774612B88 /* Settings.swift in Sources */,
 				58610B34F43FC25577A44A79 /* StatusIcon.swift in Sources */,
 				6013198D531D8368BE4E28C3 /* Transcriber.swift in Sources */,
+				4308540024A6D657C26C204E /* Updater.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

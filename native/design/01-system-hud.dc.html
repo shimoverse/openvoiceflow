@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{{const W=new URLSearchParams(location.search).get("theme");if(W==="light"||W==="dark"){document.documentElement.dataset.theme=W}}{if(new URLSearchParams(location.search).get("_omthumb")==="1"){const W=(q)=>{const X=q.focus;if(!X)return;q.focus=function(H){X.call(this,{...H,preventScroll:true})}};W(HTMLElement.prototype);W(SVGElement.prototype);if(typeof MathMLElement!=="undefined"){W(MathMLElement.prototype)}const $=(q)=>{q.removeAttribute("autofocus");q.inert=true;if(!(q instanceof HTMLElement))q.removeAttribute("tabindex")};const z=(q)=>{if(q.hasAttribute("autofocus"))$(q);for(const X of q.querySelectorAll("[autofocus]")){$(X)}};z(document.documentElement);new MutationObserver((q)=>{for(const X of q){for(const H of X.addedNodes){if(H.nodeType===1)z(H)}}}).observe(document,{childList:true,subtree:true})}}{const W=()=>{try{if(document.querySelector('meta[name="color-scheme"]'))return;const $=getComputedStyle(document.documentElement).getPropertyValue("color-scheme").trim();if($&&$!=="normal")return;const z=(j)=>{if(!j)return null;const F=getComputedStyle(j).backgroundColor.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)$/);if(!F)return null;const G=F[4]==null?1:parseFloat(F[4])/(F[4].endsWith("%")?100:1);if(G<0.99)return null;return[+F[1],+F[2],+F[3]]};const q=z(document.body)||z(document.documentElement);if(!q)return;const X=(j)=>{const F=j/255;return F<=0.04045?F/12.92:((F+0.055)/1.055)**2.4};const H=0.2126*X(q[0])+0.7152*X(q[1])+0.0722*X(q[2]);document.documentElement.style.setProperty("color-scheme",H<0.4?"dark":"light")}catch{}};if(document.readyState==="complete")W();else window.addEventListener("load",W)}var b=["https://claude.ai","https://preview.claude.ai","https://423e8509-755f-4bc2-9189-efd7c75a2e24.claudeusercontent.com"];var p=true;var u=30000;var d=3000;document.addEventListener("DOMContentLoaded",()=>{const W=window.Babel;const $="om-src-id";if(W&&W.registerPlugin&&!(W.availablePlugins&&W.availablePlugins[$])){W.registerPlugin($,({types:H})=>({visitor:{JSXOpeningElement(j,F){const G=j.node;if(G.name&&G.name.type==="JSXMemberExpression")return;for(let Q=0;Q<G.attributes.length;Q++){const V=G.attributes[Q];if(V.type==="JSXAttribute"&&V.name&&V.name.name==="data-om-id")return}const P=F.file&&F.file.opts&&F.file.opts.filename||"?";const R=G.loc&&G.loc.start;const J=`jsx:${P}:${G.start??0}:${R?R.line:0}:${R?R.column+1:0}`;G.attributes.push(H.jsxAttribute(H.jsxIdentifier("data-om-id"),H.stringLiteral(J)))}}}))}const z="om-text-extract";let q=false;if(p&&W&&W.registerPlugin&&!(W.availablePlugins&&W.availablePlugins[z])){const H=window.React;if(H&&H.useSyncExternalStore&&H.createElement){q=true;const j={};const F=new Set;let G=0;window.__omTextO=j;window.__omTextSet=(J)=>{for(const Q in J){const V=J[Q];if(V==null)delete j[Q];else j[Q]=V}G++;F.forEach((Q)=>Q())};const P=(J)=>{F.add(J);return()=>F.delete(J)};const R=()=>G;window.__OmT=function J(Q){H.useSyncExternalStore(P,R,R);return H.createElement("span",{"data-om-text":Q.i,className:"__om-t"},Q.i in j?j[Q.i]:Q.children)};W.registerPlugin(z,({types:J})=>{const Q={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const V={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const Y=(K,M)=>J.logicalExpression("??",J.memberExpression(J.logicalExpression("||",J.memberExpression(J.identifier("window"),J.identifier("__omTextO")),J.objectExpression([])),J.stringLiteral(K),true),M);const Z=(K)=>K.file&&K.file.opts&&K.file.opts.filename||"?";const B=(K)=>K.file&&K.file.code||"";const U=(K,M)=>{const L=(D)=>D&&D.start!=null&&D.end!=null&&(D.type==="StringLiteral"||D.type==="TemplateLiteral"&&D.expressions.length===0)?[D.start,D.end]:null;const N=L(M);if(N)return N;if(M&&M.type==="Identifier"){const D=K.scope.getBinding(M.name);if(D&&D.constant&&D.path.node.type==="VariableDeclarator"){return L(D.path.node.init)}}return null};const x=(K,M,L)=>{const N=K.node;let D=false;const f=(w,A)=>{D=true;return J.jsxElement(J.jsxOpeningElement(J.jsxIdentifier("__OmT"),[J.jsxAttribute(J.jsxIdentifier("i"),J.stringLiteral(w))],false),J.jsxClosingElement(J.jsxIdentifier("__OmT")),[A],false)};const C=N.children.map((w)=>{if(w.type==="JSXText"){if(w.start==null||w.end==null)return w;const A=L.slice(w.start,w.end);const S=A.length-A.trimStart().length;const O=A.length-A.trimEnd().length;if(S+O>=A.length)return w;return f(`txt:${M}:${w.start+S}:${w.end-O}`,w)}if(w.type==="JSXExpressionContainer"){const A=U(K,w.expression);if(A)return f(`str:${M}:${A[0]}:${A[1]}`,w)}return w});if(D)N.children=C};return{visitor:{JSXOpeningElement(K,M){const L=K.node;const N=Z(M);const D={};for(let f=0;f<L.attributes.length;f++){const C=L.attributes[f];if(C.type!=="JSXAttribute"||!C.name)continue;const w=C.name.name;if(!V[w])continue;if(!C.value||C.value.type!=="StringLiteral")continue;if(C.value.start==null||C.value.end==null)continue;const A=`txt:${N}:${C.value.start}:${C.value.end}`;D[w]=A;C.value=J.jsxExpressionContainer(Y(A,J.stringLiteral(C.value.value)))}if(Object.keys(D).length){L.attributes.push(J.jsxAttribute(J.jsxIdentifier("data-om-text-attrs"),J.stringLiteral(JSON.stringify(D))))}},JSXElement(K,M){const L=K.node.openingElement;const N=L&&L.name&&L.name.name;if(N==="__OmT")return;if(typeof N==="string"&&Q[N])return;x(K,Z(M),B(M))},JSXFragment(K,M){x(K,Z(M),B(M))}}}})}}const X=q?["transform-react-jsx-source",$,z]:["transform-react-jsx-source",$];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((H,j)=>{const F=H.getAttribute("data-plugins")||"";const G=X.filter((P)=>F.indexOf(P)<0);if(G.length){H.setAttribute("data-plugins",F?`${F},${G.join(",")}`:G.join(","))}if(!H.hasAttribute("data-filename")){H.setAttribute("data-filename",H.getAttribute("src")||`inline-${j}`)}})});var I=window.parent;var g="not editable here — open the project in the Claude Design editor to save";var n=()=>Promise.resolve({persisted:false,noHost:true,reason:g});var k=n;var v="data/storage.json";var l=()=>{try{const W=new URL(document.baseURI);const $=W.pathname.match(/\/projects\/([^/]+)\/serve\//);if($)return $[1];return W.hostname.split(".")[0]||""}catch{return location.hostname.split(".")[0]||""}};var o=()=>{try{const W=new URL(document.baseURI);const $=W.pathname.indexOf("/serve/");if($>=0)return W.origin+W.pathname.slice(0,$+"/serve/".length)+v}catch{}return"./"+v};var E=null;var _=()=>{if(!E){E=fetch(o(),{cache:"no-store"}).then((W)=>{if(W.ok)return W.text();return W.status===404?"":null}).catch(()=>null).then((W)=>{if(W===null){E=null;return null}const $=new Map;if(!W)return $;let z;try{z=JSON.parse(W)}catch{console.warn("[omelette.storage] "+v+" is not valid JSON; treating the store as unreadable so a save cannot overwrite the "+"hand-edited bytes. Fix the JSON (or delete the file) to re-enable persistence.");E=null;return null}if(z===null||typeof z!=="object"||Array.isArray(z)){console.warn("[omelette.storage] "+v+" doesn't hold a JSON object; treating the store as unreadable so a save cannot "+"overwrite the hand-edited bytes. Make the top level a JSON object to re-enable persistence.");E=null;return null}const q=z;if("data"in q){const X=q.data;if(X===null||typeof X!=="object"||Array.isArray(X)){console.warn("[omelette.storage] "+v+' has a "data" field that is not a JSON object; treating the store as unreadable so a '+'save cannot overwrite the hand-edited bytes. Make "data" a JSON object to re-enable persistence.');E=null;return null}const H=q._meta;const j=H!==null&&typeof H==="object"?H.project:undefined;if(typeof j==="string"&&j!==""&&j!==l())return $;for(const F of Object.keys(X))$.set(F,X[F]);return $}for(const X of Object.keys(q)){if(X!=="_meta")$.set(X,q[X])}return $})}return E};var y=(W)=>k(v,JSON.stringify({_meta:{project:l(),version:1},data:Object.fromEntries(W)},null,2));var m=Promise.resolve();var T=(W)=>{const $=m.then(W);m=$.then(()=>{return},()=>{return});return $};var s=/sk-(?:ant-)?[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|xox[a-z]-[A-Za-z0-9][A-Za-z0-9-]{9,}|AIza[0-9A-Za-z_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;var a=/password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|credential/i;var r=(W,$,z)=>{if(s.test($)||a.test(W)&&typeof z==="string"&&z.length>=8){console.warn('[omelette.storage] the value for "'+W+'" looks like a credential. The storage file is a plaintext project file — visible to '+"everyone with project access and copied when the project is duplicated. Do not store secrets here.")}};var c={persisted:false,reason:"could not load the existing store — not overwriting it"};var i={persisted:false,reason:"stored value changed since a failed read — re-read this key before saving"};var h=new Set;var t={get:(W)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.get: key must be a string"))}return T(_).then(($)=>{if($===null){h.add(W);return null}h.delete(W);if(!$.has(W))return null;const z=$.get(W);return z==null?null:JSON.parse(JSON.stringify(z))})},set:(W,$)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.set: key must be a string"))}let z;try{z=JSON.stringify($)}catch(X){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable ("+String(X)+")"))}if(z===undefined){return Promise.reject(new TypeError("storage.set: value must be JSON-serializable"))}r(W,z,$);const q=JSON.parse(z);return T(()=>_().then((X)=>{if(X===null)return c;if(h.has(W)){if(X.has(W))return i;h.delete(W)}X.set(W,q);return y(X)}))},delete:(W)=>{if(typeof W!=="string"){return Promise.reject(new TypeError("storage.delete: key must be a string"))}return T(()=>_().then(($)=>{if($===null)return c;if(h.has(W)){if($.has(W))return i;h.delete(W)}$.delete(W);return y($)}))},keys:()=>T(_).then((W)=>W===null?[]:Array.from(W.keys()))};window.omelette={writeFile:(W,$)=>k(W,$).then((z)=>{if(!z.persisted&&!z.noHost){throw new Error(z.reason||"write failed")}}),storage:t};if(I&&I!==window){const W=(J,Q)=>{try{I.postMessage({__omelette_log:true,type:J,data:Q},"*")}catch{}};["log","warn","error"].forEach((J)=>{const Q=console[J];console[J]=(...V)=>{const Y=V.map((Z)=>{try{return typeof Z==="object"?JSON.stringify(Z):String(Z)}catch{try{return String(Z)}catch{return"[unstringifiable]"}}}).join(" ");W(J,Y);Q.apply(console,V)}});window.addEventListener("error",(J)=>{const Q=J.target;if(Q&&Q!==window&&Q.tagName){const V=Q.src||Q.href||"";W("resource_error",`${Q.tagName} failed to load: ${V}`)}else{W("error",`${J.message||"Unknown error"} at ${J.filename||"?"}:${J.lineno||0}:${J.colno||0}`)}},true);window.addEventListener("unhandledrejection",(J)=>{const Q=J.reason;const V=Q instanceof Error?`${Q.message} ${Q.stack}`:String(Q);W("error",`Unhandled rejection: ${V}`)});window.addEventListener("click",(J)=>{if(J.defaultPrevented||J.button!==0)return;if(J.metaKey||J.ctrlKey||J.shiftKey||J.altKey)return;const Q=J.composedPath?J.composedPath():[];const V=["button","input","select","textarea","summary","label"];let Y=null;for(const x of Q){if(!(x instanceof Element))continue;if(x.localName==="a"){if(!(x instanceof HTMLAnchorElement))return;Y=x;break}if(V.indexOf(x.localName)!==-1)return}if(!Y)return;if(Y.isContentEditable)return;const Z=Y.closest("[contenteditable]");if(Z&&Z.getAttribute("contenteditable")!=="false")return;const B=(Y.getAttribute("target")||"_self").toLowerCase();if(B!=="_self"&&B!=="_top"&&B!=="_parent")return;let U;try{U=new URL(Y.href)}catch{return}if(U.protocol!=="http:"&&U.protocol!=="https:")return;if(location.origin==="null")return;if(U.origin===location.origin)return;J.preventDefault();window.open(U.href,"_blank","noopener,noreferrer")});const $=()=>{try{I.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(window.ResizeObserver)new ResizeObserver($).observe(document.documentElement);const z=()=>{$();if(!document.querySelector('script[type="text/babel"],script[type="text/jsx"]'))return;const J=()=>document.getElementById("root")||document.querySelector("body > div[id]");const Q=J()?.firstElementChild??null;let V=0;const Y=()=>{const Z=J();if(Z&&Z.firstElementChild!==Q||++V>30){$();return}setTimeout(Y,100)};setTimeout(Y,100)};if(document.readyState==="complete")z();else window.addEventListener("load",z);const q={};let X=0;const H=(J)=>new Promise((Q,V)=>{if(!b.length){V(new Error("claude.complete: no parent origin"));return}const Y=`c${++X}`;const Z=()=>setTimeout(()=>{delete q[Y];V(new Error(`claude.complete: no data for ${u/1000}s`))},u);const B=Z();q[Y]={resolve:Q,reject:V,text:"",t:B,arm:Z};try{for(const U of b){I.postMessage({__om_api:true,id:Y,body:J},U)}}catch(U){clearTimeout(B);delete q[Y];V(U)}});const j=8;const F=async(J,Q)=>{if(!Array.isArray(J.messages)){throw new Error("claude.complete: tools require a messages array")}const V=J.messages.slice();const Y={...J,tools:J.tools.map((U)=>{if(U===null||typeof U!=="object")return U;const x={};for(const K of Object.keys(U)){if(typeof U[K]!=="function")x[K]=U[K]}return x})};const Z=Y.tool_choice;const B=Z!=null&&(Z.type==="any"||Z.type==="tool")?{...Y,tool_choice:Z.disable_parallel_tool_use!==undefined?{type:"auto",disable_parallel_tool_use:Z.disable_parallel_tool_use}:{type:"auto"}}:Y;for(let U=0;U<j;U++){const x=await H({...U===0?Y:B,messages:V});const K=x.message;const M=K&&Array.isArray(K.content)?K.content:null;const L=M?M.filter((D)=>D?.type==="tool_use"):[];if(K?.stop_reason!=="tool_use"||L.length===0){return x.text}const N=[];for(const D of L){const f=Q.get(D.name);if(!f){N.push({type:"tool_result",tool_use_id:D.id,content:`no handler for tool "${D.name}"`,is_error:true});continue}try{const C=await f(D.input);const w=typeof C==="string"?C:R(C)??"";N.push({type:"tool_result",tool_use_id:D.id,content:w})}catch(C){N.push({type:"tool_result",tool_use_id:D.id,content:String(C?.message??C??"tool handler failed"),is_error:true})}}V.push({role:"assistant",content:M},{role:"user",content:N})}throw new Error(`claude.complete: exceeded ${j} tool turns`)};window.claude={complete(J){const Q=J;if(Q!==null&&typeof Q==="object"&&Array.isArray(Q.tools)&&Q.tools.some((V)=>V!==null&&typeof V==="object"&&typeof V.run==="function")){const V=new Map;for(const Y of Q.tools){if(Y!==null&&typeof Y==="object"&&typeof Y.run==="function"){V.set(String(Y.name),Y.run)}}return F(Q,V)}return H(J).then((V)=>V.text)}};const G={};let P=0;k=(J,Q)=>new Promise((V)=>{if(!b.length){V({persisted:false,noHost:true,reason:g});return}const Y=`f${++P}`;const Z=setTimeout(()=>{delete G[Y];V({persisted:false,noHost:true,reason:g})},d);G[Y]={settle:V,t:Z};try{for(const B of b){I.postMessage({__om_file:true,id:Y,op:"write",path:J,content:Q},B)}}catch{clearTimeout(Z);delete G[Y];V({persisted:false,noHost:true,reason:g})}});const R=(J)=>{try{return JSON.stringify(J)}catch{return JSON.stringify(String(J))}};window.addEventListener("message",(J)=>{if(b.indexOf(J.origin)<0)return;if(J.source!==I)return;const Q=J.data;if(!Q)return;if(Q.type==="omelette-preview-refresh"){if(typeof Q.token!=="string"||!/^[0-9a-f.-]+(\.(rc|pr-[0-9]+))?(\.[0-9]+\.[0-9a-f]{16})?$/.test(Q.token))return;const Z=Math.max(1,Math.floor((Q.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+Q.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+Z;return}if(Q.__om_file_r){const Z=G[Q.id];if(!Z)return;clearTimeout(Z.t);delete G[Q.id];Z.settle(Q.ok?{persisted:true}:{persisted:false,reason:Q.error||"write failed"});return}if(Q.__om_api_r){const Z=q[Q.id];if(!Z)return;if(Q.error!=null){clearTimeout(Z.t);delete q[Q.id];Z.reject(new Error(Q.error));return}if(Q.chunk!=null){clearTimeout(Z.t);Z.t=Z.arm();Z.text+=Q.chunk;return}if(Q.done){clearTimeout(Z.t);delete q[Q.id];Z.resolve({text:Q.text!=null?Q.text:Z.text,message:Q.message});return}return}if(!Q.__om_eval)return;const V=Q;const Y=(Z)=>{J.source.postMessage({...Z,__om_eval_r:1,id:V.id},J.origin)};try{const Z=(0,eval)(V.code);if(Z&&typeof Z.then==="function"){Z.then((B)=>Y({ok:1,v:R(B)}),(B)=>Y({ok:0,e:String(B)}))}else{Y({ok:1,v:R(Z)})}}catch(Z){Y({ok:0,e:String(Z)})}})}})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenVoiceFlow — Design System + HUD</title>
+<style>
+html,body{margin:0;padding:0;background:#F4F2EC;color:#26221B;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+p{text-wrap:pretty}
+a{color:#9A5A1E;text-decoration:none}
+a:hover{color:#7C4715;text-decoration:underline}
+@keyframes ovfCaret{0%,55%{opacity:1}56%,100%{opacity:0}}
+@keyframes ovfSummon{0%{opacity:0;transform:translateY(9px) scale(.97)}8%{opacity:1;transform:translateY(0) scale(1)}84%{opacity:1;transform:translateY(0) scale(1)}94%,100%{opacity:0;transform:translateY(0) scale(1)}}
+@keyframes ovfShake{0%,100%{transform:translate(-50%,0)}20%{transform:translate(calc(-50% - 3px),0)}40%{transform:translate(calc(-50% + 3px),0)}60%{transform:translate(calc(-50% - 2px),0)}80%{transform:translate(calc(-50% + 2px),0)}}
+@keyframes ovfPulse{0%,100%{opacity:.95}50%{opacity:.5}}
+</style>
+</helmet>
+<div style="max-width:1140px;margin:0 auto;padding:52px 40px 80px">
+
+<header data-screen-label="Header" style="display:flex;flex-direction:column;gap:22px;padding-bottom:40px;border-bottom:1px solid #E4DFD3">
+  <div style="display:flex;align-items:center;gap:14px">
+    <canvas ref="{{ reg.glyph }}" style="width:40px;height:40px"></canvas>
+    <div style="font-size:21px;font-weight:700;letter-spacing:-0.02em">OpenVoiceFlow</div>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:10px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px"><span style="color:#26221B;font-weight:700">01 HUD</span><a href="OpenVoiceFlow - Menu Bar.dc.html">02 Menu bar</a><a href="OpenVoiceFlow - Dashboard.dc.html">03 Dashboard</a><a href="OpenVoiceFlow - Onboarding.dc.html">04 Onboarding</a><a href="OpenVoiceFlow - Website.dc.html">05 Website</a><a href="OpenVoiceFlow - Assets + Rationale.dc.html">06 Assets</a></div>
+  </div>
+  <div style="font-size:34px;font-weight:700;letter-spacing:-0.025em;line-height:1.15;max-width:760px">The voice, made visible — one line that never leaves your Mac.</div>
+  <p style="margin:0;font-size:14px;line-height:1.6;color:#6E6759;max-width:680px">Free, local, open-source dictation. The system below is built on a single motif — the <b>Voiceline</b> — and a single feeling: containment. Nothing flies to a cloud; nothing flies off screen. Calm until summoned, unmistakable when active.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:10px;padding:12px 14px"><div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#9A5A1E;font-weight:700;margin-bottom:5px">CALL 1</div><div style="font-size:12px;line-height:1.5;color:#4A4437"><b>One line, everywhere.</b> Wordmark, app icon, menu bar, HUD, website hero — the same continuous line.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:10px;padding:12px 14px"><div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#9A5A1E;font-weight:700;margin-bottom:5px">CALL 2</div><div style="font-size:12px;line-height:1.5;color:#4A4437"><b>Bottom-center home.</b> Wispr parity for muscle memory — we win on behavior, not novelty of position.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:10px;padding:12px 14px"><div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#9A5A1E;font-weight:700;margin-bottom:5px">CALL 3</div><div style="font-size:12px;line-height:1.5;color:#4A4437"><b>Ember on warm graphite.</b> Recording-light warmth. Zero AI-purple, zero cloud blue.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:10px;padding:12px 14px"><div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#9A5A1E;font-weight:700;margin-bottom:5px">CALL 4</div><div style="font-size:12px;line-height:1.5;color:#4A4437"><b>Pure SF.</b> No display face — the Voiceline is our display face. Free Lighthouse points on the web.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:10px;padding:12px 14px"><div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#9A5A1E;font-weight:700;margin-bottom:5px">CALL 5</div><div style="font-size:12px;line-height:1.5;color:#4A4437"><b>Containment motion.</b> The voice coils into the Mac and lands at the caret. No outward motion, ever.</div></div>
+  </div>
+</header>
+
+<section data-screen-label="01 Voiceline" style="padding:44px 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.09em;color:#9A5A1E;font-weight:700;margin-bottom:8px">01 · THE VOICELINE</div>
+  <div style="font-size:20px;font-weight:700;letter-spacing:-0.015em;margin-bottom:16px">One continuous line. Never bars.</div>
+  <div style="border-radius:14px;background:linear-gradient(165deg,#26241F,#141311);padding:8px 20px;margin-bottom:14px">
+    <canvas ref="{{ reg.motif }}" style="width:100%;height:130px;display:block"></canvas>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:22px">
+    <div style="font-size:12px;line-height:1.55;color:#4A4437"><b>Silence breathes.</b> ±1 px ripple on a ~4 s period. The line is alive even when you aren't speaking — it never reads as dead or frozen.</div>
+    <div style="font-size:12px;line-height:1.55;color:#4A4437"><b>Speech is smooth.</b> Three blended harmonics driven by RMS amplitude, 80 ms smoothing. Organic, calligraphic — explicitly not an EQ.</div>
+    <div style="font-size:12px;line-height:1.55;color:#4A4437"><b>Ember means live.</b> The line turns ember only while voice is detected — a truthful mic indicator, in the same family as macOS's own orange dot.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px">
+    <span style="font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;background:#EDF2EA;color:#4E7A58">DO · round caps, 2 pt</span>
+    <span style="font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;background:#EDF2EA;color:#4E7A58">DO · one line per surface</span>
+    <span style="font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;background:#EDF2EA;color:#4E7A58">DO · stay inside the container</span>
+    <span style="font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;background:#F6E9E4;color:#C7402C">DON'T · EQ bars</span>
+    <span style="font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;background:#F6E9E4;color:#C7402C">DON'T · gradients as identity</span>
+    <span style="font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;background:#F6E9E4;color:#C7402C">DON'T · stacked or mirrored copies</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+    <div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:12px;background:linear-gradient(165deg,#26241F,#141311);display:flex;align-items:center;justify-content:center"><div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(170deg,#2E2B26,#1A1815);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center"><canvas ref="{{ reg.icon }}" style="width:44px;height:44px"></canvas></div></div><div style="font-size:11px;color:#8A8375">App icon — the line coiled: a spool. Open ring = open source.</div></div>
+    <div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:12px;background:linear-gradient(165deg,#26241F,#141311);display:flex;align-items:center;justify-content:center"><div style="display:flex;align-items:center;gap:12px;height:26px;padding:0 12px;border-radius:7px;background:rgba(255,255,255,.08)"><canvas ref="{{ reg.mb_idle }}" style="width:24px;height:16px"></canvas><span style="font-size:11px;color:rgba(255,255,255,.55)">9:41 AM</span></div></div><div style="font-size:11px;color:#8A8375">Menu bar — same line at 18 pt, template-image mono.</div></div>
+    <div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:12px;background:linear-gradient(165deg,#26241F,#141311);display:flex;align-items:center;justify-content:center"><div style="display:flex;align-items:center;height:38px;border-radius:19px;padding:0 16px;width:70%;background:rgba(32,30,26,.6);border:1px solid rgba(255,255,255,.1)"><canvas ref="{{ reg.hudmini }}" style="width:100%;height:26px"></canvas></div></div><div style="font-size:11px;color:#8A8375">The HUD — the line, live, in a quiet capsule.</div></div>
+    <div style="display:flex;flex-direction:column;gap:8px"><div style="height:110px;border-radius:12px;background:linear-gradient(165deg,#26241F,#141311);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px"><canvas ref="{{ reg.webhero }}" style="width:80%;height:44px"></canvas><span style="font-size:12px;font-weight:700;color:#EDE9E0;letter-spacing:-0.01em">Your voice never leaves your Mac.</span></div><div style="font-size:11px;color:#8A8375">Website hero — the identical line demos the loop above the fold.</div></div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-top:22px;padding:14px 16px;background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">MENU BAR STATES · 18 PT · MONO</span>
+    <span style="display:flex;align-items:center;gap:6px"><canvas ref="{{ reg.s_idle }}" style="width:24px;height:16px;background:#26241F;border-radius:4px"></canvas><span style="font-size:11px;color:#6E6759">idle</span></span>
+    <span style="display:flex;align-items:center;gap:6px"><canvas ref="{{ reg.s_listen }}" style="width:24px;height:16px;background:#26241F;border-radius:4px"></canvas><span style="font-size:11px;color:#6E6759">listening</span></span>
+    <span style="display:flex;align-items:center;gap:6px"><canvas ref="{{ reg.s_spool }}" style="width:24px;height:16px;background:#26241F;border-radius:4px"></canvas><span style="font-size:11px;color:#6E6759">working</span></span>
+    <span style="display:flex;align-items:center;gap:6px"><canvas ref="{{ reg.s_err }}" style="width:24px;height:16px;background:#26241F;border-radius:4px"></canvas><span style="font-size:11px;color:#6E6759">error</span></span>
+    <span style="display:flex;align-items:center;gap:6px"><canvas ref="{{ reg.s_pause }}" style="width:24px;height:16px;background:#26241F;border-radius:4px"></canvas><span style="font-size:11px;color:#6E6759">paused</span></span>
+    <span style="font-size:11px;color:#8A8375">— template images: mono ink, animation ≤ ±1 px, success = 600 ms fill flash</span>
+  </div>
+</section>
+
+<section data-screen-label="02 HUD live" style="padding:44px 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.09em;color:#9A5A1E;font-weight:700;margin-bottom:8px">02 · THE HUD, LIVE</div>
+  <div style="font-size:20px;font-weight:700;letter-spacing:-0.015em;margin-bottom:6px">Hold, speak, release — try the whole loop.</div>
+  <p style="margin:0 0 16px;font-size:13px;color:#6E6759;max-width:640px">A non-activating panel: focus stays in the mail window the entire time. Watch the menu bar icon track every state alongside the HUD.</p>
+  <div data-screen-label="HUD stage" onMouseEnter="{{ stageIn }}" onMouseLeave="{{ stageOut }}" style="position:relative;height:560px;border-radius:16px;overflow:hidden;background:{{ th.wall }};border:1px solid #E0DACC;user-select:none">
+    <div style="position:absolute;top:0;left:0;right:0;height:27px;display:flex;align-items:center;gap:14px;padding:0 14px;background:{{ th.mb }};backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);font-size:12px;color:{{ th.mbInk }};z-index:3">
+      <span style="font-weight:700">Mail</span><span style="opacity:.7">File</span><span style="opacity:.7">Edit</span><span style="opacity:.7">View</span>
+      <span style="flex:1"></span>
+      <span style="width:8px;height:8px;border-radius:4px;background:#F08C1E;{{ mbDot }}"></span>
+      <canvas ref="{{ reg.mb_live }}" style="width:24px;height:16px"></canvas>
+      <span style="opacity:.75">Fri Jul 18</span><span style="opacity:.75">9:41 AM</span>
+    </div>
+    <div style="position:absolute;left:56px;top:66px;width:540px;max-width:72%;border-radius:11px;background:{{ th.win }};border:{{ th.winB }};box-shadow:0 24px 60px rgba(0,0,0,.32)">
+      <div style="display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid {{ th.hair }}">
+        <span style="width:11px;height:11px;border-radius:6px;background:#EC6A5E"></span><span style="width:11px;height:11px;border-radius:6px;background:#F4BF4F"></span><span style="width:11px;height:11px;border-radius:6px;background:#61C554"></span>
+        <span style="flex:1;text-align:center;font-size:12px;font-weight:600;color:{{ th.ink2 }};margin-left:-45px">New Message</span>
+      </div>
+      <div style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:{{ th.ink }}">
+        <div style="display:flex;gap:8px;padding:6px 10px;border-radius:6px;background:{{ th.field }}"><span style="color:{{ th.ink2 }}">To:</span><span>Priya Sharma</span></div>
+        <div style="display:flex;gap:8px;padding:6px 10px;border-radius:6px;background:{{ th.field }}"><span style="color:{{ th.ink2 }}">Subject:</span><span>Standup time</span></div>
+        <div style="min-height:118px;padding:6px 2px;line-height:1.65;font-size:13.5px">
+          <div>Priya —</div>
+          <div>{{ typed }}<span style="display:inline-block;width:2px;height:15px;vertical-align:-2px;background:{{ caretC }};animation:ovfCaret 1.05s step-end infinite;{{ caretSh }}"></span></div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:100px;text-align:center;font-size:12px;color:{{ th.ink2 }};opacity:{{ hintOp }};transition:opacity .3s;pointer-events:none">Hold the key button below — or hover here and hold <b>Space</b> — then speak.</div>
+    <div style="position:absolute;left:50%;{{ hudPos }}z-index:4;transition:{{ hudTrans }};{{ hudPose }}{{ hudShake }}">
+      <div style="display:flex;align-items:center;gap:10px;height:44px;border-radius:22px;padding:0 14px;min-width:290px;max-width:460px;background:{{ th.capBg }};backdrop-filter:{{ th.capBlur }};-webkit-backdrop-filter:{{ th.capBlur }};border:{{ th.capB }};box-shadow:{{ th.capSh }}">
+        <sc-if value="{{ hudChip }}" hint-placeholder-val="{{ false }}">
+          <span style="display:flex;align-items:center;gap:5px;height:23px;padding:0 8px;border-radius:6px;background:{{ th.chipBg }};color:{{ th.chipInk }};font-size:12.5px;font-weight:600;flex:none">{{ hotGlyph }}<span style="font-size:8.5px;font-weight:600;opacity:.6;letter-spacing:.05em">HELD</span></span>
+        </sc-if>
+        <canvas ref="{{ reg.hud }}" style="height:32px;min-width:36px;{{ hudCanW }}"></canvas>
+        <sc-if value="{{ hudMsg }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size:12.5px;color:{{ th.ink }};white-space:nowrap">{{ hudMsg }}</span>
+          <span onClick="{{ errAct }}" style="font-size:12.5px;font-weight:600;color:#E0523A;cursor:pointer;white-space:nowrap" style-hover="text-decoration:underline">{{ hudBtn }}</span>
+        </sc-if>
+        <sc-if value="{{ hudSide }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size:12px;font-variant-numeric:tabular-nums;color:{{ th.ink2 }};white-space:nowrap;{{ hudSideStyle }}">{{ hudSide }}</span>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px">
+    <span onMouseDown="{{ holdDown }}" onMouseUp="{{ holdUp }}" onMouseLeave="{{ holdCancel }}" onTouchStart="{{ holdDown }}" onTouchEnd="{{ holdUp }}" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;background:#26221B;color:#F4F2EC;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#3A352B">{{ holdLabel }}</span>
+    <span onClick="{{ goPlay }}" style="padding:9px 14px;border-radius:10px;border:1px solid #D9D3C5;font-size:12.5px;font-weight:600;color:#4A4437;cursor:pointer;background:#FBFAF7" style-hover="background:#F1EEE6">Play the whole loop</span>
+    <span onClick="{{ tgMic }}" style="padding:9px 14px;border-radius:10px;border:1px solid #D9D3C5;font-size:12.5px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ togS.mic }}" style-hover="background:#F1EEE6">Live mic</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375;margin-right:2px">JUMP TO STATE</span>
+    <span onClick="{{ goListen }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.listen }}" style-hover="background:#F1EEE6">Listening</span>
+    <span onClick="{{ goSpool }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.spool }}" style-hover="background:#F1EEE6">Transcribing</span>
+    <span onClick="{{ goClean }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.clean }}" style-hover="background:#F1EEE6">Cleanup</span>
+    <span onClick="{{ goSucc }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.succ }}" style-hover="background:#F1EEE6">Success</span>
+    <span onClick="{{ goEM }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.em }}" style-hover="background:#F1EEE6">Error · mic</span>
+    <span onClick="{{ goET }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.et }}" style-hover="background:#F1EEE6">Error · timeout</span>
+    <span onClick="{{ goEP }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.ep }}" style-hover="background:#F1EEE6">Error · paste</span>
+    <span onClick="{{ goLong }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.long }}" style-hover="background:#F1EEE6">Long take</span>
+    <span onClick="{{ goWarn }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ chipS.warn }}" style-hover="background:#F1EEE6">Max-duration</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375;margin-right:2px">VARIANTS</span>
+    <span onClick="{{ tgTheme }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ togS.theme }}" style-hover="background:#F1EEE6">Dark</span>
+    <span onClick="{{ tgRm }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ togS.rm }}" style-hover="background:#F1EEE6">Reduce Motion</span>
+    <span onClick="{{ tgRt }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ togS.rt }}" style-hover="background:#F1EEE6">Reduce Transparency</span>
+    <span onClick="{{ tgClean }}" style="padding:7px 12px;border-radius:9px;border:1px solid #D9D3C5;font-size:12px;color:#4A4437;cursor:pointer;background:#FBFAF7;{{ togS.clean }}" style-hover="background:#F1EEE6">AI cleanup</span>
+    <span style="font-size:11.5px;color:#9A5A1E;font-family:ui-monospace,'SF Mono',Menlo,monospace">{{ note }}</span>
+  </div>
+</section>
+
+<section data-screen-label="03 States" style="padding:44px 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.09em;color:#9A5A1E;font-weight:700;margin-bottom:8px">03 · EVERY STATE, ANNOTATED</div>
+  <div style="font-size:20px;font-weight:700;letter-spacing:-0.015em;margin-bottom:16px">The 7 states — no unstyled moment.</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(335px,1fr));gap:14px">
+    <sc-for list="{{ cards }}" as="c" hint-placeholder-count="6">
+      <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="padding:24px 18px;display:flex;align-items:center;justify-content:center;min-height:112px;background:{{ th.wall }}">
+          <div style="{{ c.wrap }}display:flex;align-items:center;gap:10px;height:44px;border-radius:22px;padding:0 14px;min-width:240px;max-width:100%;background:{{ th.capBg }};backdrop-filter:{{ th.capBlur }};-webkit-backdrop-filter:{{ th.capBlur }};border:{{ th.capB }};box-shadow:{{ th.capSh }}">
+            <sc-if value="{{ c.chip }}" hint-placeholder-val="{{ false }}">
+              <span style="display:flex;align-items:center;gap:5px;height:23px;padding:0 8px;border-radius:6px;background:{{ th.chipBg }};color:{{ th.chipInk }};font-size:12.5px;font-weight:600;flex:none">{{ hotGlyph }}<span style="font-size:8.5px;font-weight:600;opacity:.6;letter-spacing:.05em">HELD</span></span>
+            </sc-if>
+            <sc-if value="{{ c.msg }}" hint-placeholder-val="{{ false }}">
+              <canvas ref="{{ c.reg }}" style="width:34px;height:24px;flex:none"></canvas>
+              <span style="font-size:12px;color:{{ th.ink }};white-space:nowrap">{{ c.msg }}</span>
+              <span style="font-size:12px;font-weight:600;color:#E0523A;white-space:nowrap;cursor:pointer">{{ c.btn }}</span>
+            </sc-if>
+            <sc-if value="{{ c.wave }}" hint-placeholder-val="{{ true }}">
+              <canvas ref="{{ c.reg }}" style="flex:1;height:30px;min-width:80px"></canvas>
+            </sc-if>
+            <sc-if value="{{ c.side }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:11.5px;font-variant-numeric:tabular-nums;color:{{ th.ink2 }};white-space:nowrap;{{ c.sideStyle }}">{{ c.side }}</span>
+            </sc-if>
+          </div>
+        </div>
+        <div style="padding:13px 16px 15px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#9A5A1E;font-weight:700">{{ c.num }}</span><span style="font-size:13.5px;font-weight:600">{{ c.title }}</span></div>
+          <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;line-height:1.6;color:#6E6759">{{ c.spec }}</div>
+          <div style="font-size:11px;color:#8A8375">VO · {{ c.vo }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <p style="margin:14px 0 0;font-size:12px;color:#8A8375">Cards are live — flip <b>Dark</b>, <b>Reduce Motion</b> or <b>Reduce Transparency</b> above and every state re-renders in that variant.</p>
+</section>
+
+<section data-screen-label="04 Accessibility" style="padding:44px 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.09em;color:#9A5A1E;font-weight:700;margin-bottom:8px">04 · ACCESSIBILITY — DESIGNED, NOT DEGRADED</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">Reduce Motion</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Waveform → 9-dot level meter, updated ≤ 2 Hz. Coil → three dots pulsing opacity at 1 Hz. Shimmer → caption only. All translate/scale transitions → 130 ms crossfades. Error shake → border flash. Nothing is merely turned off; each state has an equivalent.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">Reduce Transparency</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Capsule blur → opaque surface, border strengthened +4 % alpha, shadow kept. Contrast of every label re-verified ≥ 4.5:1 against the solid fill.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">Increased Contrast</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Line 2 → 2.5 pt; secondary ink promotes one step; hairlines double. Ember swaps to its text-safe shade (4.6:1) everywhere it labels.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">VoiceOver</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The HUD is an accessibility element; every state change posts a polite announcement: <i>"Dictation on — listening" · "Transcribing" · "Cleaning up" · "Inserted 13 words" · "30 seconds left" · errors verbatim.</i> The hotkey rehearsal in onboarding is fully narrated.</div></div>
+  </div>
+</section>
+
+<section data-screen-label="05 Tokens" style="padding:44px 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.09em;color:#9A5A1E;font-weight:700;margin-bottom:8px">05 · TOKENS</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:22px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:18px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Color · Light</div>
+      <div style="display:grid;grid-template-columns:110px 40px 1fr;gap:8px;align-items:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#6E6759">
+        <span>canvas</span><span style="height:22px;border-radius:6px;background:#F7F5F0;border:1px solid #E4DFD3"></span><span>#F7F5F0 · oklch(97% .005 90)</span>
+        <span>surface</span><span style="height:22px;border-radius:6px;background:#FFFFFF;border:1px solid #E4DFD3"></span><span>#FFFFFF</span>
+        <span>ink</span><span style="height:22px;border-radius:6px;background:#26221B"></span><span>#26221B · oklch(24% .01 85)</span>
+        <span>ink-secondary</span><span style="height:22px;border-radius:6px;background:#6E6759"></span><span>#6E6759</span>
+        <span>hairline</span><span style="height:22px;border-radius:6px;background:#E4DFD3"></span><span>#E4DFD3</span>
+        <span>ember (text)</span><span style="height:22px;border-radius:6px;background:#B4661F"></span><span>#B4661F · 4.6:1 on canvas</span>
+        <span>ember (wave)</span><span style="height:22px;border-radius:6px;background:#C97B35"></span><span>#C97B35 · graphics ≥ 3:1</span>
+        <span>moss (ok)</span><span style="height:22px;border-radius:6px;background:#4E7A58"></span><span>#4E7A58 · oklch(53% .09 150)</span>
+        <span>signal (error)</span><span style="height:22px;border-radius:6px;background:#C7402C"></span><span>#C7402C</span>
+      </div>
+    </div>
+    <div style="background:#1D1B18;border:1px solid #33302A;border-radius:12px;padding:18px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:#EDE9E0">Color · Dark</div>
+      <div style="display:grid;grid-template-columns:110px 40px 1fr;gap:8px;align-items:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#9C9585">
+        <span>canvas</span><span style="height:22px;border-radius:6px;background:#131210;border:1px solid #33302A"></span><span>#131210 · oklch(17% .006 80)</span>
+        <span>surface</span><span style="height:22px;border-radius:6px;background:#1D1B18;border:1px solid #33302A"></span><span>#1D1B18</span>
+        <span>elevated</span><span style="height:22px;border-radius:6px;background:#26231E"></span><span>#26231E</span>
+        <span>ink</span><span style="height:22px;border-radius:6px;background:#EDE9E0"></span><span>#EDE9E0</span>
+        <span>ink-secondary</span><span style="height:22px;border-radius:6px;background:#9C9585"></span><span>#9C9585</span>
+        <span>hairline</span><span style="height:22px;border-radius:6px;background:#33302A"></span><span>rgba(255,255,255,.09)</span>
+        <span>ember</span><span style="height:22px;border-radius:6px;background:#E8974E"></span><span>#E8974E · oklch(72% .13 55)</span>
+        <span>moss (ok)</span><span style="height:22px;border-radius:6px;background:#7FAF8A"></span><span>#7FAF8A</span>
+        <span>signal (error)</span><span style="height:22px;border-radius:6px;background:#F26B52"></span><span>#F26B52</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:18px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Type · SF Pro / SF Mono only</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:28px;font-weight:700;letter-spacing:-0.022em">Hero</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">56/60 · 700 · −2.2 % (web only)</span></div>
+        <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:26px;font-weight:700;letter-spacing:-0.02em">Large Title</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">26/32 · 700</span></div>
+        <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:20px;font-weight:700;letter-spacing:-0.015em">Title</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">20/25 · 700</span></div>
+        <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:15px;font-weight:600">Headline</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">15/20 · 600</span></div>
+        <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:13px">Body</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">13/16 · 400 · macOS default</span></div>
+        <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:11px;color:#6E6759">Caption</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">11/13 · 400 · ink-secondary</span></div>
+        <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px">Mono 4A3F…E9</span><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">12/16 · checksums, hotkeys, specs</span></div>
+      </div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:16px">
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px">Spacing · 4-pt base</div>
+        <div style="display:flex;align-items:flex-end;gap:6px">
+          <span style="width:4px;height:4px;background:#C97B35;border-radius:1px"></span><span style="width:8px;height:8px;background:#C97B35;border-radius:2px"></span><span style="width:12px;height:12px;background:#C97B35;border-radius:2px"></span><span style="width:16px;height:16px;background:#C97B35;border-radius:3px"></span><span style="width:24px;height:24px;background:#C97B35;border-radius:4px"></span><span style="width:32px;height:32px;background:#C97B35;border-radius:5px"></span><span style="width:48px;height:48px;background:#C97B35;border-radius:6px"></span>
+          <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375;margin-left:6px">4 · 8 · 12 · 16 · 24 · 32 · 48</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px">Radii</div>
+        <div style="display:flex;align-items:flex-end;gap:10px">
+          <span style="width:44px;height:32px;border:1.5px solid #26221B;border-radius:6px"></span><span style="width:44px;height:32px;border:1.5px solid #26221B;border-radius:10px"></span><span style="width:44px;height:32px;border:1.5px solid #26221B;border-radius:16px"></span><span style="width:64px;height:32px;border:1.5px solid #26221B;border-radius:16px"></span>
+          <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">6 control · 10 card · 16 window · capsule = h/2</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px">Elevation</div>
+        <div style="display:flex;gap:14px;align-items:center">
+          <span style="width:64px;height:40px;background:#FFFFFF;border-radius:10px;box-shadow:0 1px 3px rgba(30,25,15,.10);border:1px solid #EDE9DF"></span>
+          <span style="width:64px;height:40px;background:#FFFFFF;border-radius:10px;box-shadow:0 6px 20px rgba(30,25,15,.14)"></span>
+          <span style="width:64px;height:40px;background:#FFFFFF;border-radius:10px;box-shadow:0 18px 40px rgba(30,25,15,.22)"></span>
+          <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">e1 rest · e2 raised · e3 floating (HUD)</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px">Core controls</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+          <span style="padding:8px 16px;border-radius:8px;background:#B4661F;color:#FFF;font-size:12.5px;font-weight:600">Download for Mac</span>
+          <span style="padding:8px 16px;border-radius:8px;border:1px solid #D9D3C5;color:#26221B;font-size:12.5px;font-weight:600;background:#FBFAF7">Secondary</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#EDF2EA;color:#4E7A58;font-size:11px;font-weight:700"><span style="width:6px;height:6px;border-radius:3px;background:#4E7A58"></span>100% on-device</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:6px;background:#EFECE3;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;color:#4A4437">⌘ right</span>
+          <span style="width:40px;height:24px;border-radius:12px;background:#4E7A58;position:relative;display:inline-block"><span style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:10px;background:#FFF;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="06 Motion + sound" style="padding:44px 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.09em;color:#9A5A1E;font-weight:700;margin-bottom:8px">06 · MOTION + SOUND</div>
+  <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;overflow:hidden;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:1.1fr 1.6fr 1.3fr;gap:0;font-size:12px">
+      <div style="padding:10px 14px;font-weight:700;background:#F7F5F0;border-bottom:1px solid #E6E1D6">Moment</div><div style="padding:10px 14px;font-weight:700;background:#F7F5F0;border-bottom:1px solid #E6E1D6">Spec</div><div style="padding:10px 14px;font-weight:700;background:#F7F5F0;border-bottom:1px solid #E6E1D6">Reduce Motion</div>
+      <div style="padding:9px 14px;border-bottom:1px solid #F0EDE4">HUD summon</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">90 ms fade · rise 9 px · spring(.30, .85)</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;color:#6E6759">130 ms fade</div>
+      <div style="padding:9px 14px;border-bottom:1px solid #F0EDE4">HUD dismiss</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">160 ms fade + 4 px down</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;color:#6E6759">fade</div>
+      <div style="padding:9px 14px;border-bottom:1px solid #F0EDE4">Wave → coil</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">collapse 260 ms ease-in-out · coil 1.1 rev/s</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;color:#6E6759">crossfade → dots pulsing 1 Hz</div>
+      <div style="padding:9px 14px;border-bottom:1px solid #F0EDE4">Cleanup shimmer</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">640 ms pass + 220 ms gap, linear</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;color:#6E6759">static line + caption</div>
+      <div style="padding:9px 14px;border-bottom:1px solid #F0EDE4">Success</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">contract 180 ms → hold 900 ms → exit 200 ms</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;color:#6E6759">crossfade</div>
+      <div style="padding:9px 14px;border-bottom:1px solid #F0EDE4">Caret arrival</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">2 ember pulses · 120 ms each</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;color:#6E6759">1 pulse</div>
+      <div style="padding:9px 14px;border-bottom:1px solid #F0EDE4">Error entrance</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">shake ±3 px × 2 · 240 ms · dismiss 6 s</div><div style="padding:9px 14px;border-bottom:1px solid #F0EDE4;color:#6E6759">border flash only</div>
+      <div style="padding:9px 14px">Menu-bar ripple</div><div style="padding:9px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">±1 px · 1.6 s loop</div><div style="padding:9px 14px;color:#6E6759">static glyph swap</div>
+    </div>
+  </div>
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759;margin-bottom:22px">springs — snap(response .25, damping .90) · arrive(.30, .85) · settle(.45, 1.0) &nbsp;·&nbsp; curves — ease-out cubic-bezier(.2,.8,.2,1) · ease-in-out(.4,0,.2,1) &nbsp;·&nbsp; RM: durations ×.75, zero overshoot</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:14px 16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:5px">Start</div><div style="font-size:12px;line-height:1.6;color:#4A4437">A felt piano hammer on a damped string. 40 ms, dry, close.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:14px 16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:5px">Stop</div><div style="font-size:12px;line-height:1.6;color:#4A4437">The same tick, three semitones down. A door gently closed.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:14px 16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:5px">Success</div><div style="font-size:12px;line-height:1.6;color:#4A4437">Two-note rise, a minor third, under 120 ms. "Tucked in."</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:14px 16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:5px">Error</div><div style="font-size:12px;line-height:1.6;color:#4A4437">One low felt knock. Never a buzzer. All earcons ≤ −20 dBFS, obey the system alert volume, and have an off switch.</div></div>
+  </div>
+</section>
+
+<section data-screen-label="07 Placement + engineering" style="padding:44px 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.09em;color:#9A5A1E;font-weight:700;margin-bottom:8px">07 · WHY BOTTOM-CENTER + ENGINEERING NOTES</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:16px">
+    <div style="background:#FFFFFF;border:1px solid #DCE5DC;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;color:#4E7A58;margin-bottom:6px">Bottom-center — chosen</div><div style="font-size:12px;line-height:1.65;color:#4A4437">A stable home you can read from peripheral vision. Never occludes the caret in practice (text lives mid-to-upper screen). Position parity with Wispr Flow makes switching frictionless — we beat them on behavior: truly non-activating, a truthful live-voice line, designed silence, and errors that recover in one line.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;color:#8A8375;margin-bottom:6px">Near-cursor — rejected</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Caret rects are unreliable across apps (AX gaps in Electron, browsers, terminals). It jitters as you dictate, and it covers the very words that are about to arrive.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;color:#8A8375;margin-bottom:6px">Notch-adjacent — rejected</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Collides with the system mic indicator and menu-bar extras, disappears in full-screen, and sits where your eyes aren't. Kept as a hidden preference candidate, not the default.</div></div>
+  </div>
+  <div style="background:#26241F;border-radius:12px;padding:18px 20px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;line-height:1.9;color:#C9C3B4">
+    NSPanel · nonactivatingPanel + .hudWindow · level .statusBar · canJoinAllSpaces + fullScreenAuxiliary<br>
+    focus — never key; error buttons use click-through hit-testing only over their own bounds<br>
+    material — NSVisualEffectView .hudWindow; reduceTransparency → solid surface token<br>
+    wave — 43 RMS buckets @ 60 Hz from AVAudioEngine → 80 ms EMA → CADisplayLink canvas/Metal layer<br>
+    displays — HUD appears on the screen owning keyboard focus; re-homes between takes, never mid-take<br>
+    announcements — NSAccessibility.post(.announcementRequested) per state, polite priority
+  </div>
+</section>
+
+<footer data-screen-label="Footer" style="padding:36px 0 0;display:flex;flex-direction:column;gap:10px">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:.09em;color:#9A5A1E;font-weight:700">NEXT PHASES</div>
+  <div style="font-size:13px;line-height:1.8;color:#4A4437;max-width:720px"><b>2</b> Menu bar dropdown + submenus · <b>3</b> Dashboard (stats, history, dictionary, snippets, styles, Know-Me, settings) · <b>4</b> Onboarding + failure paths · <b>5</b> Website (landing, download, docs) · <b>6</b> Assets (app icon, DMG, OG cards) + motion sheet + rationale. Say <b>"go wide"</b> to continue, or redirect anything above first.</div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;waveAccent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#E8974E&quot;,&quot;options&quot;:[&quot;#E8974E&quot;,&quot;#7FA980&quot;,&quot;#7C9DB8&quot;,&quot;#C8836B&quot;],&quot;section&quot;:&quot;Brand&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hotkey&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Right ⌘&quot;,&quot;options&quot;:[&quot;Right ⌘&quot;,&quot;fn Globe&quot;,&quot;Right ⌥&quot;,&quot;Right ⌃&quot;],&quot;section&quot;:&quot;HUD&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;placement&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Bottom center&quot;,&quot;options&quot;:[&quot;Bottom center&quot;,&quot;Notch-adjacent&quot;],&quot;section&quot;:&quot;HUD&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { theme:'dark', rm:false, rt:false, clean:true, mic:false, phase:'idle', mode:'normal', err:null, elapsed:0, words:0, typed:'', note:'', hover:false, flash:false };
+  ensure(){ if(!this.cv){ this.cv=new Map(); this.T=[]; this.hist=new Float32Array(150); this.amp=0; this.tgt=0; this.q=0; this.qT=0; this.sylT=0; this.spoolT=0; this.phaseT=0; this.t0=0; this.base=0; this.held=false; this.auto=false; } }
+  reg(mode){ const k='r_'+mode; if(!this[k]) this[k]=el=>{ this.ensure(); const c=this.cv.get(mode); if(el){ this.cv.set(mode,{el,vis:true}); if(this.io) this.io.observe(el); } else if(c){ if(this.io&&c.el) this.io.unobserve(c.el); this.cv.delete(mode); } }; return this[k]; }
+  componentDidMount(){
+    this.ensure();
+    this.io = ('IntersectionObserver' in window) ? new IntersectionObserver(es=>{ for(const e of es){ for(const c of this.cv.values()) if(c.el===e.target) c.vis=e.isIntersecting; } },{rootMargin:'150px'}) : null;
+    if(this.io) for(const c of this.cv.values()) this.io.observe(c.el);
+    this.kd = e=>{ if(e.code==='Space' && this.state.hover){ e.preventDefault(); if(!e.repeat && this.state.phase==='idle'){ this.held=true; this.start('normal'); } } };
+    this.ku = e=>{ if(e.code==='Space' && this.held) this.release(); };
+    window.addEventListener('keydown',this.kd); window.addEventListener('keyup',this.ku);
+    this.tick = this.tick.bind(this); this.raf = requestAnimationFrame(this.tick);
+  }
+  componentWillUnmount(){ cancelAnimationFrame(this.raf); this.clearT(); if(this.io) this.io.disconnect(); window.removeEventListener('keydown',this.kd); window.removeEventListener('keyup',this.ku); this.stopMic(); }
+  clearT(){ (this.T||[]).forEach(clearTimeout); this.T=[]; if(this.ty){ clearInterval(this.ty); this.ty=null; } if(this.tock){ clearInterval(this.tock); this.tock=null; } }
+  after(ms,f){ this.T.push(setTimeout(f,ms)); }
+  setPh(p,extra){ this.phaseT=performance.now(); this.setState(Object.assign({phase:p},extra||{})); }
+  elapsedNow(){ return this.base + (this.state.phase==='listening' ? (performance.now()-this.t0)/1000 : 0); }
+  start(mode){ this.clearT(); this._capped=false; this.base = mode==='long'?74 : mode==='warn'?266 : 0; this.t0=performance.now(); this.auto = mode!=='normal';
+    this.setPh('listening',{mode,err:null,elapsed:Math.floor(this.base),typed:'',note: mode==='warn' ? 'Watch the cap — at 5:00 it finishes and inserts. Nothing is lost.' : ''});
+    this.tock=setInterval(()=>{ this.setState({elapsed:Math.floor(this.elapsedNow())}); },250);
+    if(mode==='play') this.after(1600,()=>this.release()); }
+  release(capped){ if(this.state.phase!=='listening') return; this.clearT(); this.held=false; this.auto=false; this.spoolT=performance.now();
+    this.setPh('transcribing', capped?{note:'Cap reached — finishing this take gracefully.'}:{});
+    this.after(950,()=>{ if(this.state.clean){ this.setPh('cleanup'); this.after(780,()=>this.finish()); } else this.finish(); }); }
+  finish(){ const text = this.state.clean ? 'Can we move standup to 10 tomorrow? I have a dentist appointment at 9.' : "um so can we move the standup to ten tomorrow — i've got the dentist at nine";
+    const words = text.trim().split(/\s+/).length; this.setPh('success',{words,flash:true});
+    let i=0; this.ty=setInterval(()=>{ i+=2; this.setState({typed:text.slice(0,i)}); if(i>=text.length){ clearInterval(this.ty); this.ty=null; } },18);
+    this.after(1800,()=>this.setPh('idle',{flash:false})); }
+  goJump(p){ this.clearT(); this.held=false; this.auto=false;
+    if(p==='success'){ this.setPh('success',{words:13,typed:'Can we move standup to 10 tomorrow? I have a dentist appointment at 9.',flash:false}); this.after(3000,()=>{ if(this.state.phase==='success') this.setPh('idle'); }); }
+    else { this.spoolT=performance.now(); this.setPh(p); } }
+  goErr(k){ this.clearT(); this.held=false; this.auto=false; this.setPh('error',{err:k,note:''});
+    this.after(8000,()=>{ if(this.state.phase==='error') this.setPh('idle',{note:'Errors auto-dismiss after 6 s (8 s here so you can read).'}); }); }
+  errAct(){ const k=this.state.err; const n = k==='mic' ? '→ deep-links System Settings › Sound › Input.' : k==='timeout' ? '→ re-runs Whisper on the kept audio buffer.' : '→ deep-links Privacy & Security › Accessibility. Transcript is already on the clipboard.';
+    this.clearT(); this.setPh('idle',{note:n}); }
+  async toggleMic(){ if(this.state.mic){ this.stopMic(); this.setState({mic:false,note:''}); return; }
+    try{ const s=await navigator.mediaDevices.getUserMedia({audio:true}); this.ms=s; const AC=window.AudioContext||window.webkitAudioContext; this.ac=new AC(); const src=this.ac.createMediaStreamSource(s); this.an=this.ac.createAnalyser(); this.an.fftSize=512; this.ad=new Uint8Array(512); src.connect(this.an); this.setState({mic:true,note:'Live mic on — the line is your actual voice now. Hold to dictate and talk.'}); }
+    catch(e){ this.setState({note:'Mic unavailable or denied — staying on simulated voice. (In the app, that is state 06a.)'}); } }
+  rms(){ if(!this.an) return 0; this.an.getByteTimeDomainData(this.ad); let s=0; for(let i=0;i<this.ad.length;i++){ const v=(this.ad[i]-128)/128; s+=v*v; } return Math.sqrt(s/this.ad.length); }
+  stopMic(){ if(this.ms){ this.ms.getTracks().forEach(t=>t.stop()); this.ms=null; } if(this.ac){ this.ac.close(); this.ac=null; } this.an=null; }
+  hxs(c,f){ const n=parseInt(c.slice(1),16); return 'rgb('+(((n>>16&255)*f)|0)+','+(((n>>8&255)*f)|0)+','+(((n&255)*f)|0)+')'; }
+  acc(){ const a=this.props.waveAccent||'#E8974E'; return this.state.theme==='dark'?a:this.hxs(a,0.78); }
+  S(t){ const gate=(Math.sin(t*0.9)+Math.sin(t*0.53+1.2))>0.9?0.06:1; let v=(Math.sin(t*2.3)+Math.sin(t*3.85+1.4)+Math.sin(t*5.9+0.4))/3; v=Math.max(0,v*0.75+0.5); return Math.min(1,v*gate); }
+  win(u){ return Math.pow(Math.max(0,Math.sin(Math.PI*u)),0.85); }
+  wob(x,t,a,h){ return a*h*0.30*(Math.sin(x*0.052+t*6.6)*0.55+Math.sin(x*0.117-t*9.4)*0.26+Math.sin(x*0.026+t*3.2)*0.42); }
+  voice(ctx,w,h,t,ampAt,color,glow,breath,alpha){ ctx.beginPath(); const mid=h/2;
+    for(let x=0;x<=w;x+=2){ const u=x/w; const a=ampAt(u); let y=mid+(breath?Math.sin(x*0.045-t*1.7)*1.15*Math.max(0,1-a*3):0)+this.wob(x,t,a,h)*this.win(u); if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y); }
+    ctx.lineWidth=2; ctx.lineCap='round'; ctx.lineJoin='round'; if(alpha!==undefined)ctx.globalAlpha=alpha; ctx.strokeStyle=color; if(glow){ctx.shadowColor=color;ctx.shadowBlur=7;} ctx.stroke(); ctx.shadowBlur=0; ctx.globalAlpha=1; }
+  dots(ctx,w,h,level,acc,dim){ const n=9,gap=Math.min(13,w/(n+1)),x0=(w-(n-1)*gap)/2,mid=h/2,lit=Math.round(Math.min(1,level)*n);
+    for(let i=0;i<n;i++){ ctx.beginPath(); ctx.arc(x0+i*gap,mid,2.4,0,7); ctx.fillStyle=i<lit?acc:dim; ctx.globalAlpha=i<lit?1:0.4; ctx.fill(); ctx.globalAlpha=1; } }
+  pulseDots(ctx,w,h,t,acc){ const mid=h/2,cx=w/2; for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.arc(cx+i*11,mid,2.6,0,7); ctx.fillStyle=acc; ctx.globalAlpha=0.3+0.55*(0.5+0.5*Math.sin(t*5.0-i*1.1)); ctx.fill(); } ctx.globalAlpha=1; }
+  flat(ctx,w,h,color){ const mid=h/2; ctx.beginPath(); ctx.moveTo(4,mid); ctx.lineTo(w-4,mid); ctx.lineWidth=1.6; ctx.lineCap='round'; ctx.strokeStyle=color; ctx.stroke(); }
+  spool(ctx,w,h,t,p,acc,dim){ const cx=w/2,cy=h/2;
+    if(p<1){ ctx.globalAlpha=1-p; ctx.beginPath(); ctx.moveTo(6+(cx-26)*p,cy); ctx.lineTo(cx-20,cy); ctx.moveTo(cx+20,cy); ctx.lineTo(w-6-(cx-26)*p,cy); ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=dim; ctx.stroke(); ctx.globalAlpha=1; }
+    const rg=Math.min(1,h*0.028), rot=t*6.9, turns=4*Math.PI*Math.min(1,p*1.4+0.15); ctx.beginPath();
+    for(let a=0;a<=turns;a+=0.12){ const r=(2.5+a*0.95)*rg; const x=cx+Math.cos(a+rot)*r, y=cy+Math.sin(a+rot)*r*0.92; a===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=acc; ctx.stroke(); }
+  shimmer(ctx,w,h,t,dim,acc){ const mid=h/2; this.flat(ctx,w,h,dim); const pos=((t*150)%(w+160))-80;
+    const g=ctx.createLinearGradient(pos-48,0,pos+48,0); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(0.5,acc); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.moveTo(4,mid); ctx.lineTo(w-4,mid); ctx.lineWidth=2.2; ctx.strokeStyle=g; ctx.stroke(); }
+  tickm(ctx,w,h,p,acc,dim){ const mid=h/2,cx=w/2;
+    if(p<0.2){ const k=1-p/0.2, hl=w*0.38*k; ctx.beginPath(); ctx.moveTo(cx-hl,mid); ctx.lineTo(cx+hl,mid); ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=dim; ctx.stroke(); }
+    else { const q=(p-0.2)/0.8; ctx.globalAlpha=1-Math.max(0,(q-0.7)/0.3); ctx.beginPath(); ctx.moveTo(cx-8,mid); ctx.lineTo(cx+8,mid); ctx.lineWidth=2.4; ctx.lineCap='round'; ctx.strokeStyle=acc; ctx.stroke(); ctx.globalAlpha=Math.max(0,0.35*(1-q)); ctx.beginPath(); ctx.arc(cx,mid,9+q*24,0,7); ctx.lineWidth=1.2; ctx.strokeStyle=acc; ctx.stroke(); ctx.globalAlpha=1; } }
+  broken(ctx,w,h,dim){ const mid=h/2,cx=w/2,red='#E0523A'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=dim;
+    ctx.beginPath(); ctx.moveTo(6,mid); ctx.lineTo(cx-10,mid); ctx.moveTo(cx+10,mid+1.5); ctx.lineTo(w-6,mid+1.5); ctx.stroke();
+    ctx.fillStyle=red; ctx.beginPath(); ctx.arc(cx-10,mid,2.3,0,7); ctx.fill(); ctx.beginPath(); ctx.arc(cx+10,mid+1.5,2.3,0,7); ctx.fill(); }
+  ring(ctx,w,h,t,color,lw){ const cx=w/2,cy=h/2,R=Math.min(w,h)*0.32,g=0.62,off=-1.0; ctx.beginPath();
+    for(let a=off+g/2;a<=off+2*Math.PI-g/2;a+=0.045){ const r=R*(1+0.10*Math.sin(a*5-t*0.7)); const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r; a<=off+g/2+0.05?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.lineWidth=lw; ctx.lineCap='round'; ctx.strokeStyle=color; ctx.stroke(); }
+  mbIcon(ctx,w,h,t,kind,ink){ const mid=h/2,cx=w/2,x0=(w-16)/2; ctx.lineWidth=1.6; ctx.lineCap='round'; ctx.strokeStyle=ink; ctx.fillStyle=ink;
+    if(kind==='idle'){ ctx.beginPath(); for(let x=0;x<=16;x+=1){ const y=mid+Math.sin(x*0.7)*1.6*this.win(x/16); x===0?ctx.moveTo(x0+x,y):ctx.lineTo(x0+x,y);} ctx.stroke(); }
+    else if(kind==='listen'){ const a=this.state.rm?0.6:this.S(t); ctx.beginPath(); for(let x=0;x<=16;x+=1){ const y=mid+Math.sin(x*0.85+t*7)*3.2*a*this.win(x/16); x===0?ctx.moveTo(x0+x,y):ctx.lineTo(x0+x,y);} ctx.stroke(); }
+    else if(kind==='spool'){ const rot=this.state.rm?0:t*6; ctx.beginPath(); for(let a=0;a<=3.6*Math.PI;a+=0.15){ const r=1.2+a*0.42; const x=cx+Math.cos(a+rot)*r,y=mid+Math.sin(a+rot)*r*0.9; a===0?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.stroke(); }
+    else if(kind==='err'){ ctx.beginPath(); ctx.moveTo(x0,mid); ctx.lineTo(cx-3,mid); ctx.moveTo(cx+3,mid+1); ctx.lineTo(x0+16,mid+1); ctx.stroke(); ctx.beginPath(); ctx.arc(cx-3,mid,1.4,0,7); ctx.fill(); ctx.beginPath(); ctx.arc(cx+3,mid+1,1.4,0,7); ctx.fill(); }
+    else { ctx.globalAlpha=0.45; ctx.beginPath(); ctx.moveTo(x0,mid); ctx.lineTo(x0+16,mid); ctx.stroke(); ctx.globalAlpha=1; ctx.fillRect(cx-3.5,mid-3,2,6); ctx.fillRect(cx+1.5,mid-3,2,6); } }
+  draw(m,ctx,w,h,t){ const st=this.state, dark=st.theme==='dark', rm=st.rm;
+    const dim = dark?'rgba(214,208,194,.5)':'rgba(58,52,40,.45)', acc=this.acc(), mbInk = dark?'#D9D4C8':'#3A362D';
+    const synth = u=>this.S(t-(1-u)*1.25);
+    if(m==='hud'){ const ph=st.phase;
+      if(ph==='listening'){ if(rm) return this.dots(ctx,w,h,this.q,acc,dim);
+        const n=this.hist.length, ampAt=u=>this.hist[Math.min(n-1,(u*(n-1))|0)];
+        this.voice(ctx,w,h,t,ampAt,dim,false,true);
+        if(this.amp>0.04) this.voice(ctx,w,h,t,ampAt,acc,true,false,Math.min(1,this.amp*5)); return; }
+      if(ph==='transcribing') return rm?this.pulseDots(ctx,w,h,t,acc):this.spool(ctx,w,h,t,Math.min(1,(performance.now()-this.spoolT)/260),acc,dim);
+      if(ph==='cleanup') return rm?this.flat(ctx,w,h,dim):this.shimmer(ctx,w,h,t,dim,acc);
+      if(ph==='success') return this.tickm(ctx,w,h,Math.min(1,(performance.now()-this.phaseT)/900),acc,dim);
+      if(ph==='error') return this.broken(ctx,w,h,dim);
+      return; }
+    if(m==='mb_live'){ const ph=st.phase; return this.mbIcon(ctx,w,h,t, ph==='listening'?'listen':(ph==='transcribing'||ph==='cleanup')?'spool':ph==='error'?'err':'idle', mbInk); }
+    if(m==='card_summon') return this.voice(ctx,w,h,t,u=>0,dim,false,true,0.6);
+    if(m==='card_silence'){ if(rm) return this.dots(ctx,w,h,0.05,acc,dim); return this.voice(ctx,w,h,t,u=>0,dim,false,true); }
+    if(m==='card_speech'||m==='card_long'||m==='card_warn'){ if(rm) return this.dots(ctx,w,h,this.S(t),acc,dim);
+      this.voice(ctx,w,h,t,synth,dim,false,true,0.5); return this.voice(ctx,w,h,t,synth,acc,true,false,0.95); }
+    if(m==='card_spool'){ const c=(t%3.2)/3.2; return rm?this.pulseDots(ctx,w,h,t,acc):this.spool(ctx,w,h,t,Math.min(1,c*4),acc,dim); }
+    if(m==='card_clean') return rm?this.flat(ctx,w,h,dim):this.shimmer(ctx,w,h,t,dim,acc);
+    if(m==='card_success') return this.tickm(ctx,w,h,(t%2.6)/2.6,acc,dim);
+    if(m==='card_b1'||m==='card_b2'||m==='card_b3') return this.broken(ctx,w,h,dim);
+    if(m==='motif'||m==='webhero'||m==='hudmini'){ const a2=u=>this.S(t*0.9-(1-u)*1.4);
+      this.voice(ctx,w,h,t,a2,'rgba(214,208,194,.45)',false,true,0.5); return this.voice(ctx,w,h,t,a2,this.props.waveAccent||'#E8974E',true,false,0.95); }
+    if(m==='glyph') return this.ring(ctx,w,h,t,'#B4661F',2.4);
+    if(m==='icon') return this.ring(ctx,w,h,t,this.props.waveAccent||'#E8974E',3);
+    if(m==='mb_idle'||m==='s_idle') return this.mbIcon(ctx,w,h,t,'idle',m==='s_idle'?'#D9D4C8':mbInk);
+    if(m==='s_listen') return this.mbIcon(ctx,w,h,t,'listen','#D9D4C8');
+    if(m==='s_spool') return this.mbIcon(ctx,w,h,t,'spool','#D9D4C8');
+    if(m==='s_err') return this.mbIcon(ctx,w,h,t,'err','#D9D4C8');
+    if(m==='s_pause') return this.mbIcon(ctx,w,h,t,'pause','#D9D4C8'); }
+  tick(now){ this.ensure(); const t=now/1000, dt=Math.min(50,now-(this._last||now)); this._last=now;
+    const st=this.state, listening=st.phase==='listening';
+    const talking = listening && (this.held||this.auto||st.mic);
+    if(st.mic && this.an && listening){ this.tgt=Math.min(1,this.rms()*5.5); }
+    else if(talking){ if(now>this.sylT){ this.sylT=now+90+Math.random()*190; const r=Math.random(); this.tgt = r<0.18?0.04:0.25+Math.random()*0.7; } }
+    else this.tgt=0;
+    this.amp += (this.tgt-this.amp)*(1-Math.exp(-dt/70));
+    this.hist.copyWithin(0,1); this.hist[this.hist.length-1]=this.amp;
+    if(now-this.qT>500){ this.qT=now; this.q=this.amp; }
+    if(listening && st.mode==='warn' && !this._capped && this.elapsedNow()>=300){ this._capped=true; this.release(true); }
+    const d=Math.min(2,window.devicePixelRatio||1);
+    for(const [mode,c] of this.cv){ if(!c.vis) continue; const el=c.el, w=el.clientWidth, hh=el.clientHeight; if(!w||!hh) continue;
+      if(el.width!==(w*d|0)||el.height!==(hh*d|0)){ el.width=w*d|0; el.height=hh*d|0; }
+      const ctx=el.getContext('2d'); ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,w,hh); this.draw(mode,ctx,w,hh,t); }
+    this.raf=requestAnimationFrame(this.tick); }
+  renderVals(){ const st=this.state, dark=st.theme==='dark', rm=st.rm, rt=st.rt, ph=st.phase, acc=this.acc();
+    const th = dark ? { wall:'linear-gradient(165deg,#26241F 0%,#161511 70%,#12110E 100%)', mb:'rgba(22,21,18,.72)', mbInk:'#D9D4C8', win:'#211F1B', winB:'1px solid rgba(255,255,255,.07)', ink:'#EAE6DD', ink2:'#96907F', hair:'rgba(255,255,255,.09)', capBg: rt?'#26231F':'rgba(32,30,26,.58)', capBlur: rt?'none':'blur(22px) saturate(150%)', capB: rt?'1px solid rgba(255,255,255,.15)':'1px solid rgba(255,255,255,.10)', capSh:'0 18px 40px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35)', chipBg:'rgba(255,255,255,.08)', chipInk:'#CFC9BB', field:'rgba(255,255,255,.045)' }
+      : { wall:'linear-gradient(165deg,#E8E3D8 0%,#D8D2C5 100%)', mb:'rgba(249,247,242,.78)', mbInk:'#3A362D', win:'#FCFBF8', winB:'1px solid rgba(0,0,0,.09)', ink:'#26221B', ink2:'#847D6E', hair:'rgba(0,0,0,.08)', capBg: rt?'#F7F5F0':'rgba(253,252,249,.72)', capBlur: rt?'none':'blur(22px) saturate(150%)', capB:'1px solid rgba(0,0,0,.10)', capSh:'0 18px 40px rgba(60,50,30,.24),0 2px 8px rgba(60,50,30,.12)', chipBg:'rgba(0,0,0,.06)', chipInk:'#4A4437', field:'rgba(0,0,0,.03)' };
+    const notch=(this.props.placement||'Bottom center')==='Notch-adjacent';
+    const vis=ph!=='idle';
+    const hudPos = notch?'top:38px;':'bottom:24px;';
+    const hudPose = vis?'opacity:1;transform:translate(-50%,0) scale(1);':('opacity:0;pointer-events:none;transform:translate(-50%,'+(rm?'0':(notch?'-9px':'9px'))+') scale('+(rm?'1':'.97')+');');
+    const hudTrans = rm?'opacity 130ms linear':'opacity 90ms cubic-bezier(.2,.8,.2,1), transform 300ms cubic-bezier(.34,1.3,.44,1)';
+    const hudShake = ph==='error'&&!rm?'animation:ovfShake 240ms cubic-bezier(.36,.07,.19,.97) 1;':'';
+    const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+    let side='', sideStyle='';
+    if(ph==='listening'){ if(st.mode==='warn'){ side=fmt(Math.max(0,300-st.elapsed))+' left'; sideStyle='color:#D99A3D;font-weight:700;'; }
+      else if(st.mode==='long'){ side=fmt(st.elapsed); sideStyle='font-size:14px;font-weight:600;color:'+th.ink+';'; }
+      else if(st.elapsed>=3){ side=fmt(st.elapsed); } }
+    if(ph==='transcribing') side='Transcribing…';
+    if(ph==='cleanup') side='Polishing…';
+    if(ph==='success'){ side=st.words+' words'; sideStyle='color:'+acc+';font-weight:600;'; }
+    const errs={ mic:{m:'Microphone unavailable.',b:'Open Sound Settings'}, timeout:{m:'Timed out. Audio kept.',b:'Retry'}, paste:{m:'Copied instead — press ⌘V.',b:'Grant Access'} };
+    const er = ph==='error'?errs[st.err]:null;
+    const A='background:#26221B;color:#F4F2EC;border-color:#26221B;';
+    const chipS={ listen: ph==='listening'&&(st.mode==='auto'||st.mode==='normal'||st.mode==='play')?A:'', spool: ph==='transcribing'?A:'', clean: ph==='cleanup'?A:'', succ: ph==='success'?A:'', em: ph==='error'&&st.err==='mic'?A:'', et: ph==='error'&&st.err==='timeout'?A:'', ep: ph==='error'&&st.err==='paste'?A:'', long: ph==='listening'&&st.mode==='long'?A:'', warn: ph==='listening'&&st.mode==='warn'?A:'' };
+    const togS={ theme: dark?A:'', rm: rm?A:'', rt: rt?A:'', clean: st.clean?A:'', mic: st.mic?A:'' };
+    const gl={'Right ⌘':'⌘','fn Globe':'fn','Right ⌥':'⌥','Right ⌃':'⌃'}[this.props.hotkey||'Right ⌘']||'⌘';
+    const mk=m=>this.reg(m);
+    const cards=[
+      {num:'01',title:'Summon',wrap:rm?'':'animation:ovfSummon 3s cubic-bezier(.2,.8,.2,1) infinite;',chip:true,wave:true,reg:mk('card_summon'),side:'',sideStyle:'',msg:'',btn:'',spec:'hotkey down → 90 ms fade + 9 px rise · spring(.30,.85) · non-activating: focus never leaves your app'+(rm?' · RM: fade only':''),vo:'"Dictation on — listening."'},
+      {num:'02a',title:'Listening — silence',chip:true,wave:true,reg:mk('card_silence'),side:'0:12',sideStyle:'',msg:'',btn:'',spec:'graphite line · ±1 px breath, ~4 s period · elapsed fades in after 3 s',vo:'silence is designed — the line never dies'},
+      {num:'02b',title:'Listening — speech',chip:true,wave:true,reg:mk('card_speech'),side:'0:07',sideStyle:'',msg:'',btn:'',spec:'RMS buckets 30–60 fps → 80 ms smoothing · 3 blended harmonics · never bars',vo:'ember only while you speak'},
+      {num:'03',title:'Transcribing',wave:true,reg:mk('card_spool'),side:'Transcribing…',sideStyle:'',msg:'',btn:'',spec:'wave collapses 260 ms ease-in-out → coil, 1.1 rev/s · local Whisper, no network',vo:'"Transcribing."'},
+      {num:'04',title:'AI cleanup',wave:true,reg:mk('card_clean'),side:'Polishing…',sideStyle:'',msg:'',btn:'',spec:'shimmer pass 640 ms + 220 ms gap · quiet second phase, only when cleanup is on',vo:'"Cleaning up."'},
+      {num:'05',title:'Success',wave:true,reg:mk('card_success'),side:'13 words',sideStyle:'color:'+acc+';font-weight:600;',msg:'',btn:'',spec:'contract 180 ms → hold 900 ms → exit 200 ms fade · caret flashes ember at the paste point',vo:'"Inserted 13 words."'},
+      {num:'06a',title:'Error — mic unavailable',msg:'Microphone unavailable.',btn:'Open Sound Settings',reg:mk('card_b1'),side:'',sideStyle:'',spec:'the line breaks at the fault · shake ±3 px ×2, 240 ms (skipped under RM) · auto-dismiss 6 s',vo:'"Microphone unavailable — dictation stopped."'},
+      {num:'06b',title:'Error — timed out',msg:'Timed out. Audio kept.',btn:'Retry',reg:mk('card_b2'),side:'',sideStyle:'',spec:'audio buffer survives — Retry re-runs Whisper on the same take',vo:'"Transcription timed out."'},
+      {num:'06c',title:'Error — paste blocked',msg:'Copied instead — press ⌘V.',btn:'Grant Access',reg:mk('card_b3'),side:'',sideStyle:'',spec:'transcript hits the clipboard before the error ever shows — recovery is one keystroke',vo:'"Couldn\u2019t paste — copied instead."'},
+      {num:'07a',title:'Long dictation',chip:true,wave:true,reg:mk('card_long'),side:'2:41',sideStyle:'font-size:14px;font-weight:600;color:'+th.ink+';',msg:'',btn:'',spec:'past 60 s the timer promotes to 14 pt · wave yields width · take is chunked locally',vo:'multi-minute takes are first-class'},
+      {num:'07b',title:'Max duration',chip:true,wave:true,reg:mk('card_warn'),side:'0:22 left',sideStyle:'color:#D99A3D;font-weight:700;',msg:'',btn:'',spec:'at 4:30 of 5:00 the countdown turns amber · at cap: finish + insert — never drop audio',vo:'"30 seconds left."'} ];
+    return { th, acc, cards, chipS, togS, hotGlyph:gl,
+      reg:{ glyph:mk('glyph'), icon:mk('icon'), motif:mk('motif'), webhero:mk('webhero'), hudmini:mk('hudmini'), hud:mk('hud'), mb_live:mk('mb_live'), mb_idle:mk('mb_idle'), s_idle:mk('s_idle'), s_listen:mk('s_listen'), s_spool:mk('s_spool'), s_err:mk('s_err'), s_pause:mk('s_pause') },
+      typed:st.typed, caretC:acc, caretSh: st.flash?'box-shadow:0 0 12px '+acc+';':'', hintOp: ph==='idle'?1:0,
+      mbDot: ph==='listening'?'opacity:1;animation:ovfPulse 2.2s ease-in-out infinite;':'opacity:0;',
+      hudPos, hudPose, hudTrans, hudShake, hudChip: ph==='listening', hudErr: !!er, hudMsg: er?er.m:'', hudBtn: er?er.b:'', hudSide: side, hudSideStyle: sideStyle,
+      hudCanW: er?'width:34px;flex:none;':'flex:1;',
+      holdLabel: ph==='listening'?(this.auto?'Click to release':'Release to transcribe'):(gl+'  Hold to dictate'),
+      note: st.note,
+      stageIn:()=>this.setState({hover:true}), stageOut:()=>this.setState({hover:false}),
+      holdDown:()=>{ if(this.state.phase==='idle'){ this.held=true; this.start('normal'); } else if(this.state.phase==='listening'&&this.auto) this.release(); },
+      holdUp:()=>{ if(this.held) this.release(); }, holdCancel:()=>{ if(this.held) this.release(); },
+      goPlay:()=>this.start('play'), goListen:()=>this.start('auto'), goLong:()=>this.start('long'), goWarn:()=>this.start('warn'),
+      goSpool:()=>this.goJump('transcribing'), goClean:()=>this.goJump('cleanup'), goSucc:()=>this.goJump('success'),
+      goEM:()=>this.goErr('mic'), goET:()=>this.goErr('timeout'), goEP:()=>this.goErr('paste'),
+      tgTheme:()=>this.setState(s=>({theme:s.theme==='dark'?'light':'dark'})), tgRm:()=>this.setState(s=>({rm:!s.rm})), tgRt:()=>this.setState(s=>({rt:!s.rt})), tgClean:()=>this.setState(s=>({clean:!s.clean})), tgMic:()=>this.toggleMic(),
+      errAct:()=>this.errAct() }; }
+}
+</script>
+</body>
+</html>

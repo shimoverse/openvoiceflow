@@ -151,3 +151,9 @@ def transcribe(audio_path: str, config: dict) -> str | None:
     except subprocess.TimeoutExpired:
         print("❌ Whisper timed out")
         return None
+    except (FileNotFoundError, OSError) as e:
+        # The binary was present at validate_setup but moved/deleted since
+        # (e.g. a `brew upgrade`), or is not executable. Report the real
+        # cause instead of a generic downstream "Dictation failed".
+        print(f"❌ whisper.cpp could not be run ({e}). Reinstall: brew install whisper-cpp")
+        return None

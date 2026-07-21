@@ -22,6 +22,9 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 BUILD_SCRIPT = ROOT / "build-dmg.sh"
 
+# The version the rendered test launcher is stamped with (BUNDLE_VERSION).
+TEST_BUNDLE_VERSION = "9.9.9-test"
+
 
 # ─────────────────────────────────────────────────────────────────────
 # Rendering + sandbox harness
@@ -36,7 +39,10 @@ def render_launcher() -> str:
     body = m.group(1)
     # Reproduce heredoc expansion ($VAR expands, \$ stays literal) with the
     # same build-time variable build-dmg.sh sets.
-    script = "LAUNCHER_ARCH=arm64\ncat <<LAUNCHER\n" + body + "\nLAUNCHER\n"
+    script = (
+        f"LAUNCHER_ARCH=arm64\nLAUNCHER_VERSION={TEST_BUNDLE_VERSION}\n"
+        "cat <<LAUNCHER\n" + body + "\nLAUNCHER\n"
+    )
     rendered = subprocess.run(
         ["bash", "-c", script], capture_output=True, text=True, check=True,
     ).stdout
@@ -239,7 +245,8 @@ def test_repeat_launch_with_healthy_state_shows_no_setup_dialog(sandbox) -> None
     )
     (venv / "lib").mkdir(exist_ok=True)
     write_shim(venv / "bin", "pip", "exit 0")
-    (venv / ".ovf-deps-installed").write_text("", encoding="utf-8")
+    # Marker must match the bundle version or the launcher reinstalls.
+    (venv / ".ovf-deps-installed").write_text(TEST_BUNDLE_VERSION, encoding="utf-8")
     (sandbox.state_dir / "models").mkdir(parents=True, exist_ok=True)
     (sandbox.state_dir / "models" / "ggml-base.en.bin").write_text("x", encoding="utf-8")
 
@@ -247,3 +254,30 @@ def test_repeat_launch_with_healthy_state_shows_no_setup_dialog(sandbox) -> None
     assert "First-time setup" not in sandbox.shown_dialogs
     # The final stage ran the venv python (our stub's exit code proves it).
     assert result.returncode == 42
+
+
+def test_upgrade_reinstalls_when_marker_version_differs(sandbox) -> None:
+    """A venv from an OLDER app version must trigger a reinstall — otherwise
+    a release that bumps a dependency breaks on import for upgraders."""
+    venv = sandbox.state_dir / "venv"
+    (venv / "bin").mkdir(parents=True)
+    # Interpreter + native imports are healthy (so it's NOT the health-check
+    # path); only the version stamp is stale.
+    write_shim(venv / "bin", "python3", '[[ "$*" == *"import numpy"* ]] && exit 0; exit 0')
+    (venv / ".ovf-deps-installed").write_text("0.0.1-old", encoding="utf-8")
+
+    # Stop at the reinstall's venv/pip step so the test stays hermetic.
+    write_shim(sandbox.bin, "python3", "exit 0")
+    write_shim(
+        sandbox.bin, "pip",
+        'exit 1',  # pip --upgrade fails → fatal, run stops loudly
+    )
+    # pip is invoked as "$VENV/bin/pip"; shim that path too.
+    write_shim(venv / "bin", "pip", "exit 1")
+
+    result = sandbox.run()
+    assert "reinstalling for" in sandbox.log
+    # It went into the install branch (announced first-run work) rather than
+    # launching straight through on the stale marker.
+    assert "First-time setup" in sandbox.shown_dialogs
+    assert result.returncode == 1

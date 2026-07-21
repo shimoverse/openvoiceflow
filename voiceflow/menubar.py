@@ -50,7 +50,7 @@ _MAIN_MENU_LAYOUT = (
 _HOTKEY_LABELS = {
     "right_cmd": "Right Command (⌘)",
     "left_cmd": "Left Command (⌘)",
-    "left_fn": "Fn",
+    "left_fn": "Fn (not supported)",
     "right_alt": "Right Option (⌥)",
     "left_alt": "Left Option (⌥)",
     "right_ctrl": "Right Control (⌃)",
@@ -96,12 +96,19 @@ def _hotkey_label(hotkey: str) -> str:
 
 
 def _hotkey_choices(current_hotkey: str) -> list[tuple[str, str, bool]]:
-    """Return every supported hotkey with its label and selected state."""
+    """Return selectable hotkeys with label and selected state.
+
+    fn / Globe is excluded from the picker: macOS doesn't expose it to apps,
+    so it can't work as a hotkey. It stays in VALID_HOTKEYS for back-compat,
+    and if it happens to be the *current* setting we still show it (marked)
+    so the user can see what's set and switch away from it.
+    """
     from .config import VALID_HOTKEYS
 
     return [
         (hotkey, _hotkey_label(hotkey), hotkey == current_hotkey)
         for hotkey in VALID_HOTKEYS
+        if hotkey != "left_fn" or current_hotkey == "left_fn"
     ]
 
 

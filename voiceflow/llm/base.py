@@ -2,7 +2,56 @@
 
 from __future__ import annotations
 
+import json
+import sys
 from abc import ABC, abstractmethod
+from urllib.parse import urlparse
+
+# Ceiling on a single LLM/Ollama HTTP response. A cleanup reply is a few KB;
+# 16 MB is orders of magnitude of headroom while still bounding a hostile or
+# buggy endpoint (most realistically a non-TLS local Ollama port answered by
+# another process) that would otherwise stream unbounded bytes into memory
+# on the dictation thread.
+MAX_RESPONSE_BYTES = 16 * 1024 * 1024
+
+_LOOPBACK_HOSTS = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
+
+
+def read_json_capped(resp, max_bytes: int = MAX_RESPONSE_BYTES):
+    """``json.loads`` an HTTP response, refusing bodies larger than max_bytes."""
+    raw = resp.read(max_bytes + 1)
+    if len(raw) > max_bytes:
+        raise ValueError(f"response exceeded {max_bytes} bytes")
+    return json.loads(raw.decode("utf-8"))
+
+
+def sanitize_local_url(url: str, default: str) -> str:
+    """Validate a user-supplied local-service base URL (e.g. ``ollama_url``).
+
+    Rejects non-HTTP(S) schemes (``file:``/``ftp:`` would let a config edit
+    redirect private prompts through urllib), falling back to *default*.
+    Warns once on stderr when the host isn't loopback, since the whole
+    transcript + profile would then leave the machine in the clear.
+    """
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return default
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        print(
+            f"⚠️  Ignoring invalid ollama_url {url!r} (must be http(s)://host). "
+            f"Using {default}.",
+            file=sys.stderr,
+        )
+        return default
+    if parsed.hostname not in _LOOPBACK_HOSTS:
+        print(
+            f"⚠️  ollama_url points off-box ({parsed.hostname}); your transcript "
+            "and profile will be sent there in the clear. Use a loopback address "
+            "to keep dictation fully local.",
+            file=sys.stderr,
+        )
+    return url
 
 DEFAULT_PROMPT = (
     "You are a voice dictation cleanup assistant. "

@@ -6,16 +6,19 @@ import json
 import urllib.error
 import urllib.request
 
-from .base import LLMBackend
+from .base import LLMBackend, read_json_capped, sanitize_local_url
 
 
 class OllamaBackend(LLMBackend):
     name = "ollama"
     default_model = "llama3.2"
+    _DEFAULT_URL = "http://localhost:11434"
 
     def __init__(self, config: dict):
         super().__init__(config)
-        self.base_url = config.get("ollama_url", "http://localhost:11434")
+        self.base_url = sanitize_local_url(
+            config.get("ollama_url", self._DEFAULT_URL), self._DEFAULT_URL
+        )
         # ollama uses ollama_model key specifically; override base class model
         self.model = config.get("ollama_model", self.default_model)
 
@@ -23,7 +26,7 @@ class OllamaBackend(LLMBackend):
         try:
             req = urllib.request.Request(f"{self.base_url}/api/tags")
             with urllib.request.urlopen(req, timeout=3) as resp:
-                data = json.loads(resp.read().decode())
+                data = read_json_capped(resp)
                 models = [m["name"] for m in data.get("models", [])]
                 if not models:
                     return False, "Ollama running but no models. Run: ollama pull llama3.2"
@@ -62,7 +65,7 @@ class OllamaBackend(LLMBackend):
             # generation completes, and a cold model load alone can take
             # longer than 30 s.
             with urllib.request.urlopen(req, timeout=120) as resp:
-                data = json.loads(resp.read().decode())
+                data = read_json_capped(resp)
                 return data.get("response", raw_text).strip()
         except Exception as e:
             print(f"❌ Ollama error: {e}")

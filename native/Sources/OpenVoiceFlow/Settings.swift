@@ -5,7 +5,7 @@ import Security
 /// Support. API keys live in the Keychain (see `Keychain`), never on disk.
 struct Settings: Codable, Equatable {
     var hotkey: Hotkey = .rightCommand
-    var backend: Backend = .openrouter
+    var backend: Backend = .none
     var whisperModel: String = "base.en"
     var language: String = "en"
     var style: Style = .default
@@ -13,8 +13,34 @@ struct Settings: Codable, Equatable {
     var soundFeedback: Bool = true
     var launchAtLogin: Bool = false
     var didOnboard: Bool = false
+    /// Hard cap on a single take (seconds); a missed hotkey-up can't record forever.
+    var maxRecordingSeconds: Double = 300
+    /// Optional model id override for the cleanup backend; empty ⇒ the provider default.
+    var cleanupModelOverride: String = ""
+    /// Sparkle background update checks.
+    var automaticUpdates: Bool = true
 
     enum Style: String, Codable, CaseIterable { case `default`, casual, formal, code, email }
+
+    init() {}
+
+    // Decode field-by-field so adding a new setting never fails the whole load
+    // (a missing key falls back to its default instead of resetting everything).
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        hotkey = try c.decodeIfPresent(Hotkey.self, forKey: .hotkey) ?? .rightCommand
+        backend = try c.decodeIfPresent(Backend.self, forKey: .backend) ?? .none
+        whisperModel = try c.decodeIfPresent(String.self, forKey: .whisperModel) ?? "base.en"
+        language = try c.decodeIfPresent(String.self, forKey: .language) ?? "en"
+        style = try c.decodeIfPresent(Style.self, forKey: .style) ?? .default
+        autoPaste = try c.decodeIfPresent(Bool.self, forKey: .autoPaste) ?? true
+        soundFeedback = try c.decodeIfPresent(Bool.self, forKey: .soundFeedback) ?? true
+        launchAtLogin = try c.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? false
+        didOnboard = try c.decodeIfPresent(Bool.self, forKey: .didOnboard) ?? false
+        maxRecordingSeconds = try c.decodeIfPresent(Double.self, forKey: .maxRecordingSeconds) ?? 300
+        cleanupModelOverride = try c.decodeIfPresent(String.self, forKey: .cleanupModelOverride) ?? ""
+        automaticUpdates = try c.decodeIfPresent(Bool.self, forKey: .automaticUpdates) ?? true
+    }
 
     private static var url: URL {
         let dir = FileManager.default

@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// The dashboard window — design phase 03 (native/design/03-dashboard.dc.html).
@@ -16,6 +17,7 @@ struct DashboardView: View {
     @ObservedObject private var profileStore: ProfileStore
     @State private var pane: Pane = .home
     @State private var showInterview = false
+    @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
     @Environment(\.colorScheme) private var scheme
 
     init(controller: AppController) {
@@ -446,57 +448,193 @@ struct DashboardView: View {
 
     // MARK: Settings
 
+    static let whisperModels: [(String, String)] = [
+        ("tiny", "Tiny — 39 MB"),
+        ("small", "Small — 466 MB"),
+        ("medium", "Medium — 1.5 GB"),
+        ("large-v3-turbo", "Large v3 turbo — 1.6 GB"),
+    ]
+    static let languages: [(String, String)] = [
+        ("en", "English"), ("es", "Spanish"), ("fr", "French"), ("de", "German"),
+        ("it", "Italian"), ("pt", "Portuguese"), ("nl", "Dutch"), ("hi", "Hindi"),
+        ("ja", "Japanese"), ("zh", "Chinese"), ("ko", "Korean"),
+    ]
+    /// Cleanup providers offered when cleanup is on (excludes `.none`).
+    static let cleanupProviders: [Backend] = [.anthropic, .openai, .groq, .openrouter, .ollama]
+
     private var settingsPane: some View {
         VStack(alignment: .leading, spacing: 16) {
             paneTitle("Settings")
 
             settingsCard("DICTATION") {
                 settingsRow("Hotkey") {
-                    Text(controller.settings.hotkey.displayName)
-                        .font(.system(size: 12, design: .monospaced))
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(RoundedRectangle(cornerRadius: 5).fill(fill))
+                    Picker("", selection: hotkeyBinding) {
+                        ForEach(Hotkey.allCases, id: \.self) { key in Text(key.displayName).tag(key) }
+                    }
+                    .labelsHidden().pickerStyle(.menu).frame(width: 190)
                 }
-                settingsRow("Max take length") { Text("5 minutes").foregroundStyle(ink2) }
+                settingsRow("Max take length") {
+                    Picker("", selection: bind(\.maxRecordingSeconds)) {
+                        Text("1 minute").tag(60.0)
+                        Text("2 minutes").tag(120.0)
+                        Text("5 minutes").tag(300.0)
+                        Text("10 minutes").tag(600.0)
+                    }
+                    .labelsHidden().pickerStyle(.menu).frame(width: 140)
+                }
                 settingsToggle("Sounds", isOn: bind(\.soundFeedback))
+                settingsToggle("Paste automatically", isOn: bind(\.autoPaste))
             }
 
             settingsCard("TRANSCRIPTION — ON THIS MAC") {
-                settingsRow("Whisper model") { Text(controller.settings.whisperModel).foregroundStyle(ink2) }
-                settingsRow("Language") { Text(controller.settings.language).foregroundStyle(ink2) }
-            }
-
-            settingsCard("AI CLEANUP") {
-                settingsRow("Backend") { Text(controller.settings.backend.rawValue).foregroundStyle(ink2) }
-                settingsRow("Cloud API key") {
-                    HStack(spacing: 8) {
-                        Text("••••••••").font(.system(size: 12, design: .monospaced)).foregroundStyle(ink2)
-                        Text("KEYCHAIN")
-                            .font(.system(size: 10, weight: .bold)).foregroundStyle(DT.moss)
-                            .padding(.horizontal, 5).padding(.vertical, 1)
-                            .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(DT.moss))
+                settingsRow("Whisper model") {
+                    Picker("", selection: bind(\.whisperModel)) {
+                        ForEach(whisperModelOptions, id: \.0) { Text($0.1).tag($0.0) }
                     }
+                    .labelsHidden().pickerStyle(.menu).frame(width: 210)
+                }
+                settingsRow("Language") {
+                    Picker("", selection: bind(\.language)) {
+                        ForEach(languageOptions, id: \.0) { Text($0.1).tag($0.0) }
+                    }
+                    .labelsHidden().pickerStyle(.menu).frame(width: 170)
                 }
             }
 
+            cleanupCard
+
             settingsCard("PRIVACY + UPDATES") {
-                settingsRow("All data stays in ~/Library/Application Support/OpenVoiceFlow") {
-                    HStack(spacing: 12) {
-                        Button("Export…") {}.buttonStyle(.plain).foregroundStyle(DT.emberLight)
-                        Button("Delete all…") {}.buttonStyle(.plain).foregroundStyle(DT.destructive)
+                settingsRow("Your data — on this Mac only") {
+                    HStack(spacing: 14) {
+                        Button("Reveal in Finder") { _ = NSWorkspace.shared.open(AppSupport.dir) }
+                            .buttonStyle(.plain).foregroundStyle(DT.emberLight)
+                        Button("Delete history…") { controller.historyStore.clearAll() }
+                            .buttonStyle(.plain).foregroundStyle(DT.destructive)
                     }
                     .font(.system(size: 12))
                 }
-                settingsToggle("Automatic updates", isOn: .constant(true))
+                settingsToggle("Automatic updates", isOn: autoUpdateBinding)
             }
         }
         .frame(maxWidth: 620, alignment: .leading)
+        .onAppear { reloadAPIKeyDraft() }
     }
 
-    private func bind(_ keyPath: WritableKeyPath<Settings, Bool>) -> Binding<Bool> {
+    // MARK: AI cleanup card (toggle → provider → key → optional model)
+
+    @ViewBuilder private var cleanupCard: some View {
+        settingsCard("AI CLEANUP") {
+            settingsToggle("Clean up my dictation", isOn: cleanupEnabledBinding)
+            if controller.settings.backend != .none {
+                settingsRow("Provider") {
+                    Picker("", selection: backendBinding) {
+                        ForEach(Self.cleanupProviders, id: \.self) { Text(providerLabel($0)).tag($0) }
+                    }
+                    .labelsHidden().pickerStyle(.menu).frame(width: 200)
+                }
+                if controller.settings.backend.needsAPIKey {
+                    settingsRow("API key") {
+                        SecureField("Paste your key", text: $apiKeyDraft)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 230)
+                            .onChange(of: apiKeyDraft) { _, new in
+                                Keychain.setKey(new, for: controller.settings.backend)
+                            }
+                    }
+                    settingsRow("Model (optional)") {
+                        TextField(
+                            CleanupFactory.defaultModel(for: controller.settings.backend),
+                            text: bind(\.cleanupModelOverride)
+                        )
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 230)
+                    }
+                } else if controller.settings.backend == .ollama {
+                    settingsRow("Endpoint") {
+                        Text("localhost:11434 · fully local").foregroundStyle(ink2)
+                    }
+                }
+            } else {
+                settingsRow("Off — raw transcript, nothing leaves this Mac") { EmptyView() }
+            }
+        }
+    }
+
+    private func providerLabel(_ b: Backend) -> String {
+        switch b {
+        case .anthropic: return "Anthropic (Claude)"
+        case .openai: return "OpenAI"
+        case .groq: return "Groq"
+        case .openrouter: return "OpenRouter"
+        case .ollama: return "Ollama (on-device)"
+        case .none: return "Off"
+        }
+    }
+
+    // Always include the current value so the Picker selection is never orphaned.
+    private var whisperModelOptions: [(String, String)] {
+        var opts = Self.whisperModels
+        let current = controller.settings.whisperModel
+        if !opts.contains(where: { $0.0 == current }) { opts.insert((current, current), at: 0) }
+        return opts
+    }
+    private var languageOptions: [(String, String)] {
+        var opts = Self.languages
+        let current = controller.settings.language
+        if !opts.contains(where: { $0.0 == current }) { opts.insert((current, current), at: 0) }
+        return opts
+    }
+
+    private func reloadAPIKeyDraft() {
+        apiKeyDraft = Keychain.key(for: controller.settings.backend) ?? ""
+    }
+
+    // MARK: bindings
+
+    /// Generic setting binding that persists on write.
+    private func bind<V>(_ keyPath: WritableKeyPath<Settings, V>) -> Binding<V> {
         Binding(
             get: { controller.settings[keyPath: keyPath] },
             set: { controller.settings[keyPath: keyPath] = $0; controller.settings.save() }
+        )
+    }
+
+    /// Hotkey needs the tap restarted, so it goes through the controller.
+    private var hotkeyBinding: Binding<Hotkey> {
+        Binding(get: { controller.settings.hotkey }, set: { controller.updateHotkey($0) })
+    }
+
+    /// Cleanup on/off: off ⇒ `.none` (local raw), on ⇒ Anthropic by default.
+    private var cleanupEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { controller.settings.backend != .none },
+            set: { on in
+                controller.settings.backend = on ? .anthropic : .none
+                controller.settings.save()
+                reloadAPIKeyDraft()
+            }
+        )
+    }
+
+    private var backendBinding: Binding<Backend> {
+        Binding(
+            get: { controller.settings.backend },
+            set: { b in
+                controller.settings.backend = b
+                controller.settings.save()
+                reloadAPIKeyDraft()
+            }
+        )
+    }
+
+    private var autoUpdateBinding: Binding<Bool> {
+        Binding(
+            get: { controller.settings.automaticUpdates },
+            set: {
+                controller.settings.automaticUpdates = $0
+                controller.settings.save()
+                UpdaterController.shared.setAutomaticChecks($0)
+            }
         )
     }
 

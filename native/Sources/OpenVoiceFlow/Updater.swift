@@ -24,6 +24,8 @@ final class UpdaterController {
             updaterDelegate: nil,
             userDriverDelegate: nil
         )
+        // Honor the user's saved preference for background checks.
+        controller.updater.automaticallyChecksForUpdates = Settings.load().automaticUpdates
     }
 
     /// Disabled while a check is already running (drives the menu item's state).
@@ -31,4 +33,9 @@ final class UpdaterController {
 
     /// Manual "Check for Updates…" — shows Sparkle's standard UI.
     func checkForUpdates() { controller.checkForUpdates(nil) }
+
+    /// Toggle background appcast checks (Settings ▸ Automatic updates).
+    func setAutomaticChecks(_ enabled: Bool) {
+        controller.updater.automaticallyChecksForUpdates = enabled
+    }
 }

@@ -18,14 +18,28 @@ extension CleanupProvider {
 
 enum CleanupFactory {
     static func make(_ settings: Settings) -> CleanupProvider {
+        let override = settings.cleanupModelOverride.trimmingCharacters(in: .whitespaces)
         switch settings.backend {
         case .none:
             return PassthroughCleanup()
         case .ollama:
-            return OllamaCleanup(model: "llama3.2")
+            return OllamaCleanup(model: override.isEmpty ? "llama3.2" : override)
         default:
             let key = Keychain.key(for: settings.backend) ?? ""
-            return OpenAICompatibleCleanup(backend: settings.backend, apiKey: key)
+            return OpenAICompatibleCleanup(backend: settings.backend, apiKey: key, modelOverride: override)
+        }
+    }
+
+    /// The default model id used when the user hasn't set an override — shown as
+    /// the placeholder in the "Model (advanced)" field so they can see/replace it.
+    static func defaultModel(for backend: Backend) -> String {
+        switch backend {
+        case .openrouter: return "google/gemma-4-31b-it"
+        case .openai: return "gpt-4o-mini"
+        case .groq: return "llama-3.1-8b-instant"
+        case .anthropic: return "claude-3-5-haiku-20241022"
+        case .ollama: return "llama3.2"
+        case .none: return ""
         }
     }
 }
@@ -61,6 +75,8 @@ private let maxResponseBytes = 16 * 1024 * 1024
 struct OpenAICompatibleCleanup: CleanupProvider {
     let backend: Backend
     let apiKey: String
+    /// Empty ⇒ the provider's default model (CleanupFactory.defaultModel).
+    var modelOverride: String = ""
 
     private var endpoint: URL {
         switch backend {
@@ -73,13 +89,7 @@ struct OpenAICompatibleCleanup: CleanupProvider {
     }
 
     private var model: String {
-        switch backend {
-        case .openrouter: return "google/gemma-4-31b-it"
-        case .openai: return "gpt-4o-mini"
-        case .groq: return "llama-3.1-8b-instant"
-        case .anthropic: return "claude-3-5-haiku-20241022"
-        default: return "google/gemma-4-31b-it"
-        }
+        modelOverride.isEmpty ? CleanupFactory.defaultModel(for: backend) : modelOverride
     }
 
     func cleanup(_ raw: String, style: Settings.Style, context: String) async throws -> String {

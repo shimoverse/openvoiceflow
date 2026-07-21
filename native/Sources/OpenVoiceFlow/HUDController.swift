@@ -16,6 +16,8 @@ final class HUDController {
         case transcribing
         case cleaning
         case result(words: Int)
+        /// Released too soon / nothing heard — a gentle nudge, not an error.
+        case tooShort
         case error(HUDError)
     }
 
@@ -50,6 +52,9 @@ final class HUDController {
         model.pushLevel(min(1, rms * 5.5))
     }
 
+    /// The per-take ceiling (seconds), so the HUD countdown matches Settings.
+    func setMaxSeconds(_ seconds: Double) { model.maxSeconds = seconds }
+
     func show(_ state: State, autoHideAfter seconds: Double? = nil) {
         ensurePanel()
         model.transition(to: state)
@@ -57,8 +62,14 @@ final class HUDController {
         panel?.orderFrontRegardless()
         summonIfNeeded(state)
         hideTask?.cancel()
-        // Errors auto-dismiss after 6 s per spec.
-        let auto: Double? = { if case .error = state { return 6 } else { return seconds } }()
+        // Errors auto-dismiss after 6 s per spec; the "keep talking" nudge is brief.
+        let auto: Double? = {
+            switch state {
+            case .error: return 6
+            case .tooShort: return seconds ?? 2.4
+            default: return seconds
+            }
+        }()
         if let auto {
             hideTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(auto))
@@ -155,6 +166,8 @@ final class HUDController {
 final class HUDModel: ObservableObject {
     @Published var state: HUDController.State = .hidden
     @Published var elapsed: TimeInterval = 0
+    /// Per-take ceiling (seconds); drives the amber "time left" countdown.
+    var maxSeconds: Double = 300
 
     /// Scrolling 150-bucket amplitude history (design: 43 RMS buckets @60 Hz
     /// → 80 ms EMA; we keep the 150-sample scroll the canvas draws from).
@@ -285,7 +298,13 @@ private struct HUDView: View {
         Group {
             switch model.state {
             case .recording:
-                if remaining <= 30 {
+                if model.elapsed < primerSeconds {
+                    // Live cue: encourage the user to keep talking past the
+                    // reliable-transcription threshold before releasing.
+                    Text("Keep talking…")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(accent)
+                } else if remaining <= 30 {
                     Text("\(clock(remaining)) left")
                         .foregroundStyle(DT.warnAmber)
                         .font(.system(size: 12, weight: .bold).monospacedDigit())
@@ -307,6 +326,10 @@ private struct HUDView: View {
                 Text("\(words) words")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(accent)
+            case .tooShort:
+                Text("Hold and speak a little longer")
+                    .font(.system(size: 12))
+                    .foregroundStyle(dark ? DT.hudMsgDark : DT.hudMsgLight)
             case .error(let err):
                 Text(err.message).font(.system(size: 12)).foregroundStyle(dark ? DT.hudMsgDark : DT.hudMsgLight)
             case .hidden:
@@ -387,6 +410,18 @@ private struct HUDView: View {
             tick.addLine(to: CGPoint(x: cx + 8, y: mid - 5))
             ctx.stroke(tick, with: .color(accent), style: StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round))
 
+        case .tooShort:
+            // Gentle "keep going" pulse: three dots breathing left→right, amber.
+            let cx = w / 2
+            for i in -1...1 {
+                let phase = t * 3 + Double(i) * 0.6
+                let scale = 0.6 + 0.4 * (0.5 + 0.5 * sin(phase))
+                let r = 2.2 * scale
+                let x = cx + Double(i) * 9
+                ctx.fill(Path(ellipseIn: CGRect(x: x - r, y: mid - r, width: r * 2, height: r * 2)),
+                         with: .color(DT.warnAmber.opacity(0.55 + 0.45 * scale)))
+            }
+
         case .error:
             // Broken line, error dot at each break.
             let cx = w / 2
@@ -412,7 +447,11 @@ private struct HUDView: View {
     private var accent: Color { dark ? DT.emberDark : Color(red: 181/255, green: 118/255, blue: 60/255) }
     private var dimInk: Color { dark ? DT.dimWaveDark : DT.dimWaveLight }
     private var sideInk: Color { dark ? DT.hudSideDark : DT.hudSideLight }
-    private var remaining: TimeInterval { max(0, 300 - model.elapsed) }
+    private var remaining: TimeInterval { max(0, model.maxSeconds - model.elapsed) }
+
+    /// Seconds of holding before a take is long enough to transcribe reliably;
+    /// under this we show the "keep talking" primer (and AppController nudges).
+    private let primerSeconds: TimeInterval = 0.9
 
     private func clock(_ s: TimeInterval) -> String {
         String(format: "%d:%02d", Int(s) / 60, Int(s) % 60)
@@ -425,6 +464,7 @@ private struct HUDView: View {
         case .transcribing: return "Transcribing."
         case .cleaning: return "Cleaning up."
         case .result(let words): return "Inserted \(words) words."
+        case .tooShort: return "Too short — hold and speak a little longer."
         case .error(let err):
             switch err {
             case .microphone: return "Microphone unavailable — dictation stopped."

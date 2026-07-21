@@ -34,7 +34,9 @@ final class AppController: ObservableObject {
     private let hud = HUDController()
 
     /// Hard ceiling so a missed hotkey-up can't record forever (Python H2).
-    private let maxRecordingSeconds: Double = 300
+    private var maxRecordingSeconds: Double { settings.maxRecordingSeconds }
+    /// Below this a take is too brief to transcribe reliably — nudge, don't error.
+    private let minSpeakSeconds: Double = 0.5
     private var maxRecordTask: Task<Void, Never>?
     private var resumeTask: Task<Void, Never>?
     private var pressTime = Date.distantPast
@@ -129,6 +131,7 @@ final class AppController: ObservableObject {
         do {
             try audio.start()
             isRecording = true
+            hud.setMaxSeconds(maxRecordingSeconds)
             hud.show(.recording(hotkey: settings.hotkey))
             maxRecordTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(self?.maxRecordingSeconds ?? 300))
@@ -147,8 +150,10 @@ final class AppController: ObservableObject {
         maxRecordTask?.cancel()
         let samples = audio.stop()
         let elapsed = Date().timeIntervalSince(pressTime)
-        guard elapsed >= 0.3, !samples.isEmpty else {
-            hud.hide()
+        guard !samples.isEmpty else { hud.hide(); return }
+        // Released too soon to catch speech — nudge to keep talking, don't transcribe.
+        guard elapsed >= minSpeakSeconds else {
+            hud.show(.tooShort)
             return
         }
         lastSamples = samples
@@ -170,7 +175,8 @@ final class AppController: ObservableObject {
         do {
             let raw = try await transcriber.transcribe(samples, language: settings.language)
             guard !raw.isEmpty else {
-                hud.show(.error(.timeout))
+                // Whisper heard nothing usable (very short/quiet) — a nudge, not an error.
+                hud.show(.tooShort)
                 return
             }
 

@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>OpenVoiceFlow</title>
-    <link>https://openvoiceflow.vercel.app/downloads/appcast.xml</link>
+    <link>https://openvoiceflow.vercel.app/appcast.xml</link>
     <description>OpenVoiceFlow native app updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.4.0</title>
+      <title>Version 0.4.1</title>
       <sparkle:releaseNotesLink>https://openvoiceflow.vercel.app/how-it-works.html</sparkle:releaseNotesLink>
-      <pubDate>Tue, 21 Jul 2026 05:02:06 +0000</pubDate>
-      <sparkle:version>1</sparkle:version>
-      <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+      <pubDate>Tue, 21 Jul 2026 06:57:47 +0000</pubDate>
+      <sparkle:version>2</sparkle:version>
+      <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.0.dmg" sparkle:edSignature="jz/YFrM5OG3wdpBIb1TcyhkbZpULwcI3OVF3PmWtrZqTJy2AyUsaBI/dPzIPzB32R+tIrALHXzj9FzzL2G0hCw==" length="5185892" type="application/octet-stream" />
+      <enclosure url="https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.1.dmg" sparkle:edSignature="9Q2DPzgoHbDL+Ez635TlgEeTznlYkfVuay9QdG0HtgUm22MfIyx53112keVB4M9ZS4lTN4+yJnifTDsRVkABDg==" length="5232759" type="application/octet-stream" />
     </item>
   </channel>
 </rss>

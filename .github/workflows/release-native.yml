@@ -22,7 +22,9 @@ on:
 
 jobs:
   build-native-dmg:
-    runs-on: macos-14
+    # macos-15 for Xcode 16.3+/Swift 6.1: WhisperKit 0.18 pulls swift-crypto
+    # 4.5.1, which needs Swift tools 6.1 (macos-14's Xcode 16.2 ships 6.0).
+    runs-on: macos-15
     permissions:
       contents: write
     env:
@@ -115,6 +117,10 @@ jobs:
           bash native/scripts/build-app.sh
 
       - name: Generate Sparkle appcast (if key present)
+        # Non-fatal: the notarized DMG is the critical artifact and must ship
+        # even if appcast signing hiccups (it can be regenerated). A failure
+        # here shows as a red step but never blocks the DMG upload below.
+        continue-on-error: true
         env:
           OVF_VERSION: ${{ steps.classify.outputs.version }}
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}

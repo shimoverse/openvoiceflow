@@ -53,12 +53,25 @@ class AudioRecorder:
             self.frames.append(indata.copy())
 
     def stop(self):
-        """Stop recording audio."""
+        """Stop recording audio.
+
+        Always releases the PortAudio stream, even if ``stop()``/``close()``
+        raise — which they do when the input device is unplugged mid-recording.
+        A leaked stream keeps the microphone busy and the next ``start()``
+        would overwrite ``self._stream`` without closing the old one.
+        """
         self.is_recording = False
-        if self._stream:
-            self._stream.stop()
-            self._stream.close()
-            self._stream = None
+        stream, self._stream = self._stream, None
+        if stream is None:
+            return
+        try:
+            stream.stop()
+        except Exception:
+            pass
+        try:
+            stream.close()
+        except Exception:
+            pass
 
     def save_wav(self, filepath: str) -> bool:
         """Save recorded audio to a WAV file."""

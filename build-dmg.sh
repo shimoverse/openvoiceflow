@@ -128,6 +128,7 @@ PLIST
 
     # Capture vars before heredoc
     local LAUNCHER_ARCH="$ARCH"
+    local LAUNCHER_VERSION="$VERSION"
 
     local BOOTSTRAP="$APP_DIR/Contents/Resources/launcher.sh"
     cat > "$BOOTSTRAP" << LAUNCHER
@@ -135,6 +136,7 @@ PLIST
 # OpenVoiceFlow bootstrap — installs deps natively, then launches
 
 TARGET_ARCH="$LAUNCHER_ARCH"
+BUNDLE_VERSION="$LAUNCHER_VERSION"
 APP_DIR="\$(cd "\$(dirname "\$0")/.." && pwd)"
 RESOURCES="\$APP_DIR/Resources"
 export OPENVOICEFLOW_APP_RESOURCES="\$RESOURCES"
@@ -243,15 +245,26 @@ fi
 DEPS_MARKER="\$VENV/.ovf-deps-installed"
 MODEL="\$HOME_DIR/models/ggml-base.en.bin"
 
-# The marker alone is not proof of health: a macOS or Command Line Tools
-# update can break the venv's python link or its native wheels, after which
-# every launch died silently. Verify the interpreter and imports actually
-# work; rebuild from scratch when they don't.
+# The marker is version-stamped, not a bare touch: without the stamp an
+# existing user who upgrades keeps their old venv forever (the marker
+# already exists, so pip never re-runs) and a release that adds or bumps a
+# dependency breaks on import for exactly the users who upgraded. A stamp
+# mismatch forces a reinstall so the DMG's deps track the bundle version.
+DEPS_OK=""
 if [[ -f "\$PY" && -f "\$DEPS_MARKER" ]]; then
+    DEPS_OK=1
+    # (a) interpreter + native wheels still import? A macOS/CLT update can
+    # break the venv's python link or its compiled wheels.
     if ! "\$PY" -c "import numpy, sounddevice, pynput, rumps, objc" >/dev/null 2>&1; then
         echo "[\$(date)] venv failed its health check - rebuilding"
         notify "Repairing OpenVoiceFlow installation..."
         rm -rf "\$VENV"
+        DEPS_OK=""
+    # (b) marker version matches this bundle? Otherwise reinstall for the upgrade.
+    elif [[ "\$(cat "\$DEPS_MARKER" 2>/dev/null)" != "\$BUNDLE_VERSION" ]]; then
+        echo "[\$(date)] deps installed for a different version - reinstalling for \$BUNDLE_VERSION"
+        notify "Updating OpenVoiceFlow components..."
+        DEPS_OK=""
     fi
 fi
 
@@ -261,7 +274,7 @@ fi
 # guaranteed to see is this dialog.
 FIRST_RUN_WORK=""
 command -v whisper-cli &>/dev/null || command -v whisper-cpp &>/dev/null || FIRST_RUN_WORK=1
-[[ -f "\$PY" && -f "\$DEPS_MARKER" ]] || FIRST_RUN_WORK=1
+[[ -n "\$DEPS_OK" ]] || FIRST_RUN_WORK=1
 [[ -f "\$MODEL" ]] || FIRST_RUN_WORK=1
 if [[ -n "\$FIRST_RUN_WORK" ]]; then
     alert "First-time setup: OpenVoiceFlow will now install its speech engine and download the speech model. This takes about 5 minutes and needs internet.\n\nThere is no window while this runs. When it finishes, look for the microphone icon at the TOP-RIGHT of the menu bar.\n\nTip: on 14-inch and 16-inch MacBooks a full menu bar hides new icons behind the notch - close a few menu bar apps if you do not see it."
@@ -272,12 +285,13 @@ if ! command -v whisper-cli &>/dev/null && ! command -v whisper-cpp &>/dev/null;
     brew install whisper-cpp || fatal "whisper-cpp install failed. Try: brew install whisper-cpp\nLog: \$LOG"
 fi
 
-if [[ ! -f "\$PY" || ! -f "\$DEPS_MARKER" ]]; then
+if [[ -z "\$DEPS_OK" ]]; then
     notify "First run setup (~1 min)..."
-    python3 -m venv "\$VENV" || fatal "Could not create the Python environment. If macOS just asked to install the Command Line Tools, finish that install and open OpenVoiceFlow again.\n\nLog: \$LOG"
+    [[ -d "\$VENV" ]] || python3 -m venv "\$VENV" || fatal "Could not create the Python environment. If macOS just asked to install the Command Line Tools, finish that install and open OpenVoiceFlow again.\n\nLog: \$LOG"
     "\$VENV/bin/pip" install -q --upgrade pip || fatal "Python package tooling failed to update. Check your internet connection and open OpenVoiceFlow again.\n\nLog: \$LOG"
     "\$VENV/bin/pip" install -q sounddevice numpy pynput rumps pyobjc-framework-Cocoa || fatal "Package install failed. Relaunch OpenVoiceFlow to retry. Log: \$LOG"
-    touch "\$DEPS_MARKER"
+    # Stamp the marker with the bundle version so the next upgrade reinstalls.
+    printf '%s' "\$BUNDLE_VERSION" > "\$DEPS_MARKER"
 fi
 
 notify "OpenVoiceFlow is launching..."

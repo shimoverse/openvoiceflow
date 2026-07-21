@@ -188,7 +188,7 @@ def test_system_prompt_backends_apply_app_context_and_style(backend_name, monkey
         def __exit__(self, *a):
             return False
 
-        def read(self):
+        def read(self, *args):
             if backend_name == "anthropic":
                 return json.dumps({"content": [{"text": "cleaned"}]}).encode()
             return json.dumps(

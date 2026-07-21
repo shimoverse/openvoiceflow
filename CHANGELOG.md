@@ -8,6 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6] — 2026-07-18
+
+### Fixed — Fn / 🌐 Globe key no longer fails silently
+- **Fn was never a working hotkey.** macOS doesn't deliver the Fn/Globe key to
+  `pynput`, so selecting it left dictation permanently dead with no feedback.
+  Choosing Fn now surfaces an immediate modal explaining the limitation and
+  pointing at Right Command (the default), the menu-bar picker hides Fn unless
+  it's the current (legacy) selection, and onboarding no longer offers it.
+
+### Fixed — production-hardening pass (end-to-end audit follow-up)
+- **Hotkey can't be wedged by a consent dialog.** The microphone is now armed
+  on the event-tap thread and the ~150 ms of `osascript` context capture runs
+  on a worker, so a stalled Automation/Accessibility dialog can no longer block
+  (and let macOS disable) the global hotkey.
+- **Runaway recordings self-terminate.** A max-duration watchdog force-stops a
+  dictation whose key-release was lost, instead of leaving the mic and
+  `whisper-stream` running indefinitely.
+- **No PortAudio stream leak.** `recorder.stop()` always releases the audio
+  stream even when the input device is unplugged mid-recording; that failure is
+  now surfaced instead of silently freezing the overlay.
+- **Clipboard data-loss fixed.** Selected-text capture no longer overwrites a
+  non-text clipboard (image/file) and never restores empty text over the
+  selection.
+- **Security defense-in-depth.** Secrets are written with `O_EXCL|O_NOFOLLOW`
+  (symlink-swap safe); `~/.openvoiceflow/logs/` is `0700`; LLM/Ollama responses
+  are read with a 16 MB cap; `ollama_url` rejects non-HTTP schemes and warns
+  when it points off-box. Hung `pbcopy` children are reaped, not orphaned.
+- **Upgrades actually reinstall dependencies.** The DMG venv marker is now
+  version-stamped, so a release that adds or bumps a dependency reinstalls for
+  existing upgraders instead of breaking on import.
+- **Overlay polish.** HUD timers run in the common run-loop mode (no freeze
+  during menu tracking), fades honor Reduce Motion, and the window is ordered
+  out after fading so it doesn't linger in every Space.
+- **Know-Me interview no longer self-destructs** when Escape is pressed while a
+  text field is focused.
+
+See [`PRODUCTION_READINESS.md`](PRODUCTION_READINESS.md) for the full audit and
+the remaining roadmap (native onboarding, self-contained bundle, Sparkle, etc.).
+
 ## [0.3.5] — 2026-07-13
 
 ### Fixed — first launch could silently do nothing (no menu bar icon, no wizard)
@@ -476,7 +515,8 @@ Initial release.
 
 ## Compare links
 
-[Unreleased]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.5...HEAD
+[Unreleased]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.6...HEAD
+[0.3.6]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.5...v0.3.6
 [0.3.5]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.4...v0.3.5
 [0.3.4]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.3...v0.3.4
 [0.3.3]: https://github.com/shimoverse/openvoiceflow/compare/v0.3.2...v0.3.3

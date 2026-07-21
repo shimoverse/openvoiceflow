@@ -31,16 +31,16 @@
 
   const builds = {
     arm64: {
-      href: 'downloads/OpenVoiceFlow-0.3.5-arm64.dmg',
-      title: 'Apple Silicon DMG',
-      subtitle: 'Recommended for M1, M2, M3, M4, and newer Macs running macOS 12 or later.',
-      badge: 'Apple Silicon',
+      href: 'downloads/OpenVoiceFlow-0.4.0.dmg',
+      title: 'Universal macOS DMG',
+      subtitle: 'One universal native build for Apple Silicon and Intel Macs running macOS 14 or later.',
+      badge: 'Universal macOS',
     },
     x86_64: {
-      href: 'downloads/OpenVoiceFlow-0.3.5-x86_64.dmg',
-      title: 'Intel DMG',
-      subtitle: 'Recommended for x86_64 Intel Macs running macOS 12 or later.',
-      badge: 'Intel Mac',
+      href: 'downloads/OpenVoiceFlow-0.4.0.dmg',
+      title: 'Universal macOS DMG',
+      subtitle: 'One universal native build for Apple Silicon and Intel Macs running macOS 14 or later.',
+      badge: 'Universal macOS',
     },
   };
 
@@ -243,6 +243,245 @@
   document.querySelectorAll('a[href="install.html"], a[href="/install.html"]').forEach(link => {
     link.addEventListener('click', () => {
       track('install_guide_click', { source_path: pathname() });
+    });
+  });
+})();
+
+/* ── Waveform identity ──────────────────────────────────────────────────
+   One brand waveform everywhere: the ring glyph (nav/footer), the hero
+   listen→transcribe→type demo, the "02 · SPEAK" card wave, and the
+   privacy-panel pipeline wave. Ported from the design spec; vanilla JS,
+   no dependencies. Honors prefers-reduced-motion (static frames, full
+   sentence shown immediately) and pauses when the tab is hidden. */
+(() => {
+  const canvases = Array.from(document.querySelectorAll('canvas[data-wf]'));
+  if (!canvases.length) return;
+
+  const typedNode = document.getElementById('typedDemo');
+  const chipNode = document.getElementById('heroChip');
+  const statusNode = document.getElementById('heroStatus');
+  const TYPED_TEXT = 'Ship the beta tonight — the release notes are already in the doc.';
+
+  const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function palette() {
+    const dark = darkQuery.matches;
+    return {
+      acc: dark ? '#E8974E' : '#B4661F',
+      dim: dark ? 'rgba(214,208,194,.5)' : 'rgba(58,52,40,.45)',
+      // The privacy panel is deliberately dark in both themes.
+      pline: '#E8974E',
+    };
+  }
+
+  const state = { loop: 'listen', amp: 0, tgt: 0, sylT: 0, last: 0 };
+  const hist = new Float32Array(150);
+  const timers = [];
+  let typeTimer = null;
+  let raf = 0;
+
+  function after(ms, fn) { timers.push(setTimeout(fn, ms)); }
+
+  function setLoop(loop) {
+    state.loop = loop;
+    if (chipNode) chipNode.classList.toggle('idle', loop !== 'listen');
+    if (statusNode) {
+      statusNode.textContent =
+        loop === 'listen' ? 'listening'
+        : loop === 'spool' ? 'transcribing — on device'
+        : 'pasted at the cursor';
+    }
+  }
+
+  function cycle() {
+    setLoop('listen');
+    if (typedNode) typedNode.textContent = '';
+    after(3000, () => {
+      setLoop('spool');
+      after(900, () => {
+        setLoop('type');
+        let i = 0;
+        typeTimer = setInterval(() => {
+          i += 2;
+          if (typedNode) typedNode.textContent = TYPED_TEXT.slice(0, i);
+          if (i >= TYPED_TEXT.length) {
+            clearInterval(typeTimer);
+            typeTimer = null;
+            after(2600, cycle);
+          }
+        }, 20);
+      });
+    });
+  }
+
+  function speechEnvelope(t) {
+    const gate = (Math.sin(t * 0.9) + Math.sin(t * 0.53 + 1.2)) > 0.9 ? 0.06 : 1;
+    let v = (Math.sin(t * 2.3) + Math.sin(t * 3.85 + 1.4) + Math.sin(t * 5.9 + 0.4)) / 3;
+    v = Math.max(0, v * 0.75 + 0.5);
+    return Math.min(1, v * gate);
+  }
+
+  function windowFn(u) { return Math.pow(Math.max(0, Math.sin(Math.PI * u)), 0.85); }
+
+  function drawRing(ctx, w, h, t, color) {
+    const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.34, gap = 0.62, off = -1.0;
+    ctx.beginPath();
+    for (let a = off + gap / 2; a <= off + 2 * Math.PI - gap / 2; a += 0.045) {
+      const r = R * (1 + 0.10 * Math.sin(a * 5 - t * 0.7));
+      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      a <= off + gap / 2 + 0.05 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  }
+
+  function drawWave(ctx, w, h, t, ampAt, color, glow) {
+    ctx.beginPath();
+    const mid = h / 2;
+    for (let x = 0; x <= w; x += 2) {
+      const u = x / w, a = ampAt(u);
+      const y = mid
+        + (a < 0.03 ? Math.sin(x * 0.045 - t * 1.7) * 1.15 : 0)
+        + a * h * 0.30 * (
+          Math.sin(x * 0.052 + t * 6.6) * 0.55 +
+          Math.sin(x * 0.117 - t * 9.4) * 0.26 +
+          Math.sin(x * 0.026 + t * 3.2) * 0.42
+        ) * windowFn(u);
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = color;
+    if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 7; }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  function drawSpool(ctx, w, h, t, color) {
+    const cx = w / 2, cy = h / 2, rot = t * 6.9;
+    ctx.beginPath();
+    for (let a = 0; a <= 4 * Math.PI; a += 0.12) {
+      const r = (2.5 + a * 0.95) * Math.min(1, h * 0.028);
+      const x = cx + Math.cos(a + rot) * r, y = cy + Math.sin(a + rot) * r * 0.92;
+      a === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  }
+
+  function paint(now) {
+    const t = now / 1000;
+    const dt = Math.min(50, now - (state.last || now));
+    state.last = now;
+    const colors = palette();
+
+    if (state.loop === 'listen') {
+      if (now > state.sylT) {
+        state.sylT = now + 90 + Math.random() * 190;
+        const r = Math.random();
+        state.tgt = r < 0.18 ? 0.04 : 0.25 + Math.random() * 0.7;
+      }
+    } else {
+      state.tgt = 0;
+    }
+    state.amp += (state.tgt - state.amp) * (1 - Math.exp(-dt / 70));
+    hist.copyWithin(0, 1);
+    hist[hist.length - 1] = state.amp;
+
+    const d = Math.min(2, window.devicePixelRatio || 1);
+    for (const el of canvases) {
+      const w = el.clientWidth, h = el.clientHeight;
+      if (!w || !h) continue;
+      if (el.width !== (w * d | 0) || el.height !== (h * d | 0)) {
+        el.width = w * d | 0;
+        el.height = h * d | 0;
+      }
+      const ctx = el.getContext('2d');
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      const mode = el.dataset.wf;
+
+      if (mode === 'glyph') {
+        drawRing(ctx, w, h, t, colors.acc);
+      } else if (mode === 'hero') {
+        if (state.loop === 'listen') {
+          const n = hist.length;
+          const ampAt = u => hist[Math.min(n - 1, (u * (n - 1)) | 0)];
+          drawWave(ctx, w, h, t, ampAt, state.amp > 0.06 ? colors.acc : colors.dim, state.amp > 0.12);
+        } else if (state.loop === 'spool') {
+          drawSpool(ctx, w, h, t, colors.acc);
+        } else {
+          const mid = h / 2, cx = w / 2;
+          ctx.beginPath();
+          ctx.moveTo(cx - 8, mid);
+          ctx.lineTo(cx + 8, mid);
+          ctx.lineWidth = 2.4;
+          ctx.lineCap = 'round';
+          ctx.strokeStyle = colors.acc;
+          ctx.stroke();
+        }
+      } else if (mode === 'card') {
+        drawWave(ctx, w, h, t, u => speechEnvelope(t - (1 - u) * 1.25), colors.acc, true);
+      } else if (mode === 'pline') {
+        drawWave(ctx, w, h, t, u => speechEnvelope(t * 0.8 - (1 - u) * 1.4), colors.pline, true);
+      }
+    }
+  }
+
+  function tick(now) {
+    if (!document.hidden) paint(now);
+    raf = requestAnimationFrame(tick);
+  }
+
+  function staticFrame() {
+    // Reduce Motion: one calm, representative frame — no loops, no typing.
+    if (typedNode) typedNode.textContent = TYPED_TEXT;
+    setLoop('listen');
+    for (let i = 0; i < hist.length; i++) {
+      hist[i] = speechEnvelope(i / 18) * 0.6;
+    }
+    state.amp = 0.4;
+    state.loop = 'listen';
+    paint(1000);
+    if (statusNode) statusNode.textContent = 'listening';
+  }
+
+  if (motionQuery.matches) {
+    staticFrame();
+    darkQuery.addEventListener('change', staticFrame);
+    window.addEventListener('resize', staticFrame);
+  } else {
+    cycle();
+    raf = requestAnimationFrame(tick);
+    motionQuery.addEventListener('change', () => {
+      if (motionQuery.matches) {
+        cancelAnimationFrame(raf);
+        timers.forEach(clearTimeout);
+        if (typeTimer) clearInterval(typeTimer);
+        staticFrame();
+      }
+    });
+  }
+})();
+
+/* ── Checksum copy buttons (download page) ─────────────────────────── */
+(() => {
+  document.querySelectorAll('.copy-btn[data-copy]').forEach(button => {
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy);
+        const original = button.textContent;
+        button.textContent = 'copied';
+        setTimeout(() => { button.textContent = original; }, 1600);
+      } catch (error) {
+        // Clipboard API unavailable (http, older browser) — leave the
+        // checksum selectable in the adjacent code block.
+      }
     });
   });
 })();

@@ -19,14 +19,11 @@
     "@type": "SoftwareApplication",
     "name": "OpenVoiceFlow",
     "description": "Free push-to-talk voice dictation for macOS with local whisper.cpp transcription and optional LLM cleanup.",
-    "operatingSystem": "macOS 12+",
+    "operatingSystem": "macOS 14+",
     "applicationCategory": "UtilitiesApplication",
-    "softwareVersion": "0.3.6",
+    "softwareVersion": "0.4.0",
     "url": "https://openvoiceflow.vercel.app/download.html",
-    "downloadUrl": [
-      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.6-arm64.dmg",
-      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.6-x86_64.dmg"
-    ],
+    "downloadUrl": "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.0.dmg",
     "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
   }
   </script>
@@ -59,48 +56,43 @@
   <main>
     <section class="page-hero"><div class="container hero-inner">
       <span class="mono-kicker">Website-hosted release assets</span>
-      <h1 class="hero-title">Download v0.3.6</h1>
-      <p class="hero-sub answer-block">OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. We suggest the best DMG when your browser shares enough Mac architecture detail; if not, both Apple Silicon and Intel builds stay visible.</p>
+      <h1 class="hero-title">Download v0.4.0</h1>
+      <p class="hero-sub answer-block">OpenVoiceFlow is a free push-to-talk voice dictation app for macOS 14 or later. One universal, signed, notarized DMG works on Apple Silicon and Intel Macs.</p>
 
       <section class="download-panel" data-download-recommendation>
         <div class="download-panel-copy">
-          <span class="download-kicker" id="downloadKicker">Recommended for your Mac</span>
-          <h2 id="downloadTitle">Download the recommended DMG</h2>
-          <p id="downloadSubtitle">Checking whether this browser can identify Apple Silicon or Intel...</p>
+          <span class="download-kicker" id="downloadKicker">Universal native build</span>
+          <h2 id="downloadTitle">OpenVoiceFlow for macOS 14+</h2>
+          <p id="downloadSubtitle">One universal DMG for Apple Silicon and Intel Macs.</p>
           <div class="download-meta-row">
-            <span id="downloadArchBadge">macOS 12+</span>
-            <span id="downloadConfidence">Detection runs locally in your browser.</span>
+            <span id="downloadArchBadge">macOS 14+</span>
+            <span id="downloadConfidence">Signed, notarized, and stapled by Apple.</span>
           </div>
         </div>
         <div class="download-panel-actions">
-          <a class="btn btn-primary btn-lg" id="recommendedDownload" href="downloads/OpenVoiceFlow-0.3.6-arm64.dmg" data-recommended-download>Download the recommended DMG</a>
+          <a class="btn btn-primary btn-lg" id="recommendedDownload" href="downloads/OpenVoiceFlow-0.4.0.dmg" data-recommended-download>Download OpenVoiceFlow for Mac</a>
           <a class="btn btn-outline btn-lg" href="install.html">Install guide</a>
         </div>
       </section>
 
       <section class="download-builds" aria-labelledby="allBuildsTitle">
         <div class="download-builds-header">
-          <h2 id="allBuildsTitle">All Mac builds</h2>
-          <p>Choose a specific build when downloading for a different Mac.</p>
+          <h2 id="allBuildsTitle">Native universal build</h2>
+          <p>Apple Silicon and Intel · macOS 14 or later · 5.2 MB installer.</p>
         </div>
         <div class="download-build-list">
-          <article class="download-build-row" data-arch="arm64">
-            <div class="build-head"><span class="download-build-label">Apple Silicon</span><span class="download-build-flag">RECOMMENDED</span></div>
-            <h3>M1 and later · 1.2 MB installer</h3>
-            <a class="btn btn-outline" href="downloads/OpenVoiceFlow-0.3.6-arm64.dmg" aria-label="Download OpenVoiceFlow-0.3.6-arm64.dmg">OpenVoiceFlow-0.3.6-arm64.dmg</a>
-            <div class="checksum-line"><code class="code-block">sha256: c81cc45663cc415218f54680ad5bc884769507df8617ab73997f1e7a71e157da</code><button class="copy-btn" type="button" data-copy="c81cc45663cc415218f54680ad5bc884769507df8617ab73997f1e7a71e157da">copy</button></div>
-          </article>
-          <article class="download-build-row" data-arch="x86_64">
-            <div class="build-head"><span class="download-build-label">Intel</span><span class="download-build-flag">RECOMMENDED</span></div>
-            <h3>2018 and later · 1.2 MB installer</h3>
-            <a class="btn btn-outline" href="downloads/OpenVoiceFlow-0.3.6-x86_64.dmg" aria-label="Download OpenVoiceFlow-0.3.6-x86_64.dmg">OpenVoiceFlow-0.3.6-x86_64.dmg</a>
-            <div class="checksum-line"><code class="code-block">sha256: 2dd42025c2741e15d230ab82b9b3c621acb51ab0ad6fe08adfc76110258f8f71</code><button class="copy-btn" type="button" data-copy="2dd42025c2741e15d230ab82b9b3c621acb51ab0ad6fe08adfc76110258f8f71">copy</button></div>
+          <article class="download-build-row is-recommended" data-arch="universal">
+            <div class="build-head"><span class="download-build-label">Universal macOS</span><span class="download-build-flag">CURRENT</span></div>
+            <h3>One signed, notarized build for every supported Mac</h3>
+            <a class="btn btn-outline" href="downloads/OpenVoiceFlow-0.4.0.dmg" aria-label="Download OpenVoiceFlow-0.4.0.dmg">OpenVoiceFlow-0.4.0.dmg</a>
+            <div class="checksum-line"><code class="code-block">sha256: 99d75bf21da1bd5009eae5277e47614919c4ebc55b3586d9b9f08f35d998d2de</code><button class="copy-btn" type="button" data-copy="99d75bf21da1bd5009eae5277e47614919c4ebc55b3586d9b9f08f35d998d2de">copy</button></div>
           </article>
         </div>
+        <p class="answer-block" style="margin-top:16px">On macOS 12–13? Use the retained <a href="downloads/OpenVoiceFlow-0.3.6-arm64.dmg">OpenVoiceFlow 0.3.6 Apple Silicon fallback</a>. The native 0.4.0 app requires macOS 14.</p>
       </section>
 
       <div class="download-build-list" style="width:100%;margin-top:16px">
-        <section class="content-card" style="margin-top:0"><h2>Why the checksums are up front</h2><p>Verify in Terminal: <code class="code-block">shasum -a 256 ~/Downloads/OpenVoiceFlow-0.3.6-arm64.dmg</code> It should match the line above, which is also published with the GitHub release. Two independent places, one truth.</p></section>
+        <section class="content-card" style="margin-top:0"><h2>Why the checksums are up front</h2><p>Verify in Terminal: <code class="code-block">shasum -a 256 ~/Downloads/OpenVoiceFlow-0.4.0.dmg</code> It should match the line above and the published GitHub release.</p></section>
         <section class="content-card" style="margin-top:0"><h2>Signed + notarized</h2><p>Every DMG is Developer-ID signed, Apple-notarized, and stapled: macOS checks the app against Apple's malware scan before first launch — even offline. New releases ship here as the same signed, website-hosted DMGs.</p></section>
       </div>
 

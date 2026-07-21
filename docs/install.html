@@ -44,7 +44,7 @@
 
   <main>
     <section class="page-hero"><div class="container hero-inner">
-      <span class="mono-kicker">Install guide · macOS 12+</span>
+      <span class="mono-kicker">Install guide · macOS 14+</span>
       <h1 class="hero-title">Install OpenVoiceFlow on macOS</h1>
       <p class="hero-sub answer-block">Install OpenVoiceFlow by downloading the signed macOS DMG from this website. The app needs microphone access, whisper.cpp for local transcription, and either OpenRouter, another LLM provider, Ollama, or no cleanup backend. The MIT-licensed source is also public.</p>
       <div class="page-link-row"><a class="btn btn-primary btn-lg" href="download.html">Download for macOS</a><a class="btn btn-outline btn-lg" href="https://github.com/shimoverse/openvoiceflow">View source ↗</a></div>
@@ -60,7 +60,7 @@ python3 -m venv ~/.openvoiceflow/venv
 openvoiceflow --backend openrouter --set-key openrouter YOUR_KEY_HERE
 openvoiceflow</code></section>
 
-      <section class="content-card"><h2>Troubleshooting</h2><ul class="check-list"><li>If macOS still blocks launch, delete any older unsigned copy and re-download the current signed, Apple-notarized v0.3.6 DMG from this website.</li><li>If the waveform changes to a warning symbol, open <strong>Advanced</strong> in the menu and use the direct Microphone or Accessibility settings links.</li><li>If transcription does not start, confirm microphone permission in macOS System Settings.</li><li>If paste fails, grant Accessibility permission for the app or terminal launching OpenVoiceFlow.</li><li>If cloud cleanup fails, verify your chosen provider key; OpenRouter uses <code>openrouter</code>, not a Gemini API key.</li><li>If you need a fully local flow, choose Ollama or <code>--backend none</code>.</li></ul></section>
+      <section class="content-card"><h2>Troubleshooting</h2><ul class="check-list"><li>If macOS still blocks launch, delete any older unsigned copy and re-download the current signed, Apple-notarized v0.4.0 DMG from this website.</li><li>If the waveform changes to a warning symbol, open <strong>Advanced</strong> in the menu and use the direct Microphone or Accessibility settings links.</li><li>If transcription does not start, confirm microphone permission in macOS System Settings.</li><li>If paste fails, grant Accessibility permission for the app or terminal launching OpenVoiceFlow.</li><li>If cloud cleanup fails, verify your chosen provider key; OpenRouter uses <code>openrouter</code>, not a Gemini API key.</li><li>If you need a fully local flow, choose Ollama or <code>--backend none</code>.</li></ul></section>
     </div></section>
   </main>
 

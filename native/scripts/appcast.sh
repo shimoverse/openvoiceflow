@@ -28,7 +28,10 @@ if [[ -z "${SPARKLE_ED_PRIVATE_KEY:-}" ]]; then
 fi
 
 : "${OVF_VERSION:?set OVF_VERSION}"
-BUILD="${OVF_BUILD:-1}"
+# Sparkle orders updates by CFBundleVersion (sparkle:version) — read the real
+# build number from Info.plist so it increments every release, or Sparkle won't
+# see a new build as newer.
+BUILD="${OVF_BUILD:-$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' Info.plist 2>/dev/null || echo 1)}"
 DOWNLOAD_BASE="${OVF_DOWNLOAD_BASE:-https://openvoiceflow.vercel.app/downloads}"
 # The feed's own URL — must match Info.plist SUFeedURL (served at the site root).
 FEED_URL="${OVF_APPCAST_URL:-https://openvoiceflow.vercel.app/appcast.xml}"

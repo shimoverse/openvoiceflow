@@ -30,6 +30,8 @@ fi
 : "${OVF_VERSION:?set OVF_VERSION}"
 BUILD="${OVF_BUILD:-1}"
 DOWNLOAD_BASE="${OVF_DOWNLOAD_BASE:-https://openvoiceflow.vercel.app/downloads}"
+# The feed's own URL — must match Info.plist SUFeedURL (served at the site root).
+FEED_URL="${OVF_APPCAST_URL:-https://openvoiceflow.vercel.app/appcast.xml}"
 SPARKLE_VERSION="${SPARKLE_VERSION:-2.9.4}"
 
 DMG="dist/OpenVoiceFlow-$OVF_VERSION.dmg"
@@ -63,7 +65,7 @@ cat > dist/appcast.xml <<XML
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>OpenVoiceFlow</title>
-    <link>$DOWNLOAD_BASE/appcast.xml</link>
+    <link>$FEED_URL</link>
     <description>OpenVoiceFlow native app updates.</description>
     <language>en</language>
     <item>

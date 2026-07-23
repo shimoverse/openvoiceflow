@@ -57,17 +57,31 @@ These are not pip-installed, but they are pieces OpenVoiceFlow loads at runtime.
 
 Upstream license: <https://github.com/ggerganov/whisper.cpp/blob/master/LICENSE>.
 
-## 4. LLM provider SDKs — none bundled
+## 4. Native macOS app (`.app`) — bundled Swift components
+
+The notarized universal DMG ships a native macOS app built with Swift. The following components are compiled into or bundled with the `.app` and are therefore redistributed inside the DMG; their license notices must travel with the binary.
+
+| Component        | License     | Copyright / Upstream                | Role                                                                | Upstream |
+| ---------------- | ----------- | ----------------------------------- | ------------------------------------------------------------------- | -------- |
+| **WhisperKit**   | MIT         | Argmax, Inc. (`argmaxinc`)          | On-device speech-to-text engine (Core ML Whisper inference).        | <https://github.com/argmaxinc/WhisperKit/blob/main/LICENSE> |
+| **Sparkle**      | MIT         | Sparkle Project (`sparkle-project`) | In-app software update framework (signed appcast, download + install). | <https://github.com/sparkle-project/Sparkle/blob/2.x/LICENSE> |
+| **swift-crypto** | Apache-2.0  | Apple Inc. (`apple`)                | Cryptographic primitives (pulled in transitively; signature/hash verification). | <https://github.com/apple/swift-crypto/blob/main/LICENSE.txt> |
+
+WhisperKit downloads its Core ML model weights on first run from the upstream model repository on `huggingface.co`; the weights are cached on disk after the initial download.
+
+The native app supersedes the legacy Homebrew `whisper.cpp` speech path described in §3, which applied to the retired Python CLI (v0.3.x and earlier).
+
+## 5. LLM provider SDKs — none bundled
 
 OpenVoiceFlow's LLM backends (OpenRouter, Groq, OpenAI, Anthropic, Ollama) are implemented in `voiceflow/llm/*.py` using only the Python standard library — `urllib`, `json`, `ssl`. No vendor SDK is shipped or required.
 
 This means there is no OpenRouter, `openai`, `anthropic`, or `groq` SDK in our dependency tree, and consequently no licensing obligation flowing from those SDKs.
 
-## 5. Bundled docs, fonts, and assets
+## 6. Bundled docs, fonts, and assets
 
 The DMG contains Python source code, the launcher shell script, and the project-generated OpenVoiceFlow app icon. No third-party fonts, images, or icon sets with separate licenses are bundled. The overlay HUD draws using macOS system fonts (San Francisco), which carry no separate licensing obligation for an app running on macOS.
 
-## 6. Build- and dev-time only (not shipped)
+## 7. Build- and dev-time only (not shipped)
 
 For completeness — these appear in `[project.optional-dependencies].dev` and never reach end users:
 
@@ -80,17 +94,18 @@ For completeness — these appear in `[project.optional-dependencies].dev` and n
 | `twine`        | Apache-2.0 | PyPI upload tool.          |
 | `setuptools`, `wheel` | MIT | Build backend.            |
 
-## 7. Cumulative license posture
+## 8. Cumulative license posture
 
 The runtime-shipped license set is:
 
-- **MIT** — `sounddevice`, `pyobjc-framework-Cocoa` (+ all pyobjc-* siblings), `pyobjc-core`, `cffi`, `whisper.cpp`, `whisper-stream`, `ggml-*` model files, OpenVoiceFlow itself.
+- **MIT** — `sounddevice`, `pyobjc-framework-Cocoa` (+ all pyobjc-* siblings), `pyobjc-core`, `cffi`, `whisper.cpp`, `whisper-stream`, `ggml-*` model files, **WhisperKit**, **Sparkle**, OpenVoiceFlow itself.
 - **BSD-3-Clause** — `numpy`, `rumps`, `pycparser`.
+- **Apache-2.0** — **swift-crypto** (bundled in the native macOS app).
 - **LGPL-3.0** — `pynput` (dynamically loaded; see §1 note).
 
-There is **no GPL-2.0-or-later or GPL-3.0 obligation** propagating to OpenVoiceFlow or to its consumers. The LGPL-3.0 component is consumed in a manner permitted without copyleft propagation.
+There is **no GPL-2.0-or-later or GPL-3.0 obligation** propagating to OpenVoiceFlow or to its consumers. The LGPL-3.0 component is consumed in a manner permitted without copyleft propagation. Apache-2.0 (`swift-crypto`) is a permissive licence with an explicit patent grant and no copyleft.
 
-## 8. Trademark notice
+## 9. Trademark notice
 
 The names "OpenRouter", "Gemma", "GPT-4o", "Claude", "Llama", "Whisper", "Homebrew", "macOS", and "Apple Silicon" are trademarks of their respective owners. OpenVoiceFlow references them descriptively to identify the third-party services or platforms it interoperates with, and does not claim affiliation with, endorsement by, or sponsorship from any of those owners.
 

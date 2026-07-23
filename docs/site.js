@@ -161,11 +161,11 @@
     setText('downloadTitle', 'OpenVoiceFlow is a Mac-only app');
     setText(
       'downloadSubtitle',
-      `You appear to be browsing from ${label}. OpenVoiceFlow needs macOS 12 or newer — ` +
+      `You appear to be browsing from ${label}. OpenVoiceFlow needs macOS 14 or newer — ` +
       `there is no ${label} version, and the Mac DMGs will not run on this device. ` +
       'Downloading for a Mac you own? Both builds stay available below.'
     );
-    setText('downloadArchBadge', 'macOS 12+ only');
+    setText('downloadArchBadge', 'macOS 14+ only');
     setText('downloadConfidence', 'Detection runs locally in your browser; nothing is uploaded.');
   }
 
@@ -203,7 +203,7 @@
     setText('downloadKicker', 'Choose your Mac build');
     setText('downloadTitle', 'Pick Apple Silicon or Intel');
     setText('downloadSubtitle', 'This browser did not expose enough detail to safely identify your chip. Apple menu →  About This Mac shows it: an "Apple M…" chip needs the Apple Silicon DMG, an Intel processor needs the Intel DMG.');
-    setText('downloadArchBadge', 'macOS 12+');
+    setText('downloadArchBadge', 'macOS 14+');
     setText('downloadConfidence', 'Both Mac builds are listed below.');
 
     trackRecommendation(result);

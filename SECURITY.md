@@ -15,13 +15,14 @@ If your organization requires those, OpenVoiceFlow is probably not the right fit
 Only the current minor line gets security fixes. Older lines are frozen at their last
 release.
 
-| Version | Supported          | Notes                                      |
-|---------|--------------------|--------------------------------------------|
-| 0.3.x   | ✅ Yes             | Current line. All security fixes land here.|
-| 0.2.x   | ❌ No              | Frozen at 0.2.0. Upgrade to 0.3.x.         |
-| 0.1.x   | ❌ No              | Frozen. Upgrade to 0.3.x.                  |
+| Version | Supported          | Notes                                                       |
+|---------|--------------------|-------------------------------------------------------------|
+| 0.4.x   | ✅ Yes             | Current line (native macOS app). All security fixes land here.|
+| 0.3.x   | ❌ No              | EOL — the legacy Python CLI line. Upgrade to 0.4.x.         |
+| 0.2.x   | ❌ No              | Frozen at 0.2.0. Upgrade to 0.4.x.                          |
+| 0.1.x   | ❌ No              | Frozen. Upgrade to 0.4.x.                                   |
 
-When 0.4.x ships, 0.3.x moves to unsupported. We do not backport.
+Now that 0.4.x has shipped, 0.3.x and earlier are unsupported. We do not backport.
 
 ---
 

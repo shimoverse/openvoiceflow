@@ -1,6 +1,6 @@
 # OpenVoiceFlow
 
-OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcribes audio locally through whisper.cpp, applies voice commands, optionally cleans text with the user's selected LLM backend, and pastes the final text at the cursor.
+OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcribes audio locally on-device with WhisperKit, applies voice commands, optionally cleans text with the user's selected LLM backend, and pastes the final text at the cursor.
 
 ## Priority pages
 
@@ -8,22 +8,22 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 - Download page: https://openvoiceflow.vercel.app/download.html
 - Install guide: https://openvoiceflow.vercel.app/install.html
 - How it works: https://openvoiceflow.vercel.app/how-it-works.html
-- Website-hosted Apple Silicon DMG: https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.6-arm64.dmg
-- Website-hosted Intel DMG: https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.6-x86_64.dmg
+- Website-hosted universal macOS DMG (v0.4.1): https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.1.dmg
+- Website-hosted macOS 12–13 fallback (v0.3.6 Apple Silicon): https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.6-arm64.dmg
 - Public MIT source repository: https://github.com/shimoverse/openvoiceflow
 
 ## Key facts
 
 - Category: macOS push-to-talk voice dictation.
 - Source repository: public and MIT licensed.
-- Platforms: macOS 12+ on Apple Silicon and Intel Macs.
-- Audio transcription: local whisper.cpp.
-- Cleanup backends: OpenRouter Gemma 4, Groq, OpenAI, Anthropic, Ollama, or none.
-- Download path: website-hosted DMGs for Apple Silicon and Intel; source install is public.
+- Platforms: macOS 14+ on Apple Silicon and Intel Macs.
+- Audio transcription: on-device WhisperKit.
+- Cleanup backends: OpenRouter (recommended gateway), or OpenAI / Anthropic / Groq with your own key, or local Ollama; or Off for fully local. Default is Off.
+- Download path: one website-hosted universal DMG (v0.4.1); a v0.3.6 fallback remains for macOS 12–13; source install is public.
 
 ## Do not claim
 
 - Do not claim Windows or Linux downloads exist.
-- Do not claim all text processing is local unless the user chooses Ollama or no cleanup.
+- Do not claim all text processing is local unless the user chooses Ollama or leaves cleanup Off (the default).
 - Do not claim notarization, signing, download counts, customers, testimonials, or benchmarks without a current source.
 - Do not claim affiliation with Wispr Flow, Superwhisper, VoiceInk, Apple, or GitHub.

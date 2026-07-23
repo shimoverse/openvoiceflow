@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenVoiceFlow Privacy — What Stays on Your Mac</title>
+  <meta name="description" content="OpenVoiceFlow privacy policy: on-device WhisperKit transcription, API keys in the macOS Keychain, cleanup Off by default, and what leaves your Mac only if you turn on cloud cleanup." />
+  <meta property="og:title" content="OpenVoiceFlow Privacy" />
+  <meta property="og:description" content="On-device transcription, Keychain-stored keys, cleanup Off by default. What stays on your Mac and what leaves only when you choose." />
+  <meta property="og:url" content="https://openvoiceflow.vercel.app/privacy.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://openvoiceflow.vercel.app/assets/og-card.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://openvoiceflow.vercel.app/assets/og-card.png" />
+  <link rel="canonical" href="https://openvoiceflow.vercel.app/privacy.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23E8974E' stroke-width='13' stroke-linecap='round' stroke-dasharray='186 28' transform='rotate(-58 50 50)'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="https://va.vercel-scripts.com/v1/script.js" data-view-endpoint="https://vitals.vercel-analytics.com/v1/view?dsn=hbQ2mG8dCYsBmC0cvPE6eVdkD" data-event-endpoint="https://vitals.vercel-analytics.com/v1/event?dsn=hbQ2mG8dCYsBmC0cvPE6eVdkD"></script>
+</head>
+<body>
+  <nav class="nav" id="nav" aria-label="Main">
+    <div class="nav-inner container">
+      <a href="index.html" class="nav-logo"><canvas class="nav-glyph" data-wf="glyph" aria-hidden="true"></canvas><span class="nav-logo-text">OpenVoiceFlow</span></a>
+      <ul class="nav-links">
+        <li><a href="how-it-works.html">How it works</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="https://github.com/shimoverse/openvoiceflow">GitHub ↗</a></li>
+        <li><a href="download.html" class="btn btn-primary">Download</a></li>
+      </ul>
+      <button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer"><span></span><span></span><span></span></button>
+    </div>
+    <div class="nav-drawer" id="navDrawer">
+      <a href="index.html">Home</a>
+      <a href="download.html">Download</a>
+      <a href="install.html">Install</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="download.html" class="btn btn-primary">Download for Mac</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="page-hero"><div class="container hero-inner">
+      <span class="mono-kicker">Privacy · what stays on your Mac</span>
+      <h1 class="hero-title">OpenVoiceFlow privacy</h1>
+      <p class="hero-sub answer-block">OpenVoiceFlow is a native macOS app that runs on your Mac. Your voice is transcribed on-device with WhisperKit and never uploaded. There are no OpenVoiceFlow servers, no accounts, and no telemetry inside the app. This page is the plain-language summary; the full policy lives in <a href="https://github.com/shimoverse/openvoiceflow/blob/main/PRIVACY.md">PRIVACY.md</a>.</p>
+      <div class="page-link-row"><a class="btn btn-primary btn-lg" href="download.html">Download for macOS</a><a class="btn btn-outline btn-lg" href="https://github.com/shimoverse/openvoiceflow/blob/main/PRIVACY.md">Read the full policy ↗</a></div>
+
+      <section class="content-card">
+        <h2>The short version</h2>
+        <ul class="check-list">
+          <li><strong>Your audio never leaves your Mac.</strong> Transcription runs locally with on-device WhisperKit. The recording is discarded the moment the text exists — there is no audio upload, ever.</li>
+          <li><strong>Cleanup is Off by default.</strong> Out of the box you get the raw on-device transcript, pasted as-is. Nothing is sent anywhere.</li>
+          <li><strong>Cloud cleanup is opt-in and bring-your-own-key.</strong> If you turn on OpenRouter cleanup, only the transcript text and your personal context are sent — under your own key, to a provider you contract with directly.</li>
+          <li><strong>API keys live in the macOS Keychain.</strong> Not a plaintext config file — the system Keychain, protected by macOS.</li>
+          <li><strong>No servers, no accounts, no in-app telemetry.</strong> OpenVoiceFlow keeps no copy of anything you dictate.</li>
+        </ul>
+      </section>
+
+      <section class="content-card">
+        <h2>Where your data lives</h2>
+        <p>Everything OpenVoiceFlow stores stays on your Mac:</p>
+        <ul class="check-list">
+          <li><strong>Audio buffers</strong> — held in memory only while you hold the hotkey, transcribed on-device by WhisperKit, then discarded. Never written to a network.</li>
+          <li><strong>Settings, history, and your personal context</strong> (Know-Me profile, dictionary, snippets) — stored locally in the app's Application Support folder.</li>
+          <li><strong>API keys</strong> — stored in the macOS <strong>Keychain</strong>, not in a settings file.</li>
+        </ul>
+        <p>Uninstall the app and clear those items to remove every trace.</p>
+      </section>
+
+      <section class="content-card">
+        <h2>Cleanup backends and what leaves the Mac</h2>
+        <p>The optional cleanup step is where any text can leave your Mac — and only if you choose it:</p>
+        <ul class="check-list">
+          <li><strong>Off (default)</strong> — no cleanup call is made. The raw on-device transcript is pasted directly. Nothing leaves your Mac.</li>
+          <li><strong>Ollama (on-device)</strong> — cleanup runs on your machine through a local model. Nothing leaves your Mac.</li>
+          <li><strong>OpenRouter (cloud gateway, recommended)</strong> — one key routes cleanup to any model OpenRouter hosts. When enabled, the transcript text <em>plus your personal Know-Me profile, dictionary, and snippet context</em> is sent to OpenRouter under your own key. You contract directly with OpenRouter under its terms; OpenVoiceFlow is not in the middle. Your audio is still never sent.</li>
+          <li><strong>OpenAI, Anthropic, or Groq (direct cloud)</strong> — if you prefer a provider directly, cleanup can point at it instead. The same transcript-plus-context is sent to whichever provider you select, under your own key and its terms. Audio is still never sent.</li>
+        </ul>
+      </section>
+
+      <section class="content-card">
+        <h2>Permissions you grant macOS</h2>
+        <p>The app asks for these in System Settings → Privacy &amp; Security. You can revoke them at any time:</p>
+        <ul class="check-list">
+          <li><strong>Microphone</strong> — to capture audio while you hold the hotkey.</li>
+          <li><strong>Accessibility</strong> — to paste the finished text at your cursor.</li>
+          <li><strong>Input Monitoring</strong> — so the push-to-talk hotkey works in every app.</li>
+        </ul>
+      </section>
+
+      <section class="content-card">
+        <h2>This website</h2>
+        <p>The download site uses privacy-friendly <a href="https://vercel.com/docs/analytics/privacy-policy">Vercel Analytics</a> to count anonymous page views and download events. It sets no advertising cookies, builds no cross-site profile, and never links a visit to an individual. This is website measurement only — the app itself contains no analytics or telemetry.</p>
+      </section>
+
+      <section class="content-card">
+        <h2>Open source</h2>
+        <p>OpenVoiceFlow is MIT-licensed and fully open source. If anything on this page does not match what the code actually does, that is a bug — read the <a href="https://github.com/shimoverse/openvoiceflow">source</a> or open a <a href="https://github.com/shimoverse/openvoiceflow/discussions">GitHub Discussion</a>. Security reports go through the process in <a href="https://github.com/shimoverse/openvoiceflow/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+      </section>
+    </div></section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <canvas class="footer-glyph" data-wf="glyph" aria-hidden="true"></canvas>
+      <p class="footer-copy">© 2026 OpenVoiceFlow contributors. MIT License.</p>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="download.html">Download</a>
+        <a href="install.html">Install</a>
+        <a href="how-it-works.html">How it works</a>
+        <a href="https://github.com/shimoverse/openvoiceflow">Source</a>
+        <a href="llms.txt">llms.txt</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>

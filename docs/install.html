@@ -9,7 +9,9 @@
   <meta property="og:description" content="DMG install, source install, permissions, backend setup, and troubleshooting." />
   <meta property="og:url" content="https://openvoiceflow.vercel.app/install.html" />
   <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://openvoiceflow.vercel.app/assets/og-card.png" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://openvoiceflow.vercel.app/assets/og-card.png" />
   <link rel="canonical" href="https://openvoiceflow.vercel.app/install.html" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23E8974E' stroke-width='13' stroke-linecap='round' stroke-dasharray='186 28' transform='rotate(-58 50 50)'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="style.css" />
@@ -46,21 +48,16 @@
     <section class="page-hero"><div class="container hero-inner">
       <span class="mono-kicker">Install guide · macOS 14+</span>
       <h1 class="hero-title">Install OpenVoiceFlow on macOS</h1>
-      <p class="hero-sub answer-block">Install OpenVoiceFlow by downloading the signed macOS DMG from this website. The app needs microphone access, whisper.cpp for local transcription, and either OpenRouter, another LLM provider, Ollama, or no cleanup backend. The MIT-licensed source is also public.</p>
+      <p class="hero-sub answer-block">Install OpenVoiceFlow by downloading the signed macOS DMG from this website. The app transcribes locally with on-device WhisperKit; if you turn on cleanup it sends only text to your chosen cloud LLM — OpenRouter (one key, any model), or OpenAI / Anthropic / Groq with your own key — or runs cleanup locally with Ollama, or you can leave cleanup Off. The MIT-licensed source is also public.</p>
       <div class="page-link-row"><a class="btn btn-primary btn-lg" href="download.html">Download for macOS</a><a class="btn btn-outline btn-lg" href="https://github.com/shimoverse/openvoiceflow">View source ↗</a></div>
 
-      <section class="content-card"><h2>Fast path: DMG install</h2><ol class="step-list"><li>Open <a href="download.html">the download page</a> and pick Apple Silicon or Intel.</li><li>Download the DMG from this website.</li><li>Open the DMG and drag OpenVoiceFlow into Applications.</li><li>Launch OpenVoiceFlow. First launch runs a one-time setup (~5 minutes: speech engine + model) with a progress dialog — grant microphone and accessibility permissions when prompted.</li><li>Look for the monochrome <strong>waveform menu-bar icon</strong> at the top-right; OpenVoiceFlow does not stay in the Dock.</li><li>Click the waveform and choose <strong>Open OpenVoiceFlow</strong> to confirm the app is ready.</li><li>Click in any text field, hold the <strong>Right Command (⌘)</strong> key, speak, then release it to paste the transcription.</li><li>Use the same menu to pause listening, change the dictation shortcut, open permission settings, or check for updates.</li></ol></section>
+      <section class="content-card"><h2>Fast path: DMG install</h2><ol class="step-list"><li>Open <a href="download.html">the download page</a> and pick Apple Silicon or Intel.</li><li>Download the DMG from this website.</li><li>Open the DMG and drag OpenVoiceFlow into Applications.</li><li>Launch OpenVoiceFlow. First launch runs a one-time setup (~5 minutes: on-device WhisperKit model download) with a progress dialog — grant Microphone, Accessibility, and Input Monitoring permissions when prompted.</li><li>Look for the monochrome <strong>waveform menu-bar icon</strong> at the top-right; OpenVoiceFlow does not stay in the Dock.</li><li>Click the waveform and choose <strong>Open OpenVoiceFlow</strong> to confirm the app is ready.</li><li>Click in any text field, hold the <strong>Right Command (⌘)</strong> key, speak, then release it to paste the transcription.</li><li>Use the same menu to pause listening, change the dictation shortcut, open permission settings, or check for updates.</li></ol></section>
 
-      <section class="content-card"><h2>Terminal install from source</h2><code class="code-block">git clone https://github.com/shimoverse/openvoiceflow.git &amp;&amp; cd openvoiceflow &amp;&amp; bash install.sh</code><p>The <a href="https://github.com/shimoverse/openvoiceflow">public GitHub repository</a> is available to everyone. Use the DMG path for the signed app.</p></section>
+      <section class="content-card"><h2>First-run onboarding</h2><p>There is nothing to configure by hand. When you open OpenVoiceFlow for the first time, the built-in onboarding walks you through it:</p><ol class="step-list"><li>Grant <strong>Microphone</strong> access so the app can capture audio while you hold the hotkey.</li><li>Grant <strong>Accessibility</strong> so the cleaned text can be pasted at your cursor.</li><li>Grant <strong>Input Monitoring</strong> so the push-to-talk hotkey works in every app.</li><li>Let the app download the on-device WhisperKit speech model (a one-time download).</li></ol><p>Cleanup starts <strong>Off</strong> (raw on-device transcript). To enable it later, open the menu-bar settings and pick OpenRouter (or another cloud provider) with your key, or local Ollama. Keys are stored in the macOS Keychain.</p></section>
 
-      <section class="content-card"><h2>Manual setup</h2><code class="code-block">brew install whisper-cpp
-git clone https://github.com/shimoverse/openvoiceflow.git &amp;&amp; cd openvoiceflow
-python3 -m venv ~/.openvoiceflow/venv
-~/.openvoiceflow/venv/bin/pip install -e ".[all]"
-openvoiceflow --backend openrouter --set-key openrouter YOUR_KEY_HERE
-openvoiceflow</code></section>
+      <section class="content-card"><h2>Build the app yourself</h2><p>The <a href="https://github.com/shimoverse/openvoiceflow">public GitHub repository</a> is MIT licensed. Clone it and build the native macOS app from source (the Xcode project lives under <code>native/</code>); use the signed website-hosted DMG for the easiest install.</p><code class="code-block">git clone https://github.com/shimoverse/openvoiceflow.git</code></section>
 
-      <section class="content-card"><h2>Troubleshooting</h2><ul class="check-list"><li>If macOS still blocks launch, delete any older unsigned copy and re-download the current signed, Apple-notarized v0.4.0 DMG from this website.</li><li>If the waveform changes to a warning symbol, open <strong>Advanced</strong> in the menu and use the direct Microphone or Accessibility settings links.</li><li>If transcription does not start, confirm microphone permission in macOS System Settings.</li><li>If paste fails, grant Accessibility permission for the app or terminal launching OpenVoiceFlow.</li><li>If cloud cleanup fails, verify your chosen provider key; OpenRouter uses <code>openrouter</code>, not a Gemini API key.</li><li>If you need a fully local flow, choose Ollama or <code>--backend none</code>.</li></ul></section>
+      <section class="content-card"><h2>Troubleshooting</h2><ul class="check-list"><li>If macOS still blocks launch, delete any older unsigned copy and re-download the current signed, Apple-notarized v0.4.1 DMG from this website.</li><li>If the waveform changes to a warning symbol, open <strong>Advanced</strong> in the menu and use the direct Microphone, Accessibility, or Input Monitoring settings links.</li><li>If transcription does not start, confirm microphone permission in macOS System Settings.</li><li>If paste fails, grant Accessibility permission to OpenVoiceFlow in System Settings.</li><li>If cloud cleanup fails, verify your OpenRouter key; OpenRouter uses its own key, not a provider-specific API key.</li><li>If you need a fully local flow, choose Ollama or leave cleanup <strong>Off</strong>.</li></ul></section>
     </div></section>
   </main>
 
@@ -72,6 +69,7 @@ openvoiceflow</code></section>
         <a href="index.html">Home</a>
         <a href="download.html">Download</a>
         <a href="how-it-works.html">How it works</a>
+        <a href="privacy.html">Privacy</a>
         <a href="https://github.com/shimoverse/openvoiceflow">Source</a>
         <a href="llms.txt">llms.txt</a>
       </nav>

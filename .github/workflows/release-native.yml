@@ -52,6 +52,24 @@ jobs:
           if [[ "$BASE_VERSION" != "$PROJ_VERSION" ]]; then
             echo "::error::tag base $BASE_VERSION != native/project.yml MARKETING_VERSION $PROJ_VERSION"; exit 1
           fi
+          # All version sources must agree, and the build number must increment
+          # or Sparkle (which orders updates by CFBundleVersion) won't offer it.
+          PLIST_SHORT="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' native/Info.plist)"
+          PLIST_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' native/Info.plist)"
+          PROJ_BUILD="$(grep -E 'CURRENT_PROJECT_VERSION:' native/project.yml | head -1 | sed -E 's/.*: *"?([0-9]+)"?.*/\1/')"
+          if [[ "$PLIST_SHORT" != "$BASE_VERSION" ]]; then
+            echo "::error::Info.plist CFBundleShortVersionString ($PLIST_SHORT) != tag base ($BASE_VERSION)"; exit 1
+          fi
+          if [[ "$PLIST_BUILD" != "$PROJ_BUILD" ]]; then
+            echo "::error::Info.plist CFBundleVersion ($PLIST_BUILD) != project.yml CURRENT_PROJECT_VERSION ($PROJ_BUILD)"; exit 1
+          fi
+          if [[ -f docs/appcast.xml ]]; then
+            LAST_BUILD="$(grep -oE 'sparkle:version>[0-9]+' docs/appcast.xml | grep -oE '[0-9]+' | sort -n | tail -1 || echo 0)"
+            LAST_BUILD="${LAST_BUILD:-0}"
+            if [[ "$PLIST_BUILD" -le "$LAST_BUILD" ]]; then
+              echo "::error::CFBundleVersion ($PLIST_BUILD) must exceed the last published appcast build ($LAST_BUILD), or Sparkle won't offer the update."; exit 1
+            fi
+          fi
           if [[ "$BASE_VERSION" != "$TAG_VERSION" ]]; then
             echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
           else
@@ -116,11 +134,10 @@ jobs:
           chmod +x native/scripts/build-app.sh
           bash native/scripts/build-app.sh
 
-      - name: Generate Sparkle appcast (if key present)
-        # Non-fatal: the notarized DMG is the critical artifact and must ship
-        # even if appcast signing hiccups (it can be regenerated). A failure
-        # here shows as a red step but never blocks the DMG upload below.
-        continue-on-error: true
+      - name: Generate Sparkle appcast
+        # Required: a signed release must ship a signed update feed, or in-app
+        # updates silently break for everyone. appcast.sh fails loudly if the
+        # Sparkle key is missing, and this step failing fails the release.
         env:
           OVF_VERSION: ${{ steps.classify.outputs.version }}
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}

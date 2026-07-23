@@ -23,8 +23,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # native/
 cd "$HERE"
 
 if [[ -z "${SPARKLE_ED_PRIVATE_KEY:-}" ]]; then
-  echo "▸ SPARKLE_ED_PRIVATE_KEY unset — skipping appcast (DMG still ships)."
-  exit 0
+  echo "::error::SPARKLE_ED_PRIVATE_KEY is required — a release without a signed appcast silently breaks in-app updates for every user."
+  exit 1
 fi
 
 : "${OVF_VERSION:?set OVF_VERSION}"

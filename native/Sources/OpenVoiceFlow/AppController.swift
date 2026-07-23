@@ -123,6 +123,16 @@ final class AppController: ObservableObject {
         if isListening { stopListening(); startListening() }
     }
 
+    /// Change the transcription model at runtime so a Settings change takes
+    /// effect without an app restart: the live `Transcriber` drops its loaded
+    /// model and reloads the new one off the hot path.
+    func updateModel(_ name: String) {
+        guard name != settings.whisperModel else { return }
+        settings.whisperModel = name
+        settings.save()
+        Task { await transcriber.setModel(name) }
+    }
+
     // MARK: dictation loop
 
     private func startRecording() {
@@ -206,10 +216,17 @@ final class AppController: ObservableObject {
     /// Paste, log to history, bump stats, and flash the success HUD.
     private func deliver(_ text: String, app: String) {
         let words = text.split(whereSeparator: \.isWhitespace).count
-        if settings.autoPaste { Paster.paste(text) }
+        // Paste (if enabled). If the synthetic ⌘V couldn't be delivered — e.g.
+        // Accessibility was revoked — Paster keeps the text on the clipboard and
+        // returns false, and we nudge the user to paste it manually.
+        let pasted = settings.autoPaste ? Paster.paste(text) : true
         historyStore.record(app: app, text: text, words: words)
         lastError = nil
-        hud.show(.result(words: words), autoHideAfter: 1.8)  // holds ~1.8 s
+        if pasted {
+            hud.show(.result(words: words), autoHideAfter: 1.8)  // holds ~1.8 s
+        } else {
+            hud.show(.error(.pasteBlocked))
+        }
     }
 
     /// Tell the LLM to echo a snippet trigger verbatim so match() can expand it

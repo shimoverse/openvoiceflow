@@ -544,7 +544,7 @@ struct DashboardView: View {
 
             settingsCard("TRANSCRIPTION — ON THIS MAC") {
                 settingsRow("Whisper model") {
-                    Picker("", selection: bind(\.whisperModel)) {
+                    Picker("", selection: whisperModelBinding) {
                         ForEach(whisperModelOptions, id: \.0) { Text($0.1).tag($0.0) }
                     }
                     .labelsHidden().pickerStyle(.menu).frame(width: 210)
@@ -664,6 +664,12 @@ struct DashboardView: View {
     /// Hotkey needs the tap restarted, so it goes through the controller.
     private var hotkeyBinding: Binding<Hotkey> {
         Binding(get: { controller.settings.hotkey }, set: { controller.updateHotkey($0) })
+    }
+
+    /// Whisper model swaps the live transcriber, so it goes through the controller
+    /// (a plain `bind` would only persist the value, not reload the model).
+    private var whisperModelBinding: Binding<String> {
+        Binding(get: { controller.settings.whisperModel }, set: { controller.updateModel($0) })
     }
 
     /// Cleanup on/off: off ⇒ `.none` (local raw), on ⇒ Anthropic by default.

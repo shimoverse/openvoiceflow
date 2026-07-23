@@ -8,10 +8,23 @@ actor Transcriber {
     typealias DownloadProgressObserver = @Sendable (Double) -> Void
 
     private var kit: WhisperKit?
-    private let modelName: String
+    private var modelName: String
 
     init(model: String = "base.en") {
         self.modelName = model
+    }
+
+    /// Switch the transcription model at runtime so a Settings change takes
+    /// effect without an app restart: drop the loaded model and reload the new
+    /// one. Best-effort — if the reload fails, the next `transcribe` re-tries
+    /// warmUp (and can recover a truncated download). Note the shipped default
+    /// `base.en` is English-only; a non-English language needs a multilingual
+    /// model (the Settings picker offers them).
+    func setModel(_ name: String) async {
+        guard name != modelName else { return }
+        modelName = name
+        kit = nil
+        try? await warmUp()
     }
 
     /// Load the model once (lazily). The observer receives only actual

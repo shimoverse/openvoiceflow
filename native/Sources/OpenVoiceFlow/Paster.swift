@@ -1,4 +1,5 @@
 import AppKit
+import ApplicationServices
 import CoreGraphics
 
 /// Inserts text at the cursor by placing it on the pasteboard and synthesizing
@@ -10,13 +11,27 @@ import CoreGraphics
 enum Paster {
     private static let vKeyCode: CGKeyCode = 0x09  // kVK_ANSI_V
 
-    /// Paste `text` at the current cursor. Preserves the user's clipboard,
-    /// including non-text contents (images/files), by snapshotting and
+    /// Paste `text` at the current cursor and report whether the synthetic paste
+    /// could actually be delivered. Preserves the user's clipboard (including
+    /// non-text contents like images/files) on success by snapshotting and
     /// restoring the pasteboard items.
-    static func paste(_ text: String) {
+    ///
+    /// If the process isn't trusted for Accessibility, `CGEventPost` is silently
+    /// dropped — so rather than paste into the void *and* wipe the clipboard, we
+    /// leave the dictated text on the clipboard (no restore) and return `false`
+    /// so the caller can tell the user to press ⌘V.
+    @discardableResult
+    static func paste(_ text: String) -> Bool {
         let pb = NSPasteboard.general
-        let saved = snapshot(pb)
 
+        guard AXIsProcessTrusted() else {
+            // Can't synthesize ⌘V — keep the text on the clipboard for a manual paste.
+            pb.clearContents()
+            pb.setString(text, forType: .string)
+            return false
+        }
+
+        let saved = snapshot(pb)
         pb.clearContents()
         pb.setString(text, forType: .string)
 
@@ -26,6 +41,7 @@ enum Paster {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             restore(saved, to: pb)
         }
+        return true
     }
 
     private static func sendCommandV() {

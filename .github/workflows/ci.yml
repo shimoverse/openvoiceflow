@@ -99,3 +99,27 @@ jobs:
         # Syntax/type check only (no signing, no linking) so a broken
         # OpenVoiceFlowLauncher.m is caught in CI, not at release time.
         run: clang -fsyntax-only -fobjc-arc -fblocks packaging/OpenVoiceFlowLauncher.m
+
+  # The native Swift app is the shipping product — compile it on every PR so a
+  # broken main is caught here, not at release time (release-native.yml).
+  native-build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"   # Swift 6.1 — WhisperKit 0.18 pulls swift-crypto 4.5.1
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project + build (unsigned)
+        run: |
+          set -euo pipefail
+          cd native
+          xcodegen generate
+          xcodebuild \
+            -project OpenVoiceFlow.xcodeproj \
+            -scheme OpenVoiceFlow \
+            -configuration Debug \
+            -destination 'generic/platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build

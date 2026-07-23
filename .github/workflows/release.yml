@@ -47,6 +47,13 @@ jobs:
           # for the equality comparison: the tag carries the pre-release
           # marker, but pyproject + __init__ stay at the base version.
           BASE_VERSION=$(echo "$TAG_VERSION" | python3 -c "import re,sys; print(re.sub(r'([-.]?)(rc|alpha|beta|dev|a|b)\d+\$', '', sys.stdin.read().strip()))")
+          # The native app took over at 0.4.0 and ships from `native-v*` tags
+          # (release-native.yml). Refuse `v*` tags at 0.4.0+ so an accidental
+          # `v0.4.x` can never publish the retired Python app to PyPI + Releases.
+          if python3 -c "import sys; b='$BASE_VERSION'.split('.'); sys.exit(0 if (int(b[0]), int(b[1]) if len(b)>1 else 0) >= (0,4) else 1)"; then
+            echo "::error::Python (v*) releases are EOL at 0.3.x. The native app uses native-v* tags. Refusing $TAG."
+            exit 1
+          fi
           PYPROJECT_VERSION=$(python3 -c "import re,sys; m=re.search(r'^version\s*=\s*\"([^\"]+)\"', open('pyproject.toml').read(), re.M); print(m.group(1))")
           INIT_VERSION=$(python3 -c "import re; m=re.search(r'__version__\s*=\s*\"([^\"]+)\"', open('voiceflow/__init__.py').read()); print(m.group(1))")
           echo "tag=$TAG_VERSION (base=$BASE_VERSION) pyproject=$PYPROJECT_VERSION init=$INIT_VERSION"

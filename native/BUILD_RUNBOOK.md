@@ -188,8 +188,9 @@ and a full release pipeline exists:
   staple`. Runnable locally: `OVF_NOTARIZE=0 bash native/scripts/build-app.sh`
   for an unsigned smoke build.
 - **`native/scripts/appcast.sh`** — signs the DMG with the Sparkle EdDSA key
-  and writes `dist/appcast.xml`. No-op (release still ships the DMG) until the
-  key exists.
+  and writes `dist/appcast.xml`. **Required:** the release now fails if
+  `SPARKLE_ED_PRIVATE_KEY` is unset (shipping without a signed feed silently
+  breaks in-app updates), so the key must be configured before tagging.
 
 **The only remaining Mac-gated steps** (see `native/RELEASE_NATIVE_RUNBOOK.md`
 for the copy-paste version):

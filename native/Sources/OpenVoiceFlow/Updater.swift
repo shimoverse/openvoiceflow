@@ -1,3 +1,4 @@
+import Combine
 import Sparkle
 
 /// In-app updates via Sparkle 2 with an EdDSA-signed appcast.
@@ -12,10 +13,17 @@ import Sparkle
 /// Store (native/README.md). Until an appcast is hosted and `SUPublicEDKey` is
 /// set, checks simply find nothing — Sparkle refuses unsigned updates by design.
 @MainActor
-final class UpdaterController {
+final class UpdaterController: ObservableObject {
     static let shared = UpdaterController()
 
     private let controller: SPUStandardUpdaterController
+    private var canCheckObservation: NSKeyValueObservation?
+
+    /// Mirrors Sparkle's `canCheckForUpdates` so SwiftUI re-renders the
+    /// "Check for updates now" CTA when a launch/scheduled check finishes —
+    /// otherwise the button, in a persistent window, could stay disabled until
+    /// the view happened to reload.
+    @Published private(set) var canCheckForUpdates = false
 
     private init() {
         // startingUpdater: true → background appcast checks begin immediately.
@@ -26,6 +34,14 @@ final class UpdaterController {
         )
         // Honor the user's saved preference for automatic updates.
         apply(automatic: Settings.load().automaticUpdates)
+        // Keep the published flag in sync with Sparkle's KVO-observable state.
+        canCheckForUpdates = controller.updater.canCheckForUpdates
+        canCheckObservation = controller.updater.observe(
+            \.canCheckForUpdates, options: [.new]
+        ) { [weak self] _, change in
+            guard let value = change.newValue else { return }
+            Task { @MainActor in self?.canCheckForUpdates = value }
+        }
     }
 
     /// The running app's marketing version (e.g. "0.4.2"), read from the bundle
@@ -33,9 +49,6 @@ final class UpdaterController {
     var appVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
     }
-
-    /// Disabled while a check is already running (drives the menu item's state).
-    var canCheckForUpdates: Bool { controller.updater.canCheckForUpdates }
 
     /// Manual "Check for Updates…" / "Check for updates now" — shows Sparkle's
     /// standard UI so an on-demand check always has clear feedback.

@@ -15,6 +15,9 @@ struct DashboardView: View {
     @ObservedObject private var snippets: SnippetStore
     @ObservedObject private var styleStore: StyleStore
     @ObservedObject private var profileStore: ProfileStore
+    // Observe the updater so the "Check for updates now" CTA re-enables when a
+    // background check finishes.
+    @ObservedObject private var updater = UpdaterController.shared
     @State private var pane: Pane = .home
     @State private var showInterview = false
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
@@ -99,8 +102,8 @@ struct DashboardView: View {
             HStack(spacing: 6) {
                 Circle().fill(DT.moss).frame(width: 6, height: 6)
                 Text(controller.settings.automaticUpdates
-                     ? "v\(UpdaterController.shared.appVersion) · auto-updating"
-                     : "v\(UpdaterController.shared.appVersion)")
+                     ? "v\(updater.appVersion) · auto-updating"
+                     : "v\(updater.appVersion)")
                     .font(.system(size: 11)).foregroundStyle(ink2)
             }
             .padding(.bottom, 12)
@@ -567,11 +570,11 @@ struct DashboardView: View {
                     .font(.system(size: 12))
                 }
                 settingsToggle("Automatic updates", isOn: autoUpdateBinding)
-                settingsRow("You're on v\(UpdaterController.shared.appVersion)") {
-                    Button("Check for updates now") { UpdaterController.shared.checkForUpdates() }
+                settingsRow("You're on v\(updater.appVersion)") {
+                    Button("Check for updates now") { updater.checkForUpdates() }
                         .buttonStyle(.plain).foregroundStyle(DT.emberLight)
                         .font(.system(size: 12))
-                        .disabled(!UpdaterController.shared.canCheckForUpdates)
+                        .disabled(!updater.canCheckForUpdates)
                 }
             }
         }

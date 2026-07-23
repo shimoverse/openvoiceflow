@@ -237,9 +237,12 @@ final class HistoryStore: ObservableObject {
     @Published private(set) var entries: [HistoryEntry] { didSet { AppSupport.save(entries, to: "history.json") } }
     /// Persisted daily word totals keyed by yyyy-MM-dd (for the week chart + streak).
     @Published private(set) var dailyWords: [String: Int] { didSet { AppSupport.save(dailyWords, to: "stats.json") } }
-    /// Persisted lifetime word totals keyed by app name (for the per-app
+    /// Persisted running word totals keyed by app name (for the per-app
     /// breakdown). Kept separately from `entries` because `entries` is capped at
-    /// `maxEntries`, so it can't hold a lifetime total on its own.
+    /// `maxEntries`; this counter isn't capped, so it keeps accumulating past
+    /// that. Note the initial seed can only cover the entries still on disk (see
+    /// init) — a pre-existing heavy user's discarded takes aren't recoverable, so
+    /// the breakdown is framed as a distribution, not a complete all-time total.
     @Published private(set) var appWords: [String: Int] { didSet { AppSupport.save(appWords, to: "app_stats.json") } }
 
     private static let maxEntries = 500
@@ -248,8 +251,10 @@ final class HistoryStore: ObservableObject {
         let loadedEntries = AppSupport.load([HistoryEntry].self, from: "history.json") ?? []
         entries = loadedEntries
         dailyWords = AppSupport.load([String: Int].self, from: "stats.json") ?? [:]
-        // Seed the lifetime per-app totals from whatever history exists so the
-        // breakdown isn't empty for existing users; from then on it accumulates.
+        // Seed the per-app totals from whatever recent history is still on disk
+        // (entries are capped at maxEntries, so an existing heavy user's older
+        // takes can't be recovered) so the breakdown isn't empty on first run;
+        // from then on it accumulates exactly, take by take.
         if let saved = AppSupport.load([String: Int].self, from: "app_stats.json") {
             appWords = saved
         } else {
@@ -268,9 +273,9 @@ final class HistoryStore: ObservableObject {
 
     func clearAll() { entries = []; dailyWords = [:]; appWords = [:] }
 
-    /// Lifetime word totals per app, largest first, each with its share of the
-    /// grand total. Powers the "Where you dictate" breakdown. Empty until there
-    /// is at least one recorded word.
+    /// Word totals per app (a running count, seeded from recent history),
+    /// largest first, each with its share of the total. Powers the "Where you
+    /// dictate" breakdown. Empty until there is at least one recorded word.
     var appDistribution: [(app: String, words: Int, fraction: Double)] {
         let total = appWords.values.reduce(0, +)
         guard total > 0 else { return [] }

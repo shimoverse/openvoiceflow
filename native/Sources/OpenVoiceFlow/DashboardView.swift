@@ -255,7 +255,7 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 8) {
                     Text("Where you dictate").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
-                    Text("by words, all time").font(.system(size: 11)).foregroundStyle(ink2)
+                    Text("by words").font(.system(size: 11)).foregroundStyle(ink2)
                 }
                 GeometryReader { geo in
                     HStack(spacing: 1.5) {

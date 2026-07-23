@@ -64,7 +64,7 @@ OpenVoiceFlow itself is **not** a sub-processor of your data. We have no servers
 
 The third parties your install can talk to:
 
-- **OpenRouter** (`openrouter.ai`) — the recommended cloud gateway. **Only if** you enable OpenRouter cleanup, it receives your transcript plus your profile / dictionary / snippet context every time you dictate. One OpenRouter key reaches any model it hosts (the default model is `google/gemma-4-31b-it`). Governed by OpenRouter's terms.
+- **OpenRouter** (`openrouter.ai`) — the recommended cloud gateway. **Only if** you enable OpenRouter cleanup, it receives your transcript plus your profile / dictionary / snippet context every time you dictate. One OpenRouter key reaches any model it hosts (you pick the model in the app). Governed by OpenRouter's terms.
 - **Other cloud providers** — some builds also let you point cleanup directly at Anthropic, OpenAI, or Groq instead of OpenRouter. Whichever provider you select is the one that receives your transcript + context, under your own API key. OpenRouter is the recommended path.
 - **Ollama** (`http://localhost:11434` by default) — runs on your machine. No third party.
 - **Off** — no cleanup call. The raw WhisperKit output is pasted without cleanup.
@@ -91,7 +91,7 @@ Every privacy-relevant default is a toggle in the app's menu-bar settings. There
 
 | Setting | Default | What it controls |
 |---|---|---|
-| **Cleanup backend** | **Off** | Whether — and how — your transcript is cleaned up. Off = raw local transcript; Ollama = local model; OpenRouter = cloud gateway with your key. |
+| **Cleanup backend** | **Off** | Whether — and how — your transcript is cleaned up. Off = raw local transcript; Ollama = local model; OpenRouter (or OpenAI / Anthropic / Groq) = cloud cleanup with your key. |
 | **Auto-learn** | **off** | Reads the focused text field briefly post-paste to learn corrections. |
 | **Voice commands** | on | Replaces spoken punctuation phrases ("new line", "comma") locally, before any cleanup call. |
 | **Update check (Sparkle)** | on | Checks the signed appcast for a newer build. |

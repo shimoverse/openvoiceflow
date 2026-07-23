@@ -76,7 +76,8 @@
         <ul class="check-list">
           <li><strong>Off (default)</strong> — no cleanup call is made. The raw on-device transcript is pasted directly. Nothing leaves your Mac.</li>
           <li><strong>Ollama (on-device)</strong> — cleanup runs on your machine through a local model. Nothing leaves your Mac.</li>
-          <li><strong>OpenRouter (cloud gateway)</strong> — one key routes cleanup to any model OpenRouter hosts. When enabled, the transcript text <em>plus your personal Know-Me profile, dictionary, and snippet context</em> is sent to OpenRouter under your own key. You contract directly with OpenRouter under its terms; OpenVoiceFlow is not in the middle. Your audio is still never sent.</li>
+          <li><strong>OpenRouter (cloud gateway, recommended)</strong> — one key routes cleanup to any model OpenRouter hosts. When enabled, the transcript text <em>plus your personal Know-Me profile, dictionary, and snippet context</em> is sent to OpenRouter under your own key. You contract directly with OpenRouter under its terms; OpenVoiceFlow is not in the middle. Your audio is still never sent.</li>
+          <li><strong>OpenAI, Anthropic, or Groq (direct cloud)</strong> — if you prefer a provider directly, cleanup can point at it instead. The same transcript-plus-context is sent to whichever provider you select, under your own key and its terms. Audio is still never sent.</li>
         </ul>
       </section>
 

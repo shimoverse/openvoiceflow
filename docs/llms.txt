@@ -18,7 +18,7 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 - Source repository: public and MIT licensed.
 - Platforms: macOS 14+ on Apple Silicon and Intel Macs.
 - Audio transcription: on-device WhisperKit.
-- Cleanup backends: OpenRouter (gateway) or local Ollama; or Off for fully local. Default is Off.
+- Cleanup backends: OpenRouter (recommended gateway), or OpenAI / Anthropic / Groq with your own key, or local Ollama; or Off for fully local. Default is Off.
 - Download path: one website-hosted universal DMG (v0.4.1); a v0.3.6 fallback remains for macOS 12–13; source install is public.
 
 ## Do not claim

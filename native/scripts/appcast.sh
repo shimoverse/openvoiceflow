@@ -8,14 +8,14 @@
 #
 # Env:
 #   OVF_VERSION            marketing version (e.g. 0.4.0)          [required]
-#   OVF_BUILD              CFBundleVersion / sparkle:version       [default 1]
-#   SPARKLE_ED_PRIVATE_KEY the exported EdDSA private key string   [required]
+#   OVF_BUILD              CFBundleVersion / sparkle:version       [default: read from Info.plist]
+#   SPARKLE_ED_PRIVATE_KEY the exported EdDSA private key string   [REQUIRED — fails if unset]
 #   OVF_DOWNLOAD_BASE      URL prefix the DMG will be served from
 #                          [default https://openvoiceflow.vercel.app/downloads]
 #   SPARKLE_VERSION        Sparkle release to pull sign_update from [default 2.9.4]
 #
-# No-op (exit 0) if SPARKLE_ED_PRIVATE_KEY is unset — the release still ships a
-# notarized DMG; the appcast simply waits for the key.
+# REQUIRED for a release: fails loudly if SPARKLE_ED_PRIVATE_KEY is unset, since
+# shipping a DMG without a signed appcast silently breaks in-app updates.
 #
 set -euo pipefail
 
@@ -23,8 +23,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # native/
 cd "$HERE"
 
 if [[ -z "${SPARKLE_ED_PRIVATE_KEY:-}" ]]; then
-  echo "▸ SPARKLE_ED_PRIVATE_KEY unset — skipping appcast (DMG still ships)."
-  exit 0
+  echo "::error::SPARKLE_ED_PRIVATE_KEY is required — a release without a signed appcast silently breaks in-app updates for every user."
+  exit 1
 fi
 
 : "${OVF_VERSION:?set OVF_VERSION}"

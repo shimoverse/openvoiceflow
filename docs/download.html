@@ -9,7 +9,9 @@
   <meta property="og:description" content="Website-hosted DMG downloads, SHA-256 checksums, and source access notes for OpenVoiceFlow." />
   <meta property="og:url" content="https://openvoiceflow.vercel.app/download.html" />
   <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://openvoiceflow.vercel.app/assets/og-card.png" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://openvoiceflow.vercel.app/assets/og-card.png" />
   <link rel="canonical" href="https://openvoiceflow.vercel.app/download.html" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23E8974E' stroke-width='13' stroke-linecap='round' stroke-dasharray='186 28' transform='rotate(-58 50 50)'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="style.css" />
@@ -18,7 +20,7 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "OpenVoiceFlow",
-    "description": "Free push-to-talk voice dictation for macOS with local whisper.cpp transcription and optional LLM cleanup.",
+    "description": "Free push-to-talk voice dictation for macOS with local on-device WhisperKit transcription and optional LLM cleanup.",
     "operatingSystem": "macOS 14+",
     "applicationCategory": "UtilitiesApplication",
     "softwareVersion": "0.4.1",
@@ -100,7 +102,7 @@
 
       <section class="content-card"><h2>Download notes and limitations</h2><ul class="check-list"><li>The primary website-hosted DMG is the verified OpenVoiceFlow v0.4.1 GitHub Release asset.</li><li>OpenVoiceFlow v0.4.1 supports macOS 14+ on Apple Silicon and Intel. Windows and Linux downloads are not currently available.</li><li>The 0.4.1 universal DMG is signed with Developer ID, Apple-notarized, and stapled so Gatekeeper can verify it offline.</li><li>For macOS 12–13, the retained <a href="downloads/OpenVoiceFlow-0.3.6-arm64.dmg">OpenVoiceFlow 0.3.6 Apple Silicon fallback</a> remains available.</li></ul></section>
 
-      <section class="content-card"><h2>Download FAQ</h2><h3>Is the source repository public?</h3><p>Yes. OpenVoiceFlow is MIT-licensed and open source on <a href="https://github.com/shimoverse/openvoiceflow">GitHub</a>. The website-hosted DMGs are the easiest signed install.</p><h3>Does OpenVoiceFlow send audio to the cloud?</h3><p>No. Audio transcription runs locally through whisper.cpp. Cleaned transcript text only goes to a cloud LLM if you choose a cloud backend.</p><h3>Which backend should I choose?</h3><p>The current default cloud cleanup path is OpenRouter Gemma 4. Ollama and the &ldquo;none&rdquo; backend keep cleanup local/no-cloud.</p></section>
+      <section class="content-card"><h2>Download FAQ</h2><h3>Is the source repository public?</h3><p>Yes. OpenVoiceFlow is MIT-licensed and open source on <a href="https://github.com/shimoverse/openvoiceflow">GitHub</a>. The website-hosted DMGs are the easiest signed install.</p><h3>Does OpenVoiceFlow send audio to the cloud?</h3><p>No. Audio transcription runs locally through on-device WhisperKit. Cleaned transcript text only goes to a cloud LLM if you turn on cloud cleanup.</p><h3>Which backend should I choose?</h3><p>Cleanup is Off by default (raw on-device transcript). Turn it on and pick OpenRouter — a cloud gateway where one key reaches any model — or local Ollama to keep cleanup fully on-device.</p></section>
     </div></section>
   </main>
 
@@ -112,6 +114,7 @@
         <a href="index.html">Home</a>
         <a href="install.html">Install</a>
         <a href="how-it-works.html">How it works</a>
+        <a href="privacy.html">Privacy</a>
         <a href="https://github.com/shimoverse/openvoiceflow">Source</a>
         <a href="llms.txt">llms.txt</a>
       </nav>

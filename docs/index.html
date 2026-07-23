@@ -4,15 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OpenVoiceFlow — Free Voice Dictation for macOS</title>
-  <meta name="description" content="Free push-to-talk voice dictation for macOS. Audio transcription runs locally with whisper.cpp; optional LLM cleanup uses the backend you choose." />
+  <meta name="description" content="Free push-to-talk voice dictation for macOS. Audio transcription runs locally with WhisperKit; optional LLM cleanup uses the backend you choose." />
   <meta name="keywords" content="voice dictation macOS, Wispr Flow alternative, whisper dictation, free voice dictation mac, local transcription" />
   <meta property="og:title" content="OpenVoiceFlow — Free Voice Dictation for macOS" />
-  <meta property="og:description" content="Speak. It types. Free forever, and your audio never leaves your Mac. Push-to-talk dictation with local whisper.cpp transcription." />
+  <meta property="og:description" content="Speak. It types. Free forever, and your audio never leaves your Mac. Push-to-talk dictation with local on-device WhisperKit transcription." />
   <meta property="og:url" content="https://openvoiceflow.vercel.app/" />
   <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://openvoiceflow.vercel.app/assets/og-card.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="OpenVoiceFlow — Free Voice Dictation for macOS" />
   <meta name="twitter:description" content="Free voice dictation for macOS. $0 forever." />
+  <meta name="twitter:image" content="https://openvoiceflow.vercel.app/assets/og-card.png" />
   <link rel="canonical" href="https://openvoiceflow.vercel.app/" />
 
   <!-- Waveform-ring favicon (brand glyph) -->
@@ -27,19 +29,16 @@
     "@type": "SoftwareApplication",
     "name": "OpenVoiceFlow",
     "description": "Free voice dictation for macOS",
-    "operatingSystem": "macOS",
+    "operatingSystem": "macOS 14+",
     "applicationCategory": "UtilitiesApplication",
-    "softwareVersion": "0.3.6",
+    "softwareVersion": "0.4.1",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
     },
     "url": "https://openvoiceflow.vercel.app/",
-    "downloadUrl": [
-      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.6-arm64.dmg",
-      "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.3.6-x86_64.dmg"
-    ]
+    "downloadUrl": "https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.1.dmg"
   }
   </script>
   <script>
@@ -73,13 +72,13 @@
     <!-- ─── 1 · Hero ───────────────────────────────────────── -->
     <section class="container hero-inner" aria-label="Introduction">
       <span class="hero-badge"><span class="badge-dot"></span>FREE FOREVER · 100% LOCAL AUDIO · OPEN SOURCE</span>
-      <h1 class="hero-title">Speak. It types.<br />Nothing leaves your&nbsp;Mac.</h1>
+      <h1 class="hero-title">Speak. It types.<br />Your voice stays on your&nbsp;Mac.</h1>
       <p class="hero-sub answer-block">OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. Hold a key, talk, release — polished text lands in any app.</p>
       <div class="hero-cta-row">
         <a class="btn btn-primary btn-lg" href="download.html">Download for Mac</a>
         <a class="btn btn-outline btn-lg" href="how-it-works.html">See how it works</a>
       </div>
-      <div class="hero-trust">Signed &amp; notarized · macOS 12+ · Apple Silicon &amp; Intel · no account, ever</div>
+      <div class="hero-trust">Signed &amp; notarized · macOS 14+ · Apple Silicon &amp; Intel · no account, ever</div>
 
       <div class="hero-demo" aria-hidden="true">
         <div class="typed-box"><span id="typedDemo">Ship the beta tonight — the release notes are already in the doc.</span><span class="caret"></span></div>
@@ -176,7 +175,7 @@
         <div class="stat-card"><div class="stat-value">$0</div><div class="stat-label">Annual cost</div></div>
         <div class="stat-card stat-accent"><div class="stat-value">$144</div><div class="stat-label">Saved every year</div></div>
         <div class="stat-card"><div class="stat-value">MIT</div><div class="stat-label">License</div></div>
-        <div class="stat-card"><div class="stat-value">6</div><div class="stat-label">Cleanup backends</div></div>
+        <div class="stat-card"><div class="stat-value">∞</div><div class="stat-label">Cleanup models via OpenRouter</div></div>
       </div>
       <div class="compare-table">
         <div class="compare-grid">
@@ -198,14 +197,11 @@
       <h2 class="section-title">Pick your backend.</h2>
       <p class="section-sub">Fully local to ultra-fast API. You decide what runs where.</p>
       <div class="card-grid backend-grid">
-        <div class="card backend-card is-flagged"><div class="backend-head"><span class="mono-kicker">OpenRouter Gemma 4</span><span class="backend-flag">DEFAULT CLOUD PATH</span></div><div class="backend-meta"><span class="backend-cost">Free tier available</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">Gemma 4 through OpenRouter, with your key.</div><code class="code-block backend-cmd">openvoiceflow --backend openrouter --set-key openrouter YOUR_KEY</code></div>
-        <div class="card backend-card"><span class="mono-kicker">Groq</span><div class="backend-meta"><span class="backend-cost">Free tier / ~$1 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">Fastest inference around.</div><code class="code-block backend-cmd">openvoiceflow --set-key groq YOUR_KEY</code></div>
-        <div class="card backend-card"><span class="mono-kicker">OpenAI</span><div class="backend-meta"><span class="backend-cost">~$5 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">GPT-4o mini for nuanced rewrites.</div><code class="code-block backend-cmd">openvoiceflow --set-key openai YOUR_KEY</code></div>
-        <div class="card backend-card"><span class="mono-kicker">Claude</span><div class="backend-meta"><span class="backend-cost">~$5 per yr</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">Exceptional writing quality and tone.</div><code class="code-block backend-cmd">openvoiceflow --set-key claude YOUR_KEY</code></div>
-        <div class="card backend-card is-flagged is-local"><div class="backend-head"><span class="mono-kicker">Ollama</span><span class="backend-flag local">100% LOCAL</span></div><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Fully offline, any local model.</div><code class="code-block backend-cmd">openvoiceflow --backend ollama</code></div>
-        <div class="card backend-card is-local"><span class="mono-kicker">None — Whisper only</span><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Raw Whisper. Zero extras.</div><code class="code-block backend-cmd">openvoiceflow --backend none</code></div>
+        <div class="card backend-card is-flagged"><div class="backend-head"><span class="mono-kicker">OpenRouter</span><span class="backend-flag">CLOUD GATEWAY</span></div><div class="backend-meta"><span class="backend-cost">One key, any model</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">A single OpenRouter key routes cleanup to any model it hosts. Defaults to Gemma 4.</div></div>
+        <div class="card backend-card is-flagged is-local"><div class="backend-head"><span class="mono-kicker">Ollama</span><span class="backend-flag local">ON-DEVICE</span></div><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Fully offline cleanup with any local model.</div></div>
+        <div class="card backend-card is-local"><div class="backend-head"><span class="mono-kicker">Off</span><span class="backend-flag local">RAW TRANSCRIPT</span></div><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Raw on-device transcript, pasted as-is. The default.</div></div>
       </div>
-      <p class="backend-note"><strong>All options:</strong> audio transcription is <em>always</em> local. Only cleanup can touch an API — if you choose one.</p>
+      <p class="backend-note"><strong>All options:</strong> audio transcription is <em>always</em> on-device. Only cloud cleanup touches an API — and only if you turn it on.</p>
     </section>
 
     <!-- ─── 8 · Install ────────────────────────────────────── -->
@@ -231,15 +227,15 @@
       </details>
       <details>
         <summary>Does AI cleanup send my text to the cloud?</summary>
-        <p>Only if you add your own API key — the default cloud path is OpenRouter Gemma 4. Choose Ollama or turn cleanup off for fully on-device. Audio never goes anywhere, regardless.</p>
+        <p>Cleanup is <strong>Off</strong> by default, so the raw on-device transcript is pasted as-is. Turn on cleanup and pick OpenRouter (gateway) with your own key, or local Ollama for fully on-device. Audio never goes anywhere, regardless.</p>
       </details>
       <details>
         <summary>Which Macs?</summary>
-        <p>macOS 12 Monterey or newer. Apple Silicon flies; Intel works with smaller models.</p>
+        <p>macOS 14 Sonoma or newer. Apple Silicon flies; Intel works with smaller models.</p>
       </details>
       <details>
         <summary>Where does my data live?</summary>
-        <p>In <code>~/.openvoiceflow</code> on your Mac. Delete that folder and every trace is gone.</p>
+        <p>Settings and history stay in Application Support on your Mac, and API keys live in the macOS Keychain. Uninstall the app and remove those to erase every trace.</p>
       </details>
     </section>
 
@@ -252,7 +248,7 @@
           <a class="btn btn-primary btn-lg" href="download.html">Download for Mac — Free</a>
           <a class="btn btn-outline btn-lg" href="install.html">Install guide</a>
         </div>
-        <p class="cta-footnote">macOS 12+ · Monterey → Sequoia · Apple Silicon &amp; Intel</p>
+        <p class="cta-footnote">macOS 14+ · Sonoma → Sequoia · Apple Silicon &amp; Intel</p>
       </div>
     </section>
   </main>
@@ -266,6 +262,7 @@
         <a href="download.html">Download</a>
         <a href="install.html">Install</a>
         <a href="how-it-works.html">How it works</a>
+        <a href="privacy.html">Privacy</a>
         <a href="https://github.com/shimoverse/openvoiceflow">Source</a>
         <a href="llms.txt">llms.txt</a>
       </nav>

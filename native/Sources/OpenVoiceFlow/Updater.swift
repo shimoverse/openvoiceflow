@@ -24,18 +24,33 @@ final class UpdaterController {
             updaterDelegate: nil,
             userDriverDelegate: nil
         )
-        // Honor the user's saved preference for background checks.
-        controller.updater.automaticallyChecksForUpdates = Settings.load().automaticUpdates
+        // Honor the user's saved preference for automatic updates.
+        apply(automatic: Settings.load().automaticUpdates)
+    }
+
+    /// The running app's marketing version (e.g. "0.4.2"), read from the bundle
+    /// so the UI never hardcodes it.
+    var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
     }
 
     /// Disabled while a check is already running (drives the menu item's state).
     var canCheckForUpdates: Bool { controller.updater.canCheckForUpdates }
 
-    /// Manual "Check for Updates…" — shows Sparkle's standard UI.
+    /// Manual "Check for Updates…" / "Check for updates now" — shows Sparkle's
+    /// standard UI so an on-demand check always has clear feedback.
     func checkForUpdates() { controller.checkForUpdates(nil) }
 
-    /// Toggle background appcast checks (Settings ▸ Automatic updates).
-    func setAutomaticChecks(_ enabled: Bool) {
-        controller.updater.automaticallyChecksForUpdates = enabled
+    /// Toggle automatic updates (Settings ▸ Automatic updates): both the daily
+    /// scheduled check and the silent background download+install.
+    func setAutomaticChecks(_ enabled: Bool) { apply(automatic: enabled) }
+
+    /// "Automatic" means check on the schedule AND download+install in the
+    /// background (installed on next relaunch). Sparkle requires downloads to be
+    /// gated behind checks, so both flip together. Signature + notarization are
+    /// still verified before any install.
+    private func apply(automatic: Bool) {
+        controller.updater.automaticallyChecksForUpdates = automatic
+        controller.updater.automaticallyDownloadsUpdates = automatic
     }
 }

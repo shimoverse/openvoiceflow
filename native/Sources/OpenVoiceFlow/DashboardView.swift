@@ -98,7 +98,10 @@ struct DashboardView: View {
 
             HStack(spacing: 6) {
                 Circle().fill(DT.moss).frame(width: 6, height: 6)
-                Text("v0.4.0 · up to date").font(.system(size: 11)).foregroundStyle(ink2)
+                Text(controller.settings.automaticUpdates
+                     ? "v\(UpdaterController.shared.appVersion) · auto-updating"
+                     : "v\(UpdaterController.shared.appVersion)")
+                    .font(.system(size: 11)).foregroundStyle(ink2)
             }
             .padding(.bottom, 12)
         }
@@ -564,6 +567,12 @@ struct DashboardView: View {
                     .font(.system(size: 12))
                 }
                 settingsToggle("Automatic updates", isOn: autoUpdateBinding)
+                settingsRow("You're on v\(UpdaterController.shared.appVersion)") {
+                    Button("Check for updates now") { UpdaterController.shared.checkForUpdates() }
+                        .buttonStyle(.plain).foregroundStyle(DT.emberLight)
+                        .font(.system(size: 12))
+                        .disabled(!UpdaterController.shared.canCheckForUpdates)
+                }
             }
         }
         .frame(maxWidth: 620, alignment: .leading)

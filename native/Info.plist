@@ -20,7 +20,12 @@
     <!-- Sparkle in-app updates. The appcast is served from the website root. -->
     <key>SUFeedURL</key><string>https://openvoiceflow.vercel.app/appcast.xml</string>
     <key>SUEnableInstallerLauncherService</key><false/>
-    <!-- Only check on launch/schedule, never auto-download silently. -->
+    <!-- Keep-me-updated by default: check on launch + once a day, and download
+         AND install new signed builds automatically (applied on the next
+         relaunch) so the user never hunts for a DMG. Sparkle still verifies each
+         build's EdDSA signature + Developer-ID notarization before installing.
+         The user can turn this off in Settings ▸ Automatic updates. -->
+    <key>SUAutomaticallyUpdate</key><true/>
     <key>SUScheduledCheckInterval</key><integer>86400</integer>
     <!--
       SUPublicEDKey: the EdDSA public key that verifies appcast signatures.

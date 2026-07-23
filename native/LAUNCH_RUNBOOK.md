@@ -1,280 +1,214 @@
-# Launch runbook — OpenVoiceFlow native 0.4.2 (Mac-gated finish line)
+# Launch runbook — OpenVoiceFlow native (Mac-gated finish line)
 
 **Audience:** the Mac-equipped agent/dev (Meeru / Harmi).
-**Goal:** take the native macOS app from "compiles in CI, never run on a real
-Mac" to a **shipped, signed, notarized, auto-updating 0.4.2 release** with the
-website flipped to match.
-
-Everything below is here because it **cannot be done from the Linux CI agent**:
-it needs a real Mac (to run the app, grant TCC permissions, generate the Sparkle
-keypair) or push rights to create a git tag (the Linux agent is blocked from tag
-pushes by the proxy). The Swift itself is authored and compiles; your job is to
-*prove it works on a device* and *ship it*.
+**Bottom line:** the native app **0.4.1 is already built, signed, notarized,
+published, self-hosted on the website, and wired for Sparkle auto-update.** The
+one thing standing between "published" and "safe to tell end users to install"
+is a **real on-device run** — which only a Mac can do. Everything else here is
+merge hygiene and next-release polish.
 
 ---
 
-## 0. Where things stand (read first)
+## 0. What is ALREADY done (do not redo these)
 
-- **`main`** is the native app baseline. Its Swift **compiles in CI** — PR #39
-  added a `native-build` job (macos-15 / Xcode 16.4: `xcodegen generate` +
-  `xcodebuild … build`, unsigned Debug) that runs on every PR. So "does it
-  compile" is now enforced automatically; **"does it work on a device" is what
-  only you can answer.**
-- **Three PRs are staged for the 0.4.2 launch** (all target `main`):
-  | PR | Branch | What | State |
-  | --- | --- | --- | --- |
-  | **#37** | `claude/native-openrouter-gateway` | OpenRouter as the single cloud cleanup gateway; version bump **0.4.2 / build 3** | **draft** |
-  | **#38** | `claude/launch-hardening-site` | Website accuracy + legal (WhisperKit, macOS 14+, privacy page, headline fix) | open |
-  | **#39** | `claude/launch-hardening-ops` | Release-ops hardening (guard legacy `v*`, native CI build, version discipline, required appcast) | open |
-- **Last published native tag:** `native-v0.4.1`. **Next:** `native-v0.4.2`
-  (`CFBundleVersion` **3** — Sparkle orders by build number, so 0.4.1 users only
-  auto-update if 3 > the build behind `native-v0.4.1`). No `native-v0.4.2` tag
-  exists yet — **you create it.**
-- **Signing/notarization is already automated** on the GitHub `macos-15`
-  runners using the *same* Apple secrets the Python release uses. You do **not**
-  need to sign locally. The one new secret is `SPARKLE_ED_PRIVATE_KEY` (§2).
+Verified against the live release and site on 2026-07-23:
 
----
+- ✅ **`native-v0.4.1` is a published GitHub Release** with a **Developer-ID-
+  signed, Apple-notarized** `OpenVoiceFlow-0.4.1.dmg` (universal, ~5.2 MB).
+- ✅ **The website already serves it.** `docs/downloads/OpenVoiceFlow-0.4.1.dmg`
+  and `docs/appcast.xml` are committed; both return **HTTP 200** live at
+  `https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.1.dmg` and
+  `…/appcast.xml`.
+- ✅ **Sparkle auto-update is fully wired.** `Info.plist` has `SUFeedURL`
+  (site-root appcast) and a real `SUPublicEDKey`. The private half is the repo
+  secret `SPARKLE_ED_PRIVATE_KEY`, and the **published appcast is signed**
+  (`sparkle:edSignature=…`, `sparkle:version=2`, `minimumSystemVersion=14.0`).
+- ✅ **The Swift compiles in CI** — PR #39 adds a `native-build` job (macos-15 /
+  Xcode 16.4) that `xcodegen`+`xcodebuild`-compiles the app on every PR.
 
-## 1. Critical path (the only hard blockers to launch)
+> ⚠️ **DO NOT regenerate the Sparkle keypair.** The key in `Info.plist` is live;
+> existing installs verify updates against it. A new keypair would break
+> auto-update for every shipped 0.4.1 copy. (An old code comment used to say the
+> key was "deliberately absent" — that's stale; it's present and in use.)
 
-Do these in order. 1–2 are one-time setup; 3–6 are the release itself.
-
-### 1.1 Land the three 0.4.2 PRs onto `main`
-
-Recommended: **bundle #37 + #38 + #39 into one 0.4.2 launch** so the site, the
-app, and the ops guards all describe the same version at once. Order:
-
-1. Merge **#39** first (ops) if not already in — it's what makes CI compile the
-   Swift and enforces version agreement at tag time. Harmless on its own.
-2. Merge **#37** (the app + the 0.4.2/build-3 bump). CI's `native-build` job
-   will compile it; if it goes green, the OpenRouter changes build clean.
-   **Flip #37 out of draft** before merging.
-3. Merge **#38** (website) — or hold it until the DMG is live (step 6) so the
-   download link never points at a release that doesn't exist yet. Either works;
-   holding is slightly safer.
-
-> If you'd rather not bundle: #38's site copy already describes 0.4.2-era
-> behavior (OpenRouter-only cleanup), so shipping it **before** 0.4.2 is live
-> would briefly overstate what 0.4.1 users have. Bundling avoids that skew.
-
-### 1.2 Local device build + smoke test (§3 has the full checklist)
-
-Before tagging, build and run on a real Mac from the merged `main`:
-
-```bash
-cd native
-xcodegen generate
-open OpenVoiceFlow.xcodeproj     # or: bash scripts/build-app.sh with OVF_NOTARIZE=0
-```
-
-Run the app, walk onboarding, grant the three permissions, and **verify the full
-loop end-to-end** (hold hotkey → speak → release → polished text pastes at the
-cursor). The full smoke checklist is §3. **Do not tag until the loop works on a
-device** — CI cannot do this.
-
-### 1.3 Generate the Sparkle keypair (one-time) — §2
-
-Without it the release **fails** now (PR #39 made the appcast step required).
-Do §2 once, commit the public key, add the private key as a repo secret.
-
-### 1.4 Tag the release candidate, then the release
-
-```bash
-# from an up-to-date main that includes #37 (0.4.2 / build 3)
-git tag native-v0.4.2-rc1 && git push origin native-v0.4.2-rc1   # exercise the pipeline
-# …verify the rc release artifacts (below), then:
-git tag native-v0.4.2      && git push origin native-v0.4.2
-```
-
-`release-native.yml` fires on `native-v*`: it builds a **universal,
-Developer-ID-signed, Apple-notarized, stapled DMG**, generates the Sparkle
-appcast, and attaches both to the GitHub Release. The `-rc1` suffix marks it a
-pre-release automatically.
-
-### 1.5 Verify the release artifacts
-
-On the published Release (rc first, then final):
-
-- [ ] `OpenVoiceFlow-0.4.2.dmg` attached and downloadable.
-- [ ] `appcast.xml` attached, `sparkle:version` = **3**, `sparkle:edSignature`
-      present, `enclosure url` points at the site downloads path.
-- [ ] Download the DMG on a clean Mac → `spctl --assess --type execute
-      /Applications/OpenVoiceFlow.app` says **accepted** (Gatekeeper passes).
-- [ ] **Auto-update proof:** install 0.4.1, then point it at the new appcast and
-      confirm it offers → downloads → installs 0.4.2 (Sparkle). This is the whole
-      reason build number discipline matters.
-
-### 1.6 Flip the website
-
-- [ ] Merge **#38** if you held it.
-- [ ] Put `OpenVoiceFlow-0.4.2.dmg` where the site serves downloads
-      (`docs/downloads/` — the site self-hosts DMGs; `tests/test_docs_distribution.py`
-      gates version/hash accuracy, so update whatever it checks).
-- [ ] Confirm `SUFeedURL` in `Info.plist` and the site-root `appcast.xml` agree
-      (both the site-root feed).
-
-**When 1.1–1.6 are green, 0.4.2 is launched.**
+So the distribution machinery is **done**. What remains is validation + merges.
 
 ---
 
-## 2. Sparkle keypair — one-time setup (hard blocker)
+## 1. The one real launch gate: run it on a Mac
 
-In-app auto-update needs an EdDSA keypair. The **public** half goes in
-`Info.plist`; the **private** half becomes a repo secret the release signs with.
+The app has been compiled by CI but, as far as we know, **never actually run on
+a real device.** CI cannot grant TCC permissions, press the fn key, or paste
+into a live app. Before promoting 0.4.1 to end users, one person must download
+the shipped DMG (or build from `main`) and walk the full loop.
+
+Install the **actual shipped artifact** so you're testing what users get:
 
 ```bash
-# Get Sparkle's tools (same version the release uses: 2.9.4)
-curl -fsSL https://github.com/sparkle-project/Sparkle/releases/download/2.9.4/Sparkle-2.9.4.tar.xz | tar -xJ
-./bin/generate_keys          # prints the PUBLIC key; stores the PRIVATE key in the Keychain
-./bin/generate_keys -x sparkle_private.pem   # export the private key to a file for the secret
+curl -LO https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.1.dmg
+shasum -a 256 OpenVoiceFlow-0.4.1.dmg
+# expect: 300e65c1cead4216e120a6809fc050c53d9104613d000b4a9cbbd4d69f8ceddf
+spctl --assess --type execute -vv /Volumes/OpenVoiceFlow/OpenVoiceFlow.app   # Gatekeeper must accept
 ```
 
-1. **Public key → `Info.plist`.** Set `SUPublicEDKey` to the printed public key
-   (uncomment/replace the placeholder). Commit this **in the same change** that
-   ships 0.4.2 — a mismatch means clients reject every update.
-2. **Private key → repo secret `SPARKLE_ED_PRIVATE_KEY`** (Settings ▸ Secrets ▸
-   Actions). Paste the exported private key string. Keep it out of git.
-3. Confirm the Apple signing secrets already used by `release.yml` are present
-   (they are — the Python DMGs ship signed): `APPLE_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64`,
-   `…_PASSWORD`, `APPLE_KEYCHAIN_PASSWORD`, `APPLE_NOTARY_KEY_BASE64`,
-   `APPLE_NOTARY_KEY_ID`, `APPLE_NOTARY_ISSUER_ID`, `APPLE_CODESIGN_IDENTITY`.
+Then the smoke checklist (§3). **If the loop works on a device, 0.4.1 is
+genuinely launch-ready** — it's already downloadable and auto-updating. If
+something's broken, fix it and cut a 0.4.2 (§4–5).
 
-> Guardrail already in place: `native/scripts/appcast.sh` now **fails loudly** if
-> `SPARKLE_ED_PRIVATE_KEY` is unset (it used to no-op), and the appcast step is a
-> required part of the release. So a release can't silently ship without an
-> update feed — but that also means **you must do this before tagging.**
+---
+
+## 2. Merge the two launch PRs (neither changes the app)
+
+Both target `main`; both are website/CI only, so they can't affect the shipped
+DMG:
+
+| PR | Branch | What | Blocker? |
+| --- | --- | --- | --- |
+| **#38** | `claude/launch-hardening-site` | Website accuracy + legal (WhisperKit, macOS 14+, privacy page, headline fix). **Reconciled** so the cleanup story matches the shipped app: OpenRouter (recommended) **plus** OpenAI/Anthropic/Groq **plus** Ollama **plus** Off — not OpenRouter-only. | Yes — the live homepage still has the old false headline until this merges. |
+| **#39** | `claude/launch-hardening-ops` | Release-ops hardening: guard the retired `v*` Python pipeline at 0.4.0+, compile Swift in CI, version-source agreement checks, required appcast step. | No — pure hygiene, but merge it: it keeps CI compiling the Swift and blocks a wrong-product release. |
+
+Merge order doesn't matter much; #38 is the user-visible one.
+
+> **Deferred by product decision:** **PR #37** (OpenRouter as the *single* cloud
+> gateway + the `google/gemma-4-31b-it` default) is held for a later phase — the
+> default-model choice is being reconsidered. The site copy above intentionally
+> describes all the backends the shipped app actually exposes, so nothing
+> pre-announces #37.
 
 ---
 
 ## 3. On-device smoke test (only a real Mac can do this)
 
-CI compiles; it can't grant TCC permissions or synthesize a paste into a real
-app. Walk this on a device from the release build:
-
+- [ ] **Gatekeeper:** `spctl --assess` accepts the app (offline too).
 - [ ] **Onboarding:** welcome → three permission rows → "Getting ready" model
       download → "Say hello". Grant Microphone, Accessibility, Input Monitoring;
-      confirm each dot turns green.
-- [ ] **The "Not listed?" escape hatch** works if the app is denied or attributed
-      to Xcode/Terminal in a dev build (`OnboardingView.swift` permission rows).
-- [ ] **fn/Globe key push-to-talk** — the marquee feature. Set System Settings ▸
-      Keyboard ▸ "Press 🌐 to: Do Nothing" first, then hold-to-talk with fn.
-      Also verify Right ⌘ (the default `Hotkey`).
-- [ ] **Full loop in 3+ apps** — dictate into Notes, Safari, VS Code (or Slack).
-      Verify the per-app style map applies (`FeatureStores.swift` `StyleStore`):
-      code style in an editor, casual in Slack.
-- [ ] **OpenRouter cleanup** — add a real OpenRouter key (Dashboard ▸ Settings),
-      pick OpenRouter, confirm cleanup runs and the default model
-      `google/gemma-4-31b-it` resolves (verified present on OpenRouter's live API;
-      a `:free` variant exists too). Then set cleanup **Off** and confirm the raw
-      transcript pastes.
+      confirm each dot turns green (`OnboardingView.swift`).
+- [ ] **"Not listed?" escape hatch** works if the app is denied or attributed to
+      Xcode/Terminal in a dev build.
+- [ ] **fn/Globe push-to-talk** — the marquee feature. Set System Settings ▸
+      Keyboard ▸ "Press 🌐 to: Do Nothing" first. Also verify Right ⌘ (default).
+- [ ] **Full loop in 3+ apps** (Notes, Safari, VS Code/Slack): hold → speak →
+      release → polished text pastes at the cursor. Confirm the per-app style map
+      applies (code style in an editor, casual in Slack — `StyleStore`).
+- [ ] **Cleanup, all paths:** with a real key, confirm OpenRouter cleanup runs;
+      try a direct provider (OpenAI/Anthropic/Groq); set cleanup **Off** and
+      confirm the raw transcript pastes.
 - [ ] **Offline first-run** — fresh Mac, no network after the model download:
       transcription still works (WhisperKit is on-device).
-- [ ] **Clipboard preservation** — copy an image, dictate, confirm your image is
-      back on the clipboard after paste (`Paster.swift` snapshot/restore).
-- [ ] **Too-short nudge** — tap-and-release instantly → "keep talking" nudge, not
-      an error (`AppController.stopAndProcess`).
-- [ ] **Max-duration ceiling** — hold past `maxRecordingSeconds` (300 s) →
-      it finalizes and inserts, never records forever.
-- [ ] **Sparkle "Check for Updates…"** from the menu bar reaches the feed.
+- [ ] **Clipboard preservation** — copy an image, dictate, confirm the image is
+      back on the clipboard after paste (`Paster.swift`).
+- [ ] **Too-short nudge** — instant tap-release → "keep talking" nudge, not an
+      error (`AppController.stopAndProcess`).
+- [ ] **Max-duration ceiling** — hold past 300 s → finalizes + inserts, never
+      records forever.
+- [ ] **Sparkle:** menu-bar **Check for Updates…** reaches the live feed and
+      reports "up to date" at 0.4.1. (Full 0.4.1→0.4.2 upgrade proof comes when
+      you ship the next build — §5.)
 
 ---
 
-## 4. Hardening review — fix while you're on the device
+## 4. Hardening review → fold into a 0.4.2 (not launch blockers)
 
-These are real gaps I found in the current Swift, but they need a device to
-verify a fix (or are small enough to fold into the compile pass). Each has a
-file pointer and a suggested fix. **Majors are worth fixing before 0.4.2;**
-minors can ship as 0.4.3 if time-boxed. Fix without simplifying behavior.
+Real gaps in the current Swift, each with a file pointer and a fix. None blocks
+shipping 0.4.1, but the two **majors** are worth a fast-follow 0.4.2. Fix on a
+device (so you can verify), then release per §5.
 
 ### 4.1 [MAJOR] Paste-failure path is UI-only — not wired
-
-The HUD already has a `.pasteBlocked` state with copy *"Copied instead — press
-⌘V."* (`HUDController.swift:27,33,472`), but **nothing ever triggers it**.
-`Paster.paste(_:)` (`Paster.swift:16`) is fire-and-forget: it sets the
-pasteboard, synthesizes ⌘V, and **unconditionally restores the old clipboard
-after 0.15 s** — so if Accessibility was revoked or ⌘V doesn't land, the user's
-text is *both* un-pasted *and* wiped from the clipboard. Silent data loss.
-
-**Fix:** in `Paster.paste`, gate on `AXIsProcessTrusted()` first. If not trusted
-(or paste can't be posted), **leave the text on the clipboard** (skip the
-restore) and have `AppController.deliver` show `hud.show(.error(.pasteBlocked))`
-instead of `.result`. Wire the `.pasteBlocked` "Grant Access" action button to
-open the Accessibility settings deep link.
+The HUD has a `.pasteBlocked` state, copy *"Copied instead — press ⌘V."*
+(`HUDController.swift:27,33,472`), but **nothing triggers it**.
+`Paster.paste(_:)` (`Paster.swift:16`) is fire-and-forget and
+**unconditionally restores the old clipboard after 0.15 s** — so if Accessibility
+was revoked or ⌘V doesn't land, the text is *both* un-pasted *and* wiped from the
+clipboard. Silent data loss.
+**Fix:** gate on `AXIsProcessTrusted()` first; if not trusted (or the post
+fails), **leave the text on the clipboard** (skip restore) and have
+`AppController.deliver` show `hud.show(.error(.pasteBlocked))`. Wire the
+`.pasteBlocked` "Grant Access" button to the Accessibility settings deep link.
 
 ### 4.2 [MAJOR] Model / language changes need an app restart
-
-`Transcriber` binds `modelName` at `init` (`Transcriber.swift:13`) and there's
-**no `setModel`**. Changing **Model** or **Language** in the dashboard updates
-`Settings` (persisted) but the live `Transcriber` keeps the old model in memory.
-A user who switches to a multilingual model or picks a non-English language sees
-**no effect until relaunch** — and `base.en` (the default) can't transcribe
-non-English at all, so a language switch appears broken.
-
-**Fix:** add `Transcriber.setModel(_ name: String) async` that drops `kit`
-(`kit = nil`), updates `modelName`, and re-warms. Call it from the Settings
-binding when `whisperModel` changes. Consider auto-selecting a multilingual
-variant when `language != "en"`, or warn in the UI that `base.en` is
-English-only.
+`Transcriber` binds `modelName` at `init` (`Transcriber.swift:13`); there's **no
+`setModel`**. Changing **Model** or **Language** in the dashboard updates
+`Settings` but the live `Transcriber` keeps the old model — and `base.en` (the
+default) can't transcribe non-English at all, so a language switch looks broken.
+**Fix:** add `Transcriber.setModel(_:) async` that drops `kit` and re-warms;
+call it from the settings binding. Consider auto-picking a multilingual variant
+when `language != "en"`, or warn that `base.en` is English-only.
 
 ### 4.3 [MINOR] `warmUp()` can double-download the model
-
-Two concurrent callers — onboarding's `prepareModelForOnboarding` and
-`startListening()`'s background `Task { try? await warmUp() }`
-(`AppController.swift:93`) — can both pass the `kit == nil` guard across the
-`await` inside `downloadAndLoad` (`Transcriber.swift:23–36`) and fetch the model
-twice on first run.
-
-**Fix:** cache the in-flight load as a `Task` on the actor and have concurrent
-callers `await` the same task, e.g. `private var loadTask: Task<WhisperKit,
-Error>?`.
+Onboarding's `prepareModelForOnboarding` and `startListening()`'s background
+`Task { try? await warmUp() }` (`AppController.swift:93`) can both pass the
+`kit == nil` guard across the `await` in `downloadAndLoad`
+(`Transcriber.swift:23`) and fetch the model twice on first run.
+**Fix:** cache the in-flight load as a `Task` on the actor; concurrent callers
+await the same task.
 
 ### 4.4 [MINOR] "Sounds" toggle is inert
-
 `Settings.soundFeedback` (`Settings.swift:13`) has a dashboard toggle
-(`DashboardView.swift:485`) but **nothing plays a sound** anywhere. Either wire
-`NSSound` on record-start / success (respecting the toggle) or hide the control
-until it does something.
+(`DashboardView.swift:485`) but nothing plays a sound. Wire `NSSound` on
+record-start/success (respecting the toggle) or hide the control.
 
 ### 4.5 [MINOR] "Launch at login" is inert
-
-`Settings.launchAtLogin` (`Settings.swift:14`) is persisted but there's **no
-`SMAppService.mainApp` registration**, so toggling it does nothing. Wire
-`SMAppService.mainApp.register()/unregister()` to the binding, or hide the
-control. (This is a common first-run expectation for a menu-bar app.)
-
-> `automaticUpdates` **is** correctly wired to Sparkle (`Updater.swift:28`), so
-> that toggle is fine — listed here only to say it was checked.
+`Settings.launchAtLogin` (`Settings.swift:14`) has no `SMAppService.mainApp`
+registration, so the toggle does nothing. Wire
+`SMAppService.mainApp.register()/unregister()` or hide it. (A common first-run
+expectation for a menu-bar app.) — `automaticUpdates` **is** correctly wired to
+Sparkle (`Updater.swift:28`); listed only to say it was checked.
 
 ---
 
-## 5. Ship checklist (tick before calling it launched)
+## 5. Cutting a 0.4.2 (when you have app changes to ship)
 
-- [ ] #37 (+ #39, + #38) merged to `main`; CI `native-build` green.
-- [ ] `SUPublicEDKey` set in `Info.plist`; `SPARKLE_ED_PRIVATE_KEY` secret added.
-- [ ] Device smoke test (§3) passes — full loop works, fn-key push-to-talk works.
-- [ ] Major hardening items (§4.1, §4.2) fixed or consciously deferred to 0.4.3.
-- [ ] `native-v0.4.2-rc1` tagged → release built → artifacts verified (§1.5).
-- [ ] `native-v0.4.2` tagged → signed/notarized DMG + appcast published.
-- [ ] `spctl` accepts the DMG; Sparkle updates 0.4.1 → 0.4.2 on a test machine.
-- [ ] Website flipped: DMG in `docs/downloads/`, #38 merged, `appcast.xml` at the
-      site root agrees with `Info.plist` `SUFeedURL`.
+The pipeline already does the hard parts. To ship a new build:
 
-## 6. Rollback
-
-If the rc or release DMG is bad: delete the bad tag + its GitHub Release, fix,
-re-tag. Because Sparkle orders strictly by `CFBundleVersion`, **never reuse a
-build number** — if 0.4.2 build 3 shipped and was pulled, the fixed build must be
-**4** (bump `CURRENT_PROJECT_VERSION` in `project.yml` **and** `CFBundleVersion`
-in `Info.plist`; the release-native version-agreement guard will refuse a
-mismatch). The website's `docs/downloads/` DMG can be reverted independently of
-the tag.
+1. **Bump both version numbers together** — Sparkle orders strictly by build
+   number, so the new build MUST exceed 2:
+   - `native/project.yml`: `CURRENT_PROJECT_VERSION` → **3** (and
+     `MARKETING_VERSION` → `0.4.2`).
+   - `native/Info.plist`: `CFBundleVersion` → **3**,
+     `CFBundleShortVersionString` → `0.4.2`.
+   (PR #39's release guard *enforces* that these agree with the tag and exceed
+   the last published appcast, so a mismatch fails the release loudly.)
+2. **Reuse the existing Sparkle key** — it's already set up. Do **not**
+   regenerate it (§0 warning).
+3. **Tag it** (Linux agent can't push tags — this is yours):
+   ```bash
+   git tag native-v0.4.2-rc1 && git push origin native-v0.4.2-rc1   # exercise first
+   git tag native-v0.4.2      && git push origin native-v0.4.2
+   ```
+   `release-native.yml` builds the signed/notarized universal DMG, signs the
+   appcast, and attaches both to the Release.
+4. **Publish to the site** — copy the new DMG into `docs/downloads/` and replace
+   `docs/appcast.xml` with the freshly signed one (the site self-hosts both;
+   `tests/test_docs_distribution.py` gates the version/hash). Update the version
+   strings + SHA on `docs/download.html`.
+5. **Verify the upgrade** — on a Mac running 0.4.1, confirm Sparkle offers →
+   downloads → installs 0.4.2. That's the real proof the build-number discipline
+   worked.
 
 ---
 
-### Handy references in this repo
+## 6. Ship checklist
+
+- [ ] 0.4.1 DMG runs on a real Mac — full loop + fn-key push-to-talk verified (§3).
+- [ ] `spctl --assess` accepts the shipped DMG.
+- [ ] #38 merged (kills the old homepage headline; cleanup copy matches the app).
+- [ ] #39 merged (CI compiles Swift; legacy pipeline guarded).
+- [ ] (If shipping 0.4.2) build number bumped to ≥3, tagged, DMG+appcast on the
+      site, Sparkle upgrade proven on a device.
+
+## 7. Rollback
+
+If a released DMG is bad: delete the tag + its GitHub Release, fix, re-tag —
+but **never reuse a build number** (Sparkle ignores an equal/lower one). Bump
+`CURRENT_PROJECT_VERSION` + `CFBundleVersion` to the next integer; the release
+version-agreement guard will refuse a mismatch. The site's `docs/downloads/` DMG
+and `docs/appcast.xml` can be reverted independently of the tag.
+
+---
+
+### References
 - `native/RELEASE_NATIVE_RUNBOOK.md` — copy-paste release steps.
-- `native/BUILD_RUNBOOK.md` — first-principles build/compile guide (phases 0–F).
+- `native/BUILD_RUNBOOK.md` — first-principles build/compile guide.
 - `.github/workflows/release-native.yml` — the tag-driven signed release.
 - `native/scripts/build-app.sh` — local build (`OVF_NOTARIZE=0` for unsigned).
 - `native/scripts/appcast.sh` — Sparkle appcast signing.

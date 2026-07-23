@@ -242,9 +242,59 @@ struct DashboardView: View {
 
     // MARK: History
 
+    /// "Where you dictate" — a discreet, all-time per-app word breakdown that
+    /// sits above the History list. Kept off the Home pane on purpose: it's a
+    /// look-if-you-want stat, not a headline number. Single-hue (accent at
+    /// stepped opacity) so it stays on-palette; hides itself until there are at
+    /// least two apps to compare.
+    @ViewBuilder private var appBreakdown: some View {
+        let dist = history.appDistribution
+        if dist.count >= 2 {
+            let top = Array(dist.prefix(6))
+            let shownFraction = top.reduce(0.0) { $0 + $1.fraction }
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Text("Where you dictate").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
+                    Text("by words, all time").font(.system(size: 11)).foregroundStyle(ink2)
+                }
+                GeometryReader { geo in
+                    HStack(spacing: 1.5) {
+                        ForEach(Array(top.enumerated()), id: \.offset) { i, row in
+                            Rectangle()
+                                .fill(accent.opacity(1.0 - Double(i) * 0.13))
+                                .frame(width: max(geo.size.width * row.fraction, 2))
+                        }
+                        if shownFraction < 0.999 {
+                            Rectangle().fill(dark ? Color.white.opacity(0.10) : Color.black.opacity(0.10))
+                        }
+                    }
+                }
+                .frame(height: 10)
+                .clipShape(Capsule())
+                VStack(spacing: 6) {
+                    ForEach(Array(top.enumerated()), id: \.offset) { i, row in
+                        HStack(spacing: 8) {
+                            Circle().fill(accent.opacity(1.0 - Double(i) * 0.13)).frame(width: 7, height: 7)
+                            Text(row.app).font(.system(size: 12)).foregroundStyle(ink).lineLimit(1)
+                            Spacer()
+                            Text("\(Int((row.fraction * 100).rounded()))%")
+                                .font(.system(size: 12, weight: .semibold)).foregroundStyle(ink)
+                            Text("\(row.words)").font(.system(size: 11)).foregroundStyle(ink2)
+                                .frame(width: 56, alignment: .trailing)
+                        }
+                    }
+                }
+            }
+            .padding(16)
+            .background(RoundedRectangle(cornerRadius: 12).fill(card))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(hair))
+        }
+    }
+
     @ViewBuilder private var historyPane: some View {
         VStack(alignment: .leading, spacing: 14) {
             paneTitle("History")
+            appBreakdown
             if history.entries.isEmpty {
                 emptyPanel(
                     title: "Nothing here yet",

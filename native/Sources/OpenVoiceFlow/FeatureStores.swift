@@ -237,21 +237,47 @@ final class HistoryStore: ObservableObject {
     @Published private(set) var entries: [HistoryEntry] { didSet { AppSupport.save(entries, to: "history.json") } }
     /// Persisted daily word totals keyed by yyyy-MM-dd (for the week chart + streak).
     @Published private(set) var dailyWords: [String: Int] { didSet { AppSupport.save(dailyWords, to: "stats.json") } }
+    /// Persisted lifetime word totals keyed by app name (for the per-app
+    /// breakdown). Kept separately from `entries` because `entries` is capped at
+    /// `maxEntries`, so it can't hold a lifetime total on its own.
+    @Published private(set) var appWords: [String: Int] { didSet { AppSupport.save(appWords, to: "app_stats.json") } }
 
     private static let maxEntries = 500
 
     init() {
-        entries = AppSupport.load([HistoryEntry].self, from: "history.json") ?? []
+        let loadedEntries = AppSupport.load([HistoryEntry].self, from: "history.json") ?? []
+        entries = loadedEntries
         dailyWords = AppSupport.load([String: Int].self, from: "stats.json") ?? [:]
+        // Seed the lifetime per-app totals from whatever history exists so the
+        // breakdown isn't empty for existing users; from then on it accumulates.
+        if let saved = AppSupport.load([String: Int].self, from: "app_stats.json") {
+            appWords = saved
+        } else {
+            let seeded = loadedEntries.reduce(into: [String: Int]()) { $0[$1.app, default: 0] += $1.words }
+            appWords = seeded
+            if !seeded.isEmpty { AppSupport.save(seeded, to: "app_stats.json") }
+        }
     }
 
     func record(app: String, text: String, words: Int, now: Date = Date()) {
         entries.insert(HistoryEntry(timestamp: now, app: app, text: text, words: words), at: 0)
         if entries.count > Self.maxEntries { entries.removeLast(entries.count - Self.maxEntries) }
         dailyWords[Self.key(now), default: 0] += words
+        appWords[app, default: 0] += words
     }
 
-    func clearAll() { entries = []; dailyWords = [:] }
+    func clearAll() { entries = []; dailyWords = [:]; appWords = [:] }
+
+    /// Lifetime word totals per app, largest first, each with its share of the
+    /// grand total. Powers the "Where you dictate" breakdown. Empty until there
+    /// is at least one recorded word.
+    var appDistribution: [(app: String, words: Int, fraction: Double)] {
+        let total = appWords.values.reduce(0, +)
+        guard total > 0 else { return [] }
+        return appWords
+            .map { (app: $0.key, words: $0.value, fraction: Double($0.value) / Double(total)) }
+            .sorted { $0.words > $1.words }
+    }
 
     // Stats derived from dailyWords.
     var wordsToday: Int { dailyWords[Self.key(Date())] ?? 0 }

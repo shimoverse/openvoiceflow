@@ -64,17 +64,14 @@ OpenVoiceFlow itself is **not** a sub-processor of your data. We have no servers
 
 The third parties your install can talk to:
 
-- **OpenRouter** (`openrouter.ai`) — receives your cleaned transcript + profile + dictionary + selected-text context every time you dictate, **only if** you enable OpenRouter cleanup. One OpenRouter key reaches any model it hosts (the default model is `google/gemma-4-31b-it`). Governed by OpenRouter's terms.
+- **OpenRouter** (`openrouter.ai`) — the recommended cloud gateway. **Only if** you enable OpenRouter cleanup, it receives your transcript plus your profile / dictionary / snippet context every time you dictate. One OpenRouter key reaches any model it hosts (the default model is `google/gemma-4-31b-it`). Governed by OpenRouter's terms.
+- **Other cloud providers** — some builds also let you point cleanup directly at Anthropic, OpenAI, or Groq instead of OpenRouter. Whichever provider you select is the one that receives your transcript + context, under your own API key. OpenRouter is the recommended path.
 - **Ollama** (`http://localhost:11434` by default) — runs on your machine. No third party.
 - **Off** — no cleanup call. The raw WhisperKit output is pasted without cleanup.
 - **WhisperKit model download** (`huggingface.co`) — used **once**, during first-run onboarding, to download the on-device speech model. No account required, no PII sent. After that, the model is on disk and never re-fetched unless you change models.
 - **Sparkle updates** — the app checks a signed appcast for newer builds and can download and install them in place. The request is anonymous (no auth, no key, no user ID); updates are Developer-ID-signed and verified before install.
 
-The direct Anthropic / OpenAI / Groq provider integrations from the old Python CLI have been **removed** from the app. Cloud cleanup now goes through OpenRouter's gateway only.
-
-### What "selected text" means in the context payload
-
-When you trigger dictation with text selected in the focused app, OpenVoiceFlow can read that selection (via the macOS Accessibility API) and include it in the cleanup request, so the cleanup can match the surrounding context. If cleanup is set to OpenRouter, treat selected text the same way you'd treat anything you paste into a chat with that provider. With cleanup **Off** or on **Ollama**, the selection never leaves your Mac.
+Cleanup is **Off by default** — the raw on-device transcript is pasted as-is and nothing leaves your Mac. A cloud provider only ever receives text if you turn cleanup on and select one.
 
 ---
 
@@ -83,7 +80,7 @@ When you trigger dictation with text selected in the focused app, OpenVoiceFlow 
 OpenVoiceFlow asks macOS for these privileges. You grant them in **System Settings → Privacy & Security**, and you can revoke them at any time.
 
 - **Microphone** — to capture audio while you hold the hotkey. Required for dictation.
-- **Accessibility** — to send the cleaned text to the focused text field, and (when you enable auto-learn) to read the focused field briefly after a paste so the app can notice corrections you make. Auto-learn is **off by default**.
+- **Accessibility** — to paste the cleaned text into the focused text field (a synthetic ⌘V). The app does not read your screen or the contents of other apps.
 - **Input Monitoring** — to detect the global push-to-talk hotkey in every app.
 
 ---

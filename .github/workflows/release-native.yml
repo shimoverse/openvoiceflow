@@ -6,8 +6,9 @@ name: Release (native app)
 # namespace so it never collides with the Python `v*` release (release.yml).
 #
 # Signing reuses the SAME secrets as release.yml — nothing new to configure for
-# code signing. The one new (optional) secret is SPARKLE_ED_PRIVATE_KEY, which
-# turns on appcast generation for in-app updates.
+# code signing. One additional secret, SPARKLE_ED_PRIVATE_KEY, is REQUIRED: it
+# signs the update appcast, and a release fails without it (an unsigned/missing
+# feed would silently break in-app updates for everyone).
 
 on:
   push:

@@ -142,9 +142,9 @@ private struct MenuContent: View {
             Text("Runs on this Mac — downloads once")
         }
 
-        // 8. Cleanup picker (design order: on-device first).
+        // 8. Cleanup picker: off / on-device Ollama / OpenRouter gateway.
         Menu("Cleanup — \(cleanupLabel(controller.settings.backend))") {
-            ForEach([Backend.ollama, .anthropic, .openai, .groq, .openrouter, .none], id: \.self) { backend in
+            ForEach([Backend.none, .ollama, .openrouter], id: \.self) { backend in
                 Button {
                     controller.settings.backend = backend
                     controller.settings.save()
@@ -198,7 +198,7 @@ private struct MenuContent: View {
         case .anthropic: return "Anthropic"
         case .openai: return "OpenAI"
         case .groq: return "Groq"
-        case .openrouter: return "OpenRouter"
+        case .openrouter: return "OpenRouter · any model"
         case .none: return "None — raw transcript"
         }
     }

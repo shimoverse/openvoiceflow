@@ -459,8 +459,11 @@ struct DashboardView: View {
         ("it", "Italian"), ("pt", "Portuguese"), ("nl", "Dutch"), ("hi", "Hindi"),
         ("ja", "Japanese"), ("zh", "Chinese"), ("ko", "Korean"),
     ]
-    /// Cleanup providers offered when cleanup is on (excludes `.none`).
-    static let cleanupProviders: [Backend] = [.anthropic, .openai, .groq, .openrouter, .ollama]
+    /// Cleanup providers offered when cleanup is on. OpenRouter is the single
+    /// cloud gateway (one key → any model); Ollama keeps a fully-local option.
+    /// The direct providers still exist in `Backend` for older saved configs,
+    /// but the UI intentionally offers just the gateway + local.
+    static let cleanupProviders: [Backend] = [.openrouter, .ollama]
 
     private var settingsPane: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -549,6 +552,9 @@ struct DashboardView: View {
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 230)
                     }
+                    if controller.settings.backend == .openrouter {
+                        settingsRow("One key unlocks every model — get one at openrouter.ai/keys") { EmptyView() }
+                    }
                 } else if controller.settings.backend == .ollama {
                     settingsRow("Endpoint") {
                         Text("localhost:11434 · fully local").foregroundStyle(ink2)
@@ -604,12 +610,13 @@ struct DashboardView: View {
         Binding(get: { controller.settings.hotkey }, set: { controller.updateHotkey($0) })
     }
 
-    /// Cleanup on/off: off ⇒ `.none` (local raw), on ⇒ Anthropic by default.
+    /// Cleanup on/off: off ⇒ `.none` (local raw), on ⇒ OpenRouter (the cloud
+    /// gateway). Pick Ollama afterward from the Provider list for local cleanup.
     private var cleanupEnabledBinding: Binding<Bool> {
         Binding(
             get: { controller.settings.backend != .none },
             set: { on in
-                controller.settings.backend = on ? .anthropic : .none
+                controller.settings.backend = on ? .openrouter : .none
                 controller.settings.save()
                 reloadAPIKeyDraft()
             }

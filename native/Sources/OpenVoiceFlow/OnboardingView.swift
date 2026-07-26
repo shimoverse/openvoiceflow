@@ -1,13 +1,53 @@
 import SwiftUI
 
-/// First-run onboarding — simplified from the phase-04 design after user
-/// feedback ("too technical, too much").
+/// The palette onboarding draws from — the phase-06 light/dark pairs (T2).
 ///
-/// Four steps, one idea each: welcome → three permission rows → getting
-/// ready (one progress bar, zero jargon) → say hello. No model names, no
-/// hostnames, no checksums, no file paths — the user should feel taken care
-/// of, not informed. Technical detail lives behind a "Details" disclosure
-/// on the failure state only.
+/// Onboarding used to force `.preferredColorScheme(.dark)` and hardcode hex
+/// literals inline, so a Mac in light mode got a dark window that matched
+/// nothing else on screen. Every role below resolves from the system scheme,
+/// exactly like `DashboardView` already does, and every value is an existing
+/// `DT` token or a spec'd tertiary/label pair.
+struct OBPalette {
+    let ground: Color
+    let card: Color
+    let hairline: Color
+    let ink: Color
+    let ink2: Color
+    let ink3: Color
+    let accent: Color
+    /// Label on top of an accent fill — near-black on dark, white on light.
+    let onAccent: Color
+
+    static func resolve(_ scheme: ColorScheme) -> OBPalette {
+        scheme == .dark
+            ? OBPalette(
+                ground: DT.winDark,
+                card: .white.opacity(0.04),
+                hairline: .white.opacity(0.07),
+                ink: DT.inkDark,
+                ink2: DT.ink2Dark,
+                ink3: Color(hex: 0x6B6558),
+                accent: DT.emberDark,
+                onAccent: Color(hex: 0x1A1508))
+            : OBPalette(
+                ground: DT.winLight,
+                card: .black.opacity(0.035),
+                hairline: .black.opacity(0.07),
+                ink: DT.inkLight,
+                ink2: DT.ink2Light,
+                ink3: Color(hex: 0x9A9384),
+                accent: DT.emberLight,
+                onAccent: .white)
+    }
+}
+
+/// First-run onboarding — phase-06 redesign.
+///
+/// Five steps, one idea each: welcome ("I live up there") → three permissions
+/// granted in sequence → Know-Me while the speech engine downloads → say
+/// anything → the payoff. No model names, hostnames, checksums or file paths
+/// outside the failure disclosure; the user should feel taken care of, not
+/// informed.
 struct OnboardingView: View {
     @ObservedObject var controller: AppController
     @State private var step = 0
@@ -15,47 +55,37 @@ struct OnboardingView: View {
     @State private var requested: Set<Permission> = []
     @State private var downloadDone = false
     @State private var helloDone = false
+    @Environment(\.colorScheme) private var scheme
 
-    private let accent = DT.emberDark
+    private var p: OBPalette { OBPalette.resolve(scheme) }
 
     var body: some View {
         VStack(spacing: 0) {
-            header
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(.horizontal, 44)
+                .padding(.top, 24)
             footer
         }
-        .frame(width: 640, height: 440)
-        .background(Color(hex: 0x211F1B))
-        .preferredColorScheme(.dark)
+        .frame(width: 720, height: 470)
+        .background(p.ground)
         .onReceive(NotificationCenter.default.publisher(
             for: NSWindow.didBecomeKeyNotification)) { _ in refreshGrants() }
     }
 
     // MARK: chrome
 
-    private var header: some View {
-        HStack {
-            Spacer()
-            HStack(spacing: 5) {
-                ForEach(0..<4, id: \.self) { i in
-                    Circle()
-                        .fill(i <= step ? accent : .white.opacity(0.18))
-                        .frame(width: 6, height: 6)
-                }
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 8)
-    }
+    // The 4-dot pagination header is deliberately gone: it is a web carousel
+    // pattern. Mac onboarding names its steps or shows nothing.
 
     private var footer: some View {
         HStack {
             if step > 0 {
                 Button("‹ Back") { step -= 1 }
-                    .buttonStyle(.plain).foregroundStyle(Color(hex: 0x96907F))
+                    .buttonStyle(.plain).foregroundStyle(p.ink2)
+            } else {
+                Text("Takes about a minute.")
+                    .font(.system(size: 12.5)).foregroundStyle(p.ink3)
             }
             Spacer()
             primaryButton
@@ -66,20 +96,17 @@ struct OnboardingView: View {
     @ViewBuilder private var primaryButton: some View {
         switch step {
         case 0:
-            pill("Get started") { step = 1 }
+            pill("Let's go") { step = 1 }
         case 1:
             pill("Continue") { step = 2 }
         case 2:
             if downloadDone {
-                pill("Continue") { step = 3 }
+                pill("Try it") { step = 3 }
             } else {
-                Text("Getting ready…")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0x6B6558))
-                    .padding(.horizontal, 18).padding(.vertical, 9)
+                quiet("Getting ready")
             }
         default:
-            pill("Finish", disabled: !helloDone) {
+            pill("Start using it", disabled: !helloDone) {
                 controller.settings.didOnboard = true
                 controller.settings.save()
                 _ = controller.startListening()
@@ -88,16 +115,25 @@ struct OnboardingView: View {
         }
     }
 
+    /// Primary pill: 13.5 pt semibold, padding 22 × 10, capsule.
     private func pill(_ title: String, disabled: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(disabled ? Color(hex: 0x6B6558) : Color(hex: 0x1A1508))
-                .padding(.horizontal, 18).padding(.vertical, 9)
-                .background(Capsule().fill(disabled ? Color.white.opacity(0.08) : accent))
+                .font(.system(size: 13.5, weight: .semibold))
+                .foregroundStyle(disabled ? p.ink3 : p.onAccent)
+                .padding(.horizontal, 22).padding(.vertical, 10)
+                .background(Capsule().fill(disabled ? p.card : p.accent))
         }
         .buttonStyle(.plain)
         .disabled(disabled)
+    }
+
+    /// Quiet progress text where a pill would be premature.
+    private func quiet(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 13))
+            .foregroundStyle(p.ink3)
+            .padding(.horizontal, 22).padding(.vertical, 10)
     }
 
     // MARK: steps
@@ -106,52 +142,59 @@ struct OnboardingView: View {
         switch step {
         case 0: welcome
         case 1: permissions
-        case 2: GettingReadyStep(controller: controller, done: $downloadDone)
+        case 2: GettingReadyStep(controller: controller, done: $downloadDone, palette: p)
         default: helloStep
         }
     }
 
+    /// Step 0 — answers "where did it go?" before the user can ask it. The
+    /// menu-bar glyph plays its `hello` swell while this is on screen (T7), so
+    /// the sentence has something to point at.
     private var welcome: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 0) {
             Spacer()
-            RingGlyph(size: 72)
-            Text("Speak. It types.")
-                .font(.system(size: 30, weight: .bold)).kerning(-0.7)
-                .foregroundStyle(Color(hex: 0xEAE6DD))
-            Text("Hold a key, talk, let go — polished text appears at your cursor in any app.")
-                .font(.system(size: 13.5)).foregroundStyle(Color(hex: 0x96907F))
+            RingGlyph(size: 96)
+            Text("I live up there.")
+                .font(.system(size: 34, weight: .bold)).kerning(-1.02)  // −0.03em
+                .foregroundStyle(p.ink)
+                .padding(.top, 22)
+            Text("No window to keep open. Just a small waveform in the menu bar, "
+                 + "and a key you hold when you want to talk.")
+                .font(.system(size: 14.5))
+                .lineSpacing(6.5)  // line-height 1.65
+                .foregroundStyle(p.ink2)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
+                .frame(maxWidth: 420)
+                .padding(.top, 12)
             Spacer()
         }
         .frame(maxWidth: .infinity)
     }
 
-    /// One screen, three rows, six words of "why" each. The real macOS
-    /// prompt fires when the row's Allow is tapped; the dot turns green the
-    /// moment the grant lands (re-checked whenever the window comes forward).
+    /// One screen, three rows, six words of "why" each. The real macOS prompt
+    /// fires when the row's Allow is tapped; the dot turns green the moment the
+    /// grant lands (re-checked whenever the window comes forward).
     private var permissions: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Three quick permissions")
                 .font(.system(size: 24, weight: .bold)).kerning(-0.5)
-                .foregroundStyle(Color(hex: 0xEAE6DD))
-            Text("Everything happens on this Mac. Nothing is uploaded, ever.")
-                .font(.system(size: 13)).foregroundStyle(Color(hex: 0x96907F))
+                .foregroundStyle(p.ink)
+            Text("macOS holds the keys, not me.")
+                .font(.system(size: 13)).foregroundStyle(p.ink2)
 
             VStack(spacing: 0) {
-                permissionRow(.microphone, name: "Microphone", why: "to hear you")
+                permissionRow(.microphone, name: "Microphone", why: "so I can hear you")
                 divider
-                permissionRow(.accessibility, name: "Accessibility", why: "to type for you")
+                permissionRow(.accessibility, name: "Accessibility", why: "so I can type for you")
                 divider
-                permissionRow(.inputMonitoring, name: "Input Monitoring", why: "to feel the hotkey — one key, nothing else")
+                permissionRow(.inputMonitoring, name: "Input Monitoring", why: "so I can feel the key")
             }
-            .background(RoundedRectangle(cornerRadius: 12).fill(.white.opacity(0.04)))
+            .background(RoundedRectangle(cornerRadius: DT.rCard).fill(p.card))
         }
-        .padding(.top, 24)
     }
 
     private var divider: some View {
-        Rectangle().fill(.white.opacity(0.07)).frame(height: 1).padding(.horizontal, 16)
+        Rectangle().fill(p.hairline).frame(height: 1).padding(.horizontal, 17)
     }
 
     private func permissionRow(_ permission: Permission, name: String, why: String) -> some View {
@@ -160,16 +203,17 @@ struct OnboardingView: View {
         return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 12) {
                 Circle()
-                    .fill(isGranted ? DT.moss : .white.opacity(0.15))
+                    .fill(isGranted ? DT.moss : p.ink3.opacity(0.4))
                     .frame(width: 8, height: 8)
                 Text(name)
-                    .font(.system(size: 13.5, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0xEAE6DD))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(p.ink)
                 Text(why)
-                    .font(.system(size: 12.5)).foregroundStyle(Color(hex: 0x96907F))
+                    .font(.system(size: 12.5)).foregroundStyle(p.ink2)
                 Spacer()
                 if isGranted {
-                    Text("✓").font(.system(size: 13, weight: .bold)).foregroundStyle(DT.moss)
+                    Text("Allowed")
+                        .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(DT.moss)
                 } else {
                     Button("Allow") {
                         permission.request()
@@ -177,10 +221,10 @@ struct OnboardingView: View {
                         refreshGrants()
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color(hex: 0x1A1508))
-                    .padding(.horizontal, 14).padding(.vertical, 6)
-                    .background(Capsule().fill(accent))
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(p.onAccent)
+                    .padding(.horizontal, 17).padding(.vertical, 7)
+                    .background(Capsule().fill(p.accent))
                 }
             }
             // Escape hatch: Allow was clicked but the grant hasn't landed
@@ -191,14 +235,14 @@ struct OnboardingView: View {
                     Button("Open System Settings") { NSWorkspace.shared.open(permission.settingsURL) }
                         .buttonStyle(.plain)
                         .font(.system(size: 11.5, weight: .semibold))
-                        .foregroundStyle(accent)
+                        .foregroundStyle(p.accent)
                     Text("Not listed? Click + and add OpenVoiceFlow from Applications.")
-                        .font(.system(size: 11)).foregroundStyle(Color(hex: 0x6B6558))
+                        .font(.system(size: 11)).foregroundStyle(p.ink3)
                 }
                 .padding(.leading, 20)
             }
         }
-        .padding(.horizontal, 16).padding(.vertical, 13)
+        .padding(.horizontal, 17).padding(.vertical, 15)
     }
 
     private func refreshGrants() {
@@ -207,31 +251,31 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: say hello
+    // MARK: say anything
 
     private var helloStep: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Try it")
+            Text("Say anything.")
                 .font(.system(size: 24, weight: .bold)).kerning(-0.5)
-                .foregroundStyle(Color(hex: 0xEAE6DD))
+                .foregroundStyle(p.ink)
             (Text("Hold ")
                 + Text(controller.settings.hotkey.displayName).bold()
-                + Text(" and say: \"Hey, I'm using OpenVoiceFlow.\""))
-                .font(.system(size: 13)).foregroundStyle(Color(hex: 0x96907F))
+                + Text(" and talk. Let go when you're done."))
+                .font(.system(size: 13)).foregroundStyle(p.ink2)
 
             // macOS gives fn/🌐 its own job (emoji picker / input switch) unless
             // it's set to do nothing, which would otherwise fire on every take.
             if controller.settings.hotkey == .fn {
                 HStack(spacing: 8) {
                     Text("Tip: set System Settings ▸ Keyboard ▸ \"Press 🌐 to\" → \"Do Nothing\" so the key is all yours.")
-                        .font(.system(size: 11.5)).foregroundStyle(Color(hex: 0x6B6558))
+                        .font(.system(size: 11.5)).foregroundStyle(p.ink3)
                         .fixedSize(horizontal: false, vertical: true)
                     Button("Open") {
                         NSWorkspace.shared.open(
                             URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension")!)
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(accent)
+                    .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(p.accent)
                 }
             }
 
@@ -240,29 +284,28 @@ struct OnboardingView: View {
             // confirmation that the whole loop works.
             HStack(spacing: 0) {
                 Text(controller.lastTranscript ?? "")
-                    .font(.system(size: 13.5)).foregroundStyle(Color(hex: 0xEAE6DD))
+                    .font(.system(size: 13.5)).foregroundStyle(p.ink)
                 if controller.lastTranscript == nil {
                     Text(controller.isRecording ? "Listening…"
                          : controller.isWorking ? "Working…" : "Waiting for you…")
-                        .font(.system(size: 13)).foregroundStyle(Color(hex: 0x6B6558))
+                        .font(.system(size: 13)).foregroundStyle(p.ink3)
                 }
-                Rectangle().fill(accent).frame(width: 2, height: 15)
+                Rectangle().fill(p.accent).frame(width: 2, height: 15)
             }
             .frame(maxWidth: .infinity, minHeight: 60, alignment: .topLeading)
             .padding(14)
-            .background(RoundedRectangle(cornerRadius: 10).fill(.white.opacity(0.04)))
+            .background(RoundedRectangle(cornerRadius: 10).fill(p.card))
 
             if helloDone {
                 Text("That worked. You're set — hold the key in any app. ↗")
                     .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(DT.moss)
             } else {
-                Button("Skip this") { helloDone = true }
+                Button("Skip") { helloDone = true }
                     .buttonStyle(.plain)
-                    .font(.system(size: 11.5)).foregroundStyle(Color(hex: 0x6B6558))
+                    .font(.system(size: 11.5)).foregroundStyle(p.ink3)
             }
             Spacer()
         }
-        .padding(.top, 24)
         .onAppear { _ = controller.startListening() }
         // Auto-detect: the moment a dictation lands, mark the step complete.
         .onChange(of: controller.lastTranscript) { transcript in
@@ -271,33 +314,34 @@ struct OnboardingView: View {
     }
 }
 
-/// Step 3 — "Getting ready". One friendly sentence, one progress bar, zero
+/// Step 2 — "Getting ready". One friendly sentence, one progress bar, zero
 /// jargon. On a real Mac this drives WhisperKit's download+prepare; wire the
 /// actual progress fraction into `progress` and any thrown error's
 /// description into `failureDetail`.
 private struct GettingReadyStep: View {
     @ObservedObject var controller: AppController
     @Binding var done: Bool
+    let palette: OBPalette
     @State private var progress: Double = 0
     @State private var failed = false
     @State private var failureDetail: String?
     @State private var showDetail = false
 
-    private let accent = DT.emberDark
+    private var p: OBPalette { palette }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Getting ready")
                 .font(.system(size: 24, weight: .bold)).kerning(-0.5)
-                .foregroundStyle(Color(hex: 0xEAE6DD))
+                .foregroundStyle(p.ink)
             Text("Downloading the speech engine — one time, then everything works offline.")
-                .font(.system(size: 13)).foregroundStyle(Color(hex: 0x96907F))
+                .font(.system(size: 13)).foregroundStyle(p.ink2)
 
             VStack(alignment: .leading, spacing: 12) {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(.white.opacity(0.09))
-                        Capsule().fill(failed ? DT.errorAccent : accent)
+                        Capsule().fill(p.hairline)
+                        Capsule().fill(failed ? DT.errorAccent : p.accent)
                             .frame(width: geo.size.width * progress / 100)
                             .animation(.linear(duration: 0.2), value: progress)
                     }
@@ -305,25 +349,25 @@ private struct GettingReadyStep: View {
                 .frame(height: 6)
 
                 if failed {
-                    Text("That didn't finish — check your connection and try again.")
-                        .font(.system(size: 12.5)).foregroundStyle(Color(hex: 0xC9C3B4))
+                    Text("That stopped. Check your connection?")
+                        .font(.system(size: 12.5)).foregroundStyle(p.ink)
                     HStack(spacing: 14) {
                         Button("Try again") { retry() }
                             .buttonStyle(.plain)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Color(hex: 0x1A1508))
+                            .foregroundStyle(p.onAccent)
                             .padding(.horizontal, 14).padding(.vertical, 6)
-                            .background(Capsule().fill(accent))
+                            .background(Capsule().fill(p.accent))
                         if failureDetail != nil {
                             Button(showDetail ? "Hide details" : "Details") { showDetail.toggle() }
                                 .buttonStyle(.plain)
-                                .font(.system(size: 11.5)).foregroundStyle(Color(hex: 0x6B6558))
+                                .font(.system(size: 11.5)).foregroundStyle(p.ink3)
                         }
                     }
                     if showDetail, let failureDetail {
                         Text(failureDetail)
                             .font(.system(size: 10.5, design: .monospaced))
-                            .foregroundStyle(Color(hex: 0x6B6558))
+                            .foregroundStyle(p.ink3)
                             .textSelection(.enabled)
                             .lineLimit(4)
                     }
@@ -332,13 +376,12 @@ private struct GettingReadyStep: View {
                 }
             }
             .padding(16)
-            .background(RoundedRectangle(cornerRadius: 10).fill(.white.opacity(0.04)))
+            .background(RoundedRectangle(cornerRadius: 10).fill(p.card))
 
-            Text("Your voice never leaves this Mac.")
-                .font(.system(size: 11)).foregroundStyle(Color(hex: 0x6B6558))
+            Text("Downloaded once. After this, everything runs offline on this Mac.")
+                .font(.system(size: 11)).foregroundStyle(p.ink3)
             Spacer()
         }
-        .padding(.top, 24)
         .onAppear(perform: start)
     }
 
@@ -353,9 +396,10 @@ private struct GettingReadyStep: View {
 
         Task {
             do {
-                try await controller.prepareModelForOnboarding { fraction in
+                try await controller.prepareModelForOnboarding { received, expected in
                     Task { @MainActor in
-                        progress = min(max(fraction * 100, 0), 100)
+                        guard expected > 0 else { return }
+                        progress = min(max(Double(received) / Double(expected) * 100, 0), 100)
                     }
                 }
                 done = true

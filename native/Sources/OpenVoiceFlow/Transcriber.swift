@@ -5,7 +5,10 @@ import WhisperKit
 /// whisper.cpp subprocess + HuggingFace model download of the Python app;
 /// the model is managed by WhisperKit and can be bundled for offline use.
 actor Transcriber {
-    typealias DownloadProgressObserver = @Sendable (Double) -> Void
+    /// Reports raw byte counts, not a fraction: onboarding shows "412 of 981 MB
+    /// · 5.4 MB/s · 2 min left", and a rate and an ETA can't be derived from a
+    /// percentage. `expected` is 0 while the total is still unknown.
+    typealias DownloadProgressObserver = @Sendable (_ received: Int64, _ expected: Int64) -> Void
 
     private var kit: WhisperKit?
     private var modelName: String
@@ -27,32 +30,41 @@ actor Transcriber {
         try? await warmUp()
     }
 
+    /// True once the model is loaded in memory — lets onboarding skip the
+    /// progress card entirely on a reinstall.
+    var isReady: Bool { kit != nil }
+
     /// Load the model once (lazily). The observer receives only actual
-    /// WhisperKit transfer progress, normalized to 0...1.
+    /// WhisperKit transfer progress, as raw byte counts.
     ///
     /// An interrupted HuggingFace download can leave a truncated `.mlmodelc`.
     /// On the first load failure, remove that cached variant and retry with a
     /// fresh download; a second failure is returned to the caller.
-    func warmUp(progress observer: @escaping DownloadProgressObserver = { _ in }) async throws {
+    func warmUp(progress observer: @escaping DownloadProgressObserver = { _, _ in }) async throws {
         guard kit == nil else {
-            observer(1)
+            observer(1, 1)  // already resident — report complete
             return
         }
 
+        var total: Int64 = 0
+        let track: DownloadProgressObserver = { received, expected in
+            if expected > 0 { total = expected }
+            observer(received, expected)
+        }
         do {
-            kit = try await downloadAndLoad(progress: observer)
+            kit = try await downloadAndLoad(progress: track)
         } catch {
             purgeDownloadedModel()
-            kit = try await downloadAndLoad(progress: observer)
+            kit = try await downloadAndLoad(progress: track)
         }
-        observer(1)
+        // Land the bar exactly on full rather than wherever the last callback
+        // happened to fire.
+        observer(max(total, 1), max(total, 1))
     }
 
     private func downloadAndLoad(progress observer: @escaping DownloadProgressObserver) async throws -> WhisperKit {
         let modelFolder = try await WhisperKit.download(variant: modelName) { progress in
-            guard progress.totalUnitCount > 0 else { return }
-            let fraction = Double(progress.completedUnitCount) / Double(progress.totalUnitCount)
-            observer(min(max(fraction, 0), 1))
+            observer(progress.completedUnitCount, progress.totalUnitCount)
         }
         return try await WhisperKit(
             WhisperKitConfig(

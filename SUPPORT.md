@@ -32,4 +32,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). PRs welcome.
 
 ## Maintainer
 
-Shimoverse.
+Shimoverse Studios.

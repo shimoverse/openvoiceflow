@@ -27,6 +27,8 @@ struct DashboardView: View {
     // window stays key — see Permission.watch.
     @State private var permissionStatus: [Permission: Permission.Status] = [:]
     @State private var permissionWatch: Task<Void, Never>?
+    /// Checked when Home appears; drives the squeezed-out-icon banner.
+    @State private var menuBarIconVisible = true
     @Environment(\.colorScheme) private var scheme
 
     init(controller: AppController) {
@@ -169,6 +171,7 @@ struct DashboardView: View {
 
     private var home: some View {
         VStack(alignment: .leading, spacing: 14) {
+            if !menuBarIconVisible { squeezedIconBanner }
             HStack(alignment: .top, spacing: 14) {
                 timeBackCard.frame(maxWidth: .infinity)
                 firstWordsCard.frame(width: 300)
@@ -184,6 +187,35 @@ struct DashboardView: View {
             .frame(height: 214)
         }
         .padding(.top, 8)
+        .onAppear { menuBarIconVisible = HelloCallout.iconIsVisible }
+    }
+
+    /// macOS hides the leftmost menu-bar items when the bar runs out of room
+    /// (the notch makes this routine on laptops), and no app can claim
+    /// priority — the user's ⌘-drag is the only lever. So when our icon has
+    /// been squeezed out, say so and hand them the lever, instead of leaving
+    /// "the waveform vanished" a mystery.
+    private var squeezedIconBanner: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "menubar.arrow.up.rectangle")
+                .font(.system(size: 16))
+                .foregroundStyle(DT.warnAmber)
+                .padding(.top, 2)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Your menu bar is full, so macOS is hiding the waveform.")
+                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
+                Text("Dictation still works — the hotkey doesn't need the icon. To see it "
+                     + "again, hold ⌘ and drag other icons off the bar, or drag ours toward "
+                     + "the clock: rightmost icons are the last macOS hides. Apps can't "
+                     + "set their own priority; where you drop it is where it stays.")
+                    .font(.system(size: 12)).foregroundStyle(ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 12).fill(DT.warnAmber.opacity(0.08)))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(DT.warnAmber.opacity(0.35)))
     }
 
     /// Row 1 left — the one number on the pane worth the largest type.
@@ -723,6 +755,8 @@ struct DashboardView: View {
                 }
                 settingsToggle("Sounds", isOn: bind(\.soundFeedback))
                 settingsToggle("Paste automatically", isOn: bind(\.autoPaste))
+                settingsToggle("Show words as you speak", isOn: bind(\.liveTranscript))
+                settingsToggle("Start when you log in", isOn: launchAtLoginBinding)
                 settingsToggle("Show in Dock", isOn: showInDockBinding)
             }
 
@@ -904,6 +938,19 @@ struct DashboardView: View {
                 controller.settings.save()
                 NSApp.setActivationPolicy(show ? .regular : .accessory)
                 if show { NSApp.activate(ignoringOtherApps: true) }
+            }
+        )
+    }
+
+    /// Applies immediately via SMAppService, not just at next launch — a
+    /// toggle that does nothing until a relaunch reads as broken.
+    private var launchAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: { controller.settings.launchAtLogin },
+            set: { enabled in
+                controller.settings.launchAtLogin = enabled
+                controller.settings.save()
+                LoginItem.apply(enabled)
             }
         )
     }

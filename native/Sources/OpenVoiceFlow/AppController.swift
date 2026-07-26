@@ -177,7 +177,7 @@ final class AppController: ObservableObject {
             hud.setMaxSeconds(maxRecordingSeconds)
             hud.setShowChip(shouldShowHotkeyChip)
             hud.show(.recording(hotkey: settings.hotkey))
-            if streamPartials { startPartialStream() }
+            if streamPartials || settings.liveTranscript { startPartialStream() }
             maxRecordTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(self?.maxRecordingSeconds ?? 300))
                 if !Task.isCancelled { self?.stopAndProcess() }  // finish + insert, never drop audio
@@ -223,7 +223,15 @@ final class AppController: ObservableObject {
                 let buffer = self.audio.snapshot()
                 guard let text = await self.transcriber.partial(buffer, language: self.settings.language),
                       !text.isEmpty else { continue }
-                if !Task.isCancelled { self.partialTranscript = text }
+                if !Task.isCancelled {
+                    self.partialTranscript = text
+                    // Echo the words into the HUD while the key is held —
+                    // unless the user turned text echo off, which covers the
+                    // dictating-passwords case for live words too.
+                    if self.settings.liveTranscript && self.settings.echoInsertedText {
+                        self.hud.updateLiveTail(text)
+                    }
+                }
             }
         }
     }

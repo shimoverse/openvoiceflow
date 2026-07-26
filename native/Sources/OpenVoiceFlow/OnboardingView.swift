@@ -133,7 +133,13 @@ struct OnboardingView: View {
                 controller.settings.didOnboard = true
                 controller.settings.save()
                 _ = controller.startListening()
+                LoginItem.apply(controller.settings.launchAtLogin)
                 NSApplication.shared.keyWindow?.close()
+                // Land somewhere, not nowhere: a menu-bar app whose onboarding
+                // just closed leaves a desktop with no visible change. The
+                // dashboard is the room they were just promised.
+                NotificationCenter.default.post(name: .ovfOpenDashboard, object: nil)
+                NSApp.activate(ignoringOtherApps: true)
             }
         }
     }
@@ -412,7 +418,10 @@ struct OnboardingView: View {
                 suggestion: Self.suggestion,
                 spoken: spokenText,
                 revealedWords: revealedWords,
-                idleHint: controller.isRecording ? nil : "Waiting for you…",
+                idleHint: controller.isRecording
+                    ? nil
+                    : "Hold \(controller.settings.hotkey.glyph) and read the grey line out loud.",
+                isRecording: controller.isRecording,
                 palette: p)
                 .padding(.top, 18)
 
@@ -908,6 +917,10 @@ private struct InkFillView: View {
     let revealedWords: Int
     /// Shown before anything has been heard.
     let idleHint: String?
+    /// The key is down right now — the card acknowledges it instantly, before
+    /// the first partial can possibly arrive. Whisper needs a second or two of
+    /// audio; without this the user reads that gap as "it can't hear me."
+    let isRecording: Bool
     let palette: OBPalette
 
     @Environment(\.colorScheme) private var scheme
@@ -962,16 +975,34 @@ private struct InkFillView: View {
                         .padding(.leading, 3)
                 }
             }
-            if let idleHint, spokenWords.isEmpty {
-                Text(idleHint)
-                    .font(.system(size: 11.5)).foregroundStyle(palette.ink3)
+            if spokenWords.isEmpty {
+                if isRecording {
+                    // Instant acknowledgement, ahead of the first partial.
+                    HStack(spacing: 6) {
+                        Circle().fill(caret).frame(width: 6, height: 6)
+                        Text("Listening — go on.")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(caret)
+                    }
                     .padding(.top, 10)
+                } else if let idleHint {
+                    // The instruction is the point of this card — accent
+                    // weight, not a footnote (the grey line alone read as
+                    // decoration, and users waited for something to happen).
+                    Text(idleHint)
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(palette.accent)
+                        .padding(.top, 10)
+                }
             }
         }
         .frame(maxWidth: .infinity, minHeight: 64, alignment: .topLeading)
         .padding(16)
         .background(RoundedRectangle(cornerRadius: DT.rCard).fill(palette.card))
-        .overlay(RoundedRectangle(cornerRadius: DT.rCard).strokeBorder(palette.hairline))
+        .overlay(RoundedRectangle(cornerRadius: DT.rCard)
+            .strokeBorder(isRecording ? caret.opacity(0.55) : palette.hairline,
+                          lineWidth: isRecording ? 1.5 : 1))
+        .animation(.easeOut(duration: 0.15), value: isRecording)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(spokenWords.isEmpty ? (idleHint ?? suggestion) : spoken)
     }

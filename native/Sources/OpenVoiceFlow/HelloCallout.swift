@@ -11,6 +11,11 @@ import SwiftUI
 enum HelloCallout {
     private static var panel: NSPanel?
 
+    /// Whether macOS is actually showing our menu-bar item right now. False
+    /// means the bar is full (or the notch ate it) — the dashboard uses this
+    /// to explain the disappearance instead of leaving it a mystery.
+    static var iconIsVisible: Bool { anchorFrame() != nil }
+
     /// Screen frame of this app's status-bar item, if macOS is showing it.
     ///
     /// The status item is hosted in a window this process owns, so it appears

@@ -121,6 +121,22 @@ ln -s /Applications "$STAGE/Applications"
 hdiutil create -volname "OpenVoiceFlow $VERSION" \
   -srcfolder "$STAGE" -ov -format UDZO "$DMG"
 
+# ── sign the DMG itself ─────────────────────────────────────────────────────
+#
+# Not the same as signing the app inside it. Until 0.4.3 only the .app was
+# signed; the DMG carried a stapled notarization ticket but no signature of its
+# own, and `spctl -a -t install` evaluates the disk image against its own
+# signature — a ticket is not one. That went unnoticed because the spctl check
+# ended in `|| true` and swallowed the rejection.
+#
+# Must happen BEFORE notarizing: notarization staples a ticket to this exact
+# artifact, and signing afterwards would invalidate it.
+if [[ "$NOTARIZE" == "1" ]]; then
+  echo "▸ Signing the DMG"
+  codesign --force --timestamp --sign "$OVF_SIGN_IDENTITY" "$DMG" \
+    || { echo "::error::could not sign the DMG with $OVF_SIGN_IDENTITY"; exit 1; }
+fi
+
 # ── notarize + staple the DMG (offline Gatekeeper for the download) ─────────
 if [[ "$NOTARIZE" == "1" ]]; then
   echo "▸ Notarizing the DMG"

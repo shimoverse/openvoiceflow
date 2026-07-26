@@ -44,6 +44,34 @@ enum DT {
     static let snap = Animation.spring(response: 0.25, dampingFraction: 0.90)
     static let arrive = Animation.spring(response: 0.30, dampingFraction: 0.85)
     static let settle = Animation.spring(response: 0.45, dampingFraction: 1.0)
+
+    // MARK: HUD geometry (phase 06)
+    //
+    // The HUD shrank from 290×44 to 172×38 at rest: at the old size it was a
+    // banner, and it sat on screen during every single dictation. Per-state
+    // widths live in `HUDController` — these are the frame bounds.
+    static let hudHeight: CGFloat = 38
+    static let hudMin: CGFloat = 172
+    static let hudMax: CGFloat = 330
+    static let hudPad: CGFloat = 12
+    static let hudGap: CGFloat = 9
+    /// The progress hairline pinned above the capsule's bottom edge.
+    static let spineWeight: CGFloat = 1.5
+
+    // MARK: phase-06 motion
+    //
+    /// HUD state change — interpolates the *points* of the line; never a
+    /// cross-fade between two drawings.
+    static let morph = Animation.spring(response: 0.22, dampingFraction: 0.85)
+    /// Progress spine filling 0 → 0.45 → 0.84 → 1.0.
+    static let spineCurve = Animation.timingCurve(0.34, 1.1, 0.44, 1, duration: 0.28)
+    /// How long the success tail holds before the HUD dismisses.
+    static let dwellSuccess: Double = 1.4
+
+    // MARK: type
+    /// The dashboard's time-back figure — 68 pt, −0.045 em, bold.
+    static let heroNumberSize: CGFloat = 68
+    static let heroNumberKerning: CGFloat = -3.06  // −0.045em at 68 pt
 }
 
 extension Color {

@@ -149,7 +149,7 @@ struct OnboardingView: View {
         switch step {
         case 0: welcome
         case 1: permissions
-        case 2: GettingReadyStep(controller: controller, done: $downloadDone, palette: p)
+        case 2: KnowMeDownloadStep(controller: controller, done: $downloadDone, palette: p)
         default: helloStep
         }
     }
@@ -374,93 +374,224 @@ struct OnboardingView: View {
     }
 }
 
-/// Step 2 — "Getting ready". One friendly sentence, one progress bar, zero
-/// jargon. On a real Mac this drives WhisperKit's download+prepare; wire the
-/// actual progress fraction into `progress` and any thrown error's
-/// description into `failureDetail`.
-private struct GettingReadyStep: View {
+
+/// Turns raw byte callbacks into the three numbers that make waiting bearable:
+/// size, rate, and a time remaining that doesn't jitter.
+///
+/// Rate comes from a rolling 3-second window rather than the whole transfer, so
+/// it reflects the connection now instead of an average that never recovers from
+/// a slow start. The ETA string is held for at least a second — recomputing it
+/// on every callback makes it flicker between values and reads as broken.
+@MainActor
+final class DownloadMeter: ObservableObject {
+    @Published private(set) var received: Int64 = 0
+    @Published private(set) var expected: Int64 = 0
+    @Published private(set) var rateText = ""
+    @Published private(set) var etaText = ""
+
+    private var samples: [(t: Date, bytes: Int64)] = []
+    private var lastETAUpdate = Date.distantPast
+
+    var fraction: Double {
+        guard expected > 0 else { return 0 }
+        return min(1, max(0, Double(received) / Double(expected)))
+    }
+
+    /// "412 of 981 MB" — decimal MB, matching how the OS reports download sizes.
+    var sizeText: String {
+        guard expected > 0 else { return "" }
+        let mb = 1_000_000.0
+        return "\(Int(Double(received) / mb)) of \(Int(Double(expected) / mb)) MB"
+    }
+
+    var percentText: String { "\(Int((fraction * 100).rounded()))%" }
+
+    func update(received: Int64, expected: Int64, now: Date = Date()) {
+        self.received = received
+        if expected > 0 { self.expected = expected }
+
+        samples.append((now, received))
+        samples.removeAll { now.timeIntervalSince($0.t) > 3 }
+        guard let first = samples.first, samples.count > 1 else { return }
+        let seconds = now.timeIntervalSince(first.t)
+        guard seconds > 0.25 else { return }
+
+        let perSecond = Double(received - first.bytes) / seconds
+        rateText = perSecond > 0 ? String(format: "%.1f MB/s", perSecond / 1_000_000) : ""
+
+        guard now.timeIntervalSince(lastETAUpdate) >= 1 else { return }
+        lastETAUpdate = now
+        guard perSecond > 0, self.expected > received else { etaText = ""; return }
+        let remaining = Double(self.expected - received) / perSecond
+        etaText = remaining >= 90
+            ? "\(Int((remaining / 60).rounded())) min left"
+            : "\(max(1, Int(remaining.rounded()))) sec left"
+    }
+}
+
+/// Step 2 — the interview, with the download running underneath it.
+///
+/// The model download used to be a step of its own: a progress bar and nothing
+/// to do. Now the longest wait in the product happens while the user does the
+/// single most valuable thing for transcription quality — telling the app their
+/// name and the words it will get wrong.
+private struct KnowMeDownloadStep: View {
     @ObservedObject var controller: AppController
     @Binding var done: Bool
     let palette: OBPalette
-    @State private var progress: Double = 0
+    @StateObject private var meter = DownloadMeter()
     @State private var failed = false
     @State private var failureDetail: String?
     @State private var showDetail = false
+    /// True when the model was already on disk, so there is nothing to show.
+    @State private var skipProgress = false
+    @State private var name = ""
+    @State private var words: [String] = []
 
     private var p: OBPalette { palette }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Getting ready")
-                .font(.system(size: 24, weight: .bold)).kerning(-0.5)
+        VStack(alignment: .leading, spacing: 0) {
+            Text(skipProgress ? "Who am I typing for?" : "While that downloads — who am I typing for?")
+                .font(.system(size: 25, weight: .bold)).kerning(-0.625)
                 .foregroundStyle(p.ink)
-            Text("Downloading the speech engine — one time, then everything works offline.")
+            Text("Two answers, and your name comes out spelled right the first time.")
                 .font(.system(size: 13)).foregroundStyle(p.ink2)
+                .padding(.top, 6)
 
-            VStack(alignment: .leading, spacing: 12) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(p.hairline)
-                        Capsule().fill(failed ? DT.errorAccent : p.accent)
-                            .frame(width: geo.size.width * progress / 100)
-                            .animation(.linear(duration: 0.2), value: progress)
-                    }
-                }
-                .frame(height: 6)
-
-                if failed {
-                    Text("That stopped. Check your connection?")
-                        .font(.system(size: 12.5)).foregroundStyle(p.ink)
-                    HStack(spacing: 14) {
-                        Button("Try again") { retry() }
-                            .buttonStyle(.plain)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(p.onAccent)
-                            .padding(.horizontal, 14).padding(.vertical, 6)
-                            .background(Capsule().fill(p.accent))
-                        if failureDetail != nil {
-                            Button(showDetail ? "Hide details" : "Details") { showDetail.toggle() }
-                                .buttonStyle(.plain)
-                                .font(.system(size: 11.5)).foregroundStyle(p.ink3)
-                        }
-                    }
-                    if showDetail, let failureDetail {
-                        Text(failureDetail)
-                            .font(.system(size: 10.5, design: .monospaced))
-                            .foregroundStyle(p.ink3)
-                            .textSelection(.enabled)
-                            .lineLimit(4)
-                    }
-                } else if done {
-                    Text("Ready.").font(.system(size: 12.5, weight: .semibold)).foregroundStyle(DT.moss)
-                }
+            interviewCard.padding(.top, 18)
+            if !skipProgress {
+                progressCard.padding(.top, 14)
             }
-            .padding(16)
-            .background(RoundedRectangle(cornerRadius: 10).fill(p.card))
-
-            Text("Downloaded once. After this, everything runs offline on this Mac.")
-                .font(.system(size: 11)).foregroundStyle(p.ink3)
             Spacer()
         }
         .onAppear(perform: start)
+        .onDisappear(perform: persist)
     }
 
-    /// Starts WhisperKit preparation. The progress bar is driven only by the
-    /// framework's download callback; errors retain their original detail for
-    /// the existing disclosure UI.
+    private var interviewCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            KnowMeTextField(
+                label: "What should I call you?",
+                placeholder: "Alex Chen",
+                text: $name,
+                ink: p.ink, ink2: p.ink2,
+                fill: p.ink.opacity(0.06),
+                accent: p.accent)
+            KnowMeTokenRow(
+                label: "Any names or words I'd get wrong?",
+                tokens: $words,
+                ink2: p.ink2, ink3: p.ink3,
+                chipInk: scheme_chipInk,
+                chipFill: p.ink.opacity(0.07))
+        }
+        .padding(18)
+        .background(RoundedRectangle(cornerRadius: DT.rCard).fill(p.card))
+        .overlay(RoundedRectangle(cornerRadius: DT.rCard).strokeBorder(p.hairline))
+    }
+
+    private var scheme_chipInk: Color {
+        p.ink == DT.inkDark ? DT.chipInkDark : DT.chipInkLight
+    }
+
+    private var progressCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("Speech engine")
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(scheme_chipInk)
+                Spacer()
+                if failed {
+                    Text("stopped").font(.system(size: 11.5)).foregroundStyle(DT.errorAccent)
+                } else {
+                    metric(meter.sizeText, color: p.ink2)
+                    if !meter.rateText.isEmpty {
+                        dot; metric(meter.rateText, color: p.ink2)
+                    }
+                    if !meter.etaText.isEmpty {
+                        dot
+                        Text(meter.etaText)
+                            .font(.system(size: 11.5, weight: .semibold)).monospacedDigit()
+                            .foregroundStyle(p.accent)
+                    }
+                }
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(p.ink.opacity(0.09))
+                    Capsule().fill(failed ? DT.errorAccent : p.accent)
+                        .frame(width: geo.size.width * meter.fraction)
+                }
+            }
+            .frame(height: 5)
+            .animation(DT.spineCurve, value: meter.fraction)
+            .padding(.top, 11)
+
+            if failed {
+                Text("That stopped. Check your connection?")
+                    .font(.system(size: 12.5)).foregroundStyle(Color(hex: 0xC9C3B4))
+                    .padding(.top, 9)
+                HStack(spacing: 14) {
+                    Button("Try again") { start() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(p.onAccent)
+                        .padding(.horizontal, 14).padding(.vertical, 6)
+                        .background(Capsule().fill(p.accent))
+                    if failureDetail != nil {
+                        Button(showDetail ? "Hide details" : "Details") { showDetail.toggle() }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 11.5)).foregroundStyle(p.ink3)
+                    }
+                }
+                .padding(.top, 9)
+                if showDetail, let failureDetail {
+                    Text(failureDetail)
+                        .font(.system(size: 10.5, design: .monospaced))
+                        .foregroundStyle(p.ink3)
+                        .textSelection(.enabled)
+                        .lineLimit(4)
+                        .padding(.top, 6)
+                }
+            } else {
+                Text("Downloaded once. After this, everything runs offline on this Mac.")
+                    .font(.system(size: 11)).foregroundStyle(p.ink3)
+                    .padding(.top, 9)
+            }
+        }
+        .padding(.horizontal, 17).padding(.vertical, 14)
+        .background(RoundedRectangle(cornerRadius: DT.rCard).fill(p.ink.opacity(0.03)))
+        .overlay(RoundedRectangle(cornerRadius: DT.rCard).strokeBorder(p.hairline))
+    }
+
+    private func metric(_ text: String, color: Color) -> some View {
+        Text(text).font(.system(size: 11.5)).monospacedDigit().foregroundStyle(color)
+    }
+
+    private var dot: some View {
+        Text("·").font(.system(size: 11.5)).foregroundStyle(p.ink3)
+    }
+
     private func start() {
+        name = controller.profileStore.profile.name
+        if words.isEmpty { words = controller.profileStore.profile.technicalTerms }
         guard !done else { return }
         failed = false
         failureDetail = nil
         showDetail = false
 
         Task {
+            // A reinstall already has the model: no bar, no wait, straight to
+            // "Try it" — showing 0→100% for something instant is theatre.
+            if await controller.isModelReady() {
+                skipProgress = true
+                done = true
+                return
+            }
             do {
                 try await controller.prepareModelForOnboarding { received, expected in
-                    Task { @MainActor in
-                        guard expected > 0 else { return }
-                        progress = min(max(Double(received) / Double(expected) * 100, 0), 100)
-                    }
+                    Task { @MainActor in meter.update(received: received, expected: expected) }
                 }
                 done = true
             } catch {
@@ -470,11 +601,13 @@ private struct GettingReadyStep: View {
         }
     }
 
-    private func retry() {
-        failed = false
-        failureDetail = nil
-        showDetail = false
-        progress = 0
-        start()
+    /// Answers are written when the step is left, so a user who types and moves
+    /// on doesn't lose them to a missing Save button.
+    private func persist() {
+        var profile = controller.profileStore.profile
+        profile.name = name.trimmingCharacters(in: .whitespaces)
+        profile.technicalTerms = words
+        controller.profileStore.profile = profile
+        controller.dictionaryStore.seed(with: controller.profileStore.dictionaryWords)
     }
 }

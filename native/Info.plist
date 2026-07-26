@@ -22,7 +22,7 @@
     <key>NSMicrophoneUsageDescription</key>
     <string>OpenVoiceFlow uses the microphone to transcribe your voice while you dictate.</string>
     <!-- Sparkle in-app updates. The appcast is served from the website root. -->
-    <key>SUFeedURL</key><string>https://openvoiceflow.vercel.app/appcast.xml</string>
+    <key>SUFeedURL</key><string>https://openvoiceflow.com/appcast.xml</string>
     <key>SUEnableInstallerLauncherService</key><false/>
     <!-- Keep-me-updated by default: check on launch + once a day, and download
          AND install new signed builds automatically (applied on the next

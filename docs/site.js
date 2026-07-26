@@ -31,13 +31,13 @@
 
   const builds = {
     arm64: {
-      href: 'downloads/OpenVoiceFlow-0.5.1.dmg',
+      href: 'downloads/OpenVoiceFlow-0.5.2.dmg',
       title: 'Universal macOS DMG',
       subtitle: 'One universal native build for Apple Silicon and Intel Macs running macOS 14 or later.',
       badge: 'Universal macOS',
     },
     x86_64: {
-      href: 'downloads/OpenVoiceFlow-0.5.1.dmg',
+      href: 'downloads/OpenVoiceFlow-0.5.2.dmg',
       title: 'Universal macOS DMG',
       subtitle: 'One universal native build for Apple Silicon and Intel Macs running macOS 14 or later.',
       badge: 'Universal macOS',
@@ -120,11 +120,18 @@
     const uaData = navigator.userAgentData;
     if (uaData && typeof uaData.getHighEntropyValues === 'function') {
       try {
-        const values = await uaData.getHighEntropyValues(['architecture', 'platform']);
+        const values = await uaData.getHighEntropyValues(['architecture', 'platform', 'platformVersion']);
         const hintedPlatform = String(values.platform || uaData.platform || '').toLowerCase();
         const hintedArch = normalizedArchitecture(values.architecture);
+        // Chromium reports the real macOS version here (unlike the UA string,
+        // frozen at 10.15.7 for privacy — which is also why Safari visitors
+        // can never be version-detected and rely on the visible fallback
+        // link instead). Major 11–13 → the native app won't run; steer to
+        // the retained 0.3.6 build rather than recommending a dead end.
+        const major = parseInt(String(values.platformVersion || '').split('.')[0], 10);
+        const legacyMac = Number.isFinite(major) && major >= 11 && major < 14;
         if (hintedPlatform.includes('mac') && hintedArch) {
-          return { os: 'macos', arch: hintedArch, confidence: 'high', source: 'userAgentData' };
+          return { os: 'macos', arch: hintedArch, confidence: 'high', source: 'userAgentData', legacyMac };
         }
       } catch (error) {
         // Architecture hints are optional browser privacy surfaces.
@@ -169,6 +176,41 @@
     setText('downloadConfidence', 'Detection runs locally in your browser; nothing is uploaded.');
   }
 
+  function applyLegacyMacNotice(result) {
+    setText('downloadKicker', 'Older macOS detected');
+    setText('downloadArchBadge', 'macOS 12–13');
+    setText('downloadConfidence', 'Detection runs locally in your browser; nothing is uploaded.');
+    // The retained 0.3.6 fallback is Apple Silicon only. Handing it to a
+    // legacy Intel Mac trades one dead-end download for another — for them
+    // the honest answer is that no current build runs, and macOS 14 (which
+    // every OpenVoiceFlow-capable Intel Mac can install) is the way in.
+    if (result.arch === 'x86_64') {
+      cta.removeAttribute('href');
+      cta.setAttribute('aria-disabled', 'true');
+      cta.classList.remove('btn-primary');
+      cta.classList.add('btn-unavailable');
+      cta.textContent = 'Needs macOS 14 on Intel Macs';
+      setText('downloadTitle', 'Update to macOS 14 to run OpenVoiceFlow');
+      setText(
+        'downloadSubtitle',
+        'The current app requires macOS 14, and the older 0.3.6 fallback is ' +
+        'Apple Silicon only. Your Intel Mac can run OpenVoiceFlow after a free ' +
+        'macOS update.'
+      );
+      return;
+    }
+    // Apple Silicon on macOS 12–13: the CTA becomes the build that runs.
+    cta.href = 'downloads/OpenVoiceFlow-0.3.6-arm64.dmg';
+    cta.textContent = 'Download for macOS 12–13 (v0.3.6)';
+    setText('downloadTitle', 'Your Mac needs the 0.3.6 build');
+    setText(
+      'downloadSubtitle',
+      'The current native app requires macOS 14. Your browser reports an earlier ' +
+      'macOS, so the retained 0.3.6 Apple Silicon build is the one to grab — or ' +
+      'update macOS to get the current app.'
+    );
+  }
+
   function applyDownloadRecommendation(result) {
     document.querySelectorAll('[data-arch]').forEach(row => {
       row.classList.toggle('is-recommended', row.dataset.arch === result.arch);
@@ -176,6 +218,12 @@
 
     if (result.source === 'not-mac') {
       applyNotMacNotice(result);
+      trackRecommendation(result);
+      return;
+    }
+
+    if (result.legacyMac) {
+      applyLegacyMacNotice(result);
       trackRecommendation(result);
       return;
     }

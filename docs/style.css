@@ -1095,3 +1095,97 @@ img, canvas { max-width: 100%; }
   .compare-grid { grid-template-columns: 1.2fr 1fr 1fr; }
   .footer-links { margin-left: 0; }
 }
+
+/* Collapsible cards — <details class="content-card">. Native disclosure, no
+   JS: the heading row is the summary, with a chevron that turns when open. */
+details.content-card > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+details.content-card > summary::-webkit-details-marker { display: none; }
+details.content-card > summary h2 { margin: 0; }
+details.content-card > summary::after {
+  content: "›";
+  font-size: 19px;
+  line-height: 1;
+  opacity: 0.55;
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}
+details.content-card[open] > summary::after { transform: rotate(-90deg); }
+details.content-card[open] > summary { margin-bottom: 10px; }
+
+/* ── Step-card animations (download page) ────────────────────────────────
+   Inline SVGs; motion carries the instruction so the copy can be one line.
+   Colors ride currentColor + the ember accent so both themes just work. */
+.step-anim { margin: 12px 0 10px; }
+.step-anim svg { width: 100%; height: auto; display: block; color: currentColor; }
+.sa-pane { fill: none; stroke: currentColor; stroke-opacity: 0.35; stroke-width: 1.5; }
+.sa-window { fill: none; stroke: currentColor; stroke-opacity: 0.35; stroke-width: 1.5; }
+.sa-folder { fill: none; stroke: currentColor; stroke-opacity: 0.45; stroke-width: 1.5; }
+.sa-path { stroke: currentColor; stroke-opacity: 0.3; stroke-width: 1.5; stroke-dasharray: 4 5; }
+.sa-arrowhead { fill: currentColor; fill-opacity: 0.3; }
+.sa-app { fill: #E8974E; }
+.sa-ring { fill: none; stroke: #E8974E; stroke-width: 1.5; opacity: 0; }
+.sa-cursor { fill: currentColor; fill-opacity: 0.75; }
+.sa-textline { stroke: currentColor; stroke-opacity: 0.3; stroke-width: 2; stroke-linecap: round; }
+.sa-btn { fill: none; stroke: currentColor; stroke-opacity: 0.35; stroke-width: 1.2; }
+.sa-btn-open { fill: #E8974E; fill-opacity: 0.9; stroke: none; }
+
+.anim-drag .sa-app { animation: sa-slide 3.2s ease-in-out infinite; }
+@keyframes sa-slide {
+  0%, 12%  { transform: translateX(0); opacity: 1; }
+  55%, 72% { transform: translateX(136px); opacity: 1; }
+  82%      { transform: translateX(136px); opacity: 0; }
+  92%      { transform: translateX(0); opacity: 0; }
+  100%     { transform: translateX(0); opacity: 1; }
+}
+
+.anim-open .sa-cursor { animation: sa-approach 3.6s ease-in-out infinite; }
+.anim-open .sa-ring { animation: sa-pulse 3.6s ease-out infinite; }
+.anim-open .sa-window { opacity: 0; transform-origin: 80px 63px; animation: sa-pop 3.6s ease-out infinite; }
+@keyframes sa-approach {
+  0%, 20%  { transform: translate(0, 0); }
+  45%, 100% { transform: translate(-8px, -10px); }
+}
+@keyframes sa-pulse {
+  0%, 44%  { opacity: 0; transform: scale(1); transform-origin: 80px 63px; }
+  50%      { opacity: 0.9; }
+  70%, 100% { opacity: 0; transform: scale(1.9); transform-origin: 80px 63px; }
+}
+@keyframes sa-pop {
+  0%, 52%  { opacity: 0; transform: scale(0.6); }
+  66%, 88% { opacity: 1; transform: scale(1); }
+  100%     { opacity: 0; transform: scale(1); }
+}
+
+.anim-warn .sa-dialog { transform-origin: 110px 52px; animation: sa-dialog-in 4s ease-out infinite; }
+.anim-warn .sa-btn-open { animation: sa-btn-glow 4s ease-in-out infinite; }
+.anim-warn .sa-cursor-warn { animation: sa-click 4s ease-in-out infinite; }
+@keyframes sa-dialog-in {
+  0%       { opacity: 0; transform: scale(0.85); }
+  10%, 88% { opacity: 1; transform: scale(1); }
+  96%, 100% { opacity: 0; transform: scale(1); }
+}
+@keyframes sa-btn-glow {
+  0%, 30%  { fill-opacity: 0.55; }
+  55%, 80% { fill-opacity: 1; }
+  100%     { fill-opacity: 0.55; }
+}
+@keyframes sa-click {
+  0%, 30%  { transform: translate(0, 0); }
+  55%, 75% { transform: translate(-3px, -12px); }
+  100%     { transform: translate(0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-drag .sa-app, .anim-open .sa-cursor, .anim-open .sa-ring,
+  .anim-open .sa-window, .anim-warn .sa-dialog, .anim-warn .sa-btn-open,
+  .anim-warn .sa-cursor-warn { animation: none; }
+  .anim-open .sa-window { opacity: 1; transform: none; }
+  .anim-warn .sa-dialog { opacity: 1; transform: none; }
+}

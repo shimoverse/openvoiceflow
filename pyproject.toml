@@ -10,7 +10,7 @@ version = "0.3.6"
 description = "Free voice dictation for macOS — local transcription + optional LLM cleanup"
 readme = "README.md"
 license = "MIT"
-authors = [{name = "Shimoverse"}]
+authors = [{name = "Shimoverse Studios"}]
 requires-python = ">=3.9"
 keywords = ["voice", "dictation", "speech-to-text", "whisper", "macos", "openvoiceflow"]
 classifiers = [

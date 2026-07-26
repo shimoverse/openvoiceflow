@@ -68,4 +68,4 @@ The one-page version: audio on-device always; text to a cloud only if you enable
 
 ## License
 
-[MIT](LICENSE) © Shimoverse and contributors. Third-party notices: [docs/legal/THIRD_PARTY_NOTICES.md](docs/legal/THIRD_PARTY_NOTICES.md).
+[MIT](LICENSE) © Shimoverse Studios and contributors. Third-party notices: [docs/legal/THIRD_PARTY_NOTICES.md](docs/legal/THIRD_PARTY_NOTICES.md).

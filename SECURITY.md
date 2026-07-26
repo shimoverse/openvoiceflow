@@ -175,7 +175,7 @@ GitHub Security Advisory on the repo.
 
 ## Notes for reviewers
 
-- The project is MIT-licensed; the maintainer is Shimoverse (see `LICENSE`).
+- The project is MIT-licensed; the maintainer is Shimoverse Studios (see `LICENSE`).
 - The repo lives at `github.com/shimoverse/openvoiceflow` today and may move to a
   personal account before public release. URLs in this file will be updated if so.
 - This document is part of the v0.3 readiness bundle. Pair reading:

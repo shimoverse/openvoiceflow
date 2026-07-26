@@ -5,8 +5,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.vercel.app"
-RELEASE_VERSION = "0.4.1"
-UNIVERSAL_SHA256 = "300e65c1cead4216e120a6809fc050c53d9104613d000b4a9cbbd4d69f8ceddf"
+RELEASE_VERSION = "0.4.2"
+UNIVERSAL_SHA256 = "6a4bbbf78e131653039432f9e31e4df3d33599f6630866a314ddcd7e552fa811"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"
 
 
@@ -38,7 +38,7 @@ def test_client_chooser_always_targets_the_universal_native_dmg():
 
 def test_appcast_is_present_and_signed_for_the_final_native_release():
     appcast = (DOCS / "appcast.xml").read_text(encoding="utf-8")
-    assert "sparkle:shortVersionString>0.4.1" in appcast
+    assert "sparkle:shortVersionString>0.4.2" in appcast
     assert "sparkle:edSignature=" in appcast
     assert f"OpenVoiceFlow-{RELEASE_VERSION}.dmg" in appcast
 

@@ -101,8 +101,10 @@ the waveform for a native macOS menu whose first action is
 dictation shortcut, select AI cleanup and writing styles, open permission
 settings, and **Check for Updates**.
 
-To dictate, click in any text field, hold the **Right Command (⌘)** key, speak,
-then release it. The transcribed text appears at the cursor. The icon changes
+To dictate, click in any text field, hold the **fn / 🌐 Globe** key, speak,
+then release it. (Set System Settings ▸ Keyboard ▸ "Press 🌐 to" → "Do Nothing"
+so macOS leaves that key to OpenVoiceFlow; you can pick a different key in
+Settings.) The transcribed text appears at the cursor. The icon changes
 to a pause or warning symbol when listening is paused or setup needs attention.
 
 > First launch installs everything automatically, walks you through setup, and interviews you so it knows your name, your team, and your jargon from day one.

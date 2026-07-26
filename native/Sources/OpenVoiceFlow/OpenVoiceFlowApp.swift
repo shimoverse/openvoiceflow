@@ -32,9 +32,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Dock icon by default (Settings ▸ Show in Dock); .accessory is the
-        // menu-bar-only mode for people who'd rather not have one.
-        NSApp.setActivationPolicy(controller.settings.showInDock ? .regular : .accessory)
+        // The app launches as an accessory (LSUIElement) so the dashboard scene
+        // stays dormant; promoting to .regular here adds the Dock icon without
+        // auto-presenting that window. Settings ▸ Show in Dock flips it back.
+        if controller.settings.showInDock { NSApp.setActivationPolicy(.regular) }
         // Start Sparkle at launch so background appcast checks run on schedule.
         _ = UpdaterController.shared
         #if DEBUG
@@ -142,7 +143,7 @@ private struct MenuContent: View {
         Menu("Hotkey — \(controller.settings.hotkey.displayName)") {
             ForEach(Hotkey.allCases, id: \.self) { key in
                 Toggle(isOn: .constant(controller.settings.hotkey == key)) {
-                    Text(key == .rightCommand ? "\(key.displayName)  (default)" : key.displayName)
+                    Text(key == .fn ? "\(key.displayName)  (default)" : key.displayName)
                 }
                 .onTapGesture { controller.updateHotkey(key) }
             }

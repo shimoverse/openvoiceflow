@@ -2,6 +2,12 @@
 
 OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcribes audio locally on-device with WhisperKit, applies voice commands, optionally cleans text with the user's selected LLM backend, and pastes the final text at the cursor.
 
+## Mission
+
+- Voice dictation is a basic accessibility and productivity need; payment should never be the blocker. OpenVoiceFlow is free and MIT-licensed, forever.
+- People speak roughly 150 words per minute and type roughly 40; a Stanford study measured speech input at about three times keyboard speed.
+- The project's stated goal is for voice input to become a default operating-system feature; until then it is built in the open and welcomes contributors at https://github.com/shimoverse/openvoiceflow.
+
 ## Priority pages
 
 - Homepage: https://openvoiceflow.com/

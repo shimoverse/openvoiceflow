@@ -41,6 +41,37 @@
     "downloadUrl": "https://openvoiceflow.com/downloads/OpenVoiceFlow-0.5.2.dmg"
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "OpenVoiceFlow",
+    "url": "https://openvoiceflow.com/",
+    "logo": "https://openvoiceflow.com/assets/og-card.png",
+    "sameAs": ["https://github.com/shimoverse/openvoiceflow"],
+    "description": "Open-source, free-forever voice dictation for macOS with on-device transcription. Mission: voice input as a basic feature for everyone, never gated by payment."
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Is OpenVoiceFlow really free? What's the catch?",
+       "acceptedAnswer": {"@type": "Answer", "text": "MIT-licensed, no account, no telemetry. Your Mac provides the compute — there is nothing to sell you."}},
+      {"@type": "Question", "name": "How accurate is OpenVoiceFlow's dictation?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Whisper runs on-device with models from tiny to large. A personal dictionary fixes names and jargon once, forever."}},
+      {"@type": "Question", "name": "Does AI cleanup send my text to the cloud?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Cleanup is Off by default, so the raw on-device transcript is pasted as-is. Optional cleanup can use OpenRouter, OpenAI, Anthropic, Groq, or fully-local Ollama. Audio never leaves the Mac regardless."}},
+      {"@type": "Question", "name": "Which Macs does OpenVoiceFlow support?",
+       "acceptedAnswer": {"@type": "Answer", "text": "macOS 14 Sonoma or newer, Apple Silicon and Intel."}},
+      {"@type": "Question", "name": "Is dictation actually faster than typing?",
+       "acceptedAnswer": {"@type": "Answer", "text": "People speak at roughly 150 words a minute versus roughly 40 typed, and a Stanford study measured speech input at about three times keyboard speed. For most prose, talking is substantially faster."}},
+      {"@type": "Question", "name": "Where does my data live?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Settings and history stay in Application Support on your Mac; API keys live in the macOS Keychain. Audio is processed on-device and discarded."}}
+    ]
+  }
+  </script>
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
@@ -191,6 +222,22 @@
         </div>
       </div>
       <p class="compare-footnote">Competitor details per their published pricing and docs, July 2026.</p>
+    </section>
+
+    <!-- ─── 7b · Mission ───────────────────────────────────── -->
+    <section class="container section" aria-label="Mission" id="mission">
+      <h2 class="section-title">Talking is how humans work.<br />Typing is the workaround.</h2>
+      <p class="section-sub answer-block">People speak at roughly 150 words a minute and type at roughly 40. A Stanford study measured speech input at about three times the speed of typing on mobile keyboards. Your voice has always been the faster interface — the tools just hadn't caught up.</p>
+      <div class="stat-row">
+        <div class="stat-card stat-accent"><div class="stat-value">~150</div><div class="stat-label">Words per minute, speaking</div></div>
+        <div class="stat-card"><div class="stat-value">~40</div><div class="stat-label">Words per minute, typing</div></div>
+        <div class="stat-card"><div class="stat-value">~3×</div><div class="stat-label">Speech vs. keyboard, Stanford study</div></div>
+      </div>
+      <div class="content-card">
+        <h2>Our mission</h2>
+        <p class="answer-block">Dictation this good should not cost $144 a year, and it should not require sending your voice to someone's cloud. It is a basic accessibility and productivity need — like copy and paste — and payment should never be the blocker. So OpenVoiceFlow is free, on-device, and MIT-licensed, forever.</p>
+        <p class="answer-block">Honestly, we think every operating system should ship this as a default feature, and the day that happens well enough, apps like this one become unnecessary. Until then, we build it in the open — and if you are a developer who believes typing shouldn't be a toll booth, <a href="https://github.com/shimoverse/openvoiceflow">join us on GitHub</a>.</p>
+      </div>
     </section>
 
     <!-- ─── 7 · Pick your backend ──────────────────────────── -->

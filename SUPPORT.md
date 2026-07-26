@@ -9,9 +9,8 @@ Open a GitHub Issue: <https://github.com/shimoverse/openvoiceflow/issues/new>.
 Include:
 - Your macOS version (`sw_vers -productVersion`)
 - Your Mac arch (`uname -m`)
-- Your Python version (`python3 --version`)
-- The output of `openvoiceflow --version`
-- The output of `openvoiceflow --doctor` if available, otherwise `openvoiceflow --test`
+- Your app version (Dashboard → Settings shows it)
+- Which speech engine you chose, and what the HUD showed when it went wrong
 - What you expected vs what happened
 - The shortest reproduction you can come up with
 

@@ -11,7 +11,7 @@
 #   OVF_BUILD              CFBundleVersion / sparkle:version       [default: read from Info.plist]
 #   SPARKLE_ED_PRIVATE_KEY the exported EdDSA private key string   [REQUIRED — fails if unset]
 #   OVF_DOWNLOAD_BASE      URL prefix the DMG will be served from
-#                          [default https://openvoiceflow.vercel.app/downloads]
+#                          [default https://openvoiceflow.com/downloads]
 #   SPARKLE_VERSION        Sparkle release to pull sign_update from [default 2.9.4]
 #
 # REQUIRED for a release: fails loudly if SPARKLE_ED_PRIVATE_KEY is unset, since
@@ -32,9 +32,9 @@ fi
 # build number from Info.plist so it increments every release, or Sparkle won't
 # see a new build as newer.
 BUILD="${OVF_BUILD:-$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' Info.plist 2>/dev/null || echo 1)}"
-DOWNLOAD_BASE="${OVF_DOWNLOAD_BASE:-https://openvoiceflow.vercel.app/downloads}"
+DOWNLOAD_BASE="${OVF_DOWNLOAD_BASE:-https://openvoiceflow.com/downloads}"
 # The feed's own URL — must match Info.plist SUFeedURL (served at the site root).
-FEED_URL="${OVF_APPCAST_URL:-https://openvoiceflow.vercel.app/appcast.xml}"
+FEED_URL="${OVF_APPCAST_URL:-https://openvoiceflow.com/appcast.xml}"
 SPARKLE_VERSION="${SPARKLE_VERSION:-2.9.4}"
 
 DMG="dist/OpenVoiceFlow-$OVF_VERSION.dmg"
@@ -73,7 +73,7 @@ cat > dist/appcast.xml <<XML
     <language>en</language>
     <item>
       <title>Version $OVF_VERSION</title>
-      <sparkle:releaseNotesLink>https://openvoiceflow.vercel.app/how-it-works.html</sparkle:releaseNotesLink>
+      <sparkle:releaseNotesLink>https://openvoiceflow.com/how-it-works.html</sparkle:releaseNotesLink>
       <pubDate>$PUBDATE</pubDate>
       <sparkle:version>$BUILD</sparkle:version>
       <sparkle:shortVersionString>$OVF_VERSION</sparkle:shortVersionString>

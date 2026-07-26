@@ -1,194 +1,48 @@
-# AGENTS.md — OpenVoiceFlow
+# AGENTS.md — how to work in this repo
 
-This file is for AI coding agents (Claude Code, Cursor, Copilot, etc.) contributing to OpenVoiceFlow. It follows the [agentsmd.org](https://agentsmd.org) convention. Humans should read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md) first.
+For AI agents and humans alike. If this file disagrees with the code, the code
+wins — and fixing this file is part of the change.
 
-Repo: <https://github.com/shimoverse/openvoiceflow>
+## The lay of the land
 
-## What the project is
+- **`native/`** — the shipping macOS app (Swift/SwiftUI, v0.5.x). This is
+  where product work happens. The Xcode project is generated from
+  `native/project.yml`; edit the yml, never the `.xcodeproj`.
+- **`docs/`** — the public website, served by Vercel from `main`. It has real
+  tests (`tests/test_docs_distribution.py`) that pin download filenames,
+  checksums, and appcast integrity. Internal working docs must not live here.
+- **`voiceflow/` + `install.sh` + `build-dmg.sh`** — the legacy Python app
+  (≤ 0.3.6, EOL). Only fallback-critical fixes. Its conventions (secure
+  file writes via `voiceflow/_secure_io.py`, `from __future__ import
+  annotations` for 3.9 compat) still apply to any touch there, and its tests
+  still run in CI.
+- **`.github/workflows/`** — CI compiles the Swift app and runs pytest on
+  every PR. `release-native.yml` is the tag-driven release;
+  `create-release-tag.yml` plants/moves tags for environments that can't
+  push them. See `RELEASE.md` for the whole process.
 
-OpenVoiceFlow is a free, open-source push-to-talk voice dictation app for macOS. Speech-to-text runs locally via `whisper.cpp`; LLM cleanup runs through whichever backend the user picks (Gemini, OpenAI, Anthropic, Groq, Ollama, or none). It's a desktop app, not a library — there is no public Python API for downstream consumers.
+## Ground rules
 
-## Working directory + repo layout
+- Branch → PR → green CI → squash-merge. No direct pushes to `main`; never
+  `git push --force` to shared branches.
+- Versions are release work: the four version fields
+  (`project.yml` ×2, `Info.plist` ×2) move together or not at all, and only
+  when cutting a release.
+- Privacy defaults are one-way: changes that make defaults *more* private are
+  ordinary PRs; anything more permissive needs explicit maintainer sign-off
+  in the PR description.
+- Never regenerate the Sparkle keypair. Every shipped app pins the public
+  key; a new pair breaks updates for every install, permanently.
+- The website tests are contracts, not decoration — each one names the
+  support question it prevents. Read the test before "fixing" it.
+- Claims on the website must be true of the shipped app. When in doubt,
+  understate.
 
-You'll be operating at the repo root. The project is small and flat — 28 Python modules under `voiceflow/`.
+## Verifying work
 
-```
-openvoiceflow/
-├── voiceflow/                      ← all source. SAFE to edit.
-│   ├── __init__.py                 ← version + metadata
-│   ├── __main__.py                 ← argparse CLI entry point
-│   ├── app.py                      ← OpenVoiceFlow orchestrator
-│   ├── menubar.py                  ← rumps menu bar app
-│   ├── autostart.py                ← LaunchAgent install/remove
-│   ├── recorder.py                 ← sounddevice capture
-│   ├── clipboard.py                ← selected-text capture (Cmd+C round-trip)
-│   ├── transcriber.py              ← whisper.cpp batch
-│   ├── streamer.py                 ← whisper-stream subprocess
-│   ├── llm/
-│   │   ├── __init__.py             ← BACKENDS registry, cleanup_text dispatcher
-│   │   ├── base.py                 ← LLMBackend abstract base + STYLE_PRESETS
-│   │   ├── gemini.py               ← Gemini Flash
-│   │   ├── openai_backend.py       ← OpenAI chat completions
-│   │   ├── anthropic_backend.py    ← Claude Messages
-│   │   ├── groq_backend.py         ← Groq (OpenAI-compatible)
-│   │   └── ollama_backend.py       ← local Ollama
-│   ├── interview.py                ← Tk "Know Me" wizard
-│   ├── profile.py                  ← profile.json + LLM prompt fragment
-│   ├── dictionary.py               ← personal dictionary
-│   ├── snippets.py                 ← trigger-phrase expansions
-│   ├── commands.py                 ← spoken-punctuation replacement (DEFAULT_COMMANDS)
-│   ├── styles.py                   ← STYLE_PROMPTS, STYLE_LABELS
-│   ├── context.py                  ← frontmost-app detection + per-app style
-│   ├── learner.py                  ← auto-learn corrections via AX API
-│   ├── system.py                   ← paste_text, play_sound, log_transcript
-│   ├── platform_support.py         ← OS/arch/permission detection (macOS gate)
-│   ├── overlay.py                  ← PyObjC floating HUD
-│   ├── config.py                   ← DEFAULTS, validate_config, load/save
-│   ├── _secure_io.py               ← chmod-600 helpers (use this for new save sites!)
-│   ├── onboarding.py               ← Tk first-run wizard
-│   ├── updater.py                  ← GitHub-releases check (no telemetry)
-│   ├── stats.py                    ← local-only counters
-│   └── search.py                   ← full-text search over JSONL logs
-├── tests/                          ← pytest. SAFE to edit.
-│   ├── test_chmod_600.py
-│   ├── test_config_migration.py
-│   ├── test_install_sh.py
-│   ├── test_onboarding.py
-│   ├── test_privacy_defaults.py
-│   ├── test_python39_compat.py
-│   ├── test_smoke.py
-│   ├── test_updater.py
-│   └── test_voice_commands_count.py
-├── docs/                           ← SAFE to edit. ARCHITECTURE.md is the canonical map.
-│   ├── ARCHITECTURE.md
-│   ├── COMPLIANCE.md
-│   ├── THREAT_MODEL.md
-│   ├── COMPATIBILITY.md
-│   ├── legal/
-│   └── (landing-page assets: index.html, style.css, sitemap.xml)
-├── .github/workflows/              ← UNSAFE to edit without testing on a fork first.
-│   ├── ci.yml                      ← matrix: macos-latest × Python 3.9/3.10/3.11
-│   └── release.yml                 ← tag-triggered DMG build + upload
-├── README.md                       ← SAFE; doc-vs-code lint test enforces consistency.
-├── CONTRIBUTING.md                 ← SAFE.
-├── PRIVACY.md, SECURITY.md         ← SAFE.
-├── pyproject.toml                  ← SAFE; bump version here AND in voiceflow/__init__.py.
-├── install.sh, build-dmg.sh        ← SAFE but tested by tests/test_install_sh.py.
-├── LICENSE                         ← UNSAFE. MIT — do not modify.
-├── dist/, build/                   ← UNSAFE. Build artifacts; do not edit or commit changes.
-└── openvoiceflow.egg-info/         ← UNSAFE. Auto-generated by setuptools.
-```
-
-## Setup commands
-
-```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[all,dev]"
-pytest -q
-```
-
-Then to verify your environment matches CI:
-
-```bash
-ruff check voiceflow/        # must return 0 — blocking in CI
-python -c "import voiceflow; print(voiceflow.__version__)"
-```
-
-If you want to actually run the app end-to-end on a Mac you need `brew install whisper-cpp` (which also ships `whisper-stream`) and a Gemini key (`openvoiceflow --set-key gemini ...`). For most code changes you do not need to launch the app — the test suite covers the persistence, migration, privacy-default, and Python-3.9-compat invariants.
-
-## Conventions an agent must follow
-
-- **TDD.** Write a failing test under `tests/` first, then make it pass. The existing tests are tight and small — match that style.
-- **Lint is blocking.** `ruff check voiceflow/` must return 0. CI runs `target-version = "py39"`, line length 120, rules `E,F,W,I`. The `voiceflow/llm/__init__.py` file has a per-file ignore for re-exports (`F401`) — keep using it for the `BACKENDS` registry, don't add new file-level ignores casually.
-- **Use `voiceflow/_secure_io.py` for any new save site.** If you write JSON or any new file under `~/.openvoiceflow/`, route it through `secure_write_json` (or call `secure_chmod` after a manual write). The `tests/test_chmod_600.py` suite enforces this for every existing save site; add new save sites to that test.
-- **Add `from __future__ import annotations` to every new module.** The codebase targets Python 3.9 and uses `str | None` annotations; without the future import, 3.9 raises `TypeError`. `tests/test_python39_compat.py` enforces this.
-- **No new `print(...)` for debug.** User-facing status goes through `overlay.get_overlay()`. Diagnostics go to `sys.stderr` (see `_secure_io.secure_chmod` for the pattern). The existing `print(...)` calls in `app.py`/CLI handlers are user-facing status messages — leave those, just don't add more for debugging.
-- **Update README when you add user-facing surface.** Adding a backend, voice command, snippet default, or CLI flag means updating `README.md`. The `tests/test_voice_commands_count.py` test currently enforces this for voice commands; we want the same posture project-wide.
-- **Push completed changes to GitHub `main`.** The maintainer has explicitly authorized agents to push updates and changes through to the GitHub `main` branch once the work is complete and verification passes. Prefer the normal branch → PR → green CI → squash-merge flow for non-trivial changes, then sync local `main`. For tiny documentation-only updates, direct commits to `main` are acceptable after a quick verification. Always report the final `origin/main` commit SHA.
-- **Vercel deploys the public site from GitHub `main`.** The Vercel project `openvoiceflow` (owner's Vercel team) is connected to `shimoverse/openvoiceflow` with production branch `main`. Root `vercel.json` runs `npm run vercel-build`, which copies `docs/` into `public/` for the deployed static site (the build script excludes any `superpowers/` directory as defense-in-depth; internal working docs must not live under `docs/`).
-
-## Recipes
-
-The highest-value section. Copy-paste these.
-
-### Add a new LLM backend (e.g. `mistral`)
-
-Four edits:
-
-1. Create `voiceflow/llm/mistral_backend.py`. Subclass `LLMBackend` from `voiceflow/llm/base.py`. Set `name = "mistral"` and a sensible `default_model`. Implement `validate(self) -> tuple[bool, str]` and `cleanup(self, raw_text, *, context=None, app_context=None, override_style=None) -> str`. Use `self._make_prompt(raw_text, context=context, app_context=app_context, override_style=override_style)` to assemble the system prompt — that hook folds in dictionary/profile/snippets/style.
-2. Register in `voiceflow/llm/__init__.py`: import the class and add it to `BACKENDS`.
-3. Add `"mistral"` to `voiceflow.config.VALID_BACKENDS`.
-4. Add a Mistral entry to `voiceflow/onboarding.py:BACKENDS` (cost / speed / privacy / URL / instructions / `recommended` flag) so the wizard offers it. Update the README's "Choose Your AI Backend" table too.
-
-Then: write a test under `tests/` that imports your backend class, instantiates it with a dummy config, and asserts `validate()` returns a sensible error message when the API key is missing. Don't make live network calls in the suite.
-
-### Add a default voice command
-
-1. Edit `voiceflow/commands.py:DEFAULT_COMMANDS`. Keep the longest-phrase-first invariant in mind — `apply_commands` sorts internally, but adding ambiguous prefixes (e.g. a "new" command on top of "new line") will silently change matching.
-2. **Update the README.** The README's "✅ N voice commands" claim and the trigger list both have to be updated — `tests/test_voice_commands_count.py` will fail otherwise. The test does two things: counts in README must equal `len(DEFAULT_COMMANDS)`, and every default trigger must appear somewhere in the README text.
-
-### Change a default in `DEFAULTS`
-
-`voiceflow/config.py:DEFAULTS` is the source of truth for fresh installs. The pattern is **"fresh install only; existing user state respected."** `load_config` does `dict(DEFAULTS); config.update(stored)` — so any key already in the user's `config.json` wins. This is intentional: privacy defaults like `log_transcripts: False` apply only to new users, while existing users who had it on (e.g. v0.1 default) keep it on.
-
-If you flip a privacy default the other direction (more permissive), call that out explicitly in the PR description and add a test in `tests/test_privacy_defaults.py`. If you want to *force* existing users to a new value, that's a one-time migration — model it on `_migrate_cleanup_to_llm_prompt` in `config.py` and pin it with a `tests/test_config_migration.py`-style test.
-
-### Add a new CLI flag
-
-The pattern in `voiceflow/__main__.py:main()`:
-
-1. **Argparse setup** alongside the related group (e.g. backend flags live near `--backend`). Use `dest=` if the flag name has dashes you want to convert.
-2. **Handler dispatch** — a top-level `if args.flag:` block in `main()`. Order matters: handlers that don't need network or config side effects come first.
-3. **Early return** if the user only invoked your flag. Many flags end with a bare `return` so the rest of `main()` (which would otherwise launch the listener) doesn't run. The "config setters" block lower in `main()` deliberately falls through to the listener — match the early-return pattern unless your flag is a config setter that should let users chain `openvoiceflow --backend gemini --hotkey f5` and then start.
-4. **Update the README CLI cheat sheet** so docs match code.
-
-## What NOT to do
-
-- **Do not store API keys, profile data, or PII in any file under the repo root.** All user state lives in `~/.openvoiceflow/`, mode 600. Tests, fixtures, and example configs must use placeholder values.
-- **Do not `git push --force`.** Especially not to `main` or `v0.3-readiness`. If you really need to rewrite history, ask the maintainer first.
-- **Do not skip git hooks** (`--no-verify`) or commit signing flags unless explicitly told to.
-- **Do not add a runtime dependency without updating both `pyproject.toml` and `legal/THIRD_PARTY_NOTICES.md`.** The audit trail matters; license attribution matters more. Optional dependencies (`menubar`, `overlay`) go in the relevant `optional-dependencies` group, not `dependencies`.
-- **Do not claim something the code doesn't do.** The README must match the code. `test_voice_commands_count` enforces this for one feature; we want the same posture project-wide. If you remove a feature, remove its README copy in the same PR.
-- **Historical audit documents are not a spec.** Internal audits/plans are kept outside the repository. The current state is whatever the code, tests, and README say *now*.
-- **Do not add asyncio.** The concurrency model is threads + subprocesses (see `docs/ARCHITECTURE.md` §7). Adding an event loop would interleave badly with `pynput.Listener`, AppKit, and rumps.
-- **Do not add telemetry, analytics, or call-home behavior.** The only outbound network calls without a user action are the GitHub release check (`updater.py`) and the LLM backend the user chose. If you need to add a third, get explicit sign-off from the maintainer first.
-
-## CLI cheat sheet
-
-Useful for testing changes from the agent's shell. Many of these write to `~/.openvoiceflow/config.json` — if you're testing in CI, point `HOME` at a tmpdir.
-
-| Flag | Purpose |
-|---|---|
-| `--version` | Print version and exit. |
-| `--show-config` | Dump the current config (API keys redacted) and exit. |
-| `--test` | Run `validate_setup()` (whisper.cpp, model, backend, audio) and exit; non-interactive. |
-| `--setup` / `--onboarding` | Re-run the Tk onboarding wizard. |
-| `--profile` | Re-run the Know Me interview wizard. |
-| `--show-profile` / `--clear-profile` | Inspect / delete `profile.json`. |
-| `--menubar` | Launch as a rumps menu-bar app instead of CLI listener. |
-| `--backend BACKEND` | Set LLM backend: `gemini` / `openai` / `anthropic` / `groq` / `ollama` / `none`. |
-| `--set-key BACKEND KEY` | Persist an API key into `config.json`. |
-| `--set-prompt PROMPT` / `--clear-prompt` | Override / reset the LLM cleanup prompt. |
-| `--model MODEL` | Set whisper model: `tiny.en` / `base.en` / `small.en` / `medium.en` / `tiny` / `base` / `small` / `medium` / `large`. |
-| `--language LANG` | Set transcription language code (`en`, `es`, `auto`, …); auto-switches off `.en` models if non-English. |
-| `--hotkey HOTKEY` | Set hotkey: `right_cmd` / `left_cmd` / `right_alt` / `left_alt` / `right_ctrl` / `f5`–`f12`. |
-| `--style STYLE` | Set tone: `default` / `casual` / `formal` / `code` / `email`. |
-| `--app-style APP STYLE` / `--remove-app-style APP` / `--list-app-styles` / `--auto-style on\|off` | Per-app style mappings. |
-| `--streaming on\|off` / `--streaming-step MS` | Enable or tune real-time streaming (requires `whisper-stream` binary). |
-| `--auto-learn on\|off` | Toggle the post-paste correction watcher. |
-| `--update-check on\|off` | Toggle the GitHub release check on launch. |
-| `--log-transcripts on\|off` | Toggle saving every dictation under `~/.openvoiceflow/logs/`. |
-| `--add-word WORD` / `--remove-word WORD` / `--list-words` | Personal dictionary CRUD. |
-| `--add-snippet TRIGGER TEXT` / `--remove-snippet TRIGGER` / `--list-snippets` | Voice-snippet CRUD. |
-| `--add-command PHRASE TEXT` / `--remove-command PHRASE` / `--list-commands` / `--voice-commands on\|off` | Voice-command CRUD; `--add-command` accepts `\\n` / `\\t` escapes. |
-| `--search QUERY` / `--search-date YYYY-MM-DD` / `--search-last DAYS` / `--limit N` | Full-text search over JSONL transcript logs. |
-| `--stats` | Print local-only usage counters. |
-| `--autostart on\|off` | Install or remove the LaunchAgent. |
-| `--doctor` | Self-check: OS, architecture, brew, whisper.cpp, model, API key, macOS permissions, file modes. `--json` for machine-readable output. Works (and reports the platform mismatch) on non-macOS hosts. |
-
-## Where to ask
-
-- **Read first:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`PRIVACY.md`](PRIVACY.md), [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
-- **Stuck on a design call?** Open a draft PR with the failing test and a question in the description; tag the maintainer. Algorithm-shaped or accuracy-shaped changes (cleanup-prompt structure, voice-command matching, dictionary inclusion logic) need explicit sign-off — don't auto-ship them based on a green test.
-- **Stuck on a permissions issue?** macOS Accessibility / Apple Events / Mic permissions don't replicate well in CI. Reproduce locally; describe the System Settings state in the PR.
-- **Spotted a security issue?** See `SECURITY.md`. Do not file a public issue.
+- Swift: CI's `native-build` compiles it; behavior needs a Mac
+  (`bash native/scripts/run-local.sh`). Say plainly in the PR what was
+  compile-verified vs. device-verified.
+- Website: `python3 -m pytest tests/test_docs_distribution.py -q` locally,
+  plus a look at the rendered page.
+- Python (legacy): `pytest -q`.

@@ -26,7 +26,8 @@ from .system import (
 from .transcriber import find_whisper_cpp, get_model_path, transcribe
 
 # ─────────────────────────────────────────────────────────────────────
-# Voice-command tutor (Phase C2 — UX_REVIEW.md Theme B)
+# Voice-command tutor: surfaces one undiscovered command at a time,
+# because a list of 24 teaches none of them.
 # ─────────────────────────────────────────────────────────────────────
 
 # Word-boundary phoneme detector: catches the punctuation phrases a user
@@ -719,7 +720,8 @@ class OpenVoiceFlow:
         try:
             if self._overlay:
                 self._overlay.show_processing()
-            print(f"📝 Raw (streaming): {raw_text}")
+            if self.config.get("log_transcripts"):
+                print(f"📝 Raw (streaming): {raw_text}")
 
             # ── Feature: Voice commands (Feature 3) ─────────────────────────
             from .commands import apply_commands, load_commands
@@ -751,7 +753,8 @@ class OpenVoiceFlow:
                     style=current_style or None,
                 )
                 t1 = time.time()
-                print(f"✅ Clean ({t1-t0:.1f}s): {cleaned_text}")
+                if self.config.get("log_transcripts"):
+                    print(f"✅ Clean ({t1-t0:.1f}s): {cleaned_text}")
 
             if self._overlay:
                 if snippet_expansion:
@@ -819,7 +822,8 @@ class OpenVoiceFlow:
                     play_sound("error")
                 return
 
-            print(f"📝 Raw ({t1-t0:.1f}s): {raw_text}")
+            if self.config.get("log_transcripts"):
+                print(f"📝 Raw ({t1-t0:.1f}s): {raw_text}")
 
             # ── Feature: Voice commands (Feature 3) ─────────────────────────
             # Apply spoken punctuation/formatting replacements before LLM cleanup.
@@ -852,7 +856,8 @@ class OpenVoiceFlow:
                     style=current_style or None,
                 )
                 t3 = time.time()
-                print(f"✅ Clean ({t3-t2:.1f}s): {cleaned_text}")
+                if self.config.get("log_transcripts"):
+                    print(f"✅ Clean ({t3-t2:.1f}s): {cleaned_text}")
 
             # B3: per-dictation timing line — surfaces latency to user.
             if self._overlay:

@@ -16,7 +16,7 @@ enum StatusIconState: Equatable {
 }
 
 /// Renders the 24×16 pt template glyph for each state, following the design
-/// file's canvas math verbatim (native/design/02-menu-bar.dc.html). Template
+/// file's canvas math verbatim (phase-06 menu-bar design, in git history). Template
 /// images so macOS tints them correctly in light/dark/tinted menu bars.
 enum StatusIconRenderer {
     static let size = NSSize(width: 24, height: 16)

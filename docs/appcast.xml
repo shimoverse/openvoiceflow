@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>OpenVoiceFlow</title>
-    <link>https://openvoiceflow.vercel.app/appcast.xml</link>
+    <link>https://openvoiceflow.com/appcast.xml</link>
     <description>OpenVoiceFlow native app updates.</description>
     <language>en</language>
     <item>
       <title>Version 0.5.2</title>
-      <sparkle:releaseNotesLink>https://openvoiceflow.vercel.app/how-it-works.html</sparkle:releaseNotesLink>
+      <sparkle:releaseNotesLink>https://openvoiceflow.com/how-it-works.html</sparkle:releaseNotesLink>
       <pubDate>Sun, 26 Jul 2026 19:14:16 +0000</pubDate>
       <sparkle:version>7</sparkle:version>
       <sparkle:shortVersionString>0.5.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.5.2.dmg" sparkle:edSignature="G5NS2k7CeZYMezDXx7j9Jg8OamF5dHnJWIdJ7aG+nM6lfKZJB1lY3NdMpUfbK3b5XCU2DFH1PljsG8ezyvCoBg==" length="5584666" type="application/octet-stream" />
+      <enclosure url="https://openvoiceflow.com/downloads/OpenVoiceFlow-0.5.2.dmg" sparkle:edSignature="G5NS2k7CeZYMezDXx7j9Jg8OamF5dHnJWIdJ7aG+nM6lfKZJB1lY3NdMpUfbK3b5XCU2DFH1PljsG8ezyvCoBg==" length="5584666" type="application/octet-stream" />
     </item>
   </channel>
 </rss>

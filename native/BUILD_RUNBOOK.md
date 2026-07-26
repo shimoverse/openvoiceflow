@@ -110,7 +110,7 @@ shipping product until native reaches parity + passes a real on-device test.
 
 ## Phase D — Design implementation (added after the Claude Design hand-off)
 
-The full design system landed in `native/design/*.dc.html` (raw sources) and
+The full design system's raw sources lived in `native/design/*.dc.html` (now in git history) and
 is now implemented in Swift:
 
 - `DesignTokens.swift` — every color/radius/spring token + the shared
@@ -195,7 +195,7 @@ and a full release pipeline exists:
   `SPARKLE_ED_PRIVATE_KEY` is unset (shipping without a signed feed silently
   breaks in-app updates), so the key must be configured before tagging.
 
-**The only remaining Mac-gated steps** (see `native/RELEASE_NATIVE_RUNBOOK.md`
+**The only remaining Mac-gated steps** (see `RELEASE.md`
 for the copy-paste version):
 
 1. **Generate the Sparkle keypair once** (`generate_keys` from the Sparkle

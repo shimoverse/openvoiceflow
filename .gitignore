@@ -22,3 +22,7 @@ htmlcov/
 *.pyo
 public/
 node_modules/
+.ruff_cache/
+.idea/
+.vscode/
+*.swp

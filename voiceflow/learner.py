@@ -246,7 +246,9 @@ class CorrectionWatcher:
                 return
 
             add_word(corrected_word, aliases=[original_word])
-            print(f"📚 Learned: {original_word} → {corrected_word}")
+            from voiceflow.config import load_config
+            if load_config().get("log_transcripts"):
+                print(f"📚 Learned: {original_word} → {corrected_word}")
 
             # Visual feedback via overlay
             try:

@@ -157,14 +157,29 @@
   function applyNotMacNotice(result) {
     const label = OS_LABELS[result.os] || 'this device';
     // Neutralize the CTA: an <a> without href is a non-interactive
-    // placeholder, so a Windows/Linux visitor can't download a DMG that
-    // will never run for them.
+    // placeholder, so a non-Mac visitor can't download a DMG that will
+    // never run for them.
     cta.removeAttribute('href');
     cta.setAttribute('aria-disabled', 'true');
     cta.classList.remove('btn-primary');
     cta.classList.add('btn-unavailable');
-    cta.textContent = `Not available for ${label}`;
     setText('downloadKicker', 'macOS required');
+    setText('downloadArchBadge', 'macOS 14+ only');
+    setText('downloadConfidence', 'Detection runs locally in your browser; nothing is uploaded.');
+    // Mobile visitors get the truthful future ("in the works" — store links
+    // land here when real), never a claim of availability.
+    const mobile = result.os === 'ios' || result.os === 'ipados' || result.os === 'android';
+    if (mobile) {
+      cta.textContent = `Coming soon to ${label}`;
+      setText('downloadTitle', `OpenVoiceFlow for ${label} is in the works`);
+      setText(
+        'downloadSubtitle',
+        `Not in the store yet — this page will link it the day it ships. ` +
+        'The Mac app is available today; both Mac builds stay below for a Mac you own.'
+      );
+      return;
+    }
+    cta.textContent = `Not available for ${label}`;
     setText('downloadTitle', 'OpenVoiceFlow is a Mac-only app');
     setText(
       'downloadSubtitle',
@@ -172,8 +187,6 @@
       `there is no ${label} version, and the Mac DMGs will not run on this device. ` +
       'Downloading for a Mac you own? Both builds stay available below.'
     );
-    setText('downloadArchBadge', 'macOS 14+ only');
-    setText('downloadConfidence', 'Detection runs locally in your browser; nothing is uploaded.');
   }
 
   function applyLegacyMacNotice(result) {

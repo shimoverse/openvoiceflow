@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Design tokens from the Claude Design system (native/design/*.dc.html).
+/// Design tokens from the phase-06 design system (design sources live in git history).
 /// One source of truth for every surface: HUD, menu bar, dashboard, onboarding.
 enum DT {
     // MARK: accents (identical in both themes unless noted)

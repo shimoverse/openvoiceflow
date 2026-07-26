@@ -1,631 +1,71 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/macOS-12%2B-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS 12+"/>
-  <img src="https://img.shields.io/badge/Apple%20Silicon-Ready-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Apple Silicon"/>
-  <img src="https://img.shields.io/badge/Intel-Ready-000000?style=for-the-badge&logo=intel&logoColor=white" alt="Intel"/>
-  <img src="https://img.shields.io/badge/Price-Free-00d4aa?style=for-the-badge" alt="Free"/>
-  <img src="https://img.shields.io/badge/Source-MIT%20Open%20Source-7c5cfc?style=for-the-badge" alt="MIT open source"/>
-</p>
+![OpenVoiceFlow](native/assets/readme-banner.png)
 
-<h1 align="center">🎙️ OpenVoiceFlow</h1>
+# OpenVoiceFlow
 
-<p align="center">
-  <strong>Your voice, your rules, your Mac.</strong>
-</p>
+**Free, open-source voice dictation for macOS. Hold a key, talk, release — polished text lands in whatever app you're in. Your audio never leaves your Mac.**
 
-<p align="center">
-  A free voice dictation app that learns who you are,<br/>
-  adapts to every app you use, and gets smarter every time you correct it.<br/>
-  Public downloads are website-hosted, and the source is MIT-licensed and open to everyone.
-</p>
+[![macOS 14+](https://img.shields.io/badge/macOS-14%2B-black)](https://openvoiceflow.com/download.html)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/shimoverse/openvoiceflow?filter=native-v*&label=release)](https://github.com/shimoverse/openvoiceflow/releases)
 
-<p align="center">
-  <code>Hold a key → Speak → Release → Perfect text at your cursor. Anywhere.</code>
-</p>
+People speak at roughly 150 words a minute and type at roughly 40. OpenVoiceFlow exists because closing that gap shouldn't cost $144 a year or require streaming your voice to someone's cloud. We think voice input should eventually be a default feature of every operating system; until it is, this is our contribution — and contributions are welcome.
 
----
+## Install
 
-<br/>
+**[Download the DMG](https://openvoiceflow.com/download.html)** — one universal build for Apple Silicon and Intel, Developer-ID signed and Apple-notarized. Drag it to Applications, open it, and a one-minute setup walks you through permissions and a speech-engine choice.
 
-## Why OpenVoiceFlow?
+Requires macOS 14 (Sonoma) or newer. On macOS 12–13, the download page offers a retained legacy build.
 
-Other tools ask you to pay $144/year and trust their cloud. We don't.
+## What it does
 
-| | Annual Cost | Source Access | Local Audio | Learns From You | Per-App Styles |
-|---|:---:|:---:|:---:|:---:|:---:|
-| **OpenVoiceFlow** | **$0-3** | MIT-licensed open source | ✅ | ✅ | ✅ |
-| Wispr Flow | $144 | ❌ | ❌ | ✅ | ✅ |
-| Superwhisper | $85 | ❌ | ✅ | Partial | ✅ |
-| VoiceInk | Free (GPL) | ❌ PRs | ✅ | ❌ | ✅ |
+- **Push-to-talk dictation** — hold your chosen key (default: `fn`), speak, release. Text pastes at your cursor in any app.
+- **On-device transcription** — [WhisperKit](https://github.com/argmaxinc/WhisperKit) runs Whisper locally, from `tiny` (39 MB) to `large-v3-turbo`. Audio is processed in memory and discarded; nothing is uploaded, nothing is recorded when the key isn't held.
+- **Live feedback** — your words appear in the HUD as you speak, so you know it hears you.
+- **Optional AI cleanup** — off by default (raw transcript, fully local). Turn it on to polish grammar and filler words via OpenRouter, OpenAI, Anthropic, Groq, or a fully-local Ollama model. Keys live in the macOS Keychain. Only cleaned *text* ever touches an API — never audio.
+- **Personal dictionary, snippets, per-app styles** — teach it names and jargon once; spoken shortcuts expand to full text; casual in Slack, formal in Mail.
+- **Auto-updates** — signed Sparkle updates from [openvoiceflow.com](https://openvoiceflow.com), verified with an EdDSA key pinned in the app.
 
-**Privacy at a glance:**
-- 🎤 **Audio** stays on your Mac. Always. Whisper.cpp runs locally with Metal GPU.
-- 📝 **Cleaned transcripts** go to the LLM provider you pick (OpenRouter, OpenAI, Anthropic, Groq) — *or stay on your Mac if you pick Ollama or "no cleanup"*.
-- 🔑 **API keys** live in `~/.openvoiceflow/config.json`, mode `600` (owner-only).
-- 📓 **Daily transcript logs** are off by default; opt in via `--log-transcripts on` if you want a searchable diary.
-- 🧠 **Auto-learn** is off by default; the Know Me interview asks before turning it on.
+No account. No telemetry. No paid tier — see [the mission](https://openvoiceflow.com/#mission).
 
-Your wallet stays full. Your corrections teach the app. You decide what data leaves your Mac.
+## Build from source
 
-<br/>
-
----
-
-<br/>
-
-## How It Works
-
-```
-  🎤  "um hey can you schedule a meeting for uh Thursday no wait Friday"
-                                    ↓
-  🔊  Whisper — transcribes locally on your Mac (Metal GPU accelerated)
-                                    ↓
-  🗣️  Voice Commands — "new line", "period", "comma" replaced instantly
-                                    ↓
-  🧠  LLM Cleanup — removes fillers, handles "no wait", fixes grammar
-                                    ↓
-  📋  "Hey, can you schedule a meeting for Friday?"
-                                    ↓
-  ⌨️  Auto-paste — text appears at your cursor in any app
-```
-
-**Optional real-time streaming.** Turn on the experimental `whisper-stream` mode to see words in the overlay as you
-speak. The reliable batch recorder is the default.
-
-**Context-aware.** OpenVoiceFlow reads the app you're in, the text you have selected, and your personal profile to produce text that fits perfectly.
-
-<br/>
-
----
-
-<br/>
-
-## Get Started in 60 Seconds
-
-### Download the App
-
-For the simplest signed install, download OpenVoiceFlow from the website. The source repository is public for anyone who prefers to inspect or install from source.
-
-- **Download page:** <https://openvoiceflow.com/download.html>
-- **Apple Silicon DMG:** <https://openvoiceflow.com/downloads/OpenVoiceFlow-0.3.6-arm64.dmg>
-- **Intel DMG:** <https://openvoiceflow.com/downloads/OpenVoiceFlow-0.3.6-x86_64.dmg>
-
-Open the website-hosted DMG, drag OpenVoiceFlow to Applications, then launch it.
-
-OpenVoiceFlow is a **menu-bar app**: look for the monochrome **waveform icon**
-at the top-right of the screen. It also shows a **Dock icon** while running —
-click it to see the app's status and active shortcut (on notched MacBooks the
-menu-bar icon can be hidden, so the Dock icon is your always-visible signal;
-turn it off under **Advanced → Show in Dock** for a lighter footprint). Click
-the waveform for a native macOS menu whose first action is
-**Open OpenVoiceFlow**; the same menu lets you pause listening, change the
-dictation shortcut, select AI cleanup and writing styles, open permission
-settings, and **Check for Updates**.
-
-To dictate, click in any text field, hold the **fn / 🌐 Globe** key, speak,
-then release it. (Set System Settings ▸ Keyboard ▸ "Press 🌐 to" → "Do Nothing"
-so macOS leaves that key to OpenVoiceFlow; you can pick a different key in
-Settings.) The transcribed text appears at the cursor. The icon changes
-to a pause or warning symbol when listening is paused or setup needs attention.
-
-> First launch installs everything automatically, walks you through setup, and interviews you so it knows your name, your team, and your jargon from day one.
-
-<details>
-<summary><strong>Install from source</strong></summary>
-
-<br/>
-
-OpenVoiceFlow is MIT-licensed open source. Clone the public repository below, or use the website-hosted DMG downloads above for the signed app.
-
-**One-line install:**
-```bash
-git clone https://github.com/shimoverse/openvoiceflow.git && cd openvoiceflow && bash install.sh
-```
-
-**Manual setup:**
-```bash
-brew install whisper-cpp
-git clone https://github.com/shimoverse/openvoiceflow.git && cd openvoiceflow
-python3 -m venv ~/.openvoiceflow/venv
-~/.openvoiceflow/venv/bin/pip install -e ".[all]"
-openvoiceflow --set-key openrouter YOUR_KEY_HERE
-openvoiceflow
-```
-
-</details>
-
-<br/>
-
----
-
-<br/>
-
-## Choose Your AI Backend
-
-Pick what matters to you: cost, speed, or total privacy.
-
-| Backend | Cost | Speed | Privacy | Best For |
-|:--------|:----:|:-----:|:-------:|:---------|
-| **OpenRouter Gemma 4** ⭐ | OpenRouter pricing/free tiers | Fast | Cloud | Default cloud cleanup via `google/gemma-4-31b-it`. |
-| **Groq** | Free tier | Fastest | Cloud | Speed demons. 30 req/min free. |
-| **OpenAI** | ~$5/yr | Fast | Cloud | GPT ecosystem fans. |
-| **Claude** | ~$8/yr | Fast | Cloud | Anthropic users. |
-| **Ollama** | $0 | Local | **100% Private** | Privacy maximalists. Nothing leaves your Mac. |
-| **None** | $0 | Instant | Local | Raw whisper output, no cleanup. |
+You need a Mac on macOS 14+ with Xcode 16.4+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
 
 ```bash
-openvoiceflow --backend openrouter --set-key openrouter YOUR_KEY
-openvoiceflow --backend ollama    # fully local, $0
+git clone https://github.com/shimoverse/openvoiceflow.git
+cd openvoiceflow
+bash native/scripts/run-local.sh
 ```
 
-**Get a key:** [OpenRouter](https://openrouter.ai/keys) · [Groq](https://console.groq.com/keys)
-
-<br/>
-
----
-
-<br/>
-
-## Features
-
-<br/>
-
-### 🎙️ Real-Time Streaming
-
-Words appear in the floating overlay **as you speak**. No waiting until you release the key.
-
-Powered by `whisper-stream` (Metal-accelerated on Apple Silicon). Samples audio every 3 seconds, transcribes
-continuously, and shows partial results live. This mode is opt-in; the reliable batch recorder is the default.
-
-```bash
-openvoiceflow --streaming on     # opt in to experimental live results
-openvoiceflow --streaming off    # default, reliable batch mode
-```
-
----
-
-### 🪟 Native Floating Overlay
-
-A macOS HUD pill floats at the bottom of your screen. Always visible, never in the way.
-
-| State | What You See |
-|:------|:-------------|
-| 🔴 Recording | Red indicator while you speak |
-| 🎙 Streaming | Live text appearing as you talk |
-| ⏳ Processing | Animated dots during LLM cleanup |
-| ✅ Done | Brief flash of the cleaned text |
-| 📚 Learned | "mir → Meer" when auto-learn detects a correction |
-| ❌ Error | Clear error message with guidance |
-
-Built with PyObjC/AppKit. Works across all Spaces and fullscreen apps.
-
----
-
-### 🧠 Know Me — Smart Profile Onboarding
-
-**No other dictation app does this.** On first launch, OpenVoiceFlow interviews you:
-
-1. **What's your name?** — So it's always spelled right
-2. **What do you do?** — Your role and industry seed the vocabulary
-3. **Who do you mention?** — Work names, home names, brands, tools
-4. **How do you communicate?** — Casual, balanced, or formal
-
-60 seconds. The very first dictation after setup nails your kid's name, your coworker's name, and your company jargon. All names auto-populate the dictionary too.
-
-```bash
-openvoiceflow --profile          # re-run the interview anytime
-openvoiceflow --show-profile     # see what it knows
-openvoiceflow --clear-profile    # start fresh
-```
-
----
-
-### 📚 Auto-Learn From Corrections
-
-You dictate "picking up mir from school." You fix "mir" to "Meer." OpenVoiceFlow silently learns.
-
-- Watches the text field for 30 seconds after each paste (5s, 10s, 15s, 20s, 30s)
-- Detects word-level substitutions via macOS Accessibility API
-- Adds corrections to your dictionary automatically
-- Shows a subtle "📚 mir → Meer" notification in the overlay
-- Stops watching if you switch apps
-
-**You never open settings. You never type `--add-word`. You just fix a typo once, and it learns forever.**
-
-```bash
-openvoiceflow --auto-learn on    # opt in to correction learning
-openvoiceflow --auto-learn off   # fresh-install default
-```
-
----
-
-### 🎯 Per-App Context Detection
-
-OpenVoiceFlow reads which app you're in and adapts automatically.
-
-| App | Auto Style | What Changes |
-|:----|:-----------|:-------------|
-| VS Code, Xcode, Terminal, iTerm2 | `code` | Preserves technical terms, function names |
-| Gmail, Outlook, Mail, Superhuman | `email` | Professional structure, greeting/closing |
-| Slack, Discord, WhatsApp, iMessage | `casual` | Friendly tone, contractions |
-| Word, Notion, Google Docs | `default` | Natural, balanced |
-
-30 apps mapped out of the box. Add your own:
-
-```bash
-openvoiceflow --app-style "Figma" formal
-openvoiceflow --list-app-styles
-```
-
----
-
-### 📎 Selected Text Context
-
-Have text selected when you start dictating? OpenVoiceFlow reads it and feeds it to the LLM.
-
-**Reply to an email:** Select the email text, hold your hotkey, speak your reply. The LLM understands what you're replying to and formats accordingly.
-
-**Edit a paragraph:** Select it, dictate your revision. The AI knows what you're editing.
-
-```bash
-# enabled by default, toggle in config:
-# "selected_text_context": true
-```
-
----
-
-### 🗣️ Voice Commands
-
-Say punctuation and formatting commands naturally. They're replaced **before** the LLM sees the text, so there's zero added latency.
-
-**24 default commands** — say any of the trigger phrases below and OpenVoiceFlow swaps it in instantly:
-
-| Say | Get |
-|:----|:----|
-| "new line" / "newline" | ↵ |
-| "new paragraph" | ↵↵ |
-| "period" / "full stop" | . |
-| "comma" | , |
-| "question mark" | ? |
-| "exclamation mark" / "exclamation point" | ! |
-| "colon" | : |
-| "semicolon" | ; |
-| "open paren" / "open parenthesis" | ( |
-| "close paren" / "close parenthesis" | ) |
-| "open quote" / "open quotes" | " |
-| "close quote" / "close quotes" | " |
-| "ellipsis" / "dot dot dot" | ... |
-| "dash" / "hyphen" | - |
-| "tab" | ⇥ |
-
-Run `openvoiceflow --list-commands` to print the live table from your installed version.
-
-Add custom commands:
-
-```bash
-openvoiceflow --add-command "smiley face" "😊"
-openvoiceflow --list-commands
-```
-
----
-
-### 📖 Personal Dictionary
-
-Teach OpenVoiceFlow words it should always spell correctly.
-
-```bash
-openvoiceflow --add-word "OpenVoiceFlow"
-openvoiceflow --add-word "Kubernetes"
-openvoiceflow --list-words
-```
-
-Words are injected into the LLM prompt so names, brands, and jargon always come out right. Auto-populated by the Know Me interview and auto-learn.
-
----
-
-### 📌 Voice Snippets
-
-Say a phrase. Get a paragraph.
-
-```bash
-openvoiceflow --add-snippet "insert signature" "Best regards,
-Alex Chen
-alex@example.com"
-
-openvoiceflow --add-snippet "my address" "742 Evergreen Terrace, Springfield"
-```
-
-Snippets expand instantly. No LLM call needed.
-
----
-
-### 🎨 Tone & Style Modes
-
-| Style | Tone | Use In |
-|:------|:-----|:-------|
-| `default` | Natural, balanced | Anywhere |
-| `casual` | Friendly, contractions OK | Slack, iMessage |
-| `formal` | Professional, no contractions | Reports, proposals |
-| `code` | Preserves technical terms | IDEs, commit messages |
-| `email` | Proper structure | Gmail, Outlook |
-
-```bash
-openvoiceflow --style casual
-```
-
-Automatically set by per-app context detection, or choose manually.
-
----
-
-### 🌍 100+ Languages
-
-Dictate in any language Whisper supports.
-
-```bash
-openvoiceflow --language es      # Spanish
-openvoiceflow --language ja      # Japanese
-openvoiceflow --language auto    # Auto-detect
-```
-
-Auto-switches to a multilingual Whisper model when you pick a non-English language.
-
----
-
-### 🔍 History Search
-
-Search your past dictations from the command line.
-
-```bash
-openvoiceflow --search "meeting Friday"
-openvoiceflow --search "budget" --search-last 7    # last 7 days
-openvoiceflow --search "deploy" --search-date 2026-03-15
-```
-
----
-
-### 📊 Your Stats
-
-```bash
-openvoiceflow --stats
-```
-```
-📊 OpenVoiceFlow Statistics
-──────────────────────────────
-   Dictations:    147
-   Words:         12,843
-   Time saved:    ~321 minutes
-   Days active:   14
-```
-
----
-
-### 🚀 Launch at Login
-
-```bash
-openvoiceflow --autostart on
-```
-
-Starts quietly in the menu bar every time you log in.
-
----
-
-### 🔄 Auto-Update
-
-Background check on each launch. Notification if there's a new version. No interruptions.
-
-<br/>
-
----
-
-<br/>
-
-## The Full Picture
-
-Here's everything OpenVoiceFlow does, compared to the paid alternatives:
-
-| Feature | OpenVoiceFlow | Wispr Flow ($144) | Superwhisper ($85) | VoiceInk (GPL) |
-|:--------|:---:|:---:|:---:|:---:|
-| Local STT (whisper.cpp) | ✅ | ❌ Cloud | ✅ | ✅ |
-| LLM cleanup | ✅ 6 backends | ✅ 1 | ✅ 1 | ✅ 1 |
-| Real-time streaming | ✅ | ✅ | ✅ | ❌ |
-| Per-app context | ✅ 30 apps | ✅ | ✅ | ✅ |
-| Voice commands | ✅ 24 commands | ❌ | ❌ | ❌ |
-| Selected text context | ✅ | ✅ | ✅ | ❌ |
-| Smart profile onboarding | ✅ | Partial | ❌ | ❌ |
-| Auto-learn corrections | ✅ | ✅ | ❌ | ❌ |
-| Personal dictionary | ✅ | ✅ | ✅ | ✅ |
-| Voice snippets | ✅ | ✅ | ❌ | ❌ |
-| Multi-language (100+) | ✅ | ✅ | ✅ | ✅ |
-| Style/tone modes | ✅ 5 modes | ✅ | ❌ | ❌ |
-| History search | ✅ | ❌ | ❌ | ❌ |
-| Floating overlay | ✅ | ✅ | ✅ | ✅ |
-| Audio stays local | ✅ | ❌ | ✅ | ✅ |
-| License / source access | MIT-licensed open source | ❌ | ❌ | GPL |
-| Price | **$0-3/yr** | $144/yr | $85/yr | $0 |
-
-<br/>
-
----
-
-<br/>
-
-## Configuration
-
-Everything lives in `~/.openvoiceflow/`:
-
-| File | What |
-|:-----|:-----|
-| `config.json` | All settings (hotkey, backend, style, toggles) |
-| `profile.json` | Your personal profile from the Know Me interview |
-| `dictionary.json` | Custom words + auto-learned corrections |
-| `snippets.json` | Voice snippet shortcuts |
-| `stats.json` | Usage statistics |
-| `models/` | Whisper model files |
-| `logs/` | Daily transcript logs (JSONL + Markdown) |
-
-<details>
-<summary><strong>Full config reference</strong></summary>
-
-<br/>
-
-```json
-{
-  "hotkey": "right_cmd",
-  "whisper_model": "base.en",
-  "llm_backend": "openrouter",
-  "openrouter_model": "google/gemma-4-31b-it",
-  "sound_feedback": true,
-  "auto_paste": true,
-  "language": "en",
-  "style": "default",
-  "streaming": false,
-  "streaming_step_ms": 3000,
-  "auto_style": true,
-  "auto_learn": true,
-  "voice_commands": true,
-  "selected_text_context": true,
-  "launch_at_login": false
-}
-```
-
-**Hotkeys:** `right_cmd` · `right_alt` · `left_alt` · `f5` through `f12`
-
-**Whisper models:**
-
-| Type | Models |
-|:-----|:-------|
-| English-only (faster) | `tiny.en` · `base.en` · `small.en` · `medium.en` |
-| Multilingual (100+ languages) | `tiny` · `base` · `small` · `medium` · `large` |
-
-</details>
-
-<br/>
-
----
-
-<br/>
-
-<details>
-<summary><strong>Full CLI Reference</strong></summary>
-
-<br/>
-
-```
-openvoiceflow [options]
-
-Launch:
-  (no args)                        Start listening (wizard on first run)
-  --menubar                        Run as menu bar app
-  --setup                          Re-run setup wizard
-  --test                           Test pipeline
-  --version                        Show version
-  --show-config                    Print current config
-
-Backend & Model:
-  --backend BACKEND                openrouter / openai / anthropic / groq / ollama / none
-  --model MODEL                    Whisper model
-  --set-key BACKEND KEY            Save API key
-  --language LANG                  Transcription language (en, es, auto, ...)
-  --set-prompt PROMPT              Custom LLM cleanup prompt
-  --clear-prompt                   Reset to default
-
-Streaming:
-  --streaming on|off               Real-time streaming mode
-  --streaming-step MS              Audio step size in milliseconds
-
-Style & Context:
-  --style STYLE                    default / casual / formal / code / email
-  --app-style APP STYLE            Map an app to a style
-  --remove-app-style APP           Remove mapping
-  --list-app-styles                Show all mappings
-  --auto-style on|off              Per-app auto-switching
-
-Profile:
-  --profile                        Run the Know Me interview
-  --show-profile                   Print your profile
-  --clear-profile                  Delete profile
-
-Dictionary:
-  --add-word WORD                  Add to dictionary
-  --remove-word WORD               Remove from dictionary
-  --list-words                     Show all words
-
-Voice Commands:
-  --add-command PHRASE TEXT         Add custom voice command
-  --remove-command PHRASE           Remove command
-  --list-commands                  Show all commands
-  --voice-commands on|off          Enable/disable
-
-Snippets:
-  --add-snippet TRIGGER TEXT       Create voice shortcut
-  --remove-snippet TRIGGER         Remove shortcut
-  --list-snippets                  Show all snippets
-
-Search:
-  --search QUERY                   Search past dictations
-  --search-date DATE               Filter by date (YYYY-MM-DD)
-  --search-last DAYS               Filter last N days
-  --limit N                        Max results
-
-System:
-  --stats                          Show usage statistics
-  --autostart on|off               Launch at login
-  --auto-learn on|off              Learn from corrections
-```
-
-</details>
-
-<br/>
-
----
-
-<br/>
-
-## Requirements
-
-- **macOS 12+** (Monterey, Ventura, Sonoma, Sequoia, Tahoe)
-- **Apple Silicon or Intel** (both fully supported)
-- Python 3.9+
-- ~200 MB disk space
-- Microphone + Accessibility permission
-
-OpenVoiceFlow is macOS-only. On Linux or Windows it won't crash — it detects
-the OS, explains why dictation can't work there, and shows how to uninstall.
-Run `openvoiceflow --doctor` on any machine to check OS, architecture,
-dependencies, and macOS permissions (see [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)).
-
-On first launch, allow both prompts. OpenVoiceFlow should appear by name under **System Settings → Privacy & Security → Microphone** and **Accessibility**. If microphone access was previously denied, relaunch OpenVoiceFlow and choose **Open Microphone Settings**, enable it, then relaunch once more.
-
-<br/>
-
----
-
-<br/>
+That generates the Xcode project from `native/project.yml`, builds an ad-hoc-signed debug app, and launches it. (Ad-hoc rather than unsigned, because macOS ties the Accessibility and Input Monitoring grants to a code signature — unsigned, the hotkey silently never fires.) For the signed + notarized release pipeline, see [`native/BUILD_RUNBOOK.md`](native/BUILD_RUNBOOK.md).
+
+## How it's put together
+
+Everything shipping lives in `native/Sources/OpenVoiceFlow/` — a small Swift/SwiftUI app with no storyboard and no dependencies beyond WhisperKit and Sparkle:
+
+| Piece | File | Job |
+|---|---|---|
+| App + menu bar | `OpenVoiceFlowApp.swift` | `MenuBarExtra`, login item, Dock policy |
+| State machine | `AppController.swift` | idle → recording → transcribing → cleaning → pasting |
+| Hotkey | `HotkeyEngine.swift` | CGEvent tap; one key watched, everything else passes through |
+| Audio | `AudioCapture.swift` | 16 kHz mono capture, level metering |
+| Transcription | `Transcriber.swift` | WhisperKit lifecycle, model download, live partials |
+| Cleanup | `CleanupProvider.swift` | the five backends behind one protocol |
+| Paste | `Paster.swift` | ⌘V synthesis with clipboard restore |
+| HUD | `HUDController.swift` | the floating waveform pill |
+| Dashboard | `DashboardView.swift` | history, stats, dictionary, snippets, styles, settings |
+| Onboarding | `OnboardingView.swift` | permissions, engine choice, first dictation |
+
+The repo also contains the **legacy Python app** (`voiceflow/`, ≤ 0.3.6) that the native app replaced. It is end-of-life, receives no security fixes, and its defaults differ from current policy — kept only for reference and for the macOS 12–13 fallback build. Don't start there.
 
 ## Contributing
 
-We'd love help with:
+Start with [CONTRIBUTING.md](CONTRIBUTING.md). The short version: pull requests are welcome, CI compiles the Swift app and runs the website tests on every PR, and the maintainer reviews everything. Good first contributions: try the app and file honest bug reports, add an XCTest target (we want one), improve accuracy for your language.
 
-- 🎙️ Streaming latency improvements
-- 🧪 Unit test coverage
-- 📱 Per-app context for more apps
-- 🎨 Better overlay animations
-- 🗣️ More voice commands
-- 📖 Documentation and tutorials
+## Privacy and security
 
-```bash
-bash build-dmg.sh  # Build DMGs for distribution
-```
+The one-page version: audio on-device always; text to a cloud only if you enable cleanup; keys in the Keychain; no telemetry. Full statements: [PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md) · [threat model](docs/THREAT_MODEL.md). To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
-<br/>
+## License
 
----
-
-<br/>
-
-<p align="center">
-  <strong>MIT License</strong> · Built as a free alternative to paid voice dictation tools.
-</p>
-
-<p align="center">
-  If this saves you $144/year, consider giving us a ⭐
-</p>
+[MIT](LICENSE) © Shimoverse and contributors. Third-party notices: [docs/legal/THIRD_PARTY_NOTICES.md](docs/legal/THIRD_PARTY_NOTICES.md).

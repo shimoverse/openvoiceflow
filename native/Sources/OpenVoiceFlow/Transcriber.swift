@@ -1,5 +1,6 @@
 import Foundation
 import WhisperKit
+import os
 
 /// On-device transcription via WhisperKit (CoreML/Metal). Replaces the
 /// whisper.cpp subprocess + HuggingFace model download of the Python app;
@@ -12,6 +13,7 @@ actor Transcriber {
 
     private var kit: WhisperKit?
     private var modelName: String
+    private let log = Logger(subsystem: "app.openvoiceflow", category: "transcriber")
 
     init(model: String = "base.en") {
         self.modelName = model
@@ -49,6 +51,10 @@ actor Transcriber {
         do {
             kit = try await downloadAndLoad(progress: observer)
         } catch {
+            // The first failure must leave a trace: without it, a machine
+            // that fails twice presents only the second error, and the
+            // truncated-download recovery path is invisible in the log.
+            log.error("model \(self.modelName, privacy: .public) load failed, purging and retrying: \(error.localizedDescription, privacy: .public)")
             purgeDownloadedModel()
             kit = try await downloadAndLoad(progress: observer)
         }

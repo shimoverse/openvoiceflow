@@ -1,9 +1,12 @@
 # Build runbook — OpenVoiceFlow native (for a Mac-equipped agent/dev)
 
-This scaffold was authored on Linux and has **never been compiled**. Your job:
-get it building on a Mac, iterate the first working slice to a signed,
-notarized `.app`, then extend it toward feature parity. Expect to fix real
-compile errors — treat the scaffold as a strong first draft, not gospel.
+**Status: this builds and ships.** The app compiles in CI on every PR (the
+`native-build` job — macos-15 / Xcode 16.4), has been built locally on a Mac,
+and 0.4.3 shipped as a signed, notarized, stapled DMG from
+`release-native.yml`. The phases below are kept as the history of how it got
+here and as a reference for the build/sign/notarize pipeline — they are no
+longer a to-do list, and the "never been compiled" caveat that used to open
+this file is obsolete.
 
 Prereqs: macOS 14+, Xcode 15+ (or the matching Command Line Tools), an Apple
 Developer ID (for signing/notarization), `git`.

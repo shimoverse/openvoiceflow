@@ -9,6 +9,10 @@ enum StatusIconState: Equatable {
     case success
     case error
     case paused
+    /// A one-shot wave played on first launch while onboarding says "I live up
+    /// there" — the glyph answering to its own address. Reuses the listening
+    /// path with a swell envelope instead of the speech gate (phase 06, T7).
+    case hello
 }
 
 /// Renders the 24×16 pt template glyph for each state, following the design
@@ -57,6 +61,20 @@ enum StatusIconRenderer {
                 for i in 0...16 {
                     let x = CGFloat(i)
                     let y = mid + sin(x * 0.85 + t * 7) * 3.2 * a * win(x / 16)
+                    let p = CGPoint(x: x0 + x, y: y)
+                    i == 0 ? ctx.move(to: p) : ctx.addLine(to: p)
+                }
+                ctx.strokePath()
+
+            case .hello:
+                // Same path as .listening, envelope replaced: three swells of
+                // max(0, sin 2.2t). 3.4 rather than listening's 3.2 — a
+                // fraction more presence, since this one is saying hello.
+                let a = max(0, sin(t * 2.2))
+                ctx.beginPath()
+                for i in 0...16 {
+                    let x = CGFloat(i)
+                    let y = mid + sin(x * 0.85 + t * 7) * 3.4 * a * win(x / 16)
                     let p = CGPoint(x: x0 + x, y: y)
                     i == 0 ? ctx.move(to: p) : ctx.addLine(to: p)
                 }
@@ -132,9 +150,45 @@ final class StatusIconAnimator: ObservableObject {
     private var timer: Timer?
     private var start = Date()
     private(set) var state: StatusIconState = .idle
+    /// While a hello is playing, real state changes are recorded but not drawn
+    /// until it finishes — the wave is a one-shot and shouldn't be cut off.
+    private var helloTask: Task<Void, Never>?
+
+    /// Three amplitude swells, 700 ms apart, then back to whatever the app is
+    /// actually doing. Plays once, on first launch only (the caller owns that
+    /// decision), and never under Reduce Motion — in that case the onboarding
+    /// leader line carries the message alone.
+    func playHello() {
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
+        guard helloTask == nil else { return }
+        let resumeState = state
+        timer?.invalidate()
+        state = .hello
+        start = Date()
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 20, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let t = CGFloat(Date().timeIntervalSince(self.start))
+                self.image = StatusIconRenderer.image(for: .hello, t: t)
+            }
+        }
+        helloTask = Task { [weak self] in
+            // 3 swells at 2.2 rad/s: one swell is π/2.2 ≈ 1.43 s of visible
+            // wave, but the design pins the beat at 700 ms apart, 3 beats.
+            try? await Task.sleep(for: .milliseconds(2100))
+            guard let self, !Task.isCancelled else { return }
+            self.helloTask = nil
+            self.timer?.invalidate()
+            self.timer = nil
+            self.state = .hello  // force set() past its equality guard
+            self.set(resumeState == .hello ? .idle : resumeState)
+        }
+    }
 
     func set(_ state: StatusIconState) {
         guard state != self.state else { return }
+        // A hello in flight wins; the new state lands when it ends.
+        guard helloTask == nil else { return }
         self.state = state
         timer?.invalidate()
         timer = nil

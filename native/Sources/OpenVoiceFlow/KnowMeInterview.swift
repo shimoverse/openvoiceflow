@@ -124,3 +124,100 @@ struct KnowMeInterview: View {
 private func splitList(_ s: String) -> [String] {
     s.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
 }
+
+// MARK: - Shared question chrome
+//
+// Extracted so the two-question inline form in onboarding and the five-question
+// sheet in the dashboard render identical controls. The sheet keeps its own
+// step machine; only the field chrome and the commit path are shared.
+
+/// The interview's text field: 36 pt tall, radius 8, accent focus ring.
+struct KnowMeTextField: View {
+    let label: String
+    let placeholder: String
+    @Binding var text: String
+    let ink: Color
+    let ink2: Color
+    let fill: Color
+    let accent: Color
+    var onCommit: () -> Void = {}
+
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label).font(.system(size: 12.5)).foregroundStyle(ink2)
+            TextField(placeholder, text: $text)
+                .textFieldStyle(.plain)
+                .font(.system(size: 14))
+                .foregroundStyle(ink)
+                .padding(.horizontal, 12)
+                .frame(height: 36)
+                .background(RoundedRectangle(cornerRadius: 8).fill(fill))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(focused ? accent.opacity(0.45) : .clear)
+                )
+                .focused($focused)
+                .onSubmit(onCommit)
+        }
+    }
+}
+
+/// A wrapping row of word chips with a trailing "+ add" affordance.
+struct KnowMeTokenRow: View {
+    let label: String
+    @Binding var tokens: [String]
+    let ink2: Color
+    let ink3: Color
+    let chipInk: Color
+    let chipFill: Color
+
+    @State private var adding = false
+    @State private var draft = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label).font(.system(size: 12.5)).foregroundStyle(ink2)
+            // A plain wrapping HStack would clip; a LazyVGrid with adaptive
+            // columns wraps at the card's width without measuring text.
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 64), spacing: 7)],
+                      alignment: .leading, spacing: 7) {
+                ForEach(tokens, id: \.self) { token in
+                    HStack(spacing: 5) {
+                        Text(token).font(.system(size: 12)).foregroundStyle(chipInk)
+                        Button {
+                            tokens.removeAll { $0 == token }
+                        } label: {
+                            Image(systemName: "xmark").font(.system(size: 7, weight: .bold))
+                        }
+                        .buttonStyle(.plain).foregroundStyle(ink3)
+                        .accessibilityLabel("Remove \(token)")
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(RoundedRectangle(cornerRadius: DT.rControl).fill(chipFill))
+                }
+                if adding {
+                    TextField("Name or word", text: $draft)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 12))
+                        .frame(minWidth: 90)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(RoundedRectangle(cornerRadius: DT.rControl).fill(chipFill))
+                        .onSubmit(commit)
+                } else {
+                    Button("+ add") { adding = true }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 12)).foregroundStyle(ink3)
+                }
+            }
+        }
+    }
+
+    private func commit() {
+        let value = draft.trimmingCharacters(in: .whitespaces)
+        if !value.isEmpty, !tokens.contains(value) { tokens.append(value) }
+        draft = ""
+        adding = false
+    }
+}

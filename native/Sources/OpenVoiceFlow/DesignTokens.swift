@@ -109,3 +109,9 @@ enum Voiceline {
         )
     }
 }
+
+extension Int {
+    /// Thousands-grouped for display: 38412 -> "38,412". The old build printed
+    /// raw integers, which read as a serial number at four digits and up.
+    var grouped: String { formatted(.number.grouping(.automatic)) }
+}

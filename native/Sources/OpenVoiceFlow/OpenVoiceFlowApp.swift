@@ -20,7 +20,7 @@ struct OpenVoiceFlowApp: App {
             DashboardView(controller: delegate.controller)
         }
         .windowResizability(.contentSize)
-        .defaultSize(width: 1000, height: 660)
+        .defaultSize(width: 1000, height: 768)
     }
 }
 

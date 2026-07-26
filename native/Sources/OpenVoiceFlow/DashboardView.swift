@@ -21,6 +21,7 @@ struct DashboardView: View {
     @State private var pane: Pane = .home
     @State private var showInterview = false
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
+    @State private var showDeleteHistory = false
     @Environment(\.colorScheme) private var scheme
 
     init(controller: AppController) {
@@ -60,7 +61,7 @@ struct DashboardView: View {
                 .padding(.horizontal, 30)
                 .background(dark ? DT.winDark : DT.winLight)
         }
-        .frame(minWidth: 1000, minHeight: 660)
+        .frame(minWidth: 1000, minHeight: 768)
     }
 
     // MARK: sidebar (212 pt, dot + label rows)
@@ -133,6 +134,16 @@ struct DashboardView: View {
         .sheet(isPresented: $showInterview) {
             KnowMeInterview(controller: controller)
         }
+        // The first-words card is the one thing a user is likely to miss, so it
+        // is a separate, explicit choice rather than collateral damage.
+        .confirmationDialog("Delete every dictation from this Mac?",
+                            isPresented: $showDeleteHistory, titleVisibility: .visible) {
+            Button("Delete, keep my first words") { history.clearAll(keepingFirst: true) }
+            Button("Delete everything", role: .destructive) { history.clearAll(keepingFirst: false) }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("History, stats and the per-app breakdown are cleared. Your first dictation can be kept.")
+        }
     }
 
     private func paneTitle(_ title: String, _ subtitle: String? = nil) -> some View {
@@ -145,166 +156,329 @@ struct DashboardView: View {
     }
 
     // MARK: Home
+    //
+    // The greeting held the largest type on the pane and said nothing, and four
+    // equal stat cards meant no card was the point. What replaces them is one
+    // number worth looking at, the user's own first sentence, and where their
+    // words actually go.
 
     private var home: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            paneTitle(greeting, homeSubtitle)
-
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 12)], spacing: 12) {
-                let total = controller.historyStore.totalWords
-                let streak = controller.historyStore.streak
-                statCard("Words dictated", value: total > 0 ? "\(total)" : "0",
-                         sub: controller.wordsToday > 0 ? "+\(controller.wordsToday) today" : "say something!",
-                         subColor: controller.wordsToday > 0 ? DT.moss : ink2)
-                statCard("Time saved", value: timeSaved, sub: "vs typing at 40 wpm", subColor: ink2)
-                statCard("Streak", value: streak > 0 ? "\(streak)" : "—", sub: "days in a row", subColor: ink2)
-                statCard("This week", value: "\(controller.historyStore.lastWeek.reduce(0, +))", sub: "words", subColor: ink2)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 14) {
+                timeBackCard.frame(maxWidth: .infinity)
+                firstWordsCard.frame(width: 300)
             }
+            .frame(height: 256)
 
             weekChart
 
-            HStack {
-                Text("Recent").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
-                Spacer()
-                Button("See all →") { pane = .history }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 11.5))
-                    .foregroundStyle(DT.emberLight)
+            HStack(alignment: .top, spacing: 14) {
+                whereYouDictateCard.frame(maxWidth: .infinity)
+                recentCard.frame(maxWidth: .infinity)
             }
-            Text("Dictations land here — searchable, on this Mac only.")
-                .font(.system(size: 12.5)).foregroundStyle(ink2)
+            .frame(height: 214)
         }
+        .padding(.top, 8)
     }
 
-    private var greeting: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        let part = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening"
-        return "Good \(part)."
-    }
-
-    private var homeSubtitle: String {
-        let words = controller.wordsToday
-        guard words > 0 else { return "Hold \(controller.settings.hotkey.glyph) in any app to start." }
-        let minutes = Int(Double(words) / 40.0)  // vs typing at 40 wpm
-        return "You've spoken \(words) words today — about \(minutes) minutes you didn't spend typing."
-    }
-
-    private var timeSaved: String {
-        // vs typing at 40 wpm, over all history.
-        let minutes = Int(Double(controller.historyStore.totalWords) / 40.0)
-        if minutes >= 60 { return "\(minutes / 60) h \(minutes % 60) m" }
-        return "\(minutes) min"
-    }
-
-    private func statCard(_ label: String, value: String, sub: String?, subColor: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.system(size: 11)).foregroundStyle(ink2)
-            Text(value).font(.system(size: 26, weight: .bold)).kerning(-0.5).foregroundStyle(ink)
-            if let sub {
-                Text(sub).font(.system(size: 11, weight: sub.hasPrefix("+") ? .semibold : .regular))
-                    .foregroundStyle(subColor)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 14)
-        .padding(.horizontal, 16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(card))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(hair))
-    }
-
-    /// "This week" bar chart: 7 bars, 110 pt, today accented (design §4).
-    private var weekChart: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Text("This week").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
-                Text("words per day").font(.system(size: 11)).foregroundStyle(ink2)
-            }
-            HStack(alignment: .bottom, spacing: 10) {
-                let values = weekValues
-                let peak = max(values.max() ?? 1, 1)
-                ForEach(Array(values.enumerated()), id: \.offset) { i, value in
-                    VStack(spacing: 4) {
-                        UnevenRoundedRectangle(topLeadingRadius: 6, bottomLeadingRadius: 2,
-                                               bottomTrailingRadius: 2, topTrailingRadius: 6)
-                            .fill(i == values.count - 1 ? accent
-                                  : (dark ? .white.opacity(0.14) : .black.opacity(0.12)))
-                            .frame(maxWidth: 44)
-                            .frame(height: max(110 * CGFloat(value) / CGFloat(peak), 110 * 0.04))
-                        Text(["M", "T", "W", "T", "F", "S", "S"][i])
-                            .font(.system(size: 10)).foregroundStyle(ink2)
-                    }
+    /// Row 1 left — the one number on the pane worth the largest type.
+    private var timeBackCard: some View {
+        let minutes = history.totalMinutes
+        return VStack(alignment: .leading, spacing: 0) {
+            eyebrow("TIME BACK", color: ink2)
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                if minutes >= 60 {
+                    heroNumber(minutes / 60); heroUnit("h")
+                    heroNumber(minutes % 60); heroUnit("m")
+                } else {
+                    heroNumber(minutes); heroUnit("m")
                 }
             }
-            .frame(height: 130)
+            .padding(.top, 10)
+
+            Text(timeBackSentence)
+                .font(.system(size: 14.5))
+                .lineSpacing(8)  // line-height 1.55
+                .foregroundStyle(ink2)
+                .frame(maxWidth: 340, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 14)
+
+            Spacer()
+
+            Rectangle().fill(hair).frame(height: 1)
+            HStack(spacing: 16) {
+                footnote("\(history.totalWords.grouped) words")
+                footnoteDot
+                footnote("\(history.entries.count.grouped) takes")
+                if history.streak > 0 {
+                    footnoteDot
+                    // Demoted on purpose: a streak card creates an obligation,
+                    // and as a footnote it cannot visibly break.
+                    footnote("\(history.streak.grouped) days running")
+                }
+            }
+            .padding(.top, 15)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(card))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(hair))
+        .padding(.horizontal, 24).padding(.vertical, 22)
+        .background(cardBackground)
     }
 
-    /// Real last-7-days totals from the history store.
-    private var weekValues: [Int] { controller.historyStore.lastWeek }
+    private func heroNumber(_ value: Int) -> some View {
+        Text("\(value)")
+            .font(.system(size: DT.heroNumberSize, weight: .bold))
+            .kerning(DT.heroNumberKerning)
+            .foregroundStyle(ink)
+    }
 
-    // MARK: History
+    private func heroUnit(_ unit: String) -> some View {
+        Text(unit).font(.system(size: 26, weight: .semibold)).foregroundStyle(ink2)
+    }
 
-    /// "Where you dictate" — a discreet, all-time per-app word breakdown that
-    /// sits above the History list. Kept off the Home pane on purpose: it's a
-    /// look-if-you-want stat, not a headline number. Single-hue (accent at
-    /// stepped opacity) so it stays on-palette; hides itself until there are at
-    /// least two apps to compare.
-    @ViewBuilder private var appBreakdown: some View {
+    /// "Two working days you didn't spend typing, since March." — the honest
+    /// version degrades gracefully when there is nothing to report yet.
+    private var timeBackSentence: String {
+        let minutes = history.totalMinutes
+        guard minutes > 0 else {
+            return "Hold \(controller.settings.hotkey.glyph) anywhere and talk. This is where the time you get back shows up."
+        }
+        var sentence: String
+        let workingDays = Double(minutes) / (60 * 8)
+        if workingDays >= 1 {
+            let rounded = (workingDays * 10).rounded() / 10
+            let label = rounded == 1 ? "One working day" : "\(Self.spelled(rounded)) working days"
+            sentence = "\(label) you didn't spend typing"
+        } else {
+            sentence = "Time you didn't spend typing"
+        }
+        if let since = controller.settings.firstUseDate {
+            sentence += ", since \(Self.monthName(since))"
+        }
+        return sentence + "."
+    }
+
+    private static func spelled(_ value: Double) -> String {
+        let words = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"]
+        if value == value.rounded(), Int(value) < words.count { return words[Int(value)] }
+        return String(format: "%.1f", value)
+    }
+
+    private static func monthName(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "MMMM"
+        return f.string(from: date)
+    }
+
+    /// Row 1 right — the user's own first sentence, kept forever.
+    @ViewBuilder private var firstWordsCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Moss, the one non-ember accent on the pane.
+            eyebrow("YOUR FIRST WORDS", color: DT.moss)
+            if let first = history.firstEntry {
+                Text(first.text)
+                    .font(.system(size: 15, weight: .medium))
+                    .lineSpacing(7.5)  // line-height 1.5
+                    .foregroundStyle(ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 12)
+                Spacer()
+                Text("\(Self.stamp(first.timestamp)) · in \(first.app)")
+                    .font(.system(size: 11.5)).foregroundStyle(ink3)
+            } else {
+                Text("Your first dictation lands here — and stays.")
+                    .font(.system(size: 13)).foregroundStyle(ink2)
+                    .padding(.top, 12)
+                Spacer()
+            }
+        }
+        .padding(.horizontal, 20).padding(.vertical, 22)
+        .background(cardBackground)
+    }
+
+    private static func stamp(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "d MMMM, h:mm a"
+        return f.string(from: date)
+    }
+
+    /// Row 3 left — where the words actually go. Hidden until there are two apps
+    /// to compare, because a single 100% bar says nothing.
+    @ViewBuilder private var whereYouDictateCard: some View {
         let dist = history.appDistribution
         if dist.count >= 2 {
-            let top = Array(dist.prefix(6))
-            let shownFraction = top.reduce(0.0) { $0 + $1.fraction }
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
-                    Text("Where you dictate").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
-                    Text("by words").font(.system(size: 11)).foregroundStyle(ink2)
-                }
+            let top = Array(dist.prefix(4))
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Where you dictate")
+                    .font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
                 GeometryReader { geo in
                     HStack(spacing: 1.5) {
                         ForEach(Array(top.enumerated()), id: \.offset) { i, row in
                             Rectangle()
-                                .fill(accent.opacity(1.0 - Double(i) * 0.13))
+                                .fill(DT.emberWave.opacity(1 - Double(i) * 0.13))
                                 .frame(width: max(geo.size.width * row.fraction, 2))
                         }
-                        if shownFraction < 0.999 {
-                            Rectangle().fill(dark ? Color.white.opacity(0.10) : Color.black.opacity(0.10))
+                        if top.reduce(0.0, { $0 + $1.fraction }) < 0.999 {
+                            Rectangle().fill(dark ? .white.opacity(0.10) : .black.opacity(0.10))
                         }
                     }
                 }
                 .frame(height: 10)
-                .clipShape(Capsule())
-                VStack(spacing: 6) {
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+                .padding(.top, 14)
+
+                VStack(spacing: 9) {
                     ForEach(Array(top.enumerated()), id: \.offset) { i, row in
                         HStack(spacing: 8) {
-                            Circle().fill(accent.opacity(1.0 - Double(i) * 0.13)).frame(width: 7, height: 7)
-                            Text(row.app).font(.system(size: 12)).foregroundStyle(ink).lineLimit(1)
+                            Circle().fill(DT.emberWave.opacity(1 - Double(i) * 0.13))
+                                .frame(width: 7, height: 7)
+                            Text(row.app).font(.system(size: 12.5)).foregroundStyle(ink).lineLimit(1)
                             Spacer()
                             Text("\(Int((row.fraction * 100).rounded()))%")
-                                .font(.system(size: 12, weight: .semibold)).foregroundStyle(ink)
-                            Text("\(row.words)").font(.system(size: 11)).foregroundStyle(ink2)
-                                .frame(width: 56, alignment: .trailing)
+                                .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(ink)
                         }
                     }
                 }
+                .padding(.top, 14)
+                Spacer()
             }
-            .padding(16)
-            .background(RoundedRectangle(cornerRadius: 12).fill(card))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(hair))
+            .padding(.horizontal, 20).padding(.vertical, 20)
+            .background(cardBackground)
         }
     }
+
+    /// Row 3 right — three takes, then the privacy line pinned to the bottom.
+    private var recentCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Recent").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
+                Spacer()
+                Button("See all") { pane = .history }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11.5)).foregroundStyle(DT.emberLight)
+            }
+            if history.entries.isEmpty {
+                Text("Nothing yet.")
+                    .font(.system(size: 13)).foregroundStyle(ink2)
+                    .padding(.top, 12)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(history.entries.prefix(3).enumerated()), id: \.element.id) { i, entry in
+                        HStack(spacing: 10) {
+                            Text(entry.timestamp, format: .dateTime.hour().minute())
+                                .font(.system(size: 11)).foregroundStyle(ink2)
+                                .frame(width: 46, alignment: .leading)
+                            Text(entry.app)
+                                .font(.system(size: 10, weight: .bold)).foregroundStyle(ink2)
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(RoundedRectangle(cornerRadius: 5).fill(fill))
+                            Text(entry.text)
+                                .font(.system(size: 12.5)).foregroundStyle(ink)
+                                .lineLimit(1).truncationMode(.tail)
+                            Spacer()
+                        }
+                        .padding(.vertical, 9)
+                        if i < min(2, history.entries.count - 1) {
+                            Rectangle().fill(hair).frame(height: 1)
+                        }
+                    }
+                }
+                .padding(.top, 6)
+            }
+            Spacer()
+            Text("Stored on this Mac. Audio is discarded the moment it's transcribed.")
+                .font(.system(size: 11)).foregroundStyle(ink3)
+        }
+        .padding(.horizontal, 20).padding(.vertical, 20)
+        .background(cardBackground)
+    }
+
+    // MARK: card chrome
+
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: DT.rCard).fill(card)
+            .overlay(RoundedRectangle(cornerRadius: DT.rCard).strokeBorder(hair))
+    }
+
+    private func eyebrow(_ text: String, color: Color) -> some View {
+        Text(text)
+            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+            .kerning(0.77)  // 0.07em
+            .foregroundStyle(color)
+    }
+
+    private func footnote(_ text: String) -> some View {
+        Text(text).font(.system(size: 12)).foregroundStyle(ink2)
+    }
+
+    private var footnoteDot: some View {
+        Circle().fill(ink3).frame(width: 3, height: 3)
+    }
+
+    private var ink3: Color { dark ? Color(hex: 0x6B6558) : Color(hex: 0x9A9384) }
+
+    /// This week, in minutes returned rather than words dictated.
+    private var weekChart: some View {
+        let values = history.minutesLastWeek
+        let peak = max(values.max() ?? 1, 1)
+        let letters = Self.weekLetters()
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("This week").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
+                Text("minutes returned per day").font(.system(size: 11)).foregroundStyle(ink2)
+                Spacer()
+                Text(Self.hoursMinutes(values.reduce(0, +)) + " total")
+                    .font(.system(size: 11.5)).foregroundStyle(ink2)
+            }
+            HStack(alignment: .bottom, spacing: 10) {
+                ForEach(Array(values.enumerated()), id: \.offset) { i, value in
+                    let today = i == values.count - 1
+                    VStack(spacing: 4) {
+                        Text("\(value)")
+                            .font(.system(size: 10.5, weight: today ? .semibold : .regular))
+                            .foregroundStyle(today ? DT.emberDark : ink3)
+                        UnevenRoundedRectangle(topLeadingRadius: 6, bottomLeadingRadius: 2,
+                                               bottomTrailingRadius: 2, topTrailingRadius: 6)
+                            .fill(today ? DT.emberWave : (dark ? .white.opacity(0.13) : .black.opacity(0.12)))
+                            .frame(maxWidth: 52)
+                            // 4% floor so a zero day is still a visible tick.
+                            .frame(height: max(124 * CGFloat(value) / CGFloat(peak), 124 * 0.04))
+                        Text(letters[i])
+                            .font(.system(size: 10, weight: today ? .semibold : .regular))
+                            .foregroundStyle(today ? ink : ink2)
+                    }
+                }
+            }
+            .frame(height: 160)
+            .padding(.top, 8)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 20).padding(.vertical, 18)
+        .background(cardBackground)
+    }
+
+    /// Day initials ending on today, so the last bar is always "now".
+    private static func weekLetters() -> [String] {
+        let f = DateFormatter()
+        f.dateFormat = "EEEEE"
+        return (0..<7).reversed().map { offset in
+            let day = Calendar.current.date(byAdding: .day, value: -offset, to: Date()) ?? Date()
+            return f.string(from: day)
+        }
+    }
+
+    private static func hoursMinutes(_ minutes: Int) -> String {
+        minutes >= 60 ? "\(minutes / 60) h \(String(format: "%02d", minutes % 60)) m" : "\(minutes) m"
+    }
+
+    // MARK: History
 
     @ViewBuilder private var historyPane: some View {
         VStack(alignment: .leading, spacing: 14) {
             paneTitle("History")
-            appBreakdown
             if history.entries.isEmpty {
                 emptyPanel(
-                    title: "Nothing here yet",
-                    body: "Hold \(controller.settings.hotkey.displayName) in any app and say hello. Every take lands here — on this Mac only.",
+                    title: "Nothing yet.",
+                    body: "Hold \(controller.settings.hotkey.glyph) anywhere and say hello.",
                     button: nil
                 )
             } else {
@@ -337,7 +511,7 @@ struct DashboardView: View {
 
     @ViewBuilder private var dictionaryPane: some View {
         VStack(alignment: .leading, spacing: 14) {
-            paneTitle("Dictionary", "Names and jargon Whisper gets wrong — corrected before cleanup ever runs.")
+            paneTitle("Dictionary", "Words I keep getting wrong. Fix them once.")
             addRow(placeholder: "Add a word (e.g. WhisperKit)") { dictionary.add(word: $0) }
             if dictionary.entries.isEmpty {
                 emptyPanel(title: "No corrections yet",
@@ -367,13 +541,13 @@ struct DashboardView: View {
 
     @ViewBuilder private var snippetsPane: some View {
         VStack(alignment: .leading, spacing: 14) {
-            paneTitle("Snippets", "Say the trigger, get the expansion — mid-dictation.")
+            paneTitle("Snippets", "Say the short thing, get the long thing.")
             SnippetAddRow(fill: fill, ink: ink, ink2: ink2, accent: DT.emberLight) { trigger, expansion in
                 snippets.add(trigger: trigger, expansion: expansion)
             }
             if snippets.snippets.isEmpty {
                 emptyPanel(title: "No snippets yet",
-                           body: "Try one: trigger \"my address\", expansion your street address. Then just say it.",
+                           body: "Try \"my address\". Then just say it.",
                            button: nil)
             } else {
                 ForEach(snippets.snippets) { snip in
@@ -403,7 +577,7 @@ struct DashboardView: View {
 
     private var styles: some View {
         VStack(alignment: .leading, spacing: 0) {
-            paneTitle("Styles", "Cleanup adapts to where you're typing. Detected from the frontmost app.")
+            paneTitle("Styles", "How you sound, per app.")
                 .padding(.bottom, 12)
             ForEach(styleStore.map.sorted(by: { $0.key < $1.key }), id: \.key) { app, styleID in
                 HStack(spacing: 12) {
@@ -446,7 +620,7 @@ struct DashboardView: View {
 
     private var knowMe: some View {
         VStack(alignment: .leading, spacing: 18) {
-            paneTitle("Know-Me", "A two-minute interview that teaches cleanup your voice. Stored locally, editable, deletable.")
+            paneTitle("Know-Me", "Two minutes, and your name comes out right every time.")
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 14)], spacing: 14) {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Profile").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)
@@ -561,11 +735,11 @@ struct DashboardView: View {
             cleanupCard
 
             settingsCard("PRIVACY + UPDATES") {
-                settingsRow("Your data — on this Mac only") {
+                settingsRow("Your data") {
                     HStack(spacing: 14) {
                         Button("Reveal in Finder") { _ = NSWorkspace.shared.open(AppSupport.dir) }
                             .buttonStyle(.plain).foregroundStyle(DT.emberLight)
-                        Button("Delete history…") { controller.historyStore.clearAll() }
+                        Button("Delete history…") { showDeleteHistory = true }
                             .buttonStyle(.plain).foregroundStyle(DT.destructive)
                     }
                     .font(.system(size: 12))
@@ -619,7 +793,7 @@ struct DashboardView: View {
                     }
                 }
             } else {
-                settingsRow("Off — raw transcript, nothing leaves this Mac") { EmptyView() }
+                settingsRow("Off. Raw transcript, nothing leaves this Mac.") { EmptyView() }
             }
         }
     }

@@ -245,11 +245,18 @@ final class HistoryStore: ObservableObject {
     /// the breakdown is framed as a distribution, not a complete all-time total.
     @Published private(set) var appWords: [String: Int] { didSet { AppSupport.save(appWords, to: "app_stats.json") } }
 
+    /// The very first dictation, kept **outside** history.json so "Delete
+    /// history…" can offer to keep it. It is the one entry a user might want to
+    /// hold on to after clearing everything else.
+    @Published private(set) var firstEntry: HistoryEntry? { didSet { AppSupport.save(firstEntry, to: "first_entry.json") } }
+
     private static let maxEntries = 500
 
     init() {
         let loadedEntries = AppSupport.load([HistoryEntry].self, from: "history.json") ?? []
         entries = loadedEntries
+        firstEntry = AppSupport.load(HistoryEntry.self, from: "first_entry.json")
+            ?? loadedEntries.last  // migrate: oldest surviving take
         dailyWords = AppSupport.load([String: Int].self, from: "stats.json") ?? [:]
         // Seed the per-app totals from whatever recent history is still on disk
         // (entries are capped at maxEntries, so an existing heavy user's older
@@ -265,13 +272,39 @@ final class HistoryStore: ObservableObject {
     }
 
     func record(app: String, text: String, words: Int, now: Date = Date()) {
-        entries.insert(HistoryEntry(timestamp: now, app: app, text: text, words: words), at: 0)
+        let entry = HistoryEntry(timestamp: now, app: app, text: text, words: words)
+        if firstEntry == nil { firstEntry = entry }
+        entries.insert(entry, at: 0)
         if entries.count > Self.maxEntries { entries.removeLast(entries.count - Self.maxEntries) }
         dailyWords[Self.key(now), default: 0] += words
         appWords[app, default: 0] += words
     }
 
-    func clearAll() { entries = []; dailyWords = [:]; appWords = [:] }
+    /// Clear the log. `keepingFirst` is asked at deletion time — the first-words
+    /// card on Home is the only thing a user is likely to miss.
+    func clearAll(keepingFirst: Bool = true) {
+        entries = []
+        dailyWords = [:]
+        appWords = [:]
+        if !keepingFirst { firstEntry = nil }
+    }
+
+    // MARK: minutes
+    //
+    // Words are the app's unit; nobody wants more words. Minutes returned is
+    // the thing worth counting, at the same 40 wpm divisor "time saved" uses so
+    // the two figures can never disagree.
+    static let wordsPerMinute = 40.0
+
+    static func minutes(fromWords words: Int) -> Int {
+        Int((Double(words) / wordsPerMinute).rounded())
+    }
+
+    /// Last 7 days in minutes, oldest first.
+    var minutesLastWeek: [Int] { lastWeek.map { Self.minutes(fromWords: $0) } }
+
+    /// Total minutes returned, ever.
+    var totalMinutes: Int { Self.minutes(fromWords: totalWords) }
 
     /// Word totals per app (a running count, seeded from recent history),
     /// largest first, each with its share of the total. Powers the "Where you

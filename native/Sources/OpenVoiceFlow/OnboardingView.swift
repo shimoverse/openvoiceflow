@@ -52,9 +52,10 @@ struct OnboardingView: View {
     @ObservedObject var controller: AppController
     @State private var step = 0
     @State private var granted: [Permission: Bool] = [:]
-    @State private var requested: Set<Permission> = []
     @State private var downloadDone = false
     @State private var helloDone = false
+    /// Polls TCC while the permissions step is on screen (see T4).
+    @State private var permissionWatch: Task<Void, Never>?
     @Environment(\.colorScheme) private var scheme
 
     private var p: OBPalette { OBPalette.resolve(scheme) }
@@ -98,7 +99,13 @@ struct OnboardingView: View {
         case 0:
             pill("Let's go") { step = 1 }
         case 1:
-            pill("Continue") { step = 2 }
+            // No Continue until all three are granted — before that, quiet
+            // progress rather than a button that would skip setup.
+            if allGranted {
+                pill("Continue") { step = 2 }
+            } else {
+                quiet("\(grantedCount) of 3")
+            }
         case 2:
             if downloadDone {
                 pill("Try it") { step = 3 }
@@ -171,78 +178,131 @@ struct OnboardingView: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// One screen, three rows, six words of "why" each. The real macOS prompt
-    /// fires when the row's Allow is tapped; the dot turns green the moment the
-    /// grant lands (re-checked whenever the window comes forward).
+    /// Step 1 — three permissions, asked one at a time.
+    ///
+    /// Presenting all three Allow buttons at once gave no order and no sense of
+    /// progress. Now the next row's button appears only once the previous grant
+    /// lands, each row states what the permission *cannot* do, and the recovery
+    /// hint is visible from the start rather than after a failure.
     private var permissions: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Three quick permissions")
-                .font(.system(size: 24, weight: .bold)).kerning(-0.5)
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Three switches, then we're done.")
+                .font(.system(size: 25, weight: .bold)).kerning(-0.625)  // −0.025em
                 .foregroundStyle(p.ink)
             Text("macOS holds the keys, not me.")
                 .font(.system(size: 13)).foregroundStyle(p.ink2)
+                .padding(.top, 6)
 
             VStack(spacing: 0) {
-                permissionRow(.microphone, name: "Microphone", why: "so I can hear you")
-                divider
-                permissionRow(.accessibility, name: "Accessibility", why: "so I can type for you")
-                divider
-                permissionRow(.inputMonitoring, name: "Input Monitoring", why: "so I can feel the key")
+                ForEach(Array(Permission.onboardingOrder.enumerated()), id: \.element) { i, permission in
+                    if i > 0 { divider }
+                    permissionRow(permission, reachable: isReachable(i))
+                }
             }
             .background(RoundedRectangle(cornerRadius: DT.rCard).fill(p.card))
+            .overlay(RoundedRectangle(cornerRadius: DT.rCard).strokeBorder(p.hairline))
+            .padding(.top, 18)
+
+            escapeHatch.padding(.top, 15)
+            Spacer()
         }
+        .onAppear(perform: startWatchingPermissions)
+        .onDisappear { permissionWatch?.cancel(); permissionWatch = nil }
     }
+
+    /// Row 0 is always askable; row N unlocks when row N−1 is granted.
+    private func isReachable(_ index: Int) -> Bool {
+        guard index > 0 else { return true }
+        return granted[Permission.onboardingOrder[index - 1]] ?? false
+    }
+
+    private var grantedCount: Int {
+        Permission.onboardingOrder.filter { granted[$0] ?? false }.count
+    }
+
+    private var allGranted: Bool { grantedCount == Permission.onboardingOrder.count }
 
     private var divider: some View {
         Rectangle().fill(p.hairline).frame(height: 1).padding(.horizontal, 17)
     }
 
-    private func permissionRow(_ permission: Permission, name: String, why: String) -> some View {
+    private func permissionRow(_ permission: Permission, reachable: Bool) -> some View {
         let isGranted = granted[permission] ?? false
-        let wasRequested = requested.contains(permission)
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 12) {
-                Circle()
-                    .fill(isGranted ? DT.moss : p.ink3.opacity(0.4))
-                    .frame(width: 8, height: 8)
-                Text(name)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(p.ink)
-                Text(why)
-                    .font(.system(size: 12.5)).foregroundStyle(p.ink2)
-                Spacer()
-                if isGranted {
-                    Text("Allowed")
-                        .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(DT.moss)
-                } else {
-                    Button("Allow") {
-                        permission.request()
-                        requested.insert(permission)
-                        refreshGrants()
-                    }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 12.5, weight: .semibold))
-                    .foregroundStyle(p.onAccent)
-                    .padding(.horizontal, 17).padding(.vertical, 7)
-                    .background(Capsule().fill(p.accent))
+        // Not yet reachable: name and reason at full opacity so the user can see
+        // what's coming, but no button and no limit line — they aren't being
+        // asked yet.
+        let showsDetail = isGranted || reachable
+        return HStack(alignment: .top, spacing: 12) {
+            Circle()
+                .fill(isGranted ? DT.moss : p.ink.opacity(0.16))
+                .frame(width: 8, height: 8)
+                .padding(.top, 5)
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
+                    Text(permission.title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(p.ink)
+                    Text(permission.why)
+                        .font(.system(size: 12.5)).foregroundStyle(p.ink2)
+                }
+                if showsDetail {
+                    Text(permission.limit)
+                        .font(.system(size: 12)).foregroundStyle(p.ink3)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            // Escape hatch: Allow was clicked but the grant hasn't landed
-            // (denied dialog, or a dev build macOS attributes to Terminal/
-            // Xcode so the app never appears in the Settings list).
-            if wasRequested && !isGranted {
-                HStack(spacing: 10) {
-                    Button("Open System Settings") { NSWorkspace.shared.open(permission.settingsURL) }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 11.5, weight: .semibold))
-                        .foregroundStyle(p.accent)
-                    Text("Not listed? Click + and add OpenVoiceFlow from Applications.")
-                        .font(.system(size: 11)).foregroundStyle(p.ink3)
+            Spacer()
+            if isGranted {
+                Text("Allowed")
+                    .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(DT.moss)
+            } else if reachable {
+                Button("Allow") {
+                    permission.request()
+                    refreshGrants()
                 }
-                .padding(.leading, 20)
+                .buttonStyle(.plain)
+                .font(.system(size: 12.5, weight: .semibold))
+                .foregroundStyle(p.onAccent)
+                .padding(.horizontal, 17).padding(.vertical, 7)
+                .background(Capsule().fill(p.accent))
             }
         }
         .padding(.horizontal, 17).padding(.vertical, 15)
+        .animation(DT.arrive, value: showsDetail)
+    }
+
+    /// Always visible — the user shouldn't have to fail before being told how to
+    /// recover. Targets whichever row is currently being asked for.
+    private var escapeHatch: some View {
+        let target = Permission.onboardingOrder.first { !(granted[$0] ?? false) }
+            ?? Permission.onboardingOrder[0]
+        return HStack(spacing: 5) {
+            Text("Clicked Allow and nothing happened?")
+                .foregroundStyle(p.ink3)
+            Button("Open System Settings") { NSWorkspace.shared.open(target.settingsURL) }
+                .buttonStyle(.plain)
+                .fontWeight(.semibold)
+                .foregroundStyle(p.accent)
+            // One step dimmer than tertiary, per the spec's #514C42 on dark;
+            // derived rather than hardcoded so light mode stays legible.
+            Text("— click + and pick OpenVoiceFlow from Applications.")
+                .foregroundStyle(p.ink3.opacity(0.75))
+        }
+        .font(.system(size: 11.5))
+    }
+
+    private func startWatchingPermissions() {
+        refreshGrants()
+        guard permissionWatch == nil, !allGranted else { return }
+        permissionWatch = Permission.watch { statuses in
+            for (permission, status) in statuses {
+                granted[permission] = status == .granted
+            }
+            if allGranted {
+                permissionWatch?.cancel()
+                permissionWatch = nil
+            }
+        }
     }
 
     private func refreshGrants() {

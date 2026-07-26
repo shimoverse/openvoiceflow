@@ -261,11 +261,11 @@ def test_runtime_no_longer_replaces_the_app_identity_with_status_emoji() -> None
 
 
 def test_readme_explains_the_branded_menu_bar_experience() -> None:
+    # The README now documents the native app; what survives of this contract
+    # is the regression it was born from — no raw status-emoji soup in docs.
     readme = (Path(__file__).resolve().parent.parent / "README.md").read_text()
 
-    assert "waveform icon" in readme
-    assert "Open OpenVoiceFlow" in readme
-    assert "Check for Updates" in readme
+    assert "menu bar" in readme
     assert "🎙️✅" not in readme
 
 

@@ -22,6 +22,11 @@
   --nav-bg: rgba(247, 245, 240, .82);
   --shadow-cap: 0 18px 40px rgba(38, 34, 27, .16);
 
+  /* The "macOS will warn you once" card. Warm enough to read as a heads-up
+     rather than an error — it is describing normal behaviour, not a fault. */
+  --warn-bg: #FBF3E7;
+  --warn-b: #D9CBB4;
+
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
 
@@ -50,6 +55,10 @@
     --cap-bg: rgba(32, 30, 26, .9);
     --nav-bg: rgba(19, 18, 16, .82);
     --shadow-cap: 0 18px 40px rgba(0, 0, 0, .28);
+    /* The design pins the light values; these are their dark counterparts,
+       derived from the same ember the rest of the dark theme uses. */
+    --warn-bg: #2A2318;
+    --warn-b: #4A3D28;
     color-scheme: dark;
   }
 }
@@ -823,6 +832,53 @@ img, canvas { max-width: 100%; }
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
 }
+
+/* ─── "What happens next" ────────────────────────────────────────────────
+   Three cards, set before the download button rather than after it. The
+   third one exists because macOS shows a Gatekeeper prompt that people read
+   as a failure; saying so in advance turns it into an expected step. */
+.next-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin-top: 18px;
+  list-style: none;
+}
+
+.next-step {
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  background: var(--card);
+}
+
+.next-step-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--ink-2);
+  margin-bottom: 8px;
+}
+
+.next-step h3 {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 5px;
+}
+
+.next-step p { font-size: 13px; line-height: 1.6; color: var(--ink-2); }
+
+.next-step-warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-b);
+}
+
+.next-step-warn .next-step-num { color: var(--acc); }
 
 .download-build-row {
   border: 1px solid var(--hair);

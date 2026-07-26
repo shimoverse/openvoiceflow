@@ -6,13 +6,13 @@
     <description>OpenVoiceFlow native app updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.4.1</title>
+      <title>Version 0.4.2</title>
       <sparkle:releaseNotesLink>https://openvoiceflow.vercel.app/how-it-works.html</sparkle:releaseNotesLink>
-      <pubDate>Tue, 21 Jul 2026 06:57:47 +0000</pubDate>
-      <sparkle:version>2</sparkle:version>
-      <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
+      <pubDate>Sun, 26 Jul 2026 00:17:43 +0000</pubDate>
+      <sparkle:version>3</sparkle:version>
+      <sparkle:shortVersionString>0.4.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.1.dmg" sparkle:edSignature="9Q2DPzgoHbDL+Ez635TlgEeTznlYkfVuay9QdG0HtgUm22MfIyx53112keVB4M9ZS4lTN4+yJnifTDsRVkABDg==" length="5232759" type="application/octet-stream" />
+      <enclosure url="https://openvoiceflow.vercel.app/downloads/OpenVoiceFlow-0.4.2.dmg" sparkle:edSignature="dP3B8qvQEPbQ5LCjCYEyHBfCR4pM0YiZ8ym6Vdih3yBT5/MQiB7NJyNrtzBVjOtS0Y3/g74TPEpRJ0m0ZwNdCA==" length="5274177" type="application/octet-stream" />
     </item>
   </channel>
 </rss>

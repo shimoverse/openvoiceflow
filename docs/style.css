@@ -1095,3 +1095,26 @@ img, canvas { max-width: 100%; }
   .compare-grid { grid-template-columns: 1.2fr 1fr 1fr; }
   .footer-links { margin-left: 0; }
 }
+
+/* Collapsible cards — <details class="content-card">. Native disclosure, no
+   JS: the heading row is the summary, with a chevron that turns when open. */
+details.content-card > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+details.content-card > summary::-webkit-details-marker { display: none; }
+details.content-card > summary h2 { margin: 0; }
+details.content-card > summary::after {
+  content: "›";
+  font-size: 19px;
+  line-height: 1;
+  opacity: 0.55;
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}
+details.content-card[open] > summary::after { transform: rotate(-90deg); }
+details.content-card[open] > summary { margin-bottom: 10px; }

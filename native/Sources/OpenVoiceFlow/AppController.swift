@@ -285,7 +285,7 @@ final class AppController: ObservableObject {
     /// rather than a receipt. Falls back to a count when the user has asked not
     /// to have their text echoed.
     static func tail(of text: String, words: Int, echo: Bool) -> String {
-        guard echo else { return "\(words) words" }
+        guard echo else { return words == 1 ? "1 word" : "\(words.grouped) words" }
         let parts = text.split(whereSeparator: \.isWhitespace)
         guard parts.count > 5 else { return parts.joined(separator: " ") }
         return "…" + parts.suffix(5).joined(separator: " ")

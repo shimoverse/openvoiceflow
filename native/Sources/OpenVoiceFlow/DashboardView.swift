@@ -467,7 +467,9 @@ struct DashboardView: View {
     }
 
     private static func hoursMinutes(_ minutes: Int) -> String {
-        minutes >= 60 ? "\(minutes / 60) h \(String(format: "%02d", minutes % 60)) m" : "\(minutes) m"
+        minutes >= 60
+            ? "\((minutes / 60).grouped) h \(String(format: "%02d", minutes % 60)) m"
+            : "\(minutes.grouped) m"
     }
 
     // MARK: History

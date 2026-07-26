@@ -486,13 +486,17 @@ struct OnboardingView: View {
         let spoke = max(1, Int(speechSeconds.rounded()))
         let typed = max(1, Int((Double(words) / 40.0 * 60).rounded()))
         guard typed > spoke else { return nil }
-        return "You spoke for \(spoke) seconds. Typing that would have taken \(typed)."
+        return "You spoke for \(spoke.grouped) seconds. Typing that would have taken \(typed.grouped)."
     }
 
     private var speechSeconds: Double { controller.lastSpeechSeconds }
 
+    /// Includes the comparison, not just the sentence: a sighted user gets both
+    /// lines at once, so the announcement shouldn't stop at the first.
     private var payoffAnnouncement: String {
-        "Your first words: \(controller.lastTranscript ?? "")"
+        let words = "Your first words: \(controller.lastTranscript ?? "")"
+        guard let comparison = spokenComparison else { return words }
+        return words + ". " + comparison
     }
 }
 

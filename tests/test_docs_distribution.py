@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
-CANONICAL = "https://openvoiceflow.vercel.app"
+CANONICAL = "https://openvoiceflow.com"
 RELEASE_VERSION = "0.4.2"
 UNIVERSAL_SHA256 = "6a4bbbf78e131653039432f9e31e4df3d33599f6630866a314ddcd7e552fa811"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"

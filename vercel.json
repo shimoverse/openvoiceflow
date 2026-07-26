@@ -4,6 +4,17 @@
   "installCommand": "npm install --ignore-scripts",
   "redirects": [
     {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.openvoiceflow.com"
+        }
+      ],
+      "destination": "https://openvoiceflow.com/$1",
+      "permanent": true
+    },
+    {
       "source": "/downloads/OpenVoiceFlow-0.2.0-arm64.dmg",
       "destination": "/downloads/OpenVoiceFlow-0.4.2.dmg",
       "permanent": true

@@ -73,10 +73,18 @@ final class HUDController {
     /// the hotkey was learned (see `Settings.hotkeyLearnedAt`).
     func setShowChip(_ show: Bool) { model.showChip = show }
 
+    /// The words heard so far this take, shown live beside the waveform —
+    /// the strongest possible "yes, I can hear you." Fed from the partial
+    /// stream; the view head-truncates so the newest words always win.
+    func updateLiveTail(_ text: String) { model.liveTail = text }
+
     func show(_ state: State, autoHideAfter seconds: Double? = nil) {
         ensurePanel()
         model.transition(to: state)
-        if case .recording = state { positionOnActiveScreen() }  // re-home between takes, never mid-take
+        if case .recording = state {
+            positionOnActiveScreen()  // re-home between takes, never mid-take
+            model.liveTail = ""       // last take's words must not open this one
+        }
         panel?.orderFrontRegardless()
         summonIfNeeded(state)
         hideTask?.cancel()
@@ -314,6 +322,9 @@ enum HUDGeometry {
 final class HUDModel: ObservableObject {
     @Published var state: HUDController.State = .hidden
     @Published var elapsed: TimeInterval = 0
+    /// Words heard so far this take (live partial). Empty until the first
+    /// partial lands, cleared at the start of every take.
+    @Published var liveTail: String = ""
     /// Per-take ceiling (seconds); drives the amber "time left" countdown.
     var maxSeconds: Double = 300
     /// Chip visibility is decided by the controller from Settings.
@@ -555,16 +566,27 @@ private struct HUDView: View {
         Group {
             switch model.state {
             case .recording:
-                if model.elapsed < primerSeconds {
+                if remaining <= 30 {
+                    // The end-of-take warning always wins the slot.
+                    Text("\(clock(remaining)) left")
+                        .foregroundStyle(DT.warnAmber)
+                        .font(.system(size: 12, weight: .bold).monospacedDigit())
+                } else if !model.liveTail.isEmpty {
+                    // Their own words, arriving as they speak — head-truncated
+                    // so the newest words hold the line. Beats any timer as
+                    // proof the app is hearing them.
+                    Text(model.liveTail)
+                        .font(.system(size: 12.5))
+                        .foregroundStyle(dark ? DT.hudMsgDark : DT.hudMsgLight)
+                        .lineLimit(1)
+                        .truncationMode(.head)
+                        .frame(maxWidth: 260, alignment: .trailing)
+                } else if model.elapsed < primerSeconds {
                     // Live cue: encourage the user to keep talking past the
                     // reliable-transcription threshold before releasing.
                     Text("Keep going")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(accent)
-                } else if remaining <= 30 {
-                    Text("\(clock(remaining)) left")
-                        .foregroundStyle(DT.warnAmber)
-                        .font(.system(size: 12, weight: .bold).monospacedDigit())
                 } else if model.elapsed >= 60 {
                     // Long dictation: timer promotes to 14 pt semibold primary.
                     Text(clock(model.elapsed))

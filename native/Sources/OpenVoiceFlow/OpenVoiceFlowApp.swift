@@ -1,5 +1,27 @@
 import AppKit
+import ServiceManagement
 import SwiftUI
+
+/// Launch-at-login via SMAppService. Register/unregister are status-guarded
+/// so applying an unchanged setting at every launch stays a no-op instead of
+/// an error or a duplicate registration.
+@MainActor
+enum LoginItem {
+    static func apply(_ enabled: Bool) {
+        let service = SMAppService.mainApp
+        do {
+            if enabled, service.status != .enabled {
+                try service.register()
+            } else if !enabled, service.status == .enabled {
+                try service.unregister()
+            }
+        } catch {
+            // Not worth an alert: the user can flip the Settings toggle again,
+            // and System Settings ▸ Login Items always shows the truth.
+            NSLog("LoginItem: \(error.localizedDescription)")
+        }
+    }
+}
 
 /// Entry point. A menu-bar (`LSUIElement`) app: no Dock icon by default, a
 /// `MenuBarExtra` for control (design phase 02), a dashboard window (phase
@@ -53,6 +75,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // permission was revoked since last run), the menu header and the
             // dashboard's Permissions card both show the way back.
             _ = controller.startListening()
+            // Survive reboots: a menu-bar utility that vanishes on restart
+            // reads as broken. Status-guarded, so this is a no-op when the
+            // registration already matches the setting.
+            LoginItem.apply(controller.settings.launchAtLogin)
         }
     }
 

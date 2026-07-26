@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenVoiceFlow — Redesign</title>
+<style>
+html,body{margin:0;padding:0;background:#F4F2EC;color:#26221B;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+p{text-wrap:pretty}
+a{color:#9A5A1E;text-decoration:none}
+a:hover{color:#7C4715;text-decoration:underline}
+</style>
+</helmet>
+<div style="max-width:1140px;margin:0 auto;padding:44px 40px 120px">
+
+<header data-screen-label="Header" style="display:flex;align-items:center;gap:14px;padding-bottom:28px;border-bottom:1px solid #E4DFD3;flex-wrap:wrap">
+  <div style="font-size:18px;font-weight:700;letter-spacing:-0.02em">OpenVoiceFlow</div>
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.06em">PHASE 6 · REDESIGN</div>
+  <div style="flex:1"></div>
+  <div style="display:flex;gap:10px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;flex-wrap:wrap"><a href="01-system-hud.dc.html">01 HUD</a><a href="02-menu-bar.dc.html">02 Menu bar</a><a href="03-dashboard.dc.html">03 Dashboard</a><a href="04-onboarding.dc.html">04 Onboarding</a><a href="05-assets-rationale.dc.html">05 Assets</a><span style="color:#26221B;font-weight:700">06 Redesign</span></div>
+</header>
+
+<section data-screen-label="Masthead" style="padding:52px 0 44px;border-bottom:1px solid #E4DFD3">
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:56px;align-items:start">
+    <div>
+      <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:18px">THE BRIEF, IN ONE LINE</div>
+      <div style="font-size:38px;font-weight:700;letter-spacing:-0.028em;line-height:1.14;max-width:720px">Make the first sixty seconds feel like magic, and the five-hundredth dictation feel like nothing at all.</div>
+      <p style="margin:22px 0 0;font-size:14px;line-height:1.7;color:#4A4437;max-width:640px">Phases 01–05 built a system that is technically complete and emotionally flat. Nothing here throws that away. The palette, the ember, the waveform-ring, the spring set — all locked. What changes is <strong>sequence, scale, and honesty</strong>: what the app says first, how big it says it, and whether it tells you the truth while you wait.</p>
+      <p style="margin:14px 0 0;font-size:14px;line-height:1.7;color:#4A4437;max-width:640px">Three moves carry the whole redesign. <strong>One line that never breaks</strong> — the HUD becomes a single morphing stroke instead of five drawings. <strong>Dead time becomes useful time</strong> — the model downloads behind the Know-Me interview. <strong>The first sentence is kept forever</strong> — proof of magic, stored and shown.</p>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:18px">
+      <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375;margin-bottom:12px">CONTENTS</div>
+      <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px;line-height:1.4">
+        <a href="#critique">01 · Critique, with the current build</a>
+        <a href="#firstrun">02 · First run, end to end</a>
+        <a href="#hud">03 · The HUD</a>
+        <a href="#dashboard">04 · The dashboard</a>
+        <a href="#identity">05 · Glyph, Dock, app icon</a>
+        <a href="#voice">06 · Voice &amp; copy pass</a>
+        <a href="#motion">07 · Motion language</a>
+        <a href="#tokens">08 · Tokens &amp; new capability</a>
+      </div>
+      <div style="height:1px;background:#E6E1D6;margin:16px 0"></div>
+      <div style="font-size:11.5px;line-height:1.6;color:#6E6759">Everything animated on this page runs the <em>real</em> math from <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">DesignTokens.swift</span> and <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">HUDController.swift</span>. Hold the mic button in §02 and §03 to feel the loop.</div>
+    </div>
+  </div>
+</section>
+
+<section id="critique" data-screen-label="01 Critique" style="padding:52px 0 0">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:14px">01 · CRITIQUE</div>
+  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;max-width:760px;margin-bottom:10px">The system is right. The sequencing is wrong.</div>
+  <p style="margin:0 0 34px;font-size:14px;line-height:1.7;color:#4A4437;max-width:700px">Below, the current build recreated from the Swift — <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px">HUDController</span>, <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px">OnboardingView</span>, <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px">DashboardView</span> — at 1:1, with the problems marked in place.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:44px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:18px">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px"><span style="width:7px;height:7px;border-radius:4px;background:#4E7A58;display:inline-block"></span><span style="font-size:12.5px;font-weight:700">Working — keep</span></div>
+      <div style="font-size:12.5px;line-height:1.7;color:#4A4437">
+        <p style="margin:0 0 9px"><strong>One motif, everywhere.</strong> The same <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">win(u)</span> taper and <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">S(t)</span> envelope drive the menu-bar glyph, the HUD, and the empty states. Very few apps have a mathematical signature. This one does.</p>
+        <p style="margin:0 0 9px"><strong>Ember on warm neutral.</strong> #C97B35 over #1D1B18 is not a default. It reads as filament, not as a brand colour, which is exactly right for something that listens in the dark.</p>
+        <p style="margin:0"><strong>Stats already refuse engagement.</strong> "Time saved", not "sessions". The instinct is correct — it is just buried in a grid of four equal boxes.</p>
+      </div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:18px">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px"><span style="width:7px;height:7px;border-radius:4px;background:#D99A3D;display:inline-block"></span><span style="font-size:12.5px;font-weight:700">Generic — replace</span></div>
+      <div style="font-size:12.5px;line-height:1.7;color:#4A4437">
+        <p style="margin:0 0 9px"><strong>The dashboard is a SaaS admin panel.</strong> Sidebar, four equal stat cards, a bar chart. Four equal cards means no card is the point. Nothing on Home is bigger than 26px, so nothing is the answer to "was this worth installing?"</p>
+        <p style="margin:0 0 9px"><strong>Dot pagination in onboarding.</strong> A web carousel pattern in a Mac window. Mac onboarding names its steps or shows nothing.</p>
+        <p style="margin:0"><strong>Dark-only onboarding.</strong> <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">.preferredColorScheme(.dark)</span> — the first thing a light-mode user sees is the app overriding their system setting. It contradicts the "native, calm" premise in the first frame.</p>
+      </div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:18px">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px"><span style="width:7px;height:7px;border-radius:4px;background:#C7402C;display:inline-block"></span><span style="font-size:12.5px;font-weight:700">Fighting the user — fix</span></div>
+      <div style="font-size:12.5px;line-height:1.7;color:#4A4437">
+        <p style="margin:0 0 9px"><strong>Three Allow buttons at once.</strong> Three parallel choices, no stated order, three OS dialogs stacking. The escape hatch ("Not listed? Click +…") appears only <em>after</em> a grant fails — the moment anxiety is already highest.</p>
+        <p style="margin:0 0 9px"><strong>A progress bar with no number.</strong> "Getting ready" could mean ten seconds or eight minutes. A bar without a size, a rate, or an ETA is not honest progress; it is a screensaver.</p>
+        <p style="margin:0"><strong>The proof happens in the wrong place.</strong> "Try it" echoes the transcript into a box inside the onboarding window — but the promise is "in <em>any</em> app". The one demonstration is staged in the one place that isn't real, and the payoff is a single line of 12.5px green text.</p>
+      </div>
+    </div>
+  </div>
+
+  <div data-screen-label="Before — HUD" style="margin-bottom:12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">CURRENT BUILD · 1:1</span>
+    <span style="font-size:13px;font-weight:700">The HUD, as shipped</span>
+    <span style="font-size:12px;color:#6E6759">290–460 × 44 pt · bottom-centre · 24 pt above the Dock</span>
+  </div>
+  <div style="position:relative;border-radius:14px;background:linear-gradient(165deg,#26241F 0%,#161511 70%,#12110E 100%);border:1px solid #E0DACC;padding:40px 30px 46px;margin-bottom:14px">
+    <div style="display:flex;justify-content:center">
+      <div style="display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;width:290px;box-sizing:border-box;border-radius:22px;background:rgba(42,40,35,.72);backdrop-filter:blur(26px) saturate(160%);-webkit-backdrop-filter:blur(26px) saturate(160%);border:1px solid rgba(255,255,255,.10);box-shadow:0 12px 34px rgba(0,0,0,.42)">
+        <div style="display:flex;align-items:center;gap:4px;height:23px;padding:0 8px;border-radius:6px;background:rgba(255,255,255,.08);color:#CFC9BB;flex:none">
+          <span style="font-size:12.5px;font-weight:600">fn</span>
+          <span style="font-size:8.5px;font-weight:600;letter-spacing:.5px;opacity:.6">HELD</span>
+        </div>
+        <canvas ref="{{ R.b1 }}" style="flex:1;height:32px;min-width:36px"></canvas>
+        <span style="font-size:12px;color:#96907F;font-variant-numeric:tabular-nums;flex:none">0:07</span>
+      </div>
+    </div>
+    <div style="position:absolute;left:30px;top:26px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#7C7566;letter-spacing:.06em">RECORDING</div>
+    <div style="position:absolute;right:30px;bottom:16px;font-size:11.5px;color:#7C7566">min-width 290 · gap 10 · h-pad 14 · chip h 23 r 6</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:52px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">01</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>290 pt to say one bit.</strong> Ninety per cent of the time the HUD carries a single message — "I can hear you." That is notification-sized chrome for a cursor-sized job. It is the most-seen surface in the app and the least edited.</div></div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">02</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>The chip is permanent scaffolding.</strong> "fn HELD" is training wheels shown to a user on their five-hundredth take. It should teach for a week and then get out of the way.</div></div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">03</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>Five drawings, not one object.</strong> Wave, coil, shimmer, tick, broken line are separate paths that cut between states. Nothing carries identity across the transition, so the HUD feels like five widgets sharing a pill.</div></div></div>
+  </div>
+
+  <div data-screen-label="Before — Onboarding" style="margin-bottom:12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">CURRENT BUILD · 1:1</span>
+    <span style="font-size:13px;font-weight:700">Onboarding, as shipped</span>
+    <span style="font-size:12px;color:#6E6759">640 × 440 · forced dark · four steps</span>
+  </div>
+  <div style="display:grid;grid-template-columns:640px 1fr;gap:24px;align-items:start;margin-bottom:52px">
+    <div style="width:640px;height:440px;border-radius:12px;background:#211F1B;box-shadow:0 24px 60px rgba(0,0,0,.30);overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="display:flex;justify-content:flex-end;padding:16px 20px 8px"><div style="display:flex;gap:5px"><span style="width:6px;height:6px;border-radius:3px;background:#E8974E"></span><span style="width:6px;height:6px;border-radius:3px;background:#E8974E"></span><span style="width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.18)"></span><span style="width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.18)"></span></div></div>
+      <div style="flex:1;padding:24px 44px 0;box-sizing:border-box">
+        <div style="font-size:24px;font-weight:700;letter-spacing:-0.5px;color:#EAE6DD;margin-bottom:6px">Three quick permissions</div>
+        <div style="font-size:13px;color:#96907F;margin-bottom:16px">Everything happens on this Mac. Nothing is uploaded, ever.</div>
+        <div style="border-radius:12px;background:rgba(255,255,255,.04)">
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 16px">
+            <span style="width:8px;height:8px;border-radius:4px;background:rgba(255,255,255,.15);flex:none"></span>
+            <span style="font-size:13.5px;font-weight:600;color:#EAE6DD">Microphone</span>
+            <span style="font-size:12.5px;color:#96907F">to hear you</span>
+            <span style="flex:1"></span>
+            <span style="font-size:12px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:20px;padding:6px 14px">Allow</span>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,.07);margin:0 16px"></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 16px">
+            <span style="width:8px;height:8px;border-radius:4px;background:rgba(255,255,255,.15);flex:none"></span>
+            <span style="font-size:13.5px;font-weight:600;color:#EAE6DD">Accessibility</span>
+            <span style="font-size:12.5px;color:#96907F">to type for you</span>
+            <span style="flex:1"></span>
+            <span style="font-size:12px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:20px;padding:6px 14px">Allow</span>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,.07);margin:0 16px"></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 16px">
+            <span style="width:8px;height:8px;border-radius:4px;background:rgba(255,255,255,.15);flex:none"></span>
+            <span style="font-size:13.5px;font-weight:600;color:#EAE6DD">Input Monitoring</span>
+            <span style="font-size:12.5px;color:#96907F">to feel the hotkey — one key, nothing else</span>
+            <span style="flex:1"></span>
+            <span style="font-size:12px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:20px;padding:6px 14px">Allow</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;padding:20px"><span style="font-size:13px;color:#96907F">‹ Back</span><span style="flex:1"></span><span style="font-size:13px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:20px;padding:9px 18px">Continue</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">04</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>Three simultaneous asks.</strong> Every row is equally urgent, so the user picks an order at random and can stack three system dialogs. Sequence it and each ask takes six seconds.</div></div></div>
+      <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">05</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>"Nothing is uploaded, ever" is asserted, not shown.</strong> The most valuable sentence in the product is 13px grey subtitle text, and it is immediately contradicted by the Settings pane offering five cloud providers.</div></div></div>
+      <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">06</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>440 pt of height, 180 used.</strong> The window is fixed but the content floats in the top half. Nothing anchors the eye, and the primary button sits alone in a large empty footer.</div></div></div>
+      <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">07</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>Nothing precedes this window.</strong> The user has just dragged an icon into a folder and been shouted at by Gatekeeper. Step one is a bulleted permission form. There is no hello.</div></div></div>
+    </div>
+  </div>
+
+  <div data-screen-label="Before — Dashboard" style="margin-bottom:12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">CURRENT BUILD · 1:1</span>
+    <span style="font-size:13px;font-weight:700">Dashboard Home, as shipped</span>
+    <span style="font-size:12px;color:#6E6759">1000 × 660 min · 212 pt sidebar</span>
+  </div>
+  <div style="width:1000px;max-width:100%;height:470px;border-radius:12px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.28);display:flex;background:#1D1B18;margin-bottom:14px">
+    <div style="width:212px;flex:none;background:#191714;padding:0 10px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:8px;padding-top:34px;padding-bottom:14px;padding-left:2px"><canvas ref="{{ R.b2 }}" style="width:22px;height:22px;flex:none"></canvas><span style="font-size:13px;font-weight:700;color:#EAE6DD">OpenVoiceFlow</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:rgba(232,151,78,.14)"><span style="width:6px;height:6px;border-radius:3px;background:#C97B35"></span><span style="font-size:13px;font-weight:600;color:#EAE6DD">Home</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">History</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Dictionary</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Snippets</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Styles</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Know-Me</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Settings</span></div>
+    </div>
+    <div style="flex:1;padding:26px 30px;box-sizing:border-box;overflow:hidden">
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.4px;color:#EAE6DD">Good afternoon.</div>
+      <div style="font-size:12.5px;color:#96907F;margin-top:4px;margin-bottom:18px">You've spoken 1,284 words today — about 32 minutes you didn't spend typing.</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">
+        <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:14px 16px"><div style="font-size:11px;color:#96907F">Words dictated</div><div style="font-size:26px;font-weight:700;letter-spacing:-0.5px;color:#EAE6DD;margin-top:4px">38412</div><div style="font-size:11px;font-weight:600;color:#7FAF8A;margin-top:4px">+1284 today</div></div>
+        <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:14px 16px"><div style="font-size:11px;color:#96907F">Time saved</div><div style="font-size:26px;font-weight:700;letter-spacing:-0.5px;color:#EAE6DD;margin-top:4px">16 h 0 m</div><div style="font-size:11px;color:#96907F;margin-top:4px">vs typing at 40 wpm</div></div>
+        <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:14px 16px"><div style="font-size:11px;color:#96907F">Streak</div><div style="font-size:26px;font-weight:700;letter-spacing:-0.5px;color:#EAE6DD;margin-top:4px">12</div><div style="font-size:11px;color:#96907F;margin-top:4px">days in a row</div></div>
+        <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:14px 16px"><div style="font-size:11px;color:#96907F">This week</div><div style="font-size:26px;font-weight:700;letter-spacing:-0.5px;color:#EAE6DD;margin-top:4px">7940</div><div style="font-size:11px;color:#96907F;margin-top:4px">words</div></div>
+      </div>
+      <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:16px">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px"><span style="font-size:13px;font-weight:700;color:#EAE6DD">This week</span><span style="font-size:11px;color:#96907F">words per day</span></div>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:130px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;max-width:44px;height:62px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.14)"></div><span style="font-size:10px;color:#96907F">M</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;max-width:44px;height:96px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.14)"></div><span style="font-size:10px;color:#96907F">T</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;max-width:44px;height:41px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.14)"></div><span style="font-size:10px;color:#96907F">W</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;max-width:44px;height:110px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.14)"></div><span style="font-size:10px;color:#96907F">T</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;max-width:44px;height:74px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.14)"></div><span style="font-size:10px;color:#96907F">F</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;max-width:44px;height:14px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.14)"></div><span style="font-size:10px;color:#96907F">S</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:100%;max-width:44px;height:52px;border-radius:6px 6px 2px 2px;background:#C97B35"></div><span style="font-size:10px;color:#96907F">S</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding-bottom:52px;border-bottom:1px solid #E4DFD3">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">08</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>Four equal cards, no answer.</strong> "16 h 0 m" is the emotionally loaded number and it is the same size as "12". Equal weight is an abdication — the layout refuses to say which fact matters.</div></div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">09</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>The chart counts words.</strong> Words are the app's unit, not the user's. Nobody wants more words. They want the hours back — chart <em>minutes returned</em> and the same bars become a reason to keep going.</div></div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:15px"><div style="display:flex;gap:8px"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#C7402C;flex:none">10</span><div style="font-size:12px;line-height:1.65;color:#4A4437"><strong>"38412".</strong> Unformatted, uncomma'd, unrounded. A number nobody asked for, printed at the precision of a database row. Small thing; it is the tell that this pane was built, not designed.</div></div></div>
+  </div>
+</section>
+
+<section id="firstrun" data-screen-label="02 First run" style="padding:52px 0 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:14px">02 · FIRST RUN, END TO END</div>
+  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;max-width:800px;margin-bottom:10px">Eight frames from download to "it worked". Click through them.</div>
+  <p style="margin:0 0 8px;font-size:14px;line-height:1.7;color:#4A4437;max-width:720px">The current flow starts at frame 4 and hopes the user survived the first three alone. Two of these frames are surfaces we already own but never designed — the download page and the DMG. One is owned by macOS and can only be <em>predicted</em>. The rest is the app.</p>
+  <p style="margin:0 0 26px;font-size:14px;line-height:1.7;color:#4A4437;max-width:720px">The structural change: <strong>the model download stops being a step</strong>. It runs behind the Know-Me interview, so the longest wait in the product happens while the user is doing the most valuable thing they will ever do for transcription quality.</p>
+
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;align-items:center">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375;margin-right:6px">FRAME</span>
+    <span onClick="{{ nav.s0 }}" style="padding:6px 11px;border-radius:8px;border:1px solid #D9D3C5;background:#FBFAF7;font-size:11.5px;color:#4A4437;cursor:pointer;{{ chip.c0 }}" style-hover="background:#F1EEE6">0 · Download page</span>
+    <span onClick="{{ nav.s1 }}" style="padding:6px 11px;border-radius:8px;border:1px solid #D9D3C5;background:#FBFAF7;font-size:11.5px;color:#4A4437;cursor:pointer;{{ chip.c1 }}" style-hover="background:#F1EEE6">1 · DMG</span>
+    <span onClick="{{ nav.s2 }}" style="padding:6px 11px;border-radius:8px;border:1px solid #D9D3C5;background:#FBFAF7;font-size:11.5px;color:#4A4437;cursor:pointer;{{ chip.c2 }}" style-hover="background:#F1EEE6">2 · Gatekeeper</span>
+    <span onClick="{{ nav.s3 }}" style="padding:6px 11px;border-radius:8px;border:1px solid #D9D3C5;background:#FBFAF7;font-size:11.5px;color:#4A4437;cursor:pointer;{{ chip.c3 }}" style-hover="background:#F1EEE6">3 · Hello</span>
+    <span onClick="{{ nav.s4 }}" style="padding:6px 11px;border-radius:8px;border:1px solid #D9D3C5;background:#FBFAF7;font-size:11.5px;color:#4A4437;cursor:pointer;{{ chip.c4 }}" style-hover="background:#F1EEE6">4 · Permissions</span>
+    <span onClick="{{ nav.s5 }}" style="padding:6px 11px;border-radius:8px;border:1px solid #D9D3C5;background:#FBFAF7;font-size:11.5px;color:#4A4437;cursor:pointer;{{ chip.c5 }}" style-hover="background:#F1EEE6">5 · Know-Me + download</span>
+    <span onClick="{{ nav.s6 }}" style="padding:6px 11px;border-radius:8px;border:1px solid #D9D3C5;background:#FBFAF7;font-size:11.5px;color:#4A4437;cursor:pointer;{{ chip.c6 }}" style-hover="background:#F1EEE6">6 · First words</span>
+    <span onClick="{{ nav.s7 }}" style="padding:6px 11px;border-radius:8px;border:1px solid #D9D3C5;background:#FBFAF7;font-size:11.5px;color:#4A4437;cursor:pointer;{{ chip.c7 }}" style-hover="background:#F1EEE6">7 · Payoff</span>
+  </div>
+
+  <div style="position:relative;height:592px;border-radius:14px;overflow:hidden;background:linear-gradient(165deg,#2A2721 0%,#171612 68%,#121110 100%);border:1px solid #E0DACC;user-select:none">
+    <div style="position:absolute;top:0;left:0;right:0;height:27px;display:flex;align-items:center;gap:14px;padding:0 14px;background:rgba(22,21,18,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);font-size:12px;color:#D9D4C8;z-index:3">
+      <span style="font-weight:700">OpenVoiceFlow</span><span style="opacity:.6">File</span><span style="opacity:.6">Edit</span><span style="opacity:.6">Window</span>
+      <span style="flex:1"></span>
+      <span style="display:flex;align-items:center;height:21px;padding:0 5px;border-radius:5px;background:rgba(255,255,255,.16)"><canvas ref="{{ R.mbBar }}" style="width:24px;height:16px"></canvas></span>
+      <span style="opacity:.75">Sat Jul 25</span><span style="opacity:.75">9:41 AM</span>
+    </div>
+
+    <sc-if value="{{ obIs.a0 }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;inset:27px 0 0 0;display:flex;align-items:center;justify-content:center">
+        <div style="width:820px;height:470px;border-radius:11px;overflow:hidden;background:#FCFBF8;box-shadow:0 30px 70px rgba(0,0,0,.45);display:flex;flex-direction:column">
+          <div style="height:38px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;background:#EFECE4;border-bottom:1px solid #DFDACE">
+            <span style="width:11px;height:11px;border-radius:6px;background:#E8695E"></span><span style="width:11px;height:11px;border-radius:6px;background:#E4B54A"></span><span style="width:11px;height:11px;border-radius:6px;background:#7FAF8A"></span>
+            <span style="flex:1;margin-left:12px;height:22px;border-radius:6px;background:#FCFBF8;border:1px solid #DFDACE;display:flex;align-items:center;padding:0 9px;font-size:11px;color:#847D6E">openvoiceflow.com/download</span>
+          </div>
+          <div style="flex:1;padding:34px 44px;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px">
+              <canvas ref="{{ R.rMed }}" style="width:34px;height:34px;flex:none"></canvas>
+              <div><div style="font-size:19px;font-weight:700;letter-spacing:-0.02em;color:#26221B">Downloading OpenVoiceFlow</div><div style="font-size:12.5px;color:#847D6E">OpenVoiceFlow-0.4.0-arm64.dmg · 12 MB</div></div>
+            </div>
+            <div style="font-size:12.5px;font-weight:700;letter-spacing:.06em;color:#847D6E;font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-bottom:14px">WHAT HAPPENS NEXT</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+              <div style="border:1px solid #E6E1D6;border-radius:12px;padding:16px;background:#FFFFFF">
+                <div style="font-size:11px;font-weight:700;color:#B4661F;font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-bottom:8px">01</div>
+                <div style="font-size:13.5px;font-weight:600;color:#26221B;margin-bottom:5px">Drag it to Applications</div>
+                <div style="font-size:12px;line-height:1.6;color:#6E6759">The window opens by itself.</div>
+              </div>
+              <div style="border:1px solid #E6E1D6;border-radius:12px;padding:16px;background:#FFFFFF">
+                <div style="font-size:11px;font-weight:700;color:#B4661F;font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-bottom:8px">02</div>
+                <div style="font-size:13.5px;font-weight:600;color:#26221B;margin-bottom:5px">Open it from Applications</div>
+                <div style="font-size:12px;line-height:1.6;color:#6E6759">macOS won't launch it for you. Nothing is broken.</div>
+              </div>
+              <div style="border:1px solid #D9CBB4;border-radius:12px;padding:16px;background:#FBF3E7">
+                <div style="font-size:11px;font-weight:700;color:#B4661F;font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-bottom:8px">03</div>
+                <div style="font-size:13.5px;font-weight:600;color:#26221B;margin-bottom:5px">macOS will warn you once</div>
+                <div style="font-size:12px;line-height:1.6;color:#6E6759">"downloaded from the Internet." Click <strong>Open</strong>. It says that about every app not sold in the App Store.</div>
+              </div>
+            </div>
+            <div style="flex:1"></div>
+            <div style="display:flex;align-items:center;gap:8px;padding-top:18px;border-top:1px solid #E6E1D6">
+              <span style="width:7px;height:7px;border-radius:4px;background:#4E7A58"></span>
+              <span style="font-size:12px;color:#6E6759">Signed and notarised by Apple · MIT source at github.com/shimoverse/openvoiceflow</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ obIs.a1 }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:27px 0 0 0;display:flex;align-items:center;justify-content:center">
+        <div style="width:660px;border-radius:11px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;background:#F7F5F0">
+          <div style="height:36px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;background:#EFECE4;border-bottom:1px solid #E1DCD0">
+            <span style="width:11px;height:11px;border-radius:6px;background:#E8695E"></span><span style="width:11px;height:11px;border-radius:6px;background:#E4B54A"></span><span style="width:11px;height:11px;border-radius:6px;background:#7FAF8A"></span>
+            <span style="flex:1;text-align:center;font-size:12px;font-weight:600;color:#847D6E;margin-right:33px">OpenVoiceFlow 0.4.0</span>
+          </div>
+          <div style="height:400px;position:relative;background:linear-gradient(150deg,#F9F7F3 0%,#F4F1EA 55%,#EFECE2 100%);display:flex;align-items:center;justify-content:center;gap:78px">
+            <div style="position:absolute;left:0;right:0;top:148px;display:flex;justify-content:center;pointer-events:none">
+              <svg width="500" height="60" viewBox="0 0 500 60" fill="none"><path d="M4 26 C 90 -2, 150 46, 250 40 C 340 35, 380 6, 470 22" stroke="#C97B35" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 9"></path><path d="M478 12 L 490 24 L 478 36" stroke="#C97B35" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:10px;z-index:1">
+              <img src="native/assets/appicon-1024.png" alt="OpenVoiceFlow app icon" style="width:96px;height:96px;border-radius:21px;box-shadow:0 10px 26px rgba(0,0,0,.22);display:block"/>
+              <span style="font-size:12px;color:#4A4437">OpenVoiceFlow</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:10px;z-index:1">
+              <div style="width:96px;height:96px;border-radius:21px;background:linear-gradient(165deg,#8FB6DA,#5E8CBB);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(0,0,0,.22);font-size:36px;color:rgba(255,255,255,.9)">A</div>
+              <span style="font-size:12px;color:#4A4437">Applications</span>
+            </div>
+            <div style="position:absolute;left:0;right:0;bottom:34px;text-align:center">
+              <div style="font-size:15px;font-weight:600;color:#26221B;margin-bottom:6px;letter-spacing:-0.01em">Then open it from Applications.</div>
+              <div style="font-size:12.5px;color:#847D6E">macOS can't launch me itself. If it says "downloaded from the Internet", click Open.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ obIs.a2 }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:27px 0 0 0;display:flex;align-items:center;justify-content:center;gap:34px;padding:0 40px">
+        <div style="width:300px;border-radius:12px;background:rgba(240,238,232,.96);box-shadow:0 30px 70px rgba(0,0,0,.5);padding:22px 20px;text-align:center;box-sizing:border-box">
+          <img src="native/assets/appicon-1024.png" alt="OpenVoiceFlow app icon" style="width:60px;height:60px;border-radius:13px;margin:0 auto 14px;display:block"/>
+          <div style="font-size:13px;font-weight:700;color:#1D1B18;line-height:1.45;margin-bottom:7px">"OpenVoiceFlow" is an app downloaded from the Internet. Are you sure you want to open it?</div>
+          <div style="font-size:11.5px;color:#5C574C;line-height:1.5;margin-bottom:16px">Apple checked it for malicious software and none was found.</div>
+          <div style="display:flex;gap:8px"><span style="flex:1;padding:6px 0;border-radius:6px;background:#E2DFD7;border:1px solid #C9C4B8;font-size:12px;color:#1D1B18">Cancel</span><span style="flex:1;padding:6px 0;border-radius:6px;background:#3C7DD9;font-size:12px;color:#FFFFFF;font-weight:600">Open</span></div>
+        </div>
+        <div style="width:330px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:18px">
+          <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8F887A;margin-bottom:10px">OS-OWNED · CANNOT BE RESTYLED</div>
+          <div style="font-size:13px;font-weight:700;color:#EAE6DD;margin-bottom:9px">So we get ahead of it instead.</div>
+          <div style="font-size:12px;line-height:1.7;color:#B5AF9F">
+            <p style="margin:0 0 8px">The app can't touch this dialog. What it can do is make sure the user has already read the sentence twice — once on the download page (frame 0, card 03) and once under the Applications arrow (frame 1).</p>
+            <p style="margin:0 0 8px">Both use the same words the dialog uses: <em>downloaded from the Internet</em>. Matching the OS's exact phrasing is the whole trick — the user recognises it instead of parsing it.</p>
+            <p style="margin:0">Since the app is notarised, the dialog has an <strong>Open</strong> button. If notarisation ever lapses it becomes a dead-end "Move to Trash" — worth a CI check.</p>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ obIs.a3 }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:27px 0 0 0;display:flex;align-items:center;justify-content:center">
+        <div style="position:absolute;top:6px;right:150px;width:190px;height:150px;pointer-events:none">
+          <svg width="190" height="150" viewBox="0 0 190 150" fill="none"><path d="M170 8 C 170 60, 120 96, 34 128" stroke="#C97B35" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 5"></path><path d="M34 128 L 48 120 M34 128 L 42 141" stroke="#C97B35" stroke-width="1.6" stroke-linecap="round"></path></svg>
+        </div>
+        <div style="width:720px;height:470px;border-radius:12px;overflow:hidden;background:#1D1B18;box-shadow:0 30px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;box-sizing:border-box;border:1px solid rgba(255,255,255,.07)">
+          <div style="height:38px;flex:none;display:flex;align-items:center;gap:8px;padding:0 13px">
+            <span style="width:11px;height:11px;border-radius:6px;background:#E8695E"></span><span style="width:11px;height:11px;border-radius:6px;background:#E4B54A"></span><span style="width:11px;height:11px;border-radius:6px;background:rgba(255,255,255,.14)"></span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 70px;text-align:center;box-sizing:border-box">
+            <canvas ref="{{ R.rBig }}" style="width:96px;height:96px;margin-bottom:22px"></canvas>
+            <div style="font-size:34px;font-weight:700;letter-spacing:-0.03em;color:#EAE6DD;margin-bottom:12px">I live up there.</div>
+            <div style="font-size:14.5px;line-height:1.65;color:#96907F;max-width:420px">No window to keep open, no Dock icon to hunt for. Just a small waveform in the menu bar, and a key you hold when you want to talk.</div>
+          </div>
+          <div style="flex:none;padding:0 26px 24px;display:flex;align-items:center">
+            <span style="font-size:12.5px;color:#6B6558">Takes about a minute.</span>
+            <span style="flex:1"></span>
+            <span onClick="{{ nav.s4 }}" style="font-size:13.5px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:22px;padding:10px 22px;cursor:pointer" style-hover="background:#F0A55F">Let's go</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ obIs.a4 }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:27px 0 0 0;display:flex;align-items:center;justify-content:center">
+        <div style="width:720px;height:470px;border-radius:12px;overflow:hidden;background:#1D1B18;box-shadow:0 30px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;box-sizing:border-box;border:1px solid rgba(255,255,255,.07)">
+          <div style="height:38px;flex:none;display:flex;align-items:center;gap:8px;padding:0 13px">
+            <span style="width:11px;height:11px;border-radius:6px;background:#E8695E"></span><span style="width:11px;height:11px;border-radius:6px;background:#E4B54A"></span><span style="width:11px;height:11px;border-radius:6px;background:rgba(255,255,255,.14)"></span>
+          </div>
+          <div style="flex:1;padding:6px 46px 0;box-sizing:border-box;overflow:hidden">
+            <div style="font-size:25px;font-weight:700;letter-spacing:-0.025em;color:#EAE6DD;margin-bottom:6px">Three switches, then we're done.</div>
+            <div style="font-size:13px;color:#96907F;margin-bottom:20px">macOS holds the keys, not me. I'll ask for one at a time.</div>
+
+            <div style="border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);overflow:hidden">
+              <div style="display:flex;gap:13px;padding:15px 17px;align-items:flex-start">
+                <span style="width:8px;height:8px;border-radius:4px;margin-top:5px;flex:none;{{ micDot }}"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:9px"><span style="font-size:14px;font-weight:600;color:#EAE6DD">Microphone</span><span style="font-size:12.5px;color:#96907F">so I can hear you</span></div>
+                  <sc-if value="{{ gmNo }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:12px;color:#6B6558;margin-top:5px">I only listen while the key is held. Nothing is recorded before or after.</div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ gmNo }}" hint-placeholder-val="{{ true }}">
+                  <span onClick="{{ grant.mic }}" style="flex:none;font-size:12.5px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:20px;padding:7px 17px;cursor:pointer" style-hover="background:#F0A55F">Allow</span>
+                </sc-if>
+                <sc-if value="{{ gm }}" hint-placeholder-val="{{ false }}">
+                  <span style="flex:none;font-size:12.5px;font-weight:600;color:#7FAF8A">Allowed</span>
+                </sc-if>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.07);margin:0 17px"></div>
+              <div style="display:flex;gap:13px;padding:15px 17px;align-items:flex-start">
+                <span style="width:8px;height:8px;border-radius:4px;margin-top:5px;flex:none;{{ axDot }}"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:9px"><span style="font-size:14px;font-weight:600;color:#EAE6DD">Accessibility</span><span style="font-size:12.5px;color:#96907F">so I can type for you</span></div>
+                  <sc-if value="{{ axLive }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:12px;color:#6B6558;margin-top:5px">I press ⌘V on your behalf. I don't read what's on your screen.</div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ axLive }}" hint-placeholder-val="{{ false }}">
+                  <span onClick="{{ grant.ax }}" style="flex:none;font-size:12.5px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:20px;padding:7px 17px;cursor:pointer" style-hover="background:#F0A55F">Allow</span>
+                </sc-if>
+                <sc-if value="{{ ga }}" hint-placeholder-val="{{ false }}">
+                  <span style="flex:none;font-size:12.5px;font-weight:600;color:#7FAF8A">Allowed</span>
+                </sc-if>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.07);margin:0 17px"></div>
+              <div style="display:flex;gap:13px;padding:15px 17px;align-items:flex-start">
+                <span style="width:8px;height:8px;border-radius:4px;margin-top:5px;flex:none;{{ imDot }}"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:9px"><span style="font-size:14px;font-weight:600;color:#EAE6DD">Input Monitoring</span><span style="font-size:12.5px;color:#96907F">so I can feel the key</span></div>
+                  <sc-if value="{{ imLive }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:12px;color:#6B6558;margin-top:5px">One key — the one you choose. Every other keystroke passes straight through.</div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ imLive }}" hint-placeholder-val="{{ false }}">
+                  <span onClick="{{ grant.im }}" style="flex:none;font-size:12.5px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:20px;padding:7px 17px;cursor:pointer" style-hover="background:#F0A55F">Allow</span>
+                </sc-if>
+                <sc-if value="{{ gi }}" hint-placeholder-val="{{ false }}">
+                  <span style="flex:none;font-size:12.5px;font-weight:600;color:#7FAF8A">Allowed</span>
+                </sc-if>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;margin-top:15px">
+              <span style="font-size:11.5px;color:#6B6558">Clicked Allow and nothing happened?</span>
+              <span style="font-size:11.5px;font-weight:600;color:#E8974E;cursor:pointer" style-hover="color:#F0A55F">Open System Settings</span>
+              <span style="font-size:11.5px;color:#514C42">— click + and pick OpenVoiceFlow from Applications.</span>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 26px 22px;display:flex;align-items:center">
+            <span onClick="{{ nav.s3 }}" style="font-size:12.5px;color:#6B6558;cursor:pointer" style-hover="color:#96907F">‹ Back</span>
+            <span style="flex:1"></span>
+            <sc-if value="{{ allGranted }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ nav.s5 }}" style="font-size:13.5px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:22px;padding:10px 22px;cursor:pointer" style-hover="background:#F0A55F">Continue</span>
+            </sc-if>
+            <sc-if value="{{ notAll }}" hint-placeholder-val="{{ true }}">
+              <span style="font-size:13px;color:#6B6558">{{ grantCount }}</span>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ obIs.a5 }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:27px 0 0 0;display:flex;align-items:center;justify-content:center">
+        <div style="width:720px;height:470px;border-radius:12px;overflow:hidden;background:#1D1B18;box-shadow:0 30px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;box-sizing:border-box;border:1px solid rgba(255,255,255,.07)">
+          <div style="height:38px;flex:none;display:flex;align-items:center;gap:8px;padding:0 13px">
+            <span style="width:11px;height:11px;border-radius:6px;background:#E8695E"></span><span style="width:11px;height:11px;border-radius:6px;background:#E4B54A"></span><span style="width:11px;height:11px;border-radius:6px;background:rgba(255,255,255,.14)"></span>
+          </div>
+          <div style="flex:1;padding:6px 46px 0;box-sizing:border-box">
+            <div style="font-size:25px;font-weight:700;letter-spacing:-0.025em;color:#EAE6DD;margin-bottom:6px">While that downloads — who am I typing for?</div>
+            <div style="font-size:13px;color:#96907F;margin-bottom:20px">Two answers, and your name comes out spelled right the first time.</div>
+
+            <div style="border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);padding:18px;margin-bottom:14px">
+              <div style="font-size:12.5px;color:#96907F;margin-bottom:8px">What should I call you?</div>
+              <div style="height:36px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(232,151,78,.45);display:flex;align-items:center;padding:0 12px;margin-bottom:16px"><span style="font-size:14px;color:#EAE6DD">Priya Raghunathan</span><span style="width:2px;height:17px;background:#E8974E;margin-left:2px"></span></div>
+              <div style="font-size:12.5px;color:#96907F;margin-bottom:8px">Any names or words I'd get wrong?</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+                <span style="font-size:12px;color:#CFC9BB;background:rgba(255,255,255,.07);border-radius:6px;padding:5px 10px">WhisperKit</span>
+                <span style="font-size:12px;color:#CFC9BB;background:rgba(255,255,255,.07);border-radius:6px;padding:5px 10px">Shimoverse</span>
+                <span style="font-size:12px;color:#CFC9BB;background:rgba(255,255,255,.07);border-radius:6px;padding:5px 10px">Meer</span>
+                <span style="font-size:12px;color:#6B6558">+ add</span>
+              </div>
+            </div>
+
+            <div style="border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:14px 17px">
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px">
+                <span style="font-size:12.5px;font-weight:600;color:#CFC9BB">Speech engine</span>
+                <span style="flex:1"></span>
+                <span style="font-size:11.5px;color:#847D6E;font-variant-numeric:tabular-nums">{{ dlMB }}</span>
+                <span style="font-size:11.5px;color:#847D6E">·</span>
+                <span style="font-size:11.5px;color:#847D6E;font-variant-numeric:tabular-nums">5.4 MB/s</span>
+                <span style="font-size:11.5px;color:#847D6E">·</span>
+                <span style="font-size:11.5px;font-weight:600;color:#E8974E;font-variant-numeric:tabular-nums">{{ dlEta }}</span>
+              </div>
+              <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden"><div style="height:5px;border-radius:3px;background:#E8974E;{{ dlW }}"></div></div>
+              <div style="font-size:11px;color:#6B6558;margin-top:9px">Downloaded once. After this, everything runs offline on this Mac.</div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 26px 22px;display:flex;align-items:center">
+            <span onClick="{{ nav.s4 }}" style="font-size:12.5px;color:#6B6558;cursor:pointer" style-hover="color:#96907F">‹ Back</span>
+            <span style="flex:1"></span>
+            <sc-if value="{{ dlDone }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ nav.s6 }}" style="font-size:13.5px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:22px;padding:10px 22px;cursor:pointer" style-hover="background:#F0A55F">Try it</span>
+            </sc-if>
+            <sc-if value="{{ dlGoing }}" hint-placeholder-val="{{ true }}">
+              <span style="font-size:13px;color:#6B6558;font-variant-numeric:tabular-nums">{{ dlPct }}</span>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ obIs.a6 }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:27px 0 0 0;display:flex;align-items:center;justify-content:center">
+        <div style="width:720px;height:470px;border-radius:12px;overflow:hidden;background:#1D1B18;box-shadow:0 30px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;box-sizing:border-box;border:1px solid rgba(255,255,255,.07)">
+          <div style="height:38px;flex:none;display:flex;align-items:center;gap:8px;padding:0 13px">
+            <span style="width:11px;height:11px;border-radius:6px;background:#E8695E"></span><span style="width:11px;height:11px;border-radius:6px;background:#E4B54A"></span><span style="width:11px;height:11px;border-radius:6px;background:rgba(255,255,255,.14)"></span>
+          </div>
+          <div style="flex:1;padding:10px 46px 0;box-sizing:border-box;display:flex;flex-direction:column">
+            <div style="font-size:25px;font-weight:700;letter-spacing:-0.025em;color:#EAE6DD;margin-bottom:6px">Say anything.</div>
+            <div style="font-size:13px;color:#96907F;margin-bottom:22px">Hold <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;background:rgba(255,255,255,.08);border-radius:5px;padding:2px 6px;color:#CFC9BB">fn</span> and talk. Let go when you're done.</div>
+            <div style="flex:1;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);padding:22px 24px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center">
+              <div style="font-size:21px;line-height:1.5;color:#EAE6DD;letter-spacing:-0.01em;min-height:64px">{{ hello }}<span style="display:inline-block;width:2px;height:22px;background:#E8974E;vertical-align:-3px"></span></div>
+              <sc-if value="{{ phaseIdle }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13px;color:#514C42;margin-top:10px">Waiting for you…</div>
+              </sc-if>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;padding:20px 0 0">
+              <div onMouseDown="{{ press }}" onMouseUp="{{ release }}" onMouseLeave="{{ release }}" style="display:flex;align-items:center;gap:10px;height:40px;padding:0 16px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);cursor:pointer;user-select:none;flex:none" style-hover="background:rgba(255,255,255,.11)">
+                <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#CFC9BB">fn</span>
+                <span style="font-size:12.5px;color:#96907F">{{ phaseLabel }}</span>
+              </div>
+              <canvas ref="{{ R.hero2 }}" style="flex:1;height:34px"></canvas>
+            </div>
+          </div>
+          <div style="flex:none;padding:14px 26px 22px;display:flex;align-items:center">
+            <span onClick="{{ nav.s5 }}" style="font-size:12.5px;color:#6B6558;cursor:pointer" style-hover="color:#96907F">‹ Back</span>
+            <span style="flex:1"></span>
+            <sc-if value="{{ phaseDone }}" hint-placeholder-val="{{ false }}">
+              <span onClick="{{ nav.s7 }}" style="font-size:13.5px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:22px;padding:10px 22px;cursor:pointer" style-hover="background:#F0A55F">Continue</span>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ obIs.a7 }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:27px 0 0 0;display:flex;align-items:center;justify-content:center">
+        <div style="width:720px;height:470px;border-radius:12px;overflow:hidden;background:#1D1B18;box-shadow:0 30px 70px rgba(0,0,0,.5);display:flex;flex-direction:column;box-sizing:border-box;border:1px solid rgba(255,255,255,.07)">
+          <div style="height:38px;flex:none;display:flex;align-items:center;gap:8px;padding:0 13px">
+            <span style="width:11px;height:11px;border-radius:6px;background:#E8695E"></span><span style="width:11px;height:11px;border-radius:6px;background:#E4B54A"></span><span style="width:11px;height:11px;border-radius:6px;background:rgba(255,255,255,.14)"></span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 74px;box-sizing:border-box;text-align:center;position:relative">
+            <canvas ref="{{ R.rPay }}" style="position:absolute;top:34px;left:50%;margin-left:-27px;width:54px;height:54px"></canvas>
+            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.12em;color:#7FAF8A;margin-bottom:20px;margin-top:44px">YOUR FIRST WORDS</div>
+            <div style="font-size:27px;line-height:1.42;font-weight:600;letter-spacing:-0.022em;color:#EAE6DD;max-width:520px">"Hey — I'm using OpenVoiceFlow, and it just typed this for me."</div>
+            <div style="width:64px;height:1px;background:rgba(255,255,255,.14);margin:26px 0"></div>
+            <div style="font-size:14.5px;color:#96907F;line-height:1.6;max-width:400px">You spoke for 4 seconds.<br/>Typing that would have taken 18.</div>
+          </div>
+          <div style="flex:none;padding:0 26px 24px;display:flex;align-items:center">
+            <span style="font-size:12px;color:#6B6558">Kept on this Mac — you'll find it on Home.</span>
+            <span style="flex:1"></span>
+            <span onClick="{{ nav.s0 }}" style="font-size:13.5px;font-weight:600;color:#1A1508;background:#E8974E;border-radius:22px;padding:10px 22px;cursor:pointer" style-hover="background:#F0A55F">Start using it</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="position:absolute;left:0;right:0;bottom:0;height:46px;display:flex;align-items:center;justify-content:center;gap:7px;z-index:3">
+      <span onClick="{{ nav.s0 }}" style="width:7px;height:7px;border-radius:4px;cursor:pointer;{{ dot.d0 }}"></span>
+      <span onClick="{{ nav.s1 }}" style="width:7px;height:7px;border-radius:4px;cursor:pointer;{{ dot.d1 }}"></span>
+      <span onClick="{{ nav.s2 }}" style="width:7px;height:7px;border-radius:4px;cursor:pointer;{{ dot.d2 }}"></span>
+      <span onClick="{{ nav.s3 }}" style="width:7px;height:7px;border-radius:4px;cursor:pointer;{{ dot.d3 }}"></span>
+      <span onClick="{{ nav.s4 }}" style="width:7px;height:7px;border-radius:4px;cursor:pointer;{{ dot.d4 }}"></span>
+      <span onClick="{{ nav.s5 }}" style="width:7px;height:7px;border-radius:4px;cursor:pointer;{{ dot.d5 }}"></span>
+      <span onClick="{{ nav.s6 }}" style="width:7px;height:7px;border-radius:4px;cursor:pointer;{{ dot.d6 }}"></span>
+      <span onClick="{{ nav.s7 }}" style="width:7px;height:7px;border-radius:4px;cursor:pointer;{{ dot.d7 }}"></span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;padding-bottom:52px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Frames 0–1 · Killing the void</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The download page and the DMG background are the only two surfaces that exist between "I want this" and "why is nothing happening". Both currently say nothing. Now they say the same three things, in the same order, in the same words the OS will use. <strong>The DMG's job is no longer decoration — it is an instruction.</strong></div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Frame 3 · A sense of place</div><div style="font-size:12px;line-height:1.65;color:#4A4437">"I live up there," with a dotted line drawn to the real menu-bar icon, which does a three-beat amplitude swell on first launch only. This is the fix for "the app vanished" — not a Dock icon, an <em>address</em>. Dock icon stays available in Advanced, off by default.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Frame 4 · Sequenced permissions</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Rows reveal one at a time; the next Allow only appears once the previous grant lands. Each row carries a <em>limit</em> as well as a reason — "I don't read what's on your screen" does more for trust than any badge. The escape hatch sits under the card from the start, not after failure.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Frames 5–7 · Wait, then payoff</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The download reports MB, rate and ETA — the three numbers that make waiting bearable — while Know-Me absorbs the time. Then one full-window moment: the sentence, the ring, and the only stat that matters. It is saved and resurfaces on Home forever.</div></div>
+  </div>
+</section>
+
+<section id="hud" data-screen-label="03 HUD" style="padding:52px 0 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:14px">03 · THE HUD</div>
+  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;max-width:820px;margin-bottom:10px">One line. It never breaks, it never leaves, it just changes what it's doing.</div>
+  <p style="margin:0 0 26px;font-size:14px;line-height:1.7;color:#4A4437;max-width:720px">Today the HUD draws five unrelated paths and cuts between them. The redesign treats it as <strong>a single stroke that persists across every state</strong> — the wave settles into a coil, the coil unwinds into a line, light runs down the line, the line folds into a tick. Nothing appears, nothing disappears; the same object is doing a different job. That continuity is the signature, and it costs no new pixels.</p>
+
+  <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">HOLD THE KEY</span>
+    <span style="font-size:13px;font-weight:700">Live — press and hold the pill</span>
+    <span style="font-size:12px;color:#6E6759">runs the real <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">S(t)</span> · <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">win(u)</span> · wobble math</span>
+  </div>
+  <div style="position:relative;height:300px;border-radius:14px;background:linear-gradient(165deg,#26241F 0%,#161511 70%,#12110E 100%);border:1px solid #E0DACC;margin-bottom:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px">
+    <div onMouseDown="{{ press }}" onMouseUp="{{ release }}" onMouseLeave="{{ release }}" style="position:relative;display:flex;align-items:center;gap:9px;height:38px;width:290px;{{ heroW }}padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.74);backdrop-filter:blur(26px) saturate(160%);-webkit-backdrop-filter:blur(26px) saturate(160%);border:1px solid rgba(255,255,255,.10);box-shadow:0 12px 34px rgba(0,0,0,.44);cursor:pointer;user-select:none">
+      <canvas ref="{{ R.hero }}" style="flex:1;height:28px"></canvas>
+      <span style="font-size:12.5px;color:#96907F;flex:none;white-space:nowrap">{{ heroSide }}</span>
+      <div style="position:absolute;left:12px;right:12px;bottom:5px;height:1.5px;border-radius:1px;background:rgba(255,255,255,.07);overflow:hidden;{{ spineOp }}"><div style="height:1.5px;border-radius:1px;background:#E8974E;transition:width .28s cubic-bezier(.34,1.1,.44,1);{{ spineW }}"></div></div>
+    </div>
+    <div style="font-size:12.5px;color:#7C7566;text-align:center;max-width:420px;line-height:1.6">Hold to record · release to run the loop. The hairline along the bottom is the progress spine — it only exists while there is real progress to report.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:44px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">290 → 172 pt at rest</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The chip and the timer both leave. What remains is the waveform and nothing else — 172 × 38, about the footprint of a Spotlight result row. It grows only when it has words to say: 300 for a success echo, 330 for an error with an action.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Success shows the text, not a count</div><div style="font-size:12px;line-height:1.65;color:#4A4437">"42 words" is a receipt. The last five words of what actually landed — <em>"…on Friday."</em> — is <em>proof</em>, and it is how you catch a bad transcription without looking away from your cursor. Dwell 1.4 s, then fade.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Bottom-centre stays — on principle</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Following the caret means reading every app's text position through Accessibility. That is the one thing we promised not to do. Bottom-centre costs no permission, never occludes the insertion point, and is in the same place every single time — which is what "glanceable" actually means.</div></div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">STATE TABLE · ALL LIVE</span>
+    <span style="font-size:13px;font-weight:700">Six states, both appearances</span>
+  </div>
+  <div style="border:1px solid #E4DFD3;border-radius:14px;overflow:hidden;margin-bottom:44px">
+    <div style="display:grid;grid-template-columns:214px minmax(0,1fr) minmax(0,1fr);background:#EDEAE1;border-bottom:1px solid #E4DFD3">
+      <div style="padding:10px 16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.07em;color:#8A8375">STATE</div>
+      <div style="padding:10px 16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.07em;color:#8A8375">DARK</div>
+      <div style="padding:10px 16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.07em;color:#8A8375">LIGHT</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:214px minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid #E4DFD3">
+      <div style="padding:16px;background:#FBFAF7"><div style="font-size:13px;font-weight:700;margin-bottom:4px">Listening</div><div style="font-size:11.5px;line-height:1.6;color:#6E6759">172 × 38. Your voice, live. Silence breathes at ±1.15 px so it never looks frozen.</div></div>
+      <div style="padding:20px 16px;background:#201E1A;display:flex;justify-content:center;align-items:center"><div style="display:flex;align-items:center;gap:9px;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><canvas ref="{{ R.h1 }}" style="flex:1;height:28px"></canvas></div></div>
+      <div style="padding:20px 16px;background:#E9E5DB;display:flex;justify-content:center;align-items:center"><div style="display:flex;align-items:center;gap:9px;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(252,251,248,.86);border:1px solid rgba(0,0,0,.10)"><canvas ref="{{ R.l1 }}" style="flex:1;height:28px"></canvas></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:214px minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid #E4DFD3">
+      <div style="padding:16px;background:#FBFAF7"><div style="font-size:13px;font-weight:700;margin-bottom:4px">Transcribing</div><div style="font-size:11.5px;line-height:1.6;color:#6E6759">The wave winds into the coil at 6.9 rad/s. Spine at 45%.</div></div>
+      <div style="padding:20px 16px;background:#201E1A;display:flex;justify-content:center;align-items:center"><div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><canvas ref="{{ R.h2 }}" style="flex:1;height:28px"></canvas><div style="position:absolute;left:12px;right:12px;bottom:5px;height:1.5px;border-radius:1px;background:rgba(255,255,255,.07)"><div style="height:1.5px;width:45%;border-radius:1px;background:#E8974E"></div></div></div></div>
+      <div style="padding:20px 16px;background:#E9E5DB;display:flex;justify-content:center;align-items:center"><div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(252,251,248,.86);border:1px solid rgba(0,0,0,.10)"><canvas ref="{{ R.l2 }}" style="flex:1;height:28px"></canvas><div style="position:absolute;left:12px;right:12px;bottom:5px;height:1.5px;border-radius:1px;background:rgba(0,0,0,.07)"><div style="height:1.5px;width:45%;border-radius:1px;background:#B5763C"></div></div></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:214px minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid #E4DFD3">
+      <div style="padding:16px;background:#FBFAF7"><div style="font-size:13px;font-weight:700;margin-bottom:4px">Polishing</div><div style="font-size:11.5px;line-height:1.6;color:#6E6759">Coil unwinds to flat; light travels it at 150 px/s. Only shown when cleanup is on.</div></div>
+      <div style="padding:20px 16px;background:#201E1A;display:flex;justify-content:center;align-items:center"><div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><canvas ref="{{ R.h3 }}" style="flex:1;height:28px"></canvas><div style="position:absolute;left:12px;right:12px;bottom:5px;height:1.5px;border-radius:1px;background:rgba(255,255,255,.07)"><div style="height:1.5px;width:84%;border-radius:1px;background:#E8974E"></div></div></div></div>
+      <div style="padding:20px 16px;background:#E9E5DB;display:flex;justify-content:center;align-items:center"><div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(252,251,248,.86);border:1px solid rgba(0,0,0,.10)"><canvas ref="{{ R.l3 }}" style="flex:1;height:28px"></canvas><div style="position:absolute;left:12px;right:12px;bottom:5px;height:1.5px;border-radius:1px;background:rgba(0,0,0,.07)"><div style="height:1.5px;width:84%;border-radius:1px;background:#B5763C"></div></div></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:214px minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid #E4DFD3">
+      <div style="padding:16px;background:#FBFAF7"><div style="font-size:13px;font-weight:700;margin-bottom:4px">Inserted</div><div style="font-size:11.5px;line-height:1.6;color:#6E6759">Grows to 300. Tick folds out of the line; the tail of the real text fades in beside it. 1.4 s dwell.</div></div>
+      <div style="padding:20px 16px;background:#201E1A;display:flex;justify-content:center;align-items:center"><div style="display:flex;align-items:center;gap:9px;height:38px;width:300px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><canvas ref="{{ R.h4 }}" style="width:34px;height:28px;flex:none"></canvas><span style="font-size:12.5px;color:#EAE6DD;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">…ship the HUD on Friday.</span></div></div>
+      <div style="padding:20px 16px;background:#E9E5DB;display:flex;justify-content:center;align-items:center"><div style="display:flex;align-items:center;gap:9px;height:38px;width:300px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(252,251,248,.86);border:1px solid rgba(0,0,0,.10)"><canvas ref="{{ R.l4 }}" style="width:34px;height:28px;flex:none"></canvas><span style="font-size:12.5px;color:#26221B;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">…ship the HUD on Friday.</span></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:214px minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid #E4DFD3">
+      <div style="padding:16px;background:#FBFAF7"><div style="font-size:13px;font-weight:700;margin-bottom:4px">Too short</div><div style="font-size:11.5px;line-height:1.6;color:#6E6759">Amber, not red — nothing failed. Three dots breathe left→right for 2.4 s.</div></div>
+      <div style="padding:20px 16px;background:#201E1A;display:flex;justify-content:center;align-items:center"><div style="display:flex;align-items:center;gap:9px;height:38px;width:244px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><canvas ref="{{ R.h5 }}" style="width:34px;height:28px;flex:none"></canvas><span style="font-size:12.5px;color:#EAE6DD">Hold a moment longer</span></div></div>
+      <div style="padding:20px 16px;background:#E9E5DB;display:flex;justify-content:center;align-items:center"><div style="display:flex;align-items:center;gap:9px;height:38px;width:244px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(252,251,248,.86);border:1px solid rgba(0,0,0,.10)"><canvas ref="{{ R.l5 }}" style="width:34px;height:28px;flex:none"></canvas><span style="font-size:12.5px;color:#26221B">Hold a moment longer</span></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:214px minmax(0,1fr) minmax(0,1fr)">
+      <div style="padding:16px;background:#FBFAF7"><div style="font-size:13px;font-weight:700;margin-bottom:4px">Error</div><div style="font-size:11.5px;line-height:1.6;color:#6E6759">The only state with a control. 330 wide, 6 s auto-dismiss, hit-testing over the button only.</div></div>
+      <div style="padding:20px 16px;background:#201E1A;display:flex;justify-content:center;align-items:center"><div style="display:flex;align-items:center;gap:9px;height:38px;width:330px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><canvas ref="{{ R.h6 }}" style="width:34px;height:28px;flex:none"></canvas><span style="font-size:12.5px;color:#EAE6DD;flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Copied instead — press ⌘V</span><span style="font-size:12.5px;font-weight:600;color:#E0523A;flex:none">Fix</span></div></div>
+      <div style="padding:20px 16px;background:#E9E5DB;display:flex;justify-content:center;align-items:center"><div style="display:flex;align-items:center;gap:9px;height:38px;width:330px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(252,251,248,.86);border:1px solid rgba(0,0,0,.10)"><canvas ref="{{ R.l6 }}" style="width:34px;height:28px;flex:none"></canvas><span style="font-size:12.5px;color:#26221B;flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Copied instead — press ⌘V</span><span style="font-size:12.5px;font-weight:600;color:#C7402C;flex:none">Fix</span></div></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding-bottom:52px">
+    <div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Reduce Motion</div>
+      <div style="border-radius:12px;background:#201E1A;padding:22px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;align-items:center;gap:9px;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><div style="flex:1;display:flex;justify-content:space-between;align-items:center"><span style="width:4.8px;height:4.8px;border-radius:3px;background:#E8974E"></span><span style="width:4.8px;height:4.8px;border-radius:3px;background:#E8974E"></span><span style="width:4.8px;height:4.8px;border-radius:3px;background:#E8974E"></span><span style="width:4.8px;height:4.8px;border-radius:3px;background:#E8974E"></span><span style="width:4.8px;height:4.8px;border-radius:3px;background:#E8974E"></span><span style="width:4.8px;height:4.8px;border-radius:3px;background:rgba(232,151,78,.4)"></span><span style="width:4.8px;height:4.8px;border-radius:3px;background:rgba(232,151,78,.4)"></span><span style="width:4.8px;height:4.8px;border-radius:3px;background:rgba(232,151,78,.4)"></span><span style="width:4.8px;height:4.8px;border-radius:3px;background:rgba(232,151,78,.4)"></span></div></div>
+          <span style="font-size:11.5px;color:#847D6E">Listening — 9-dot meter, updates at 10 Hz</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><span style="width:5.2px;height:5.2px;border-radius:3px;background:#E8974E"></span><span style="width:5.2px;height:5.2px;border-radius:3px;background:rgba(232,151,78,.55)"></span><span style="width:5.2px;height:5.2px;border-radius:3px;background:rgba(232,151,78,.3)"></span></div>
+          <span style="font-size:11.5px;color:#847D6E">Working — three dots, opacity only, 0.9 s cycle</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;align-items:center;justify-content:center;height:38px;width:172px;max-width:100%;padding:0 12px;box-sizing:border-box;border-radius:19px;background:rgba(42,40,35,.82);border:1px solid rgba(255,255,255,.10)"><span style="width:36px;height:2px;border-radius:1px;background:rgba(214,208,194,.5)"></span></div>
+          <span style="font-size:11.5px;color:#847D6E">Anything else — static line, no animation at all</span>
+        </div>
+      </div>
+      <p style="margin:12px 0 0;font-size:12px;line-height:1.7;color:#4A4437">Under Reduce Motion the HUD keeps its geometry and loses only its movement — the panel still fades in over 130 ms (no rise), the spine still fills but with a linear 200 ms step instead of a spring. The success tick is drawn complete rather than stroked on.</p>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Geometry, before → after</div>
+      <div style="border:1px solid #E6E1D6;border-radius:12px;overflow:hidden;background:#FFFFFF">
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;background:#F4F2EC;border-bottom:1px solid #E6E1D6;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.06em;color:#8A8375"><div style="padding:9px 14px">TOKEN</div><div style="padding:9px 14px">NOW</div><div style="padding:9px 14px">PROPOSED</div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">height</div><div style="padding:9px 14px;color:#847D6E">44</div><div style="padding:9px 14px;font-weight:600">38</div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">min width</div><div style="padding:9px 14px;color:#847D6E">290</div><div style="padding:9px 14px;font-weight:600">172</div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">max width</div><div style="padding:9px 14px;color:#847D6E">460</div><div style="padding:9px 14px;font-weight:600">330</div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">h-padding</div><div style="padding:9px 14px;color:#847D6E">14</div><div style="padding:9px 14px;font-weight:600">12</div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">gap</div><div style="padding:9px 14px;color:#847D6E">10</div><div style="padding:9px 14px;font-weight:600">9</div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">stroke</div><div style="padding:9px 14px;color:#847D6E">2</div><div style="padding:9px 14px;font-weight:600">2 <span style="color:#847D6E;font-weight:400">unchanged</span></div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">bottom offset</div><div style="padding:9px 14px;color:#847D6E">24</div><div style="padding:9px 14px;font-weight:600">24 <span style="color:#847D6E;font-weight:400">unchanged</span></div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">hotkey chip</div><div style="padding:9px 14px;color:#847D6E">always</div><div style="padding:9px 14px;font-weight:600">first 7 days</div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border-bottom:1px solid #F0EDE5;font-size:12px"><div style="padding:9px 14px;color:#4A4437">timer</div><div style="padding:9px 14px;color:#847D6E">from 3 s</div><div style="padding:9px 14px;font-weight:600">from 20 s</div></div>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;font-size:12px"><div style="padding:9px 14px;color:#4A4437">progress spine</div><div style="padding:9px 14px;color:#847D6E">—</div><div style="padding:9px 14px;font-weight:600">1.5 pt, inset 12</div></div>
+      </div>
+      <p style="margin:12px 0 0;font-size:12px;line-height:1.7;color:#4A4437">Everything else — the capsule material, the 10% hairline border, the shadow, the summon and dismiss timings — is untouched. This is a subtraction, not a rebuild.</p>
+    </div>
+  </div>
+</section>
+
+<section id="dashboard" data-screen-label="04 Dashboard" style="padding:52px 0 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:14px">04 · THE DASHBOARD</div>
+  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;max-width:820px;margin-bottom:10px">One number, big enough to be an answer.</div>
+  <p style="margin:0 0 26px;font-size:14px;line-height:1.7;color:#4A4437;max-width:720px">Home has one job: convince someone who already installed the app that they were right. Four equal cards can't do that — equal weight means no claim. So the hours come back at 68 pt, the words become the footnote they always were, and the week chart stops counting the app's unit and starts counting the user's. The sidebar, the pane list, the card radius, the hairlines: unchanged.</p>
+
+  <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">PROPOSED · 1:1</span>
+    <span style="font-size:13px;font-weight:700">Home</span>
+    <span style="font-size:12px;color:#6E6759">1000 × 768 · sidebar 212 unchanged</span>
+  </div>
+  <div style="width:1000px;max-width:100%;height:768px;border-radius:12px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.28);display:flex;background:#1D1B18;margin-bottom:14px">
+    <div style="width:212px;flex:none;background:#191714;padding:0 10px;display:flex;flex-direction:column;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:8px;padding-top:34px;padding-bottom:14px;padding-left:2px"><canvas ref="{{ R.rSide }}" style="width:22px;height:22px;flex:none"></canvas><span style="font-size:13px;font-weight:700;color:#EAE6DD">OpenVoiceFlow</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:rgba(232,151,78,.14)"><span style="width:6px;height:6px;border-radius:3px;background:#C97B35"></span><span style="font-size:13px;font-weight:600;color:#EAE6DD">Home</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">History</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Dictionary</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Snippets</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Styles</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Know-Me</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px"><span style="width:6px;height:6px"></span><span style="font-size:13px;color:#EAE6DD">Settings</span></div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:6px;padding:0 10px 14px"><span style="width:6px;height:6px;border-radius:3px;background:#7FAF8A"></span><span style="font-size:11px;color:#96907F">v0.4.0 · auto-updating</span></div>
+    </div>
+    <div style="flex:1;padding:34px 30px 30px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;overflow:hidden">
+
+      <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;height:256px;flex:none">
+        <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:22px 24px">
+          <div style="font-size:11px;letter-spacing:.07em;font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#847D6E;margin-bottom:10px">TIME BACK</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <span style="font-size:68px;font-weight:700;letter-spacing:-0.045em;line-height:.94;color:#EAE6DD">16</span>
+            <span style="font-size:26px;font-weight:600;letter-spacing:-0.02em;color:#96907F">h</span>
+            <span style="font-size:68px;font-weight:700;letter-spacing:-0.045em;line-height:.94;color:#EAE6DD">20</span>
+            <span style="font-size:26px;font-weight:600;letter-spacing:-0.02em;color:#96907F">m</span>
+          </div>
+          <div style="font-size:14.5px;line-height:1.55;color:#96907F;margin-top:14px;max-width:340px">Two working days you didn't spend typing, since March.</div>
+          <div style="display:flex;align-items:center;gap:16px;margin-top:18px;padding-top:15px;border-top:1px solid rgba(255,255,255,.07)">
+            <span style="font-size:12px;color:#847D6E">38,412 words</span>
+            <span style="width:3px;height:3px;border-radius:2px;background:#514C42"></span>
+            <span style="font-size:12px;color:#847D6E">412 takes</span>
+            <span style="width:3px;height:3px;border-radius:2px;background:#514C42"></span>
+            <span style="font-size:12px;color:#847D6E">12 days running</span>
+          </div>
+        </div>
+        <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:20px 22px;display:flex;flex-direction:column">
+          <div style="font-size:11px;letter-spacing:.07em;font-family:ui-monospace,'SF Mono',Menlo,monospace;color:#7FAF8A;margin-bottom:12px">YOUR FIRST WORDS</div>
+          <div style="font-size:15px;line-height:1.5;color:#EAE6DD;font-weight:500;flex:1">"Hey — I'm using OpenVoiceFlow, and it just typed this for me."</div>
+          <div style="font-size:11.5px;color:#6B6558;margin-top:12px">14 March, 9:41 AM · in Notes</div>
+        </div>
+      </div>
+
+      <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:18px 20px">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px"><span style="font-size:13px;font-weight:700;color:#EAE6DD">This week</span><span style="font-size:11px;color:#847D6E">minutes returned per day</span><span style="flex:1"></span><span style="font-size:11.5px;color:#847D6E">3 h 04 m total</span></div>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:124px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:10.5px;color:#6B6558">22</span><div style="width:100%;max-width:52px;height:56px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.13)"></div><span style="font-size:10px;color:#847D6E">M</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:10.5px;color:#6B6558">38</span><div style="width:100%;max-width:52px;height:88px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.13)"></div><span style="font-size:10px;color:#847D6E">T</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:10.5px;color:#6B6558">15</span><div style="width:100%;max-width:52px;height:38px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.13)"></div><span style="font-size:10px;color:#847D6E">W</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:10.5px;color:#6B6558">43</span><div style="width:100%;max-width:52px;height:100px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.13)"></div><span style="font-size:10px;color:#847D6E">T</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:10.5px;color:#6B6558">26</span><div style="width:100%;max-width:52px;height:64px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.13)"></div><span style="font-size:10px;color:#847D6E">F</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:10.5px;color:#6B6558">5</span><div style="width:100%;max-width:52px;height:14px;border-radius:6px 6px 2px 2px;background:rgba(255,255,255,.13)"></div><span style="font-size:10px;color:#847D6E">S</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:10.5px;font-weight:600;color:#E8974E">35</span><div style="width:100%;max-width:52px;height:82px;border-radius:6px 6px 2px 2px;background:#C97B35"></div><span style="font-size:10px;font-weight:600;color:#EAE6DD">S</span></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1.15fr;gap:14px;height:214px;flex:none">
+        <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:18px 20px;display:flex;flex-direction:column">
+          <div style="font-size:13px;font-weight:700;color:#EAE6DD;margin-bottom:14px">Where you dictate</div>
+          <div style="display:flex;gap:1.5px;height:10px;border-radius:5px;overflow:hidden;margin-bottom:14px">
+            <div style="width:38%;background:#C97B35"></div><div style="width:24%;background:rgba(201,123,53,.87)"></div><div style="width:17%;background:rgba(201,123,53,.74)"></div><div style="width:12%;background:rgba(201,123,53,.61)"></div><div style="flex:1;background:rgba(255,255,255,.10)"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:4px;background:#C97B35"></span><span style="font-size:12.5px;color:#EAE6DD;flex:1">Slack</span><span style="font-size:12.5px;font-weight:600;color:#EAE6DD">38%</span></div>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:4px;background:rgba(201,123,53,.87)"></span><span style="font-size:12.5px;color:#EAE6DD;flex:1">Mail</span><span style="font-size:12.5px;font-weight:600;color:#EAE6DD">24%</span></div>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:4px;background:rgba(201,123,53,.74)"></span><span style="font-size:12.5px;color:#EAE6DD;flex:1">Linear</span><span style="font-size:12.5px;font-weight:600;color:#EAE6DD">17%</span></div>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:7px;height:7px;border-radius:4px;background:rgba(201,123,53,.61)"></span><span style="font-size:12.5px;color:#EAE6DD;flex:1">Xcode</span><span style="font-size:12.5px;font-weight:600;color:#EAE6DD">12%</span></div>
+          </div>
+        </div>
+        <div style="border-radius:12px;background:#211F1B;border:1px solid rgba(255,255,255,.09);padding:18px 20px;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px"><span style="font-size:13px;font-weight:700;color:#EAE6DD">Recent</span><span style="flex:1"></span><span style="font-size:11.5px;color:#B4661F">See all</span></div>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07)"><span style="font-size:11px;color:#847D6E;width:46px;flex:none">9:41</span><span style="font-size:10px;font-weight:700;color:#847D6E;background:rgba(255,255,255,.06);border-radius:5px;padding:2px 6px;flex:none">Slack</span><span style="font-size:12.5px;color:#EAE6DD;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Priya — let's ship the HUD on Friday.</span></div>
+            <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07)"><span style="font-size:11px;color:#847D6E;width:46px;flex:none">9:12</span><span style="font-size:10px;font-weight:700;color:#847D6E;background:rgba(255,255,255,.06);border-radius:5px;padding:2px 6px;flex:none">Mail</span><span style="font-size:12.5px;color:#EAE6DD;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Thanks for the notes — I'll turn these around today.</span></div>
+            <div style="display:flex;align-items:center;gap:11px;padding:9px 0"><span style="font-size:11px;color:#847D6E;width:46px;flex:none">8:58</span><span style="font-size:10px;font-weight:700;color:#847D6E;background:rgba(255,255,255,.06);border-radius:5px;padding:2px 6px;flex:none">Xcode</span><span style="font-size:12.5px;color:#EAE6DD;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Fix the coil rotation to match the design spec.</span></div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="font-size:11px;color:#6B6558;padding-top:10px">Stored on this Mac. Audio is discarded the moment it's transcribed.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding-bottom:52px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">The greeting is gone</div><div style="font-size:12px;line-height:1.65;color:#4A4437">"Good afternoon." occupied the largest type on the pane to say nothing. The hours take that slot. The words, the takes and the streak collapse into one 12 pt footnote row — present for anyone who wants them, load-bearing for no one.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Streak, demoted on purpose</div><div style="font-size:12px;line-height:1.65;color:#4A4437">A streak card creates an obligation; the brief asked for a reward. "12 days running" as a footnote is a fact you can enjoy. It also can't <em>break</em> visibly, which is the part that makes streaks feel punitive.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">"Where you dictate" comes to Home</div><div style="font-size:12px;line-height:1.65;color:#4A4437">It was hidden above History as a "look-if-you-want" stat. It's the most human number in the app — it tells you what your work actually <em>is</em>. Single-hue stepped opacity, exactly as built; it just moved.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">First words, kept forever</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The onboarding payoff isn't discarded — it becomes a permanent card. Every time Home opens, the proof is still there with its date and the app it landed in. New capability: persist <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">firstTranscript</span> + timestamp + app in the history store.</div></div>
+  </div>
+</section>
+
+<section id="identity" data-screen-label="05 Identity" style="padding:52px 0 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:14px">05 · GLYPH · DOCK · APP ICON</div>
+  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;max-width:820px;margin-bottom:10px">The marks don't change. Their behaviour does.</div>
+  <p style="margin:0 0 26px;font-size:14px;line-height:1.7;color:#4A4437;max-width:720px">The waveform-ring earns its keep: it is the same object at 16 pt in the menu bar, at 96 pt in onboarding, and at 1024 in the icon, and the <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px">win(u)</span> taper makes it legible at every one. Nothing here proposes redrawing it. What's missing is a single new <em>state</em> — one the app plays exactly once, on first launch, to answer "where did it go?"</p>
+
+  <div style="border:1px solid #E4DFD3;border-radius:14px;overflow:hidden;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);background:#201E1A">
+      <div style="padding:26px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;border-right:1px solid rgba(255,255,255,.07)"><canvas ref="{{ R.mbIdle }}" style="width:36px;height:24px"></canvas><span style="font-size:11px;color:#96907F">Idle</span></div>
+      <div style="padding:26px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;border-right:1px solid rgba(255,255,255,.07)"><canvas ref="{{ R.mbListen }}" style="width:36px;height:24px"></canvas><span style="font-size:11px;color:#96907F">Listening</span></div>
+      <div style="padding:26px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;border-right:1px solid rgba(255,255,255,.07)"><canvas ref="{{ R.mbWork }}" style="width:36px;height:24px"></canvas><span style="font-size:11px;color:#96907F">Working</span></div>
+      <div style="padding:26px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;border-right:1px solid rgba(255,255,255,.07)"><canvas ref="{{ R.mbOk }}" style="width:36px;height:24px"></canvas><span style="font-size:11px;color:#96907F">Success</span></div>
+      <div style="padding:26px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;border-right:1px solid rgba(255,255,255,.07)"><canvas ref="{{ R.mbPause }}" style="width:36px;height:24px"></canvas><span style="font-size:11px;color:#96907F">Paused</span></div>
+      <div style="padding:26px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;border-right:1px solid rgba(255,255,255,.07)"><canvas ref="{{ R.mbErr }}" style="width:36px;height:24px"></canvas><span style="font-size:11px;color:#96907F">Error</span></div>
+      <div style="padding:26px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;background:rgba(232,151,78,.10)"><canvas ref="{{ R.mbHello }}" style="width:36px;height:24px"></canvas><span style="font-size:11px;font-weight:600;color:#E8974E">Hello · new</span></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:44px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Hello — the only new state</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Three amplitude swells, 700 ms apart, played <strong>once</strong> the first time the app launches, while the onboarding window points at it. Same <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">listening</span> path, envelope replaced by <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">max(0, sin(2.2t))</span>. Under Reduce Motion it does not play; the onboarding arrow carries the message alone.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Dock icon: available, not default</div><div style="font-size:12px;line-height:1.65;color:#4A4437">A Dock icon for a menu-bar utility is a confession that the menu bar failed. Fix the menu bar instead. Keep <strong>Advanced → Show in Dock</strong> for notched-MacBook users whose icon genuinely gets hidden — and mention it by name in that one case, in Settings, not in onboarding.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">App icon: keep it exactly</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The shipped <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">appicon-1024.png</span> is already right — a single ember stroke on near-black, no gloss, no microphone. It holds at 16 pt, and the light variant exists for tinted contexts. No change, and no new sizes needed.</div></div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">SHIPPED ASSETS</span>
+    <span style="font-size:13px;font-weight:700">The app icon, at the sizes that matter</span>
+  </div>
+  <div style="border:1px solid #E4DFD3;border-radius:14px;background:#FFFFFF;padding:26px 30px;display:flex;align-items:flex-end;gap:40px;flex-wrap:wrap;margin-bottom:44px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="native/assets/appicon-1024.png" alt="App icon at 128" style="width:128px;height:128px;border-radius:28px;display:block"/><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">128 · Finder</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="native/assets/appicon-1024.png" alt="App icon at 64" style="width:64px;height:64px;border-radius:14px;display:block"/><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">64 · Dock</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="native/assets/appicon-1024.png" alt="App icon at 32" style="width:32px;height:32px;border-radius:7px;display:block"/><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">32 · list</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="native/assets/appicon-1024.png" alt="App icon at 16" style="width:16px;height:16px;border-radius:4px;display:block"/><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">16</span></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="native/assets/appicon-1024-light.png" alt="Light app icon variant" style="width:64px;height:64px;border-radius:14px;display:block;border:1px solid #E6E1D6"/><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;color:#8A8375">light variant</span></div>
+    <div style="flex:1;min-width:240px;font-size:12px;line-height:1.7;color:#4A4437">The stroke survives to 16 pt because it is one closed gesture with no interior detail — the same reason the menu-bar glyph works. That property is the thing to protect if the icon is ever revisited.</div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.08em;color:#8A8375">THE ONE ASSET TO REDO</span>
+    <span style="font-size:13px;font-weight:700">DMG background, current vs proposed</span>
+    <span style="font-size:12px;color:#6E6759">660 × 400 @2×</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+    <div>
+      <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.07em;color:#8A8375;margin-bottom:8px">CURRENT · dmg-bg@2x.png</div>
+      <div style="border:1px solid #E0DACC;border-radius:12px;overflow:hidden;background:#F7F5F0"><img src="native/assets/dmg-bg@2x.png" alt="Current DMG background" style="width:100%;display:block"/></div>
+    </div>
+    <div>
+      <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.07em;color:#B4661F;margin-bottom:8px">PROPOSED</div>
+      <div style="border:1px solid #E0DACC;border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(150deg,#F9F7F3 0%,#F4F1EA 55%,#EFECE2 100%);aspect-ratio:660 / 400">
+        <div style="position:absolute;left:0;right:0;top:37%;display:flex;justify-content:center"><svg width="76%" height="60" viewBox="0 0 500 60" fill="none" preserveAspectRatio="xMidYMid meet"><path d="M4 26 C 90 -2, 150 46, 250 40 C 340 35, 380 6, 470 22" stroke="#C97B35" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="0.5 9"></path><path d="M478 12 L 490 24 L 478 36" stroke="#C97B35" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="position:absolute;left:0;right:0;bottom:9%;text-align:center;padding:0 8%">
+          <div style="font-size:15px;font-weight:600;color:#26221B;letter-spacing:-0.01em;margin-bottom:5px">Then open it from Applications.</div>
+          <div style="font-size:12px;color:#847D6E">macOS can't launch me itself. If it says "downloaded from the Internet", click Open.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding-bottom:52px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">What's kept</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The warm paper gradient, the dotted ember wave, the chevron, the drop positions. It is a good-looking sheet — the geometry doesn't need touching, and neither does <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">build-dmg.sh</span>'s window layout.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">What changes: the caption</div><div style="font-size:12px;line-height:1.65;color:#4A4437">"drag along the line · signed &amp; notarized · sha-256 on the download page" is three facts, and the user needs none of them at that instant — they can see the line, and nobody verifies a checksum from a DMG background. Spend those two lines on the only thing they don't know: <em>open it yourself, and macOS will warn you once</em>. Same asset, same ground, one line of type re-set at 15/12.</div></div>
+  </div>
+</section>
+
+<section id="voice" data-screen-label="06 Voice" style="padding:52px 0 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:14px">06 · VOICE &amp; COPY</div>
+  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;max-width:820px;margin-bottom:18px">Say what happened. Then stop.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:30px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">The rule</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Second person, present tense, contractions. Report the outcome, never the mechanism. No ellipses — if something is in progress, the animation already says so. If a sentence can lose a word, lose it.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">When the app says "I"</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Only when <em>asking for something</em> or <em>admitting a limit</em>. "So I can hear you." "macOS can't launch me itself." Never for reporting facts — "Inserted 42 words" has no I in it, and shouldn't. This is why the welcome screen can say "I live up there" without being twee.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Never</div><div style="font-size:12px;line-height:1.65;color:#4A4437">No "we". No exclamation marks. No jokes the user has to read twice ("Hello from my own two vocal cords"). No model names, hostnames, checksums, or file paths outside a Details disclosure. No apology — say what to do next instead.</div></div>
+  </div>
+
+  <div style="border:1px solid #E4DFD3;border-radius:14px;overflow:hidden;margin-bottom:52px">
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;background:#EDEAE1;border-bottom:1px solid #E4DFD3;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.06em;color:#8A8375"><div style="padding:9px 14px">WHERE</div><div style="padding:9px 14px">NOW</div><div style="padding:9px 14px">PROPOSED</div><div style="padding:9px 14px">WHY</div></div>
+
+    <div style="padding:8px 14px;background:#F8F6F0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.06em;color:#8A8375;border-bottom:1px solid #EFECE3">HUD</div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">side</div><div style="padding:10px 14px;color:#847D6E">Keep talking…</div><div style="padding:10px 14px;font-weight:600">Keep going</div><div style="padding:10px 14px;color:#6E6759">Shorter, and "talking" is redundant — they know what they're doing.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">side</div><div style="padding:10px 14px;color:#847D6E">Transcribing… / Polishing…</div><div style="padding:10px 14px;font-weight:600">Transcribing / Polishing</div><div style="padding:10px 14px;color:#6E6759">The coil is the ellipsis. Two indicators of the same thing is one too many.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">success</div><div style="padding:10px 14px;color:#847D6E">42 words</div><div style="padding:10px 14px;font-weight:600">…ship the HUD on Friday.</div><div style="padding:10px 14px;color:#6E6759">A count is a receipt. The tail of the text is proof, and it catches bad transcriptions.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">nudge</div><div style="padding:10px 14px;color:#847D6E">Hold and speak a little longer</div><div style="padding:10px 14px;font-weight:600">Hold a moment longer</div><div style="padding:10px 14px;color:#6E6759">Six words → four. Nothing was lost.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">error</div><div style="padding:10px 14px;color:#847D6E">Microphone unavailable. / Open Sound Settings</div><div style="padding:10px 14px;font-weight:600">No microphone. / Sound settings</div><div style="padding:10px 14px;color:#6E6759">"Unavailable" is a status code. Buttons are destinations, not sentences.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">error</div><div style="padding:10px 14px;color:#847D6E">Timed out. Audio kept. / Retry</div><div style="padding:10px 14px;font-weight:600">Took too long — audio kept. / Try again</div><div style="padding:10px 14px;color:#6E6759">The reassurance and the fault belong in one breath.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">error</div><div style="padding:10px 14px;color:#847D6E">Copied instead — press ⌘V. / Grant Access</div><div style="padding:10px 14px;font-weight:600">Copied instead — press ⌘V / Fix</div><div style="padding:10px 14px;color:#6E6759">Already the best string in the app. "Grant Access" is the app's word, not the user's.</div></div>
+
+    <div style="padding:8px 14px;background:#F8F6F0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.06em;color:#8A8375;border-bottom:1px solid #EFECE3;border-top:1px solid #EFECE3">ONBOARDING</div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">welcome</div><div style="padding:10px 14px;color:#847D6E">Speak. It types.</div><div style="padding:10px 14px;font-weight:600">I live up there.</div><div style="padding:10px 14px;color:#6E6759">"Speak. It types." is a tagline. The user's actual question is "where did it go?"</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">welcome</div><div style="padding:10px 14px;color:#847D6E">Hold a key, talk, let go — polished text appears at your cursor in any app.</div><div style="padding:10px 14px;font-weight:600">No window to keep open, no Dock icon to hunt for. Just a small waveform in the menu bar, and a key you hold when you want to talk.</div><div style="padding:10px 14px;color:#6E6759">Longer on purpose — this is the one place the app explains its shape.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">button</div><div style="padding:10px 14px;color:#847D6E">Get started</div><div style="padding:10px 14px;font-weight:600">Let's go</div><div style="padding:10px 14px;color:#6E6759">"Get started" is what a SaaS trial says.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">perms</div><div style="padding:10px 14px;color:#847D6E">Three quick permissions</div><div style="padding:10px 14px;font-weight:600">Three switches, then we're done.</div><div style="padding:10px 14px;color:#6E6759">"Quick" is a promise you can't keep. "Then we're done" is one you can.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">perms</div><div style="padding:10px 14px;color:#847D6E">Everything happens on this Mac. Nothing is uploaded, ever.</div><div style="padding:10px 14px;font-weight:600">macOS holds the keys, not me.</div><div style="padding:10px 14px;color:#6E6759">The old line is contradicted three panes later by five cloud providers. The new line is true and also explains why there are three dialogs.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">perms</div><div style="padding:10px 14px;color:#847D6E">to feel the hotkey — one key, nothing else</div><div style="padding:10px 14px;font-weight:600">so I can feel the key<br/><span style="color:#847D6E;font-weight:400">+ One key — the one you choose. Every other keystroke passes straight through.</span></div><div style="padding:10px 14px;color:#6E6759">Split the reason from the limit. Each row now states what it <em>can't</em> do — that is what buys trust, not the badge.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">perms</div><div style="padding:10px 14px;color:#847D6E">Not listed? Click + and add OpenVoiceFlow from Applications. <span style="font-style:italic">(after failure)</span></div><div style="padding:10px 14px;font-weight:600">Clicked Allow and nothing happened? Open System Settings — click + and pick OpenVoiceFlow. <span style="font-style:italic">(always)</span></div><div style="padding:10px 14px;color:#6E6759">Shown from the start. A safety net you only see after you fall is not a safety net.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">download</div><div style="padding:10px 14px;color:#847D6E">Getting ready<br/>Downloading the speech engine — one time, then everything works offline.</div><div style="padding:10px 14px;font-weight:600">While that downloads — who am I typing for?<br/>412 of 981 MB · 5.4 MB/s · 2 min left</div><div style="padding:10px 14px;color:#6E6759">The headline stops being about the wait. The wait gets three honest numbers instead of a mood.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">download</div><div style="padding:10px 14px;color:#847D6E">That didn't finish — check your connection and try again.</div><div style="padding:10px 14px;font-weight:600">That stopped. Check your connection?</div><div style="padding:10px 14px;color:#6E6759">The "try again" button is right there; don't narrate it.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">try it</div><div style="padding:10px 14px;color:#847D6E">Try it<br/>Hold fn and say: "Hey, I'm using OpenVoiceFlow."</div><div style="padding:10px 14px;font-weight:600">Say anything.<br/>Hold fn and talk. Let go when you're done.</div><div style="padding:10px 14px;color:#6E6759">Scripting the user makes the demo feel staged. "Say anything" makes the result theirs — which is the whole point of keeping it.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">payoff</div><div style="padding:10px 14px;color:#847D6E">That worked. You're set — hold the key in any app. ↗</div><div style="padding:10px 14px;font-weight:600">YOUR FIRST WORDS<br/>You spoke for 4 seconds. Typing that would have taken 18.</div><div style="padding:10px 14px;color:#6E6759">Don't tell them it worked — show them what they said and what it cost. The arrow was doing the emotional work; a number does it better.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">button</div><div style="padding:10px 14px;color:#847D6E">Finish</div><div style="padding:10px 14px;font-weight:600">Start using it</div><div style="padding:10px 14px;color:#6E6759">"Finish" ends something. This begins something.</div></div>
+
+    <div style="padding:8px 14px;background:#F8F6F0;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.06em;color:#8A8375;border-bottom:1px solid #EFECE3;border-top:1px solid #EFECE3">DASHBOARD</div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">home</div><div style="padding:10px 14px;color:#847D6E">Good afternoon.<br/>You've spoken 1,284 words today — about 32 minutes you didn't spend typing.</div><div style="padding:10px 14px;font-weight:600">16 h 20 m<br/>Two working days you didn't spend typing, since March.</div><div style="padding:10px 14px;color:#6E6759">The greeting held the biggest type on the pane and said nothing. All-time beats today: today can be zero.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">home</div><div style="padding:10px 14px;color:#847D6E">say something!</div><div style="padding:10px 14px;font-weight:600">— <span style="color:#847D6E;font-weight:400">(deleted)</span></div><div style="padding:10px 14px;color:#6E6759">An exclamation mark nagging you inside your own stats.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">chart</div><div style="padding:10px 14px;color:#847D6E">This week · words per day</div><div style="padding:10px 14px;font-weight:600">This week · minutes returned per day</div><div style="padding:10px 14px;color:#6E6759">Words are the app's unit. Minutes are the user's.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">history</div><div style="padding:10px 14px;color:#847D6E">Nothing here yet<br/>Hold fn in any app and say hello. Every take lands here — on this Mac only.</div><div style="padding:10px 14px;font-weight:600">Nothing yet.<br/>Hold fn anywhere and say hello.</div><div style="padding:10px 14px;color:#6E6759">The privacy claim moves to the footer where it belongs — it isn't an empty state.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">dictionary</div><div style="padding:10px 14px;color:#847D6E">Names and jargon Whisper gets wrong — corrected before cleanup ever runs.</div><div style="padding:10px 14px;font-weight:600">Words I keep getting wrong. Fix them once.</div><div style="padding:10px 14px;color:#6E6759">"Whisper" and "cleanup" are implementation. The app owns the mistake.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">snippets</div><div style="padding:10px 14px;color:#847D6E">Say the trigger, get the expansion — mid-dictation.</div><div style="padding:10px 14px;font-weight:600">Say the short thing, get the long thing.</div><div style="padding:10px 14px;color:#6E6759">"Trigger" and "expansion" are the field labels; they don't need to be the sentence too.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">styles</div><div style="padding:10px 14px;color:#847D6E">Cleanup adapts to where you're typing. Detected from the frontmost app.</div><div style="padding:10px 14px;font-weight:600">How you sound, per app.</div><div style="padding:10px 14px;color:#6E6759">Five words that a person would actually say out loud.</div></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 1fr 1.15fr;font-size:12px;line-height:1.55"><div style="padding:10px 14px;color:#847D6E">know-me</div><div style="padding:10px 14px;color:#847D6E">A two-minute interview that teaches cleanup your voice. Stored locally, editable, deletable.</div><div style="padding:10px 14px;font-weight:600">Two minutes, and your name comes out right every time.</div><div style="padding:10px 14px;color:#6E6759">Lead with the payoff. The three adjectives belong under the Clear button.</div></div>
+  </div>
+</section>
+
+<section id="motion" data-screen-label="07 Motion" style="padding:52px 0 0;border-bottom:1px solid #E4DFD3">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:14px">07 · MOTION LANGUAGE</div>
+  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;max-width:820px;margin-bottom:10px">Motion answers one question: is this the same object?</div>
+  <p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#4A4437;max-width:720px">Three springs already exist and all three are correct. Nothing is retuned. Two new entries are added — a <strong>morph</strong> for HUD state changes and a <strong>spine</strong> curve for progress — plus one-shot definitions for the payoff and the first-launch hello. Every row has a Reduce Motion column; none of them is "nothing happens", because a state change the user can't see is a bug.</p>
+
+  <div style="border:1px solid #E4DFD3;border-radius:14px;overflow:hidden;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;background:#EDEAE1;border-bottom:1px solid #E4DFD3;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.06em;color:#8A8375"><div style="padding:9px 14px">NAME</div><div style="padding:9px 14px">WHAT MOVES</div><div style="padding:9px 14px">CURVE</div><div style="padding:9px 14px">REDUCE MOTION</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FFFFFF"><div style="padding:11px 14px;font-weight:700">snap</div><div style="padding:11px 14px;color:#4A4437">Menu selections, toggles, chip appear/disappear</div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">spring(0.25, 0.90)</div><div style="padding:11px 14px;color:#6E6759">100 ms cross-fade</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FFFFFF"><div style="padding:11px 14px;font-weight:700">arrive</div><div style="padding:11px 14px;color:#4A4437">Permission row unlocking, pane switch, card insert</div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">spring(0.30, 0.85)</div><div style="padding:11px 14px;color:#6E6759">Opacity only, 180 ms</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FFFFFF"><div style="padding:11px 14px;font-weight:700">settle</div><div style="padding:11px 14px;color:#4A4437">Window resize, sheet dismiss, big-number recount</div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">spring(0.45, 1.0)</div><div style="padding:11px 14px;color:#6E6759">Instant, no overshoot</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FDF8F1"><div style="padding:11px 14px;font-weight:700">morph <span style="font-size:10px;color:#B4661F">NEW</span></div><div style="padding:11px 14px;color:#4A4437">The HUD line between states — wave→coil→flat→tick. Interpolate the <em>points</em>, never cross-fade the paths.</div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">220 ms<br/>spring(0.30, 0.85)</div><div style="padding:11px 14px;color:#6E6759">Straight swap at the frame boundary — geometry is preserved, only the tween is dropped</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FDF8F1"><div style="padding:11px 14px;font-weight:700">spine <span style="font-size:10px;color:#B4661F">NEW</span></div><div style="padding:11px 14px;color:#4A4437">Progress hairline filling 0 → 0.45 → 0.84 → 1.0</div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">280 ms<br/>cubic(.34, 1.1, .44, 1)</div><div style="padding:11px 14px;color:#6E6759">Linear 200 ms, no overshoot</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FFFFFF"><div style="padding:11px 14px;font-weight:700">grow</div><div style="padding:11px 14px;color:#4A4437">HUD width change when text arrives (172 → 300 → 330)</div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">200 ms, snap</div><div style="padding:11px 14px;color:#6E6759">Instant resize</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FFFFFF"><div style="padding:11px 14px;font-weight:700">summon</div><div style="padding:11px 14px;color:#4A4437">HUD panel appearing — 90 ms fade + 9 px rise <span style="color:#847D6E">(unchanged)</span></div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">cubic(.34, 1.3, .44, 1)</div><div style="padding:11px 14px;color:#6E6759">130 ms fade, no rise</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FFFFFF"><div style="padding:11px 14px;font-weight:700">dismiss</div><div style="padding:11px 14px;color:#4A4437">HUD panel leaving — 160 ms fade + 4 px down <span style="color:#847D6E">(unchanged)</span></div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">ease-out</div><div style="padding:11px 14px;color:#6E6759">Fade only</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;border-bottom:1px solid #F0EDE5;font-size:12px;line-height:1.55;background:#FDF8F1"><div style="padding:11px 14px;font-weight:700">hello <span style="font-size:10px;color:#B4661F">NEW</span></div><div style="padding:11px 14px;color:#4A4437">Menu-bar glyph, first launch only — 3 amplitude swells</div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">3 × 700 ms<br/>max(0, sin 2.2t)</div><div style="padding:11px 14px;color:#6E6759">Does not play. The onboarding arrow carries it.</div></div>
+    <div style="display:grid;grid-template-columns:130px 1.25fr 200px 1fr;font-size:12px;line-height:1.55;background:#FDF8F1"><div style="padding:11px 14px;font-weight:700">payoff <span style="font-size:10px;color:#B4661F">NEW</span></div><div style="padding:11px 14px;color:#4A4437">First-dictation moment: window contents fade to 0 except the sentence, ring strokes itself once above it, sentence scales 0.98 → 1.0</div><div style="padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6E6759">fade 260 ms<br/>ring draw 900 ms ease-out<br/>scale: settle</div><div style="padding:11px 14px;color:#6E6759">Ring appears complete, no draw-on. No scale. Contents cross-fade over 200 ms.</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding-bottom:52px">
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Nothing loops forever</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Every animation in the app is either driven by real input (the waveform is your voice) or bounded by a real operation (the coil stops when transcription stops). There is no decorative idle animation anywhere, which is why the ring is allowed to breathe: it's the one exception, at 0.7 rad/s, and it only appears on surfaces you opened deliberately.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Frame rate is a state, not a constant</div><div style="font-size:12px;line-height:1.65;color:#4A4437">The HUD canvas runs at display rate while recording (it's tracking your voice), 20 fps while working (the coil reads identically), and stops entirely otherwise. The menu-bar animator already does this — extend the same discipline to <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">TimelineView(.animation)</span>, which currently never idles.</div></div>
+    <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px"><div style="font-size:12.5px;font-weight:700;margin-bottom:7px">VoiceOver runs parallel, not after</div><div style="font-size:12px;line-height:1.65;color:#4A4437">Existing labels are good. Two additions: the success state should announce the <em>tail text</em>, not the word count ("Inserted: …on Friday"), and the payoff moment needs an <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">.accessibilityAddTraits(.isHeader)</span> + posted announcement, or the single most important instant in the app is silent.</div></div>
+  </div>
+</section>
+
+<section id="tokens" data-screen-label="08 Tokens" style="padding:52px 0 0">
+  <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#8A8375;letter-spacing:.08em;margin-bottom:14px">08 · TOKENS &amp; NEW CAPABILITY</div>
+  <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;max-width:820px;margin-bottom:24px">What to add to <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:24px">DT</span>, and what needs Swift that doesn't exist.</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:34px">
+    <div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">New tokens</div>
+      <div style="border:1px solid #E6E1D6;border-radius:12px;overflow:hidden;background:#FFFFFF">
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;background:#F4F2EC;border-bottom:1px solid #E6E1D6;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.06em;color:#8A8375"><div style="padding:9px 13px">TOKEN</div><div style="padding:9px 13px">VALUE</div><div style="padding:9px 13px">USED BY</div></div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;border-bottom:1px solid #F0EDE5;font-size:11.5px"><div style="padding:9px 13px;font-family:ui-monospace,'SF Mono',Menlo,monospace">hudHeight</div><div style="padding:9px 13px;font-weight:600">38</div><div style="padding:9px 13px;color:#6E6759">HUDView frame</div></div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;border-bottom:1px solid #F0EDE5;font-size:11.5px"><div style="padding:9px 13px;font-family:ui-monospace,'SF Mono',Menlo,monospace">hudMin / hudMax</div><div style="padding:9px 13px;font-weight:600">172 / 330</div><div style="padding:9px 13px;color:#6E6759">HUDView frame</div></div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;border-bottom:1px solid #F0EDE5;font-size:11.5px"><div style="padding:9px 13px;font-family:ui-monospace,'SF Mono',Menlo,monospace">hudPad / hudGap</div><div style="padding:9px 13px;font-weight:600">12 / 9</div><div style="padding:9px 13px;color:#6E6759">HUDView layout</div></div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;border-bottom:1px solid #F0EDE5;font-size:11.5px"><div style="padding:9px 13px;font-family:ui-monospace,'SF Mono',Menlo,monospace">spineWeight</div><div style="padding:9px 13px;font-weight:600">1.5</div><div style="padding:9px 13px;color:#6E6759">Progress hairline</div></div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;border-bottom:1px solid #F0EDE5;font-size:11.5px"><div style="padding:9px 13px;font-family:ui-monospace,'SF Mono',Menlo,monospace">morph</div><div style="padding:9px 13px;font-weight:600">spring(0.22, 0.85)</div><div style="padding:9px 13px;color:#6E6759">HUD state change</div></div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;border-bottom:1px solid #F0EDE5;font-size:11.5px"><div style="padding:9px 13px;font-family:ui-monospace,'SF Mono',Menlo,monospace">spineCurve</div><div style="padding:9px 13px;font-weight:600">timingCurve(.34,1.1,.44,1)</div><div style="padding:9px 13px;color:#6E6759">Progress fill</div></div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;border-bottom:1px solid #F0EDE5;font-size:11.5px"><div style="padding:9px 13px;font-family:ui-monospace,'SF Mono',Menlo,monospace">dwellSuccess</div><div style="padding:9px 13px;font-weight:600">1.4 s</div><div style="padding:9px 13px;color:#6E6759">Success hold before hide</div></div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1.3fr;font-size:11.5px"><div style="padding:9px 13px;font-family:ui-monospace,'SF Mono',Menlo,monospace">heroNumber</div><div style="padding:9px 13px;font-weight:600">68 / -0.045 em / bold</div><div style="padding:9px 13px;color:#6E6759">Dashboard time-back</div></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;margin:22px 0 10px">Unchanged</div>
+      <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:12px;padding:16px;font-size:12px;line-height:1.8;color:#4A4437">
+        Every colour in <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">DT</span> — ember, moss, error, warn, all HUD and window inks. Radii 6 / 12 / 14 and capsule h/2. Springs snap, arrive, settle. Summon and dismiss timings. The waveform math in <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">Voiceline</span> and every glyph in <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px">StatusIconRenderer</span>. The 212 pt sidebar. The app icon.
+      </div>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Needs new Swift</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:11px;padding:14px 16px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#B4661F;flex:none">S1</span><div><div style="font-size:12.5px;font-weight:600;margin-bottom:3px">Real download telemetry</div><div style="font-size:11.5px;line-height:1.6;color:#4A4437"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">Transcriber.warmUp</span> currently forwards a fraction. MB / rate / ETA need bytes-received + bytes-expected. <em>Transcriber.swift, OnboardingView.swift</em></div></div></div></div>
+        <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:11px;padding:14px 16px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#B4661F;flex:none">S2</span><div><div style="font-size:12.5px;font-weight:600;margin-bottom:3px">Know-Me inline, not as a sheet</div><div style="font-size:11.5px;line-height:1.6;color:#4A4437">The interview has to render inside onboarding step 5 so it can share the frame with the download. <em>KnowMeInterview.swift, OnboardingView.swift</em></div></div></div></div>
+        <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:11px;padding:14px 16px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#B4661F;flex:none">S3</span><div><div style="font-size:12.5px;font-weight:600;margin-bottom:3px">Permission polling, not key-window refresh</div><div style="font-size:11.5px;line-height:1.6;color:#4A4437">Sequenced rows need grants detected while the window stays key. Add a 0.6 s poll of <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">Permission.status</span> that stops on completion. <em>OnboardingView.swift</em></div></div></div></div>
+        <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:11px;padding:14px 16px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#B4661F;flex:none">S4</span><div><div style="font-size:12.5px;font-weight:600;margin-bottom:3px">HUD progress + text tail</div><div style="font-size:11.5px;line-height:1.6;color:#4A4437"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">HUDModel.progress: Double?</span> and <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">.result(tail: String)</span> replacing <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">.result(words: Int)</span>. Gate the echo behind <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">Settings.echoInsertedText</span> (default on). <em>HUDController.swift, AppController.swift, Settings.swift</em></div></div></div></div>
+        <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:11px;padding:14px 16px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#B4661F;flex:none">S5</span><div><div style="font-size:12.5px;font-weight:600;margin-bottom:3px">First words, persisted</div><div style="font-size:11.5px;line-height:1.6;color:#4A4437">Store text + timestamp + app separately from the history log so "Delete history" can keep it (ask once). Also needs <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">firstUseDate</span> for "since March". <em>FeatureStores.swift</em></div></div></div></div>
+        <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:11px;padding:14px 16px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#B4661F;flex:none">S6</span><div><div style="font-size:12.5px;font-weight:600;margin-bottom:3px">Chip expiry &amp; hello swell</div><div style="font-size:11.5px;line-height:1.6;color:#4A4437"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">Settings.hotkeyLearnedAt</span> hides the HUD chip after 7 days and resets when the hotkey changes. <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">StatusIconAnimator.playHello()</span> is a one-shot, first launch only. <em>Settings.swift, StatusIcon.swift</em></div></div></div></div>
+        <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:11px;padding:14px 16px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#B4661F;flex:none">S7</span><div><div style="font-size:12.5px;font-weight:600;margin-bottom:3px">Drop the forced dark scheme</div><div style="font-size:11.5px;line-height:1.6;color:#4A4437">Delete <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">.preferredColorScheme(.dark)</span> and give onboarding the same light/dark token pairs the dashboard already has. <em>OnboardingView.swift</em></div></div></div></div>
+        <div style="background:#FFFFFF;border:1px solid #E6E1D6;border-radius:11px;padding:14px 16px"><div style="display:flex;gap:9px;align-items:baseline"><span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;font-weight:700;color:#B4661F;flex:none">S8</span><div><div style="font-size:12.5px;font-weight:600;margin-bottom:3px">Outside Swift</div><div style="font-size:11.5px;line-height:1.6;color:#4A4437">New DMG background at 2× plus window geometry in <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px">build-dmg.sh</span>; the three "what happens next" cards on the download page; a CI assertion that notarisation is live, since the Gatekeeper copy promises an <strong>Open</strong> button.</div></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#26221B;border-radius:14px;padding:30px 34px;color:#EAE6DD">
+    <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10px;letter-spacing:.1em;color:#96907F;margin-bottom:14px">IF ONLY THREE THINGS SHIP</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px">
+      <div><div style="font-size:15px;font-weight:700;margin-bottom:7px;letter-spacing:-0.01em">1 · The DMG says what to do next</div><div style="font-size:12.5px;line-height:1.7;color:#B5AF9F">One asset and two sentences. It removes the single worst moment in the product — the silence after the drag — for the price of a background image.</div></div>
+      <div><div style="font-size:15px;font-weight:700;margin-bottom:7px;letter-spacing:-0.01em">2 · Sequence the permissions</div><div style="font-size:12.5px;line-height:1.7;color:#B5AF9F">Same three grants, one at a time, each with a stated limit and a pre-emptive escape hatch. Pure layout and state — no new frameworks.</div></div>
+      <div><div style="font-size:15px;font-weight:700;margin-bottom:7px;letter-spacing:-0.01em">3 · Keep the first sentence</div><div style="font-size:12.5px;line-height:1.7;color:#B5AF9F">One full-window moment and one permanent card. It is the cheapest emotional payoff available and the only one the user will ever describe to someone else.</div></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1220,&quot;height&quot;:900},&quot;reduceMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Preview&quot;,&quot;label&quot;:&quot;Reduce Motion&quot;},&quot;hudRestWidth&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:290,&quot;min&quot;:150,&quot;max&quot;:330,&quot;step&quot;:2,&quot;unit&quot;:&quot;pt&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Preview&quot;,&quot;label&quot;:&quot;Live HUD width&quot;},&quot;demoSentence&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Hey — I'm using OpenVoiceFlow, and it just typed this for me.&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Preview&quot;,&quot;label&quot;:&quot;Demo sentence&quot;}}">
+class Component extends DCLogic {
+  state = {
+    ob: 0, granted: { mic:false, ax:false, im:false }, dl: 0, dlRate: 5.4,
+    phase: 'idle', hello: '', rm: false, hud: 'recording', showBefore: true
+  };
+
+  // ---- shared waveform math (verbatim: DesignTokens.swift / Voiceline) ----
+  S(t){ const gate=(Math.sin(t*0.9)+Math.sin(t*0.53+1.2))>0.9?0.06:1; let v=(Math.sin(t*2.3)+Math.sin(t*3.85+1.4)+Math.sin(t*5.9+0.4))/3; v=Math.max(0,v*0.75+0.5); return Math.min(1,v*gate); }
+  win(u){ return Math.pow(Math.max(0,Math.sin(Math.PI*u)),0.85); }
+  wob(x,t,a,h){ return a*h*0.30*(Math.sin(x*0.052+t*6.6)*0.55+Math.sin(x*0.117-t*9.4)*0.26+Math.sin(x*0.026+t*3.2)*0.42); }
+
+  ensure(){ if(!this.cv) this.cv=new Map(); if(!this.hist) this.hist=new Array(150).fill(0); }
+  reg(id,kind,opt){ const k='r_'+id; if(!this[k]) this[k]=el=>{ this.ensure(); if(el) this.cv.set(id,{el,kind,opt:opt||{}}); else this.cv.delete(id); }; return this[k]; }
+
+  componentDidMount(){ this.ensure(); this.tick=this.tick.bind(this); this.raf=requestAnimationFrame(this.tick); }
+  componentWillUnmount(){ cancelAnimationFrame(this.raf); clearInterval(this.dlT); (this.timers||[]).forEach(clearTimeout); }
+
+  // ---- drawing ----
+  hudWave(ctx,w,h,t,dim,hot,live){
+    const mid=h/2; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=2;
+    const amp = live ? this.smooth : this.S(t);
+    ctx.beginPath(); let f=true;
+    for(let x=0;x<=w;x+=2){ const u=x/w;
+      const a = live ? this.hist[Math.min(149,(u*149)|0)] : this.S(t-u*1.15);
+      const breath = a<0.03 ? Math.sin(x*0.045-t*1.7)*1.15*Math.max(0,1-a*3) : 0;
+      const y = mid + breath + this.wob(x,t,a,h)*this.win(u);
+      f?(ctx.moveTo(x,y),f=false):ctx.lineTo(x,y); }
+    ctx.strokeStyle=dim; ctx.stroke();
+    const al=Math.min(1,amp*5); if(al<=0.01) return;
+    ctx.save(); ctx.globalAlpha=al; ctx.beginPath(); f=true;
+    for(let x=0;x<=w;x+=2){ const u=x/w;
+      const a = live ? this.hist[Math.min(149,(u*149)|0)] : this.S(t-u*1.15);
+      if(a>0.04){ const y=mid+this.wob(x,t,a,h)*this.win(u); f?(ctx.moveTo(x,y),f=false):ctx.lineTo(x,y); } else f=true; }
+    ctx.strokeStyle=hot; ctx.stroke(); ctx.restore();
+  }
+  hudCoil(ctx,w,h,t,hot){ const cx=w/2,cy=h/2,rg=Math.min(1,h*0.028),rot=t*6.9; ctx.lineWidth=2; ctx.lineCap='round'; ctx.beginPath();
+    for(let a=0;a<=4*Math.PI;a+=0.12){ const r=(2.5+a*0.95)*rg; const x=cx+Math.cos(a+rot)*r,y=cy+Math.sin(a+rot)*r*0.92; a===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.strokeStyle=hot; ctx.stroke(); }
+  hudClean(ctx,w,h,t,dim,hot){ const mid=h/2; ctx.lineWidth=2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(w,mid); ctx.strokeStyle=dim; ctx.stroke();
+    const pos=(t*150)%(w+160)-80; const g=ctx.createLinearGradient(pos-48,mid,pos+48,mid);
+    g.addColorStop(0,'rgba(232,151,78,0)'); g.addColorStop(0.5,hot); g.addColorStop(1,'rgba(232,151,78,0)');
+    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(w,mid); ctx.strokeStyle=g; ctx.stroke(); }
+  hudTick(ctx,w,h,t,hot,p){ const cx=w/2,mid=h/2; const k=p===undefined?1:Math.min(1,p);
+    ctx.lineWidth=2.4; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle=hot;
+    ctx.beginPath(); ctx.moveTo(cx-8,mid);
+    if(k<0.45){ ctx.lineTo(cx-8+6*(k/0.45),mid+5*(k/0.45)); } else { ctx.lineTo(cx-2,mid+5); ctx.lineTo(cx-2+10*((k-0.45)/0.55),mid+5-10*((k-0.45)/0.55)); }
+    ctx.stroke(); }
+  hudErr(ctx,w,h,dim,er){ const mid=h/2,cx=w/2; ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=dim;
+    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(cx-4,mid); ctx.moveTo(cx+4,mid+1); ctx.lineTo(w,mid+1); ctx.stroke();
+    ctx.fillStyle=er; ctx.beginPath(); ctx.arc(cx-4,mid,1.6,0,7); ctx.fill(); ctx.beginPath(); ctx.arc(cx+4,mid+1,1.6,0,7); ctx.fill(); }
+  hudShort(ctx,w,h,t){ const mid=h/2,cx=w/2;
+    for(let i=-1;i<=1;i++){ const ph=t*3+i*0.6, sc=0.6+0.4*(0.5+0.5*Math.sin(ph)), r=2.2*sc;
+      ctx.fillStyle='rgba(217,154,61,'+(0.55+0.45*sc)+')'; ctx.beginPath(); ctx.arc(cx+i*9,mid,r,0,7); ctx.fill(); } }
+  ring(ctx,w,h,t,col,lw){ const cx=w/2,cy=h/2,R=Math.min(w,h)*0.34,gap=0.62,off=-1.0;
+    ctx.lineWidth=lw||2; ctx.lineCap='round'; ctx.strokeStyle=col; ctx.beginPath(); let f=true;
+    for(let a=off+gap/2;a<=off+2*Math.PI-gap/2;a+=0.045){ const r=R*(1+0.10*Math.sin(a*5-t*0.7)); const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r; f?(ctx.moveTo(x,y),f=false):ctx.lineTo(x,y); }
+    ctx.stroke(); }
+  mb(ctx,w,h,t,kind,ink){ const mid=h/2,cx=w/2,x0=(w-16)/2; ctx.lineWidth=1.6; ctx.lineCap='round'; ctx.strokeStyle=ink; ctx.fillStyle=ink;
+    if(kind==='idle'){ ctx.beginPath(); for(let x=0;x<=16;x++){ const y=mid+Math.sin(x*0.7)*1.6*this.win(x/16); x===0?ctx.moveTo(x0+x,y):ctx.lineTo(x0+x,y);} ctx.stroke(); }
+    else if(kind==='listen'){ const a=this.S(t); ctx.beginPath(); for(let x=0;x<=16;x++){ const y=mid+Math.sin(x*0.85+t*7)*3.2*a*this.win(x/16); x===0?ctx.moveTo(x0+x,y):ctx.lineTo(x0+x,y);} ctx.stroke(); }
+    else if(kind==='work'){ const rot=t*6; ctx.beginPath(); for(let a=0;a<=3.6*Math.PI;a+=0.15){ const r=1.2+a*0.42; const x=cx+Math.cos(a+rot)*r,y=mid+Math.sin(a+rot)*r*0.9; a===0?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.stroke(); }
+    else if(kind==='ok'){ ctx.save(); ctx.globalAlpha=0.45; ctx.beginPath(); ctx.moveTo(x0,mid); ctx.lineTo(x0+16,mid); ctx.stroke(); ctx.restore(); ctx.beginPath(); ctx.moveTo(cx-3,mid); ctx.lineTo(cx-0.5,mid+2.5); ctx.lineTo(cx+3.5,mid-2.5); ctx.stroke(); }
+    else if(kind==='err'){ ctx.beginPath(); ctx.moveTo(x0,mid); ctx.lineTo(cx-3,mid); ctx.moveTo(cx+3,mid+1); ctx.lineTo(x0+16,mid+1); ctx.stroke(); ctx.beginPath(); ctx.arc(cx-3,mid,1.4,0,7); ctx.fill(); ctx.beginPath(); ctx.arc(cx+3,mid+1,1.4,0,7); ctx.fill(); }
+    else if(kind==='hello'){ const s=Math.max(0,Math.sin(t*2.2)), a=0.25+0.75*s; ctx.beginPath(); for(let x=0;x<=16;x++){ const y=mid+Math.sin(x*0.85+t*7)*3.4*a*this.win(x/16); x===0?ctx.moveTo(x0+x,y):ctx.lineTo(x0+x,y);} ctx.stroke(); }
+    else { ctx.save(); ctx.globalAlpha=0.45; ctx.beginPath(); ctx.moveTo(x0,mid); ctx.lineTo(x0+16,mid); ctx.stroke(); ctx.restore(); ctx.fillRect(cx-3.5,mid-3,2,6); ctx.fillRect(cx+1.5,mid-3,2,6); } }
+  flat(ctx,w,h,dim){ const mid=h/2; ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=dim; ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(w,mid); ctx.stroke(); }
+  emptyWave(ctx,w,h,t,dim){ const mid=h/2; ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle=dim; ctx.beginPath(); let f=true;
+    for(let x=0;x<=w;x+=2){ const y=mid+Math.sin(0.045*x-1.7*t)*1.3*this.win(x/w)*8; f?(ctx.moveTo(x,y),f=false):ctx.lineTo(x,y);} ctx.stroke(); }
+
+  tick(now){
+    this.ensure(); const t=now/1000; const rm=this.props.reduceMotion ?? false;
+    const live = this.state.phase==='rec';
+    const target = live ? this.S(t) : 0;
+    if(this.smooth===undefined) this.smooth=0;
+    this.smooth += (target-this.smooth)*(live?0.22:0.10);
+    this.hist.shift(); this.hist.push(this.smooth);
+    const d=Math.min(2,window.devicePixelRatio||1);
+    for(const [,c] of this.cv){
+      const el=c.el,w=el.clientWidth,h=el.clientHeight; if(!w||!h) continue;
+      if(el.width!==(w*d|0)||el.height!==(h*d|0)){ el.width=w*d|0; el.height=h*d|0; }
+      const ctx=el.getContext('2d'); ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,w,h);
+      const o=c.opt, dark=o.light!==true;
+      const dim = dark?'rgba(214,208,194,.5)':'rgba(58,52,40,.45)';
+      const hot = dark?'#E8974E':'#B5763C';
+      const tt = rm?0:t;
+      switch(c.kind){
+        case 'rec': this.hudWave(ctx,w,h,tt,dim,hot,false); break;
+        case 'live': {
+          const p=this.state.phase;
+          if(p==='rec') this.hudWave(ctx,w,h,tt,dim,hot,true);
+          else if(p==='trans') this.hudCoil(ctx,w,h,tt,hot);
+          else if(p==='clean') this.hudClean(ctx,w,h,tt,dim,hot);
+          else if(p==='done') this.hudTick(ctx,w,h,tt,hot,(now-this.doneAt)/260);
+          else this.flat(ctx,w,h,dim);
+          break; }
+        case 'coil': this.hudCoil(ctx,w,h,tt,hot); break;
+        case 'clean': this.hudClean(ctx,w,h,tt,dim,hot); break;
+        case 'tick': this.hudTick(ctx,w,h,tt,hot); break;
+        case 'err': this.hudErr(ctx,w,h,dim,'#E0523A'); break;
+        case 'short': this.hudShort(ctx,w,h,tt); break;
+        case 'flat': this.flat(ctx,w,h,dim); break;
+        case 'ring': this.ring(ctx,w,h,tt,o.col||'#C97B35',o.lw); break;
+        case 'wave': this.emptyWave(ctx,w,h,tt,dim); break;
+        case 'mb': this.mb(ctx,w,h,tt,o.st,o.light?'#3A362D':'#D9D4C8'); break;
+      }
+    }
+    this.raf=requestAnimationFrame(this.tick);
+  }
+
+  // ---- interaction ----
+  later(fn,ms){ if(!this.timers) this.timers=[]; this.timers.push(setTimeout(fn,ms)); }
+  clearAll(){ (this.timers||[]).forEach(clearTimeout); this.timers=[]; }
+  press(){ this.clearAll(); this.setState({phase:'rec',hello:''}); }
+  release(){
+    if(this.state.phase!=='rec') return;
+    this.setState({phase:'trans'});
+    const full=this.props.demoSentence ?? "Hey — I'm using OpenVoiceFlow, and it just typed this for me.";
+    this.later(()=>this.setState({phase:'clean'}),780);
+    this.later(()=>{ this.doneAt=performance.now(); this.setState({phase:'done'});
+      let i=0; const step=()=>{ i+=2; this.setState({hello:full.slice(0,i)}); if(i<full.length) this.later(step,16); };
+      step(); },1420);
+  }
+  startDL(){ clearInterval(this.dlT); this.setState({dl:0});
+    this.dlT=setInterval(()=>{ this.setState(s=>{ const n=Math.min(100,s.dl+1.6); if(n>=100) clearInterval(this.dlT); return {dl:n}; }); },90); }
+
+  renderVals(){
+    const s=this.state, g=s.granted;
+    const R={};
+    const mk=(id,kind,opt)=>{ R[id]=this.reg(id,kind,opt); };
+    mk('b1','rec'); mk('b2','ring',{col:'#C97B35'});
+    ['h1','h2','h3','h4','h5','h6'].forEach((k,i)=>mk(k,['rec','coil','clean','tick','short','err'][i]));
+    ['l1','l2','l3','l4','l5','l6'].forEach((k,i)=>mk(k,['rec','coil','clean','tick','short','err'][i],{light:true}));
+    mk('hero','live'); mk('hero2','live');
+    mk('rBig','ring',{col:'#C97B35',lw:2.6}); mk('rMed','ring',{col:'#C97B35'}); mk('rDmg','ring',{col:'#C97B35',lw:3});
+    mk('rPay','ring',{col:'#C97B35',lw:2.4}); mk('rSide','ring',{col:'#C97B35'}); mk('rNote','ring',{col:'#C97B35'});
+    ['mbIdle','mbListen','mbWork','mbOk','mbErr','mbPause','mbHello'].forEach((k,i)=>mk(k,'mb',{st:['idle','listen','work','ok','err','pause','hello'][i]}));
+    mk('mbBar','mb',{st:'hello'}); mk('mbBar2','mb',{st:'idle'});
+    mk('wEmpty','wave');
+
+    const dl=s.dl, mb=(dl/100*981).toFixed(0);
+    const eta=Math.max(0,Math.round((100-dl)/100*981/5.4));
+    const step=(n)=>()=>{ this.setState({ob:n}); if(n===5) this.startDL(); };
+    const on=(k)=>()=>this.setState(st=>({granted:{...st.granted,[k]:true}}));
+    const A='background:#26221B;color:#F4F2EC;border-color:#26221B;';
+    const sel=n=>s.ob===n?'background:#C97B35;':'background:rgba(255,255,255,.18);';
+    const p=s.phase;
+    return {
+      R,
+      obIs:{ a0:s.ob===0,a1:s.ob===1,a2:s.ob===2,a3:s.ob===3,a4:s.ob===4,a5:s.ob===5,a6:s.ob===6,a7:s.ob===7 },
+      chip:{ c0:s.ob===0?A:'',c1:s.ob===1?A:'',c2:s.ob===2?A:'',c3:s.ob===3?A:'',c4:s.ob===4?A:'',c5:s.ob===5?A:'',c6:s.ob===6?A:'',c7:s.ob===7?A:'' },
+      notAll: !(g.mic&&g.ax&&g.im),
+      grantCount: (g.mic?1:0)+(g.ax?1:0)+(g.im?1:0) + ' of 3',
+      nav:{ s0:step(0),s1:step(1),s2:step(2),s3:step(3),s4:step(4),s5:step(5),s6:step(6),s7:step(7) },
+      dot:{ d0:sel(0),d1:sel(1),d2:sel(2),d3:sel(3),d4:sel(4),d5:sel(5),d6:sel(6),d7:sel(7) },
+      grant:{ mic:on('mic'), ax:on('ax'), im:on('im') },
+      gm:g.mic, ga:g.ax, gi:g.im, gmNo:!g.mic, gaNo:!g.ax, giNo:!g.im,
+      axLive:g.mic, imLive:g.mic&&g.ax, allGranted:g.mic&&g.ax&&g.im,
+      micDot:g.mic?'background:#7FAF8A;':'background:rgba(255,255,255,.16);',
+      axDot:g.ax?'background:#7FAF8A;':'background:rgba(255,255,255,.16);',
+      imDot:g.im?'background:#7FAF8A;':'background:rgba(255,255,255,.16);',
+      dlW:'width:'+dl+'%', dlPct:Math.round(dl)+'%', dlMB:mb+' of 981 MB',
+      dlEta: dl>=100?'Done':(eta>60?Math.ceil(eta/60)+' min left':eta+' s left'),
+      dlDone: dl>=100, dlGoing: dl<100,
+      press:()=>this.press(), release:()=>this.release(),
+      heroSide: p==='rec'?'':p==='trans'?'Transcribing':p==='clean'?'Polishing':p==='done'?'…typed this for me.':'hold me',
+      spineW:'width:'+(p==='trans'?45:p==='clean'?84:p==='done'?100:0)+'%',
+      spineOp:'opacity:'+((p==='trans'||p==='clean'||p==='done')?1:0)+';transition:opacity .2s',
+      hello:s.hello, phaseRec:p==='rec', phaseWork:p==='trans'||p==='clean', phaseDone:p==='done', phaseIdle:p==='idle',
+      phaseLabel: p==='rec'?'Listening':p==='trans'?'Transcribing':p==='clean'?'Polishing':p==='done'?'Inserted':'Hold to talk',
+      heroW:'width:'+(this.props.hudRestWidth ?? 290)+'px;'
+    };
+  }
+}
+</script>
+</body>
+</html>

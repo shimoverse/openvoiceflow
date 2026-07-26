@@ -56,6 +56,8 @@ struct OnboardingView: View {
     @State private var helloDone = false
     /// Polls TCC while the permissions step is on screen (see T4).
     @State private var permissionWatch: Task<Void, Never>?
+    /// The menu-bar glyph waves once per run (T7).
+    @State private var helloWaved = false
     @Environment(\.colorScheme) private var scheme
 
     private var p: OBPalette { OBPalette.resolve(scheme) }
@@ -176,6 +178,12 @@ struct OnboardingView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
+        // Once per run, not once per visit — going Back shouldn't replay it.
+        .onAppear {
+            guard !helloWaved else { return }
+            helloWaved = true
+            NotificationCenter.default.post(name: .ovfPlayHello, object: nil)
+        }
     }
 
     /// Step 1 — three permissions, asked one at a time.

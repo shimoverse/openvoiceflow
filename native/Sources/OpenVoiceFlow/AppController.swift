@@ -126,7 +126,11 @@ final class AppController: ObservableObject {
     }
 
     func updateHotkey(_ newHotkey: Hotkey) {
+        guard newHotkey != settings.hotkey else { return }
         settings.hotkey = newHotkey
+        // A new key has to be learned from scratch, so the chip comes back for
+        // another 7 days rather than staying gone.
+        settings.hotkeyLearnedAt = nil
         settings.save()
         if isListening { stopListening(); startListening() }
     }
@@ -150,6 +154,7 @@ final class AppController: ObservableObject {
             try audio.start()
             isRecording = true
             hud.setMaxSeconds(maxRecordingSeconds)
+            hud.setShowChip(shouldShowHotkeyChip)
             hud.show(.recording(hotkey: settings.hotkey))
             maxRecordTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(self?.maxRecordingSeconds ?? 300))
@@ -231,11 +236,40 @@ final class AppController: ObservableObject {
         historyStore.record(app: app, text: text, words: words)
         lastError = nil
         lastTranscript = text
+        markFirstSuccess()
         if pasted {
-            hud.show(.result(words: words), autoHideAfter: 1.8)  // holds ~1.8 s
+            hud.setShowChip(shouldShowHotkeyChip)
+            hud.show(.result(tail: Self.tail(of: text, words: words,
+                                             echo: settings.echoInsertedText)))
         } else {
             hud.show(.error(.pasteBlocked))
         }
+    }
+
+    /// The last five words of what landed, ellipsised when truncated — proof
+    /// rather than a receipt. Falls back to a count when the user has asked not
+    /// to have their text echoed.
+    static func tail(of text: String, words: Int, echo: Bool) -> String {
+        guard echo else { return "\(words) words" }
+        let parts = text.split(whereSeparator: \.isWhitespace)
+        guard parts.count > 5 else { return parts.joined(separator: " ") }
+        return "…" + parts.suffix(5).joined(separator: " ")
+    }
+
+    /// Stamp the two "first time" dates once, on the first dictation that
+    /// actually worked.
+    private func markFirstSuccess() {
+        var changed = false
+        if settings.firstUseDate == nil { settings.firstUseDate = Date(); changed = true }
+        if settings.hotkeyLearnedAt == nil { settings.hotkeyLearnedAt = Date(); changed = true }
+        if changed { settings.save() }
+    }
+
+    /// The chip is a reminder, and a reminder that never leaves is furniture:
+    /// show it for 7 days from when the hotkey was learned, then never.
+    private var shouldShowHotkeyChip: Bool {
+        guard let learned = settings.hotkeyLearnedAt else { return true }
+        return Date() < learned.addingTimeInterval(7 * 24 * 60 * 60)
     }
 
     /// Tell the LLM to echo a snippet trigger verbatim so match() can expand it

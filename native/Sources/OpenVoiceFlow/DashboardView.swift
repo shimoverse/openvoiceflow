@@ -570,6 +570,7 @@ struct DashboardView: View {
                     }
                     .font(.system(size: 12))
                 }
+                settingsToggle("Show what was typed in the HUD", isOn: bind(\.echoInsertedText))
                 settingsToggle("Automatic updates", isOn: autoUpdateBinding)
                 settingsRow("You're on v\(updater.appVersion)") {
                     Button("Check for updates now") { updater.checkForUpdates() }

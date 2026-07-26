@@ -245,6 +245,30 @@
       track('install_guide_click', { source_path: pathname() });
     });
   });
+
+  document.querySelectorAll('.nav a[href]').forEach(link => {
+    link.addEventListener('click', () => {
+      track('navigation_click', {
+        destination: link.getAttribute('href') || '',
+        source_path: pathname(),
+      });
+    });
+  });
+
+  document.querySelectorAll('.hero-cta-row a[href]').forEach(link => {
+    link.addEventListener('click', () => {
+      track('hero_cta_click', {
+        destination: link.getAttribute('href') || '',
+        source_path: pathname(),
+      });
+    });
+  });
+
+  document.querySelectorAll('a[href*="github.com/shimoverse/openvoiceflow"]').forEach(link => {
+    link.addEventListener('click', () => {
+      track('github_click', { source_path: pathname() });
+    });
+  });
 })();
 
 /* ── Waveform identity ──────────────────────────────────────────────────

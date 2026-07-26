@@ -78,6 +78,14 @@ Not a meaningful concern for a personal tool. The user is both the actor and the
 
 When `log_transcripts` is opt-in *on* (off by default in v0.3), the daily JSONL+MD logs in `~/.openvoiceflow/logs/` provide a timestamped local trail of every dictation, which a user could use to reconstruct what they did and when. That is *the user's audit log*, not anyone else's.
 
+> **Scope note (2026-07):** the TODOs below were filed against the legacy
+> Python app. The native rewrite (0.4.0+) resolved some by construction —
+> paste synthesis moved to CGEventPost (A, partially), WhisperKit manages
+> model downloads inside the app sandbox path (C) — while B, D, E, F carry
+> forward as open items against `native/`. A full re-run of this model
+> against the Swift app is tracked work, not yet done; treat the analysis
+> below as historical until then.
+
 ### Information disclosure — leaking what should stay secret
 
 This is the largest category for OpenVoiceFlow.

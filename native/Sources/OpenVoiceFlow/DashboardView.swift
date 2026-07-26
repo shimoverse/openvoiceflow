@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// The dashboard window — design phase 03 (native/design/03-dashboard.dc.html).
+/// The dashboard window — design phase 03 (design sources in git history).
 ///
 /// Fixed 212 pt sidebar (text + selection tint, no icons — by design) and a
 /// flexible content pane. Data-backed panes render the designed empty states

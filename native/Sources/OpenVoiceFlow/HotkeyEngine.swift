@@ -125,6 +125,12 @@ final class HotkeyEngine {
         return true
     }
 
+    // The tap callback holds `self` unretained; a release without stop()
+    // would leave the run loop calling into freed memory. AppController
+    // currently outlives the app, but that invariant shouldn't be the only
+    // thing between us and a use-after-free.
+    deinit { stop() }
+
     func stop() {
         if let tap { CGEvent.tapEnable(tap: tap, enable: false) }
         if let runLoopSource {

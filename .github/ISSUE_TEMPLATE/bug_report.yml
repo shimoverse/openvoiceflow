@@ -1,0 +1,42 @@
+name: Bug report
+description: Something in the app, the website, or an update went wrong
+labels: [bug]
+body:
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      description: Paste the output of `sw_vers` (or Apple menu → About This Mac)
+      placeholder: "macOS 14.5 (23F79)"
+    validations:
+      required: true
+  - type: input
+    id: appversion
+    attributes:
+      label: App version
+      description: Dashboard → Settings shows "You're on vX.Y.Z"
+      placeholder: "0.5.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Speech engine
+      options: [tiny, small, medium, large-v3-turbo, "not sure"]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: >
+        What you did, what you expected, what actually happened. For dictation
+        accuracy issues, the exact spoken phrase vs. what landed. What did the
+        HUD show when it went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, hotkey used, whether cleanup was on and with which backend.

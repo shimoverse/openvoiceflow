@@ -41,8 +41,8 @@ dev = [
 openvoiceflow = "voiceflow.__main__:main"
 
 [project.urls]
-Homepage = "https://openvoiceflow.vercel.app/"
-Download = "https://openvoiceflow.vercel.app/download.html"
+Homepage = "https://openvoiceflow.com/"
+Download = "https://openvoiceflow.com/download.html"
 Source = "https://github.com/shimoverse/openvoiceflow"
 Issues = "https://github.com/shimoverse/openvoiceflow/issues"
 

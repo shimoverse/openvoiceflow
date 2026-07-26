@@ -1,0 +1,16 @@
+name: Feature request
+description: Something the app should do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that the app makes hard or impossible?
+    validations:
+      required: true
+  - type: textarea
+    id: shape
+    attributes:
+      label: What a fix could look like
+      description: Optional — how you imagine it working.

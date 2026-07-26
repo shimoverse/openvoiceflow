@@ -1,5 +1,15 @@
 # OpenVoiceFlow — Architecture
 
+> **This document describes the legacy Python app (≤ 0.3.6), which is
+> end-of-life.** The shipping app is native Swift under `native/` — for its
+> architecture, start with the module map in
+> [`native/README.md`](../native/README.md): HotkeyEngine (CGEvent tap) →
+> AudioCapture → Transcriber (WhisperKit) → CleanupProvider (optional) →
+> Paster, orchestrated by AppController and surfaced through HUDController,
+> DashboardView, and OnboardingView.
+
+
+
 > Audience: humans contributing code. For an AI-coding-agent contributor's view, see [`AGENTS.md`](../AGENTS.md) at the repo root.
 
 ## 1. Elevator pitch

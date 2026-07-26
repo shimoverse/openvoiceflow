@@ -1,76 +1,47 @@
-# OpenVoiceFlow — native (Swift) rewrite
+# OpenVoiceFlow — native macOS app
 
-This directory is the **foundation** for the native macOS rewrite of
-OpenVoiceFlow. Its goal is an Apple-grade experience: a signed,
-notarized, drag-to-Applications app with **no Homebrew, no Terminal, no
-Python, no first-run download** — everything ships inside the bundle.
+**Status: shipping.** This is the app users run (v0.5.x, signed + notarized,
+auto-updating via Sparkle). It replaced the legacy Python app at 0.4.0.
 
-> Status: **scaffold**. This code was authored to be idiomatic and
-> compile-ready, but it has **not** been compiled or run yet — that has to
-> happen on a Mac with Xcode (see [`BUILD_RUNBOOK.md`](BUILD_RUNBOOK.md)).
-> Treat it as the architecture + first working slice, not a finished app.
+- Swift 5.10 / SwiftUI, no storyboards
+- Min OS: **macOS 14.0** (WhisperKit's floor in practice; `project.yml` is
+  the source of truth)
+- Dependencies: WhisperKit 0.18.0, Sparkle 2.9.4 — pinned exactly in
+  `project.yml`
 
-## Why native (what it fixes over the Python app)
-
-| Problem in the Python app | Native fix |
-| --- | --- |
-| First launch installs Homebrew + a venv + downloads a 142 MB model | WhisperKit model bundled/pinned; single self-contained `.app` |
-| **fn/Globe key never works** (pynput has no fn key) | `CGEventTap` reads the secondary-fn flag directly → fn works |
-| Auto-paste shells out to `osascript` (a 4th TCC prompt + latency) | `CGEventPost` synthesizes ⌘V (needs only Accessibility) |
-| tkinter onboarding renders non-native (wrong fonts, dark-only) | SwiftUI onboarding that tracks system appearance |
-| Emoji HUD + fake text "spinner" | SwiftUI HUD with SF Symbols + real progress |
-| Update = "go re-download and re-run the installer" | Sparkle in-app updates (signed appcast) |
-
-## Technology choices
-
-- **UI:** SwiftUI + AppKit. Menu bar via `MenuBarExtra` (macOS 13+); the
-  floating HUD is a non-activating `NSPanel` hosting a SwiftUI view.
-- **Transcription:** [WhisperKit](https://github.com/argmaxinc/WhisperKit)
-  (on-device, CoreML/Metal, Swift). Replaces the whisper.cpp subprocess.
-- **Hotkey:** a `CGEventTap` on `keyDown`/`keyUp`/`flagsChanged`, so both
-  modifier keys (incl. **fn**) and F-keys work as push-to-talk.
-- **Audio:** `AVAudioEngine` tap → 16 kHz mono `Float` buffer fed to WhisperKit.
-- **LLM cleanup:** `URLSession` async/await; a `CleanupProvider` protocol with
-  OpenRouter/OpenAI/Anthropic/Groq/Ollama/none implementations.
-- **Paste:** `CGEventPost` ⌘V (Accessibility only — no Apple Events prompt).
-- **Updates:** [Sparkle 2](https://sparkle-project.org) with an EdDSA-signed appcast.
-- **Persistence:** a `Settings` `Codable` in `~/Library/Application Support/OpenVoiceFlow/`;
-  API keys in the **Keychain** (not a JSON file).
-- **Min OS:** macOS 13 Ventura (SwiftUI `MenuBarExtra`, modern WhisperKit).
-
-## Module map (`Sources/OpenVoiceFlow`)
-
-| File | Responsibility |
-| --- | --- |
-| `OpenVoiceFlowApp.swift` | `@main` app, `MenuBarExtra`, wiring |
-| `AppController.swift` | State machine: idle → recording → transcribing → cleaning → pasting |
-| `HotkeyEngine.swift` | `CGEventTap` push-to-talk (modifiers incl. fn, F-keys) |
-| `AudioCapture.swift` | `AVAudioEngine` → 16 kHz mono Float buffer |
-| `Transcriber.swift` | WhisperKit wrapper (async transcribe) |
-| `CleanupProvider.swift` | LLM cleanup protocol + implementations |
-| `Paster.swift` | `CGEventPost` ⌘V, clipboard-safe |
-| `HUDController.swift` | Non-activating `NSPanel` + SwiftUI HUD, screen-aware |
-| `Permissions.swift` | Mic / Accessibility / Input Monitoring checks + prompts |
-| `Onboarding.swift` | SwiftUI first-run flow (backend, key, hotkey, permissions) |
-| `Settings.swift` | `Codable` settings + Keychain for secrets |
-| `Log.swift` | `os.Logger` wrappers |
-
-## How to build
-
-See [`BUILD_RUNBOOK.md`](BUILD_RUNBOOK.md). Short version, on a Mac:
+## Build
 
 ```bash
-cd native
-open Package.swift        # or: swift build
+brew install xcodegen
+bash native/scripts/run-local.sh   # generate + build + launch (ad-hoc signed)
 ```
 
-The runbook covers turning the SwiftPM executable into a signed, notarized
-`.app`, wiring WhisperKit + Sparkle, and the DMG.
+The `.xcodeproj` is generated from `project.yml`; edit the yml. For the
+signed, notarized, stapled release pipeline — and why each step exists — read
+[`BUILD_RUNBOOK.md`](BUILD_RUNBOOK.md).
 
-## What's intentionally NOT done yet (tracked)
+## Module map (`Sources/OpenVoiceFlow/`)
 
-This is a foundation. The following are stubbed or pending and are the next
-milestones (see `BUILD_RUNBOOK.md` → "Milestones"): per-app style detection,
-the Know-Me profile, voice commands/snippets, streaming partial results,
-auto-learn, statistics, and full settings UI. The core dictation loop
-(hotkey → capture → transcribe → clean → paste) is the first slice.
+| File | Job |
+|---|---|
+| `OpenVoiceFlowApp.swift` | entry point, menu bar, login item, Dock policy |
+| `AppController.swift` | the state machine: idle → recording → transcribing → cleaning → pasting |
+| `HotkeyEngine.swift` | CGEvent tap for the push-to-talk key |
+| `AudioCapture.swift` | 16 kHz mono capture + level metering |
+| `Transcriber.swift` | WhisperKit lifecycle, model downloads, live partials |
+| `CleanupProvider.swift` | optional LLM cleanup (5 backends, one protocol) |
+| `Paster.swift` | ⌘V synthesis with clipboard restore |
+| `HUDController.swift` | floating waveform HUD |
+| `DashboardView.swift` | dashboard window (history, stats, dictionary, snippets, styles, settings) |
+| `OnboardingView.swift` | first-run flow: permissions, engine choice, first dictation |
+| `KnowMeInterview.swift` | the Know-Me profile interview |
+| `FeatureStores.swift` | persisted stores: dictionary, snippets, styles, profile, history |
+| `Settings.swift` | preferences (JSON in App Support) + Keychain wrapper |
+| `Permissions.swift` | the three TCC permissions: status, request, deep links |
+| `HelloCallout.swift` | onboarding's anchored "I live up there" callout |
+| `StatusIcon.swift` | menu-bar icon renderer + animator |
+| `DesignTokens.swift` | shared colors/metrics from the design system |
+| `Updater.swift` | Sparkle wiring |
+
+Design provenance for the UI lives in git history (phase-06 redesign);
+`BUILD_RUNBOOK.md` covers release mechanics.

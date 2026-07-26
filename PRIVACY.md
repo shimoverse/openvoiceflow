@@ -2,7 +2,7 @@
 
 OpenVoiceFlow is a native macOS app that runs on your Mac. We wrote this document to be readable in one sitting: no legalese, no "we may collect" clauses that turn out to mean everything. If anything below is unclear or wrong, open a GitHub Discussion and we'll fix it.
 
-This policy applies to OpenVoiceFlow `v0.4.x` (the native macOS app). For the older Python CLI (`v0.3.x` and earlier), check `git log PRIVACY.md` or the corresponding tagged release.
+This policy applies to the native OpenVoiceFlow macOS app (`v0.4.0` and later, including the current `v0.5.x` line). For the older Python CLI (`v0.3.x` and earlier), check `git log PRIVACY.md` or the corresponding tagged release.
 
 ---
 

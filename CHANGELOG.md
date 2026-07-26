@@ -8,6 +8,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] — 2026-07-26
+
+The first-run field-notes release.
+
+### Added
+- Live transcript in the HUD while the key is held ("Show words as you speak",
+  default on; respects the text-echo privacy setting).
+- Speech-engine choice in onboarding — four models with size and benefit,
+  nothing preselected, nothing downloading until you pick.
+- Launch at login (SMAppService), default on, with a Settings toggle.
+- Onboarding's "I live up there" now anchors a callout to the real menu-bar
+  icon, with a mock menu-bar illustration when the icon is squeezed out.
+- Dashboard banner explaining when macOS hides the menu-bar icon (full bar /
+  notch) and the ⌘-drag fix.
+
+### Changed
+- Onboarding ends in the dashboard instead of an empty desktop; the try-it
+  card acknowledges key-down instantly.
+- The "names I'd get wrong" question moved out of onboarding (Know-Me keeps it).
+
+## [0.5.1] — 2026-07-26
+
+### Fixed
+- **The hotkey now works from launch.** Previously nothing started the key
+  listener after first run — every relaunch came up deaf until Start
+  Dictation was clicked in the menu. The Start/Stop menu item is gone
+  (Pause remains); a Turn On Dictation button appears only if a permission
+  was revoked.
+
+### Added
+- PERMISSIONS card in dashboard Settings with live status per grant;
+  re-granting revives dictation without a relaunch.
+
+## [0.5.0] — 2026-07-26
+
+The phase-06 redesign: new onboarding (sequential permissions, download-
+while-interviewing, ink-fill first dictation), redesigned HUD (path-morph
+waveform, spine countdown, text tail), menu-bar hello animation, and a
+restructured dashboard Home. Also the release that made DMG signing itself
+a hard gate: the disk image (not just the app) is now Developer-ID signed,
+and the pipeline fails loudly if Gatekeeper rejects it.
+
+## [0.4.3] — 2026-07-26
+
+### Fixed
+- Dock presence obeys the setting; `fn` is the default hotkey; onboarding
+  gives real feedback while permissions land.
+
+## [0.4.2] — 2026-07-25
+
+### Added
+- Automatic background updates (Sparkle) with honest in-app update cues.
+- Per-app dictation breakdown ("Where you dictate").
+
+### Fixed
+- Failed pastes recover; the transcription model hot-swaps without restart.
+
+## [0.4.1] — 2026-07-25
+
+Website/site release wiring for the native line; guarded the legacy Python
+release pipeline against 0.4.0+ tags; native app added to CI.
+
+## [0.4.0] — 2026-07-24
+
+**The native rewrite.** OpenVoiceFlow became a Swift/SwiftUI menu-bar app:
+on-device WhisperKit transcription, CGEvent-tap hotkey, Keychain-held API
+keys, signed + notarized + stapled DMG from a tag-driven release pipeline.
+The Python app (≤ 0.3.6) is EOL from this point.
+
 ## [0.3.6] — 2026-07-18
 
 ### Fixed — Fn / 🌐 Globe key no longer fails silently

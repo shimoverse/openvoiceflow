@@ -17,12 +17,12 @@ release.
 
 | Version | Supported          | Notes                                                       |
 |---------|--------------------|-------------------------------------------------------------|
-| 0.4.x   | ✅ Yes             | Current line (native macOS app). All security fixes land here.|
-| 0.3.x   | ❌ No              | EOL — the legacy Python CLI line. Upgrade to 0.4.x.         |
-| 0.2.x   | ❌ No              | Frozen at 0.2.0. Upgrade to 0.4.x.                          |
-| 0.1.x   | ❌ No              | Frozen. Upgrade to 0.4.x.                                   |
+| 0.5.x   | ✅ Yes             | Current native line. Fixes ship as in-app updates.          |
+| 0.4.x   | ❌ No              | Superseded native line. Update in-app to 0.5.x.             |
+| 0.3.x   | ❌ No              | EOL — the legacy Python CLI line.                           |
+| ≤ 0.2.x | ❌ No              | Frozen.                                                     |
 
-Now that 0.4.x has shipped, 0.3.x and earlier are unsupported. We do not backport.
+Only 0.5.x is supported. We do not backport.
 
 ---
 
@@ -87,11 +87,12 @@ No bug bounty. We can't pay; the project earns $0.
 
 ## What's in scope
 
-- The `voiceflow` Python package (everything under `voiceflow/`).
-- `install.sh` — the curl-pipe installer.
-- `build-dmg.sh` — the DMG build script.
-- The DMG bundle launcher (`OpenVoiceFlow.app`'s shipped entry point).
-- The GitHub Actions workflows under `.github/workflows/` (release, CI, smoke tests).
+- The native macOS app — everything under `native/` (the shipped `OpenVoiceFlow.app`).
+- The Sparkle update feed and release pipeline (`.github/workflows/release-native.yml`, `native/scripts/`).
+- The website and its download/appcast serving (`docs/`, `vercel.json`).
+- The GitHub Actions workflows under `.github/workflows/`.
+- The legacy Python package (`voiceflow/`, `install.sh`, `build-dmg.sh`) is EOL: reports are
+  welcome for awareness, but fixes ship only if the macOS 12–13 fallback is affected.
 
 Typical in-scope issues: path traversal or command injection in any of the above; a
 config or env var that lets a local attacker escalate privileges or read another

@@ -11,7 +11,16 @@ struct Settings: Codable, Equatable {
     var style: Style = .default
     var autoPaste: Bool = true
     var soundFeedback: Bool = true
-    var launchAtLogin: Bool = false
+    /// Registered via SMAppService at launch and from the Settings toggle. A
+    /// menu-bar utility that vanishes on reboot reads as broken, so this
+    /// defaults on; macOS posts its own "added as a login item" notice.
+    var launchAtLogin: Bool = true
+    /// One-time flip for installs that predate the login-item UI: their stored
+    /// `false` was a silent default nobody chose, not a decision to honor.
+    var loginItemMigrated: Bool = false
+    /// Words appear in the HUD as they're spoken — proof of hearing, live.
+    /// Costs a re-transcription pass every 300 ms while the key is held.
+    var liveTranscript: Bool = true
     /// Show a Dock icon (clicking it opens the dashboard). Off ⇒ menu-bar only.
     var showInDock: Bool = true
     var didOnboard: Bool = false
@@ -46,7 +55,9 @@ struct Settings: Codable, Equatable {
         style = try c.decodeIfPresent(Style.self, forKey: .style) ?? .default
         autoPaste = try c.decodeIfPresent(Bool.self, forKey: .autoPaste) ?? true
         soundFeedback = try c.decodeIfPresent(Bool.self, forKey: .soundFeedback) ?? true
-        launchAtLogin = try c.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? false
+        launchAtLogin = try c.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? true
+        loginItemMigrated = try c.decodeIfPresent(Bool.self, forKey: .loginItemMigrated) ?? false
+        liveTranscript = try c.decodeIfPresent(Bool.self, forKey: .liveTranscript) ?? true
         showInDock = try c.decodeIfPresent(Bool.self, forKey: .showInDock) ?? true
         didOnboard = try c.decodeIfPresent(Bool.self, forKey: .didOnboard) ?? false
         maxRecordingSeconds = try c.decodeIfPresent(Double.self, forKey: .maxRecordingSeconds) ?? 300
@@ -67,8 +78,13 @@ struct Settings: Codable, Equatable {
 
     static func load() -> Settings {
         guard let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode(Settings.self, from: data)
+              var decoded = try? JSONDecoder().decode(Settings.self, from: data)
         else { return Settings() }
+        if !decoded.loginItemMigrated {
+            decoded.launchAtLogin = true
+            decoded.loginItemMigrated = true
+            decoded.save()
+        }
         return decoded
     }
 

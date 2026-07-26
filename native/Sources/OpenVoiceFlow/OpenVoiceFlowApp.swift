@@ -43,8 +43,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #else
         let forceOnboarding = false
         #endif
-        guard forceOnboarding || !controller.settings.didOnboard else { return }
-        DispatchQueue.main.async { [weak self] in self?.showOnboarding() }
+        if forceOnboarding || !controller.settings.didOnboard {
+            DispatchQueue.main.async { [weak self] in self?.showOnboarding() }
+        } else {
+            // The hotkey must work from the moment the app is running. Before
+            // 0.5.1 nothing started the listener on relaunch, so every launch
+            // after onboarding came up deaf until the user found Start
+            // Dictation in the menu. If the event tap can't start (a
+            // permission was revoked since last run), the menu header and the
+            // dashboard's Permissions card both show the way back.
+            _ = controller.startListening()
+        }
     }
 
     /// Clicking the Dock icon (or reopening the app) brings up the dashboard —
@@ -135,12 +144,15 @@ private struct MenuContent: View {
         Text(headerSubtitle)
         Divider()
 
-        // 3–4. Primary actions.
-        Button(controller.isListening || controller.isWorking ? "Stop Dictation" : "Start Dictation") {
-            if controller.isListening { controller.stopListening() } else { _ = controller.startListening() }
+        // 3–4. Primary actions. Listening starts itself at launch, so there is
+        // no Start/Stop toggle — Pause is the one deliberate off-switch. The
+        // recovery button appears only in the state that needs it: the tap
+        // failed to start (a permission was revoked), which auto-start can't
+        // fix on its own.
+        if !controller.isListening && !controller.isPaused {
+            Button("Turn On Dictation") { _ = controller.startListening() }
+                .keyboardShortcut("d", modifiers: [.command, .shift])
         }
-        .keyboardShortcut("d", modifiers: [.command, .shift])
-
         Button(controller.isPaused ? "Resume" : "Pause for 1 hour") {
             controller.isPaused ? controller.resume() : controller.pause()
         }
@@ -215,6 +227,8 @@ private struct MenuContent: View {
         }
         if controller.isRecording { return "Listening…" }
         if controller.isWorking { return "Transcribing…" }
+        // Before 0.5.1 this said "Ready" even when the key listener was dead.
+        if !controller.isListening { return "Dictation is off" }
         return "Ready"
     }
 
@@ -223,6 +237,7 @@ private struct MenuContent: View {
         if controller.isPaused { return "Hotkey ignored while paused" }
         if controller.isRecording { return "Release to transcribe" }
         if controller.isWorking { return "On-device Whisper" }
+        if !controller.isListening { return "Check Setup & Permissions below" }
         return "Hold \(controller.settings.hotkey.glyph) to dictate"
     }
 

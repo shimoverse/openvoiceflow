@@ -256,17 +256,8 @@ final class HistoryStore: ObservableObject {
         let loadedEntries = AppSupport.load([HistoryEntry].self, from: "history.json") ?? []
         entries = loadedEntries
         let storedFirst = AppSupport.load(HistoryEntry.self, from: "first_entry.json")
-        firstEntry = storedFirst ?? loadedEntries.last  // migrate: oldest surviving take
-        // Property observers don't run during init, so the migrated value would
-        // never reach disk on its own — and that quietly breaks the promise the
-        // delete dialog makes. Two ways it goes wrong: the next launch
-        // re-derives from a history.json whose oldest entry has since rotated
-        // past the 500 cap, so the "permanent" first dictation changes; or the
-        // user picks "Delete, keep my first words", which empties history and
-        // leaves nothing to re-derive from at all. Write it now instead.
-        if storedFirst == nil, let migrated = firstEntry {
-            AppSupport.save(migrated, to: "first_entry.json")
-        }
+        let resolvedFirst = storedFirst ?? loadedEntries.last  // migrate: oldest surviving take
+        firstEntry = resolvedFirst
         dailyWords = AppSupport.load([String: Int].self, from: "stats.json") ?? [:]
         // Seed the per-app totals from whatever recent history is still on disk
         // (entries are capped at maxEntries, so an existing heavy user's older
@@ -278,6 +269,19 @@ final class HistoryStore: ObservableObject {
             let seeded = loadedEntries.reduce(into: [String: Int]()) { $0[$1.app, default: 0] += $1.words }
             appWords = seeded
             if !seeded.isEmpty { AppSupport.save(seeded, to: "app_stats.json") }
+        }
+        // Property observers don't run during init, so the entry migrated out of
+        // history.json above would never reach disk on its own — and that
+        // quietly breaks the promise the delete dialog makes. Two ways it goes
+        // wrong: the next launch re-derives from a history.json whose oldest
+        // entry has since rotated past the 500 cap, so the "permanent" first
+        // dictation changes; or the user picks "Delete, keep my first words",
+        // which empties history and leaves nothing to re-derive from at all.
+        // Write it explicitly, from the local rather than the property — reading
+        // `firstEntry` back before every stored property is initialized doesn't
+        // compile.
+        if storedFirst == nil, let migrated = resolvedFirst {
+            AppSupport.save(migrated, to: "first_entry.json")
         }
     }
 

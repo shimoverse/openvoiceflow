@@ -31,13 +31,13 @@
 
   const builds = {
     arm64: {
-      href: 'downloads/OpenVoiceFlow-0.5.1.dmg',
+      href: 'downloads/OpenVoiceFlow-0.5.2.dmg',
       title: 'Universal macOS DMG',
       subtitle: 'One universal native build for Apple Silicon and Intel Macs running macOS 14 or later.',
       badge: 'Universal macOS',
     },
     x86_64: {
-      href: 'downloads/OpenVoiceFlow-0.5.1.dmg',
+      href: 'downloads/OpenVoiceFlow-0.5.2.dmg',
       title: 'Universal macOS DMG',
       subtitle: 'One universal native build for Apple Silicon and Intel Macs running macOS 14 or later.',
       badge: 'Universal macOS',
@@ -177,11 +177,31 @@
   }
 
   function applyLegacyMacNotice(result) {
-    // A macOS 12–13 visitor pointed at the macOS 14+ DMG downloads a dead
-    // end; the CTA becomes the build that actually runs for them.
+    setText('downloadKicker', 'Older macOS detected');
+    setText('downloadArchBadge', 'macOS 12–13');
+    setText('downloadConfidence', 'Detection runs locally in your browser; nothing is uploaded.');
+    // The retained 0.3.6 fallback is Apple Silicon only. Handing it to a
+    // legacy Intel Mac trades one dead-end download for another — for them
+    // the honest answer is that no current build runs, and macOS 14 (which
+    // every OpenVoiceFlow-capable Intel Mac can install) is the way in.
+    if (result.arch === 'x86_64') {
+      cta.removeAttribute('href');
+      cta.setAttribute('aria-disabled', 'true');
+      cta.classList.remove('btn-primary');
+      cta.classList.add('btn-unavailable');
+      cta.textContent = 'Needs macOS 14 on Intel Macs';
+      setText('downloadTitle', 'Update to macOS 14 to run OpenVoiceFlow');
+      setText(
+        'downloadSubtitle',
+        'The current app requires macOS 14, and the older 0.3.6 fallback is ' +
+        'Apple Silicon only. Your Intel Mac can run OpenVoiceFlow after a free ' +
+        'macOS update.'
+      );
+      return;
+    }
+    // Apple Silicon on macOS 12–13: the CTA becomes the build that runs.
     cta.href = 'downloads/OpenVoiceFlow-0.3.6-arm64.dmg';
     cta.textContent = 'Download for macOS 12–13 (v0.3.6)';
-    setText('downloadKicker', 'Older macOS detected');
     setText('downloadTitle', 'Your Mac needs the 0.3.6 build');
     setText(
       'downloadSubtitle',
@@ -189,8 +209,6 @@
       'macOS, so the retained 0.3.6 Apple Silicon build is the one to grab — or ' +
       'update macOS to get the current app.'
     );
-    setText('downloadArchBadge', 'macOS 12–13');
-    setText('downloadConfidence', 'Detection runs locally in your browser; nothing is uploaded.');
   }
 
   function applyDownloadRecommendation(result) {

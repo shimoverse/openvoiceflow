@@ -8,8 +8,8 @@
     <key>CFBundleExecutable</key><string>OpenVoiceFlow</string>
     <key>CFBundleIconFile</key><string>OpenVoiceFlow.icns</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.4.2</string>
-    <key>CFBundleVersion</key><string>3</string>
+    <key>CFBundleShortVersionString</key><string>0.4.3</string>
+    <key>CFBundleVersion</key><string>4</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <!-- Regular app: a Dock icon by default (clicking it opens the dashboard),
          plus the menu-bar extra. Users who want a pure menu-bar agent can turn

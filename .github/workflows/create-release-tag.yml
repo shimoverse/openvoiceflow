@@ -1,0 +1,51 @@
+name: Create release tag
+
+# Remote Claude Code sessions can merge release PRs but cannot push tags — the
+# session git proxy drops tag pushes and its API token can't write refs. This
+# is the sanctioned route: Actions' own token carries contents:write, so a
+# dispatch here plants the tag, and a second dispatch of release-native.yml
+# with the same tag builds it. (The tag-push event this creates does NOT fire
+# release-native by itself: GitHub suppresses workflows triggered by events
+# the Actions token created, which is why the second dispatch is required,
+# and also why this can never recurse.)
+#
+#   1. Actions ▸ Create release tag ▸ Run  (tag: native-vX.Y.Z, sha: <merge commit>)
+#   2. Actions ▸ Release (native app) ▸ Run  (release_tag: native-vX.Y.Z)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to create (native-vX.Y.Z)"
+        required: true
+        type: string
+      sha:
+        description: "Full 40-char commit SHA the tag should point at"
+        required: true
+        type: string
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Validate inputs and create the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          # Only the native release namespace, and only an exact commit — this
+          # job must never become a generic write-any-ref primitive.
+          [[ "$TAG" =~ ^native-v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]] \
+            || { echo "::error::tag '$TAG' is not a native-vX.Y.Z tag"; exit 1; }
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] \
+            || { echo "::error::sha must be the full 40-char commit hash"; exit 1; }
+          # Verify the commit is reachable from main so a typo'd SHA (or one
+          # from an unmerged branch) can't become a release.
+          gh api "repos/$GITHUB_REPOSITORY/compare/$SHA...main" --jq '.status' | grep -qE '^(ahead|identical)$' \
+            || { echo "::error::$SHA is not an ancestor of main"; exit 1; }
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$SHA"
+          echo "created refs/tags/$TAG at $SHA"

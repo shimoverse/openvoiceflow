@@ -115,7 +115,7 @@ Anything you've already sent to OpenRouter lives by that provider's retention po
 
 ## 7. This website
 
-The download site (`openvoiceflow.vercel.app`) uses **Vercel Analytics**, a privacy-friendly measurement product, to count anonymous page views and download/install-guide events. It sets no advertising cookies, builds no cross-site profile, and does not link a visit to an individual. This is **website** measurement only and is separate from the app, which contains no analytics. Vercel's analytics privacy notice: <https://vercel.com/docs/analytics/privacy-policy>.
+The download site (`openvoiceflow.com`) uses **Vercel Analytics** and **Vercel Speed Insights**. Analytics measures anonymous page views, aggregated visitor/referrer/geography trends, and selected website actions such as download, install-guide, navigation, and GitHub-source clicks. Speed Insights measures aggregated real-user page performance. These services set no advertising cookies, build no cross-site profile, and do not link a visit to an individual. This is **website** measurement only and is separate from the app, which contains no analytics. Vercel's analytics privacy notice: <https://vercel.com/docs/analytics/privacy-policy>.
 
 ---
 

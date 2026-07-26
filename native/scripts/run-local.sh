@@ -91,6 +91,15 @@ fi
 step "Launching"
 open "$APP"
 
+cat <<NOTES
+
+  To relaunch after quitting, don't re-run this script — it rebuilds, and a
+  new binary is what loses you the permission grants. Just reopen it:
+
+      open $APP
+
+NOTES
+
 cat <<'NOTES'
 
   ─────────────────────────────────────────────────────────────────────────

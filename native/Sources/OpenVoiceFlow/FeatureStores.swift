@@ -255,8 +255,18 @@ final class HistoryStore: ObservableObject {
     init() {
         let loadedEntries = AppSupport.load([HistoryEntry].self, from: "history.json") ?? []
         entries = loadedEntries
-        firstEntry = AppSupport.load(HistoryEntry.self, from: "first_entry.json")
-            ?? loadedEntries.last  // migrate: oldest surviving take
+        let storedFirst = AppSupport.load(HistoryEntry.self, from: "first_entry.json")
+        firstEntry = storedFirst ?? loadedEntries.last  // migrate: oldest surviving take
+        // Property observers don't run during init, so the migrated value would
+        // never reach disk on its own — and that quietly breaks the promise the
+        // delete dialog makes. Two ways it goes wrong: the next launch
+        // re-derives from a history.json whose oldest entry has since rotated
+        // past the 500 cap, so the "permanent" first dictation changes; or the
+        // user picks "Delete, keep my first words", which empties history and
+        // leaves nothing to re-derive from at all. Write it now instead.
+        if storedFirst == nil, let migrated = firstEntry {
+            AppSupport.save(migrated, to: "first_entry.json")
+        }
         dailyWords = AppSupport.load([String: Int].self, from: "stats.json") ?? [:]
         // Seed the per-app totals from whatever recent history is still on disk
         // (entries are capped at maxEntries, so an existing heavy user's older
@@ -340,9 +350,24 @@ final class HistoryStore: ObservableObject {
         }
     }
 
+    /// The earliest day anything was ever dictated, or nil if nothing was.
+    ///
+    /// Read off `dailyWords` rather than `entries`: the daily totals are keyed
+    /// by day and never pruned, while the entry log is capped at `maxEntries`.
+    /// The keys are `yyyy-MM-dd`, so lexicographic order is chronological.
+    var firstDictationDay: Date? {
+        dailyWords.keys.min().flatMap(Self.date(fromKey:))
+    }
+
     private static func key(_ date: Date) -> String {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         return f.string(from: date)
+    }
+
+    private static func date(fromKey key: String) -> Date? {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.date(from: key)
     }
 }

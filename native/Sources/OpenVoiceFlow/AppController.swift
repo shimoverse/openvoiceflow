@@ -295,7 +295,15 @@ final class AppController: ObservableObject {
     /// actually worked.
     private func markFirstSuccess() {
         var changed = false
-        if settings.firstUseDate == nil { settings.firstUseDate = Date(); changed = true }
+        if settings.firstUseDate == nil {
+            // Home reads "…since <month>" off this date against an all-time
+            // word total, and an upgrade install arrives with months of daily
+            // totals already on disk. Stamping today would credit every one of
+            // those words to this minute. Backdate to the first day anything
+            // was actually dictated; only a genuinely new install has none.
+            settings.firstUseDate = historyStore.firstDictationDay ?? Date()
+            changed = true
+        }
         if settings.hotkeyLearnedAt == nil { settings.hotkeyLearnedAt = Date(); changed = true }
         if changed { settings.save() }
     }

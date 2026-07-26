@@ -581,6 +581,8 @@ private struct KnowMeDownloadStep: View {
     @State private var skipProgress = false
     @State private var name = ""
     @State private var words: [String] = []
+    /// Whether the profile draft has been loaded — see start().
+    @State private var hydrated = false
 
     private var p: OBPalette { palette }
 
@@ -708,8 +710,16 @@ private struct KnowMeDownloadStep: View {
     }
 
     private func start() {
-        name = controller.profileStore.profile.name
-        if words.isEmpty { words = controller.profileStore.profile.technicalTerms }
+        // Hydrate the draft from the saved profile once, not on every entry.
+        // "Try again" after a failed download comes back through here, and
+        // persist() only runs when the step is left — so re-reading the profile
+        // would replace the name the user just typed with the empty value still
+        // on disk, as a reward for retrying.
+        if !hydrated {
+            hydrated = true
+            name = controller.profileStore.profile.name
+            if words.isEmpty { words = controller.profileStore.profile.technicalTerms }
+        }
         guard !done else { return }
         failed = false
         failureDetail = nil

@@ -57,3 +57,19 @@ def test_public_downloads_remain_website_hosted():
     combined = "\n".join((DOCS / name).read_text(encoding="utf-8") for name in pages)
     assert "github.com/shimoverse/openvoiceflow/releases/download" not in combined
     assert CANONICAL in (DOCS / "download.html").read_text(encoding="utf-8")
+
+
+def test_privacy_friendly_web_observability_is_present_without_native_telemetry():
+    public_pages = ["index.html", "download.html", "install.html", "how-it-works.html", "privacy.html"]
+    for page in public_pages:
+        html = (DOCS / page).read_text(encoding="utf-8")
+        assert "va.vercel-scripts.com/v1/script.js" in html
+        assert "/_vercel/speed-insights/script.js" in html
+
+    site_js = (DOCS / "site.js").read_text(encoding="utf-8")
+    for event in ["download_click", "install_guide_click", "navigation_click", "hero_cta_click", "github_click"]:
+        assert event in site_js
+
+    privacy = (ROOT / "PRIVACY.md").read_text(encoding="utf-8")
+    assert "No in-app telemetry" in privacy
+    assert "Vercel Speed Insights" in privacy

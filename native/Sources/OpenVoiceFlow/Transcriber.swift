@@ -5,7 +5,10 @@ import WhisperKit
 /// whisper.cpp subprocess + HuggingFace model download of the Python app;
 /// the model is managed by WhisperKit and can be bundled for offline use.
 actor Transcriber {
-    typealias DownloadProgressObserver = @Sendable (Double) -> Void
+    /// Reports raw byte counts, not a fraction: onboarding shows "412 of 981 MB
+    /// · 5.4 MB/s · 2 min left", and a rate and an ETA can't be derived from a
+    /// percentage. `expected` is 0 while the total is still unknown.
+    typealias DownloadProgressObserver = @Sendable (_ received: Int64, _ expected: Int64) -> Void
 
     private var kit: WhisperKit?
     private var modelName: String
@@ -27,15 +30,19 @@ actor Transcriber {
         try? await warmUp()
     }
 
+    /// True once the model is loaded in memory — lets onboarding skip the
+    /// progress card entirely on a reinstall.
+    var isReady: Bool { kit != nil }
+
     /// Load the model once (lazily). The observer receives only actual
-    /// WhisperKit transfer progress, normalized to 0...1.
+    /// WhisperKit transfer progress, as raw byte counts.
     ///
     /// An interrupted HuggingFace download can leave a truncated `.mlmodelc`.
     /// On the first load failure, remove that cached variant and retry with a
     /// fresh download; a second failure is returned to the caller.
-    func warmUp(progress observer: @escaping DownloadProgressObserver = { _ in }) async throws {
+    func warmUp(progress observer: @escaping DownloadProgressObserver = { _, _ in }) async throws {
         guard kit == nil else {
-            observer(1)
+            observer(1, 1)  // already resident — report complete
             return
         }
 
@@ -45,14 +52,14 @@ actor Transcriber {
             purgeDownloadedModel()
             kit = try await downloadAndLoad(progress: observer)
         }
-        observer(1)
+        // No synthetic final callback: tracking the running total in a captured
+        // var races WhisperKit's progress thread (a hard error under Swift 6).
+        // The caller lands the bar on full instead — see DownloadMeter.complete().
     }
 
     private func downloadAndLoad(progress observer: @escaping DownloadProgressObserver) async throws -> WhisperKit {
         let modelFolder = try await WhisperKit.download(variant: modelName) { progress in
-            guard progress.totalUnitCount > 0 else { return }
-            let fraction = Double(progress.completedUnitCount) / Double(progress.totalUnitCount)
-            observer(min(max(fraction, 0), 1))
+            observer(progress.completedUnitCount, progress.totalUnitCount)
         }
         return try await WhisperKit(
             WhisperKitConfig(
@@ -77,6 +84,16 @@ actor Transcriber {
         for variant in variants where variant.lastPathComponent.hasSuffix(modelName) {
             try? fm.removeItem(at: variant)
         }
+    }
+
+    /// Transcribe an in-progress buffer for a live preview.
+    ///
+    /// Returns nil rather than waiting when the model isn't resident or the
+    /// buffer is too short to say anything: a partial is a nicety, and it must
+    /// never delay or fail the real transcription that follows.
+    func partial(_ samples: [Float], language: String = "en") async -> String? {
+        guard kit != nil, samples.count > 16_000 / 2 else { return nil }
+        return try? await transcribe(samples, language: language)
     }
 
     /// Transcribe 16 kHz mono float samples to text. Returns "" for silence.

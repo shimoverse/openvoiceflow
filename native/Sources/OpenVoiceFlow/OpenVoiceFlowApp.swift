@@ -20,7 +20,7 @@ struct OpenVoiceFlowApp: App {
             DashboardView(controller: delegate.controller)
         }
         .windowResizability(.contentSize)
-        .defaultSize(width: 1000, height: 660)
+        .defaultSize(width: 1000, height: 768)
     }
 }
 
@@ -68,7 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 640, height: 440),
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: 470),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -88,6 +88,10 @@ extension Notification.Name {
     /// dashboard. `MenuBarLabel` is always alive, so it holds the `openWindow`
     /// action that can actually present the Window scene.
     static let ovfOpenDashboard = Notification.Name("ovfOpenDashboard")
+    /// Posted by onboarding's welcome step: the menu-bar glyph waves once so
+    /// "I live up there" has something to point at. MenuBarLabel owns the
+    /// animator, so it does the playing.
+    static let ovfPlayHello = Notification.Name("ovfPlayHello")
 }
 
 /// The template status icon, animated while listening/working (design 02).
@@ -102,6 +106,9 @@ private struct MenuBarLabel: View {
             .onChange(of: controller.iconState) { icon.set($0) }
             .onReceive(NotificationCenter.default.publisher(for: .ovfOpenDashboard)) { _ in
                 openWindow(id: "dashboard")
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .ovfPlayHello)) { _ in
+                icon.playHello()
             }
     }
 }

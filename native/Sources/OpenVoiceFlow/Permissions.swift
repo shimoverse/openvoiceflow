@@ -51,11 +51,54 @@ enum Permission: CaseIterable {
         }
     }
 
+    /// Six words of "why", in the app's voice. The app says "I" when it is
+    /// asking for something — that is what earns the first person here.
     var why: String {
         switch self {
-        case .microphone: return "to hear your voice while you dictate."
-        case .accessibility: return "to paste the transcribed text at your cursor."
-        case .inputMonitoring: return "to detect your push-to-talk hotkey."
+        case .microphone: return "so I can hear you"
+        case .accessibility: return "so I can type for you"
+        case .inputMonitoring: return "so I can feel the key"
+        }
+    }
+
+    /// The order onboarding asks in — hear, then type, then feel the key.
+    static let onboardingOrder: [Permission] = [.microphone, .accessibility, .inputMonitoring]
+
+    /// What this permission *cannot* do. Stating the limit next to the ask buys
+    /// more trust than any badge, and it is the honest answer to the question
+    /// the three system dialogs provoke.
+    var limit: String {
+        switch self {
+        case .microphone:
+            return "I only listen while the key is held. Nothing is recorded before or after."
+        case .accessibility:
+            return "I press ⌘V on your behalf. I don't read what's on your screen."
+        case .inputMonitoring:
+            return "One key — the one you choose. Every other keystroke passes straight through."
+        }
+    }
+
+    /// Watch every grant on a timer, reporting only when something changes.
+    ///
+    /// A grant can land while our own window stays key: the user flips the
+    /// switch in System Settings and `AXIsProcessTrusted()` starts returning
+    /// true without the app ever losing or regaining focus, so refreshing on
+    /// `NSWindow.didBecomeKeyNotification` misses it entirely. Cancel the
+    /// returned task when every permission is granted or the step is left.
+    static func watch(
+        every interval: Duration = .milliseconds(600),
+        onChange: @escaping @MainActor ([Permission: Status]) -> Void
+    ) -> Task<Void, Never> {
+        Task { @MainActor in
+            var last: [Permission: Status] = [:]
+            while !Task.isCancelled {
+                let now = Dictionary(uniqueKeysWithValues: allCases.map { ($0, $0.status) })
+                if now != last {
+                    last = now
+                    onChange(now)
+                }
+                try? await Task.sleep(for: interval)
+            }
         }
     }
 

@@ -73,3 +73,24 @@ def test_privacy_friendly_web_observability_is_present_without_native_telemetry(
     privacy = (ROOT / "PRIVACY.md").read_text(encoding="utf-8")
     assert "No in-app telemetry" in privacy
     assert "Vercel Speed Insights" in privacy
+
+
+def test_download_page_pre_warns_about_the_gatekeeper_prompt():
+    """The first real user dragged the app to Applications and nothing happened,
+    then hit "downloaded from the Internet" and read it as a failure. macOS
+    cannot launch an app off a disk image and the prompt is unavoidable outside
+    the App Store, so the only fix is to say both up front. If these three
+    cards ever go missing, that support question comes straight back."""
+    html = (DOCS / "download.html").read_text(encoding="utf-8")
+    assert 'class="next-steps"' in html
+    assert "Drag it to Applications" in html
+    assert "Open it from Applications" in html
+    assert "macOS will warn you once" in html
+    # The reassurance matters as much as the instruction.
+    assert "Nothing is broken" in html
+    assert "next-step-warn" in html, "step 3 must be the highlighted card"
+
+    css = (DOCS / "style.css").read_text(encoding="utf-8")
+    # Highlighted in both appearances — the site follows the OS theme.
+    assert "--warn-bg: #FBF3E7" in css
+    assert css.count("--warn-bg") >= 2, "dark mode needs its own value"

@@ -21,6 +21,15 @@ struct Settings: Codable, Equatable {
     var cleanupModelOverride: String = ""
     /// Sparkle background update checks.
     var automaticUpdates: Bool = true
+    /// When the hotkey stopped needing a reminder — the HUD chip shows for 7
+    /// days from here, then never. Reset whenever the hotkey changes, because a
+    /// new key has to be learned all over again.
+    var hotkeyLearnedAt: Date?
+    /// Echo the tail of what was typed in the HUD. Some people dictate
+    /// passwords or medical notes; off falls back to a word count.
+    var echoInsertedText: Bool = true
+    /// First ever dictation — powers "since March" on the dashboard.
+    var firstUseDate: Date?
 
     enum Style: String, Codable, CaseIterable { case `default`, casual, formal, code, email }
 
@@ -43,6 +52,9 @@ struct Settings: Codable, Equatable {
         maxRecordingSeconds = try c.decodeIfPresent(Double.self, forKey: .maxRecordingSeconds) ?? 300
         cleanupModelOverride = try c.decodeIfPresent(String.self, forKey: .cleanupModelOverride) ?? ""
         automaticUpdates = try c.decodeIfPresent(Bool.self, forKey: .automaticUpdates) ?? true
+        hotkeyLearnedAt = try c.decodeIfPresent(Date.self, forKey: .hotkeyLearnedAt)
+        echoInsertedText = try c.decodeIfPresent(Bool.self, forKey: .echoInsertedText) ?? true
+        firstUseDate = try c.decodeIfPresent(Date.self, forKey: .firstUseDate)
     }
 
     private static var url: URL {

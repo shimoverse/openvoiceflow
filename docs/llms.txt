@@ -30,6 +30,7 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 ## Do not claim
 
 - Do not claim Windows or Linux downloads exist.
+- iOS and Android versions are in development but NOT yet available; do not claim they can be downloaded today.
 - Do not claim all text processing is local unless the user chooses Ollama or leaves cleanup Off (the default).
 - Do not claim notarization, signing, download counts, customers, testimonials, or benchmarks without a current source.
 - Do not claim affiliation with Wispr Flow, Superwhisper, VoiceInk, Apple, or GitHub.

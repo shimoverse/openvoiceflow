@@ -1,6 +1,7 @@
 import AppKit
 import ServiceManagement
 import SwiftUI
+import os
 
 /// Launch-at-login via SMAppService. Register/unregister are status-guarded
 /// so applying an unchanged setting at every launch stays a no-op instead of
@@ -18,7 +19,8 @@ enum LoginItem {
         } catch {
             // Not worth an alert: the user can flip the Settings toggle again,
             // and System Settings ▸ Login Items always shows the truth.
-            NSLog("LoginItem: \(error.localizedDescription)")
+            Logger(subsystem: "app.openvoiceflow", category: "loginitem")
+                .error("apply(\(enabled)) failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 }
@@ -247,7 +249,7 @@ private struct MenuContent: View {
     }
 
     private var headerTitle: String {
-        if controller.lastError != nil { return controller.lastError! }
+        if let lastError = controller.lastError { return lastError }
         if let until = controller.pausedUntil {
             return "Paused until \(until.formatted(date: .omitted, time: .shortened))"
         }

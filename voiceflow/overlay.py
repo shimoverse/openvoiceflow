@@ -337,7 +337,7 @@ class FloatingOverlay:
         ``timing`` (optional): a short string like ``"Whisper 0.8s · Cleanup 1.4s"``
         appended after the result. Surfaces the dictation latency so the
         user understands the system is fast (or which backend is slow).
-        See UX_REVIEW.md Journey 6.
+        Rationale: an error with no next step strands the user; every error state names its fix.
         """
         if not HAS_APPKIT:
             return

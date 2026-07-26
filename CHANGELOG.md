@@ -113,7 +113,7 @@ The Python app (≤ 0.3.6) is EOL from this point.
 - **Know-Me interview no longer self-destructs** when Escape is pressed while a
   text field is focused.
 
-See [`PRODUCTION_READINESS.md`](PRODUCTION_READINESS.md) for the full audit and
+See git history (`PRODUCTION_READINESS.md`, since removed) for the full audit and
 the remaining roadmap (native onboarding, self-contained bundle, Sparkle, etc.).
 
 ## [0.3.5] — 2026-07-13

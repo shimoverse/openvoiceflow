@@ -4,7 +4,7 @@ import Security
 /// User-visible preferences (no secrets). Persisted as JSON in Application
 /// Support. API keys live in the Keychain (see `Keychain`), never on disk.
 struct Settings: Codable, Equatable {
-    var hotkey: Hotkey = .rightCommand
+    var hotkey: Hotkey = .fn
     var backend: Backend = .none
     var whisperModel: String = "base.en"
     var language: String = "en"
@@ -12,6 +12,8 @@ struct Settings: Codable, Equatable {
     var autoPaste: Bool = true
     var soundFeedback: Bool = true
     var launchAtLogin: Bool = false
+    /// Show a Dock icon (clicking it opens the dashboard). Off ⇒ menu-bar only.
+    var showInDock: Bool = true
     var didOnboard: Bool = false
     /// Hard cap on a single take (seconds); a missed hotkey-up can't record forever.
     var maxRecordingSeconds: Double = 300
@@ -28,7 +30,7 @@ struct Settings: Codable, Equatable {
     // (a missing key falls back to its default instead of resetting everything).
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        hotkey = try c.decodeIfPresent(Hotkey.self, forKey: .hotkey) ?? .rightCommand
+        hotkey = try c.decodeIfPresent(Hotkey.self, forKey: .hotkey) ?? .fn
         backend = try c.decodeIfPresent(Backend.self, forKey: .backend) ?? .none
         whisperModel = try c.decodeIfPresent(String.self, forKey: .whisperModel) ?? "base.en"
         language = try c.decodeIfPresent(String.self, forKey: .language) ?? "en"
@@ -36,6 +38,7 @@ struct Settings: Codable, Equatable {
         autoPaste = try c.decodeIfPresent(Bool.self, forKey: .autoPaste) ?? true
         soundFeedback = try c.decodeIfPresent(Bool.self, forKey: .soundFeedback) ?? true
         launchAtLogin = try c.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? false
+        showInDock = try c.decodeIfPresent(Bool.self, forKey: .showInDock) ?? true
         didOnboard = try c.decodeIfPresent(Bool.self, forKey: .didOnboard) ?? false
         maxRecordingSeconds = try c.decodeIfPresent(Double.self, forKey: .maxRecordingSeconds) ?? 300
         cleanupModelOverride = try c.decodeIfPresent(String.self, forKey: .cleanupModelOverride) ?? ""

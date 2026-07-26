@@ -211,17 +211,41 @@ struct OnboardingView: View {
 
     private var helloStep: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Say hello")
+            Text("Try it")
                 .font(.system(size: 24, weight: .bold)).kerning(-0.5)
                 .foregroundStyle(Color(hex: 0xEAE6DD))
             (Text("Hold ")
-                + Text("Right \(controller.settings.hotkey.glyph)").bold()
-                + Text(" and say: \"Hello from my own two vocal cords.\""))
+                + Text(controller.settings.hotkey.displayName).bold()
+                + Text(" and say: \"Hey, I'm using OpenVoiceFlow.\""))
                 .font(.system(size: 13)).foregroundStyle(Color(hex: 0x96907F))
 
+            // macOS gives fn/🌐 its own job (emoji picker / input switch) unless
+            // it's set to do nothing, which would otherwise fire on every take.
+            if controller.settings.hotkey == .fn {
+                HStack(spacing: 8) {
+                    Text("Tip: set System Settings ▸ Keyboard ▸ \"Press 🌐 to\" → \"Do Nothing\" so the key is all yours.")
+                        .font(.system(size: 11.5)).foregroundStyle(Color(hex: 0x6B6558))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Open") {
+                        NSWorkspace.shared.open(
+                            URL(string: "x-apple.systempreferences:com.apple.Keyboard-Settings.extension")!)
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(accent)
+                }
+            }
+
+            // Shows what was actually heard. The paste itself goes to whatever
+            // app has focus, so echoing the transcript here is the honest
+            // confirmation that the whole loop works.
             HStack(spacing: 0) {
-                Text(helloDone ? "Hello from my own two vocal cords." : "")
+                Text(controller.lastTranscript ?? "")
                     .font(.system(size: 13.5)).foregroundStyle(Color(hex: 0xEAE6DD))
+                if controller.lastTranscript == nil {
+                    Text(controller.isRecording ? "Listening…"
+                         : controller.isWorking ? "Working…" : "Waiting for you…")
+                        .font(.system(size: 13)).foregroundStyle(Color(hex: 0x6B6558))
+                }
                 Rectangle().fill(accent).frame(width: 2, height: 15)
             }
             .frame(maxWidth: .infinity, minHeight: 60, alignment: .topLeading)
@@ -229,16 +253,21 @@ struct OnboardingView: View {
             .background(RoundedRectangle(cornerRadius: 10).fill(.white.opacity(0.04)))
 
             if helloDone {
-                Text("That's it. You're set — we live in the menu bar now. ↗")
+                Text("That worked. You're set — hold the key in any app. ↗")
                     .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(DT.moss)
             } else {
-                Button("I said it — mark me ready") { helloDone = true }
-                    .buttonStyle(.bordered)
+                Button("Skip this") { helloDone = true }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11.5)).foregroundStyle(Color(hex: 0x6B6558))
             }
             Spacer()
         }
         .padding(.top, 24)
         .onAppear { _ = controller.startListening() }
+        // Auto-detect: the moment a dictation lands, mark the step complete.
+        .onChange(of: controller.lastTranscript) { transcript in
+            if transcript?.isEmpty == false { helloDone = true }
+        }
     }
 }
 

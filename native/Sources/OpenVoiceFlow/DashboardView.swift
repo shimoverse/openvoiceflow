@@ -540,6 +540,7 @@ struct DashboardView: View {
                 }
                 settingsToggle("Sounds", isOn: bind(\.soundFeedback))
                 settingsToggle("Paste automatically", isOn: bind(\.autoPaste))
+                settingsToggle("Show in Dock", isOn: showInDockBinding)
             }
 
             settingsCard("TRANSCRIPTION — ON THIS MAC") {
@@ -664,6 +665,20 @@ struct DashboardView: View {
     /// Hotkey needs the tap restarted, so it goes through the controller.
     private var hotkeyBinding: Binding<Hotkey> {
         Binding(get: { controller.settings.hotkey }, set: { controller.updateHotkey($0) })
+    }
+
+    /// Dock visibility applies immediately by flipping the activation policy —
+    /// persisting alone would leave the Dock unchanged until the next launch.
+    private var showInDockBinding: Binding<Bool> {
+        Binding(
+            get: { controller.settings.showInDock },
+            set: { show in
+                controller.settings.showInDock = show
+                controller.settings.save()
+                NSApp.setActivationPolicy(show ? .regular : .accessory)
+                if show { NSApp.activate(ignoringOtherApps: true) }
+            }
+        )
     }
 
     /// Whisper model swaps the live transcriber, so it goes through the controller

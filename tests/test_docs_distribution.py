@@ -66,7 +66,7 @@ def test_public_downloads_remain_website_hosted():
 
 
 def test_privacy_friendly_web_observability_is_present_without_native_telemetry():
-    public_pages = ["index.html", "download.html", "install.html", "how-it-works.html", "privacy.html"]
+    public_pages = ["index.html", "download.html", "install.html", "how-it-works.html", "privacy.html", "mission.html"]
     for page in public_pages:
         html = (DOCS / page).read_text(encoding="utf-8")
         assert "va.vercel-scripts.com/v1/script.js" in html

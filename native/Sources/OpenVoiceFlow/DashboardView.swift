@@ -22,6 +22,11 @@ struct DashboardView: View {
     @State private var showInterview = false
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
     @State private var showDeleteHistory = false
+    // Live TCC statuses for the Settings permissions card. Polled (not
+    // event-driven) because a grant can land in System Settings while this
+    // window stays key — see Permission.watch.
+    @State private var permissionStatus: [Permission: Permission.Status] = [:]
+    @State private var permissionWatch: Task<Void, Never>?
     @Environment(\.colorScheme) private var scheme
 
     init(controller: AppController) {
@@ -698,6 +703,8 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 16) {
             paneTitle("Settings")
 
+            permissionsCard
+
             settingsCard("DICTATION") {
                 settingsRow("Hotkey") {
                     Picker("", selection: hotkeyBinding) {
@@ -757,7 +764,50 @@ struct DashboardView: View {
             }
         }
         .frame(maxWidth: 620, alignment: .leading)
-        .onAppear { reloadAPIKeyDraft() }
+        .onAppear {
+            reloadAPIKeyDraft()
+            permissionWatch = Permission.watch { statuses in
+                permissionStatus = statuses
+                // A revoked permission is also why the key listener would be
+                // down, so the moment the user grants it back, come back to
+                // life rather than waiting for a relaunch.
+                if !controller.isListening && !controller.isPaused {
+                    _ = controller.startListening()
+                }
+            }
+        }
+        .onDisappear {
+            permissionWatch?.cancel()
+            permissionWatch = nil
+        }
+    }
+
+    /// Permissions lived only behind the menu bar's "Setup & Permissions…"
+    /// until 0.5.1; Settings is where people actually look when something
+    /// stops working, so the three grants are visible here too.
+    private var permissionsCard: some View {
+        settingsCard("PERMISSIONS") {
+            ForEach(Permission.allCases, id: \.self) { permission in
+                settingsRow("\(permission.title) — \(permission.why)") {
+                    switch permissionStatus[permission] ?? permission.status {
+                    case .granted:
+                        HStack(spacing: 6) {
+                            Circle().fill(dark ? DT.moss : DT.mossLight).frame(width: 6, height: 6)
+                            Text("Granted").foregroundStyle(ink2)
+                        }
+                        .font(.system(size: 12))
+                    case .undetermined:
+                        Button("Grant…") { permission.request() }
+                            .buttonStyle(.plain).foregroundStyle(DT.emberLight)
+                            .font(.system(size: 12))
+                    case .denied:
+                        Button("Open System Settings") { NSWorkspace.shared.open(permission.settingsURL) }
+                            .buttonStyle(.plain).foregroundStyle(DT.emberLight)
+                            .font(.system(size: 12))
+                    }
+                }
+            }
+        }
     }
 
     // MARK: AI cleanup card (toggle → provider → key → optional model)

@@ -58,11 +58,16 @@ struct OnboardingView: View {
     @State private var permissionWatch: Task<Void, Never>?
     /// The menu-bar glyph waves once per run (T7).
     @State private var helloWaved = false
+    /// "Up there" got no anchor: the wave plays on an icon nobody is looking
+    /// at, and a crowded menu bar may not even be showing it. True when the
+    /// live callout couldn't attach and the card must illustrate instead.
+    @State private var showMockBar = false
     /// How many words of the ink fill have been inked in (T9).
     @State private var revealedWords = 0
     @State private var fillTask: Task<Void, Never>?
     /// Download progress, mirrored up from the step so the footer can show it.
-    @State private var downloadPercent = "0%"
+    /// Starts as a nudge because nothing downloads until an engine is chosen.
+    @State private var downloadPercent = "waiting on your pick"
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var scheme
 
@@ -186,15 +191,52 @@ struct OnboardingView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 420)
                 .padding(.top, 12)
+            if showMockBar { mockMenuBar.padding(.top, 22) }
             Spacer()
         }
         .frame(maxWidth: .infinity)
-        // Once per run, not once per visit — going Back shouldn't replay it.
         .onAppear {
-            guard !helloWaved else { return }
-            helloWaved = true
-            NotificationCenter.default.post(name: .ovfPlayHello, object: nil)
+            // Once per run, not once per visit — going Back shouldn't replay it.
+            if !helloWaved {
+                helloWaved = true
+                NotificationCenter.default.post(name: .ovfPlayHello, object: nil)
+            }
+            // "Up there" points somewhere real: a callout under the live icon.
+            // When the icon can't be located (crowded bar, notch), the card
+            // illustrates the spot instead — re-tried on every visit, since
+            // menu-bar space can free up between them.
+            showMockBar = !HelloCallout.show()
         }
+        .onDisappear { HelloCallout.dismiss() }
+    }
+
+    /// Fallback anchor: a pretend slice of menu bar with our waveform where
+    /// it will actually sit — right side, near the clock.
+    private var mockMenuBar: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 16) {
+                Spacer()
+                Image(systemName: "wifi")
+                Image(systemName: "battery.75")
+                Image(nsImage: StatusIconRenderer.image(for: .idle))
+                    .renderingMode(.template)
+                    .foregroundStyle(p.accent)
+                    .padding(5)
+                    .background(Circle().fill(p.accent.opacity(0.16)))
+                    .overlay(Circle().strokeBorder(p.accent.opacity(0.45), lineWidth: 1))
+                Text("9:41")
+            }
+            .font(.system(size: 12))
+            .foregroundStyle(p.ink2)
+            .padding(.horizontal, 12)
+            .frame(width: 320, height: 34)
+            .background(RoundedRectangle(cornerRadius: 8).fill(p.card))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(p.hairline))
+            Text("Top right of your screen, near the clock.")
+                .font(.system(size: 12)).foregroundStyle(p.ink3)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("The waveform icon sits at the top right of your screen, near the clock.")
     }
 
     /// Step 1 — three permissions, asked one at a time.
@@ -531,6 +573,17 @@ final class DownloadMeter: ObservableObject {
 
     var percentText: String { "\(Int((fraction * 100).rounded()))%" }
 
+    /// Back to zero for a fresh transfer — switching speech engines mid-step
+    /// must not inherit the previous download's bar, rate, or ETA.
+    func reset() {
+        received = 0
+        expected = 0
+        rateText = ""
+        etaText = ""
+        samples = []
+        lastETAUpdate = .distantPast
+    }
+
     /// Land the bar exactly on full when the load finishes, rather than leaving
     /// it wherever the last progress callback happened to fire.
     func complete() {
@@ -580,29 +633,84 @@ private struct KnowMeDownloadStep: View {
     /// True when the model was already on disk, so there is nothing to show.
     @State private var skipProgress = false
     @State private var name = ""
-    @State private var words: [String] = []
-    /// Whether the profile draft has been loaded — see start().
+    /// Whether the profile draft has been loaded — see appear().
     @State private var hydrated = false
+    /// The engine the user tapped. Nothing downloads until this is non-nil:
+    /// the choice is theirs, not a silent default.
+    @State private var selected: String?
+    /// Invalidates a superseded download's callbacks when the user switches
+    /// engines mid-transfer, so the old transfer can't drive the new bar.
+    @State private var generation = 0
 
     private var p: OBPalette { palette }
 
+    /// The engines on offer — size and benefit up front, decision theirs.
+    /// Same ids the dashboard and menu speak.
+    private static let engines: [(id: String, name: String, size: String, benefit: String, recommended: Bool)] = [
+        ("tiny", "Tiny", "39 MB", "Fastest. Fine for quick notes.", false),
+        ("small", "Small", "466 MB", "Everyday dictation on any Mac.", true),
+        ("medium", "Medium", "1.5 GB", "Hears more, asks more of your Mac.", false),
+        ("large-v3-turbo", "Large turbo", "1.6 GB", "Hears the most. Best on Apple Silicon.", false),
+    ]
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(skipProgress ? "Who am I typing for?" : "While that downloads — who am I typing for?")
+            Text(skipProgress ? "Who am I typing for?" : "Pick your speech engine.")
                 .font(.system(size: 25, weight: .bold)).kerning(-0.625)
                 .foregroundStyle(p.ink)
-            Text("Two answers, and your name comes out spelled right the first time.")
+            Text(skipProgress
+                 ? "One answer, and your name comes out spelled right the first time."
+                 : "Each one runs on this Mac, offline. Bigger hears better — your call.")
                 .font(.system(size: 13)).foregroundStyle(p.ink2)
                 .padding(.top, 6)
 
-            interviewCard.padding(.top, 18)
-            if !skipProgress {
+            if !skipProgress { engineCard.padding(.top, 16) }
+            interviewCard.padding(.top, 14)
+            if selected != nil && !skipProgress {
                 progressCard.padding(.top, 14)
             }
             Spacer()
         }
-        .onAppear(perform: start)
+        .onAppear(perform: appear)
         .onDisappear(perform: persist)
+    }
+
+    private var engineCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(Self.engines.enumerated()), id: \.element.id) { index, engine in
+                if index > 0 { Divider().overlay(p.hairline) }
+                Button { choose(engine.id) } label: {
+                    HStack(spacing: 12) {
+                        Circle()
+                            .strokeBorder(selected == engine.id ? p.accent : p.ink3, lineWidth: 1.5)
+                            .background(Circle().fill(selected == engine.id ? p.accent : .clear).padding(3.5))
+                            .frame(width: 15, height: 15)
+                        Text(engine.name)
+                            .font(.system(size: 13, weight: .semibold)).foregroundStyle(p.ink)
+                        if engine.recommended {
+                            Text("POPULAR")
+                                .font(.system(size: 9, weight: .bold)).kerning(0.5)
+                                .foregroundStyle(p.accent)
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(Capsule().fill(p.accent.opacity(0.14)))
+                        }
+                        Text(engine.benefit)
+                            .font(.system(size: 12)).foregroundStyle(p.ink2)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(engine.size)
+                            .font(.system(size: 11.5)).monospacedDigit().foregroundStyle(p.ink3)
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 10)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(engine.name), \(engine.size). \(engine.benefit)")
+                .accessibilityAddTraits(selected == engine.id ? .isSelected : [])
+            }
+        }
+        .background(RoundedRectangle(cornerRadius: DT.rCard).fill(p.card))
+        .overlay(RoundedRectangle(cornerRadius: DT.rCard).strokeBorder(p.hairline))
     }
 
     private var interviewCard: some View {
@@ -614,12 +722,6 @@ private struct KnowMeDownloadStep: View {
                 ink: p.ink, ink2: p.ink2,
                 fill: p.ink.opacity(0.06),
                 accent: p.accent)
-            KnowMeTokenRow(
-                label: "Any names or words I'd get wrong?",
-                tokens: $words,
-                ink2: p.ink2, ink3: p.ink3,
-                chipInk: scheme_chipInk,
-                chipFill: p.ink.opacity(0.07))
         }
         .padding(18)
         .background(RoundedRectangle(cornerRadius: DT.rCard).fill(p.card))
@@ -669,7 +771,7 @@ private struct KnowMeDownloadStep: View {
                     .font(.system(size: 12.5)).foregroundStyle(Color(hex: 0xC9C3B4))
                     .padding(.top, 9)
                 HStack(spacing: 14) {
-                    Button("Try again") { start() }
+                    Button("Try again") { if let selected { download(engine: selected) } }
                         .buttonStyle(.plain)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(p.onAccent)
@@ -709,40 +811,67 @@ private struct KnowMeDownloadStep: View {
         Text("·").font(.system(size: 11.5)).foregroundStyle(p.ink3)
     }
 
-    private func start() {
-        // Hydrate the draft from the saved profile once, not on every entry.
-        // "Try again" after a failed download comes back through here, and
-        // persist() only runs when the step is left — so re-reading the profile
-        // would replace the name the user just typed with the empty value still
-        // on disk, as a reward for retrying.
+    private func appear() {
+        // Hydrate the draft from the saved profile once, not on every entry —
+        // persist() only runs when the step is left, so re-reading on every
+        // visit would replace a just-typed name with the stale value on disk.
         if !hydrated {
             hydrated = true
             name = controller.profileStore.profile.name
-            if words.isEmpty { words = controller.profileStore.profile.technicalTerms }
         }
-        guard !done else { return }
+        guard !done, selected == nil else { return }
+        // A reinstall already has an engine on disk: no choice to re-litigate,
+        // no bar for something instant — straight to the name.
+        Task {
+            if await controller.isModelReady() {
+                skipProgress = true
+                done = true
+            }
+        }
+    }
+
+    private func choose(_ id: String) {
+        guard id != selected else { return }
+        selected = id
+        download(engine: id)
+    }
+
+    private func download(engine: String) {
+        // A switch mid-transfer supersedes the old download; its straggling
+        // callbacks must not touch the new bar or declare the step done.
+        generation += 1
+        let gen = generation
+        done = false
         failed = false
         failureDetail = nil
         showDetail = false
+        meter.reset()
+        percent = "0%"
 
         Task {
-            // A reinstall already has the model: no bar, no wait, straight to
-            // "Try it" — showing 0→100% for something instant is theatre.
+            await controller.selectModel(engine)
+            guard gen == generation else { return }
+            // Switching back to an engine that already finished downloading:
+            // land the bar, no second transfer.
             if await controller.isModelReady() {
-                skipProgress = true
+                guard gen == generation else { return }
+                meter.complete()
                 done = true
                 return
             }
             do {
                 try await controller.prepareModelForOnboarding { received, expected in
                     Task { @MainActor in
+                        guard gen == generation else { return }
                         meter.update(received: received, expected: expected)
                         percent = meter.percentText
                     }
                 }
+                guard gen == generation else { return }
                 meter.complete()
                 done = true
             } catch {
+                guard gen == generation else { return }
                 failed = true
                 failureDetail = error.localizedDescription
             }
@@ -750,11 +879,12 @@ private struct KnowMeDownloadStep: View {
     }
 
     /// Answers are written when the step is left, so a user who types and moves
-    /// on doesn't lose them to a missing Save button.
+    /// on doesn't lose them to a missing Save button. Words-they'd-get-wrong
+    /// moved out of onboarding entirely (it was one ask too many); existing
+    /// terms on disk pass through untouched.
     private func persist() {
         var profile = controller.profileStore.profile
         profile.name = name.trimmingCharacters(in: .whitespaces)
-        profile.technicalTerms = words
         controller.profileStore.profile = profile
         controller.dictionaryStore.seed(with: controller.profileStore.dictionaryWords)
     }

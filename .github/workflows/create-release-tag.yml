@@ -47,5 +47,20 @@ jobs:
           # from an unmerged branch) can't become a release.
           gh api "repos/$GITHUB_REPOSITORY/compare/$SHA...main" --jq '.status' | grep -qE '^(ahead|identical)$' \
             || { echo "::error::$SHA is not an ancestor of main"; exit 1; }
-          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$SHA"
-          echo "created refs/tags/$TAG at $SHA"
+          # A tag that already exists may be MOVED only while unreleased —
+          # i.e. its build failed before a GitHub Release was published. The
+          # moment a Release exists, the tag is immutable here: users may hold
+          # the artifact it named, and this job must never rewrite that.
+          if EXISTING="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null)"; then
+            if gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" >/dev/null 2>&1; then
+              echo "::error::$TAG already has a published Release; refusing to move it"; exit 1
+            fi
+            if [[ "$EXISTING" == "$SHA" ]]; then
+              echo "refs/tags/$TAG already at $SHA — nothing to do"; exit 0
+            fi
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG" -f sha="$SHA" -F force=true
+            echo "moved refs/tags/$TAG: $EXISTING -> $SHA (unreleased tag)"
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$SHA"
+            echo "created refs/tags/$TAG at $SHA"
+          fi

@@ -32,7 +32,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        // The app launches as an accessory (LSUIElement) so the dashboard scene
+        // stays dormant; promoting to .regular here adds the Dock icon without
+        // auto-presenting that window. Settings ▸ Show in Dock flips it back.
+        if controller.settings.showInDock { NSApp.setActivationPolicy(.regular) }
         // Start Sparkle at launch so background appcast checks run on schedule.
         _ = UpdaterController.shared
         #if DEBUG
@@ -42,6 +45,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #endif
         guard forceOnboarding || !controller.settings.didOnboard else { return }
         DispatchQueue.main.async { [weak self] in self?.showOnboarding() }
+    }
+
+    /// Clicking the Dock icon (or reopening the app) brings up the dashboard —
+    /// the thing a Dock icon is expected to do. During first run it re-presents
+    /// onboarding instead, so the setup flow is never stranded behind the Dock.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        if !controller.settings.didOnboard {
+            showOnboarding()
+        } else {
+            NotificationCenter.default.post(name: .ovfOpenDashboard, object: nil)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        return true
     }
 
     func showOnboarding() {
@@ -67,15 +83,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+extension Notification.Name {
+    /// Posted when something outside SwiftUI (a Dock-icon click) wants the
+    /// dashboard. `MenuBarLabel` is always alive, so it holds the `openWindow`
+    /// action that can actually present the Window scene.
+    static let ovfOpenDashboard = Notification.Name("ovfOpenDashboard")
+}
+
 /// The template status icon, animated while listening/working (design 02).
 private struct MenuBarLabel: View {
     @ObservedObject var controller: AppController
     @ObservedObject var icon: StatusIconAnimator
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Image(nsImage: icon.image)
             .onAppear { icon.set(controller.iconState) }
             .onChange(of: controller.iconState) { icon.set($0) }
+            .onReceive(NotificationCenter.default.publisher(for: .ovfOpenDashboard)) { _ in
+                openWindow(id: "dashboard")
+            }
     }
 }
 
@@ -116,7 +143,7 @@ private struct MenuContent: View {
         Menu("Hotkey — \(controller.settings.hotkey.displayName)") {
             ForEach(Hotkey.allCases, id: \.self) { key in
                 Toggle(isOn: .constant(controller.settings.hotkey == key)) {
-                    Text(key == .rightCommand ? "\(key.displayName)  (default)" : key.displayName)
+                    Text(key == .fn ? "\(key.displayName)  (default)" : key.displayName)
                 }
                 .onTapGesture { controller.updateHotkey(key) }
             }

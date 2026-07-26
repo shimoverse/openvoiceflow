@@ -11,8 +11,11 @@
     <key>CFBundleShortVersionString</key><string>0.4.2</string>
     <key>CFBundleVersion</key><string>3</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
-    <!-- Menu-bar agent: no Dock icon, no main window on launch. -->
-    <key>LSUIElement</key><true/>
+    <!-- Regular app: a Dock icon by default (clicking it opens the dashboard),
+         plus the menu-bar extra. Users who want a pure menu-bar agent can turn
+         off Settings ▸ "Show in Dock", which flips the activation policy to
+         .accessory at runtime. -->
+    <key>LSUIElement</key><false/>
     <key>NSHighResolutionCapable</key><true/>
     <!-- TCC usage strings (shown in the OS consent dialogs). -->
     <key>NSMicrophoneUsageDescription</key>

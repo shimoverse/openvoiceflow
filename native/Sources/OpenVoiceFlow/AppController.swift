@@ -15,6 +15,10 @@ final class AppController: ObservableObject {
     @Published private(set) var isWorking = false
     @Published private(set) var pausedUntil: Date?
     @Published private(set) var lastError: String?
+    /// The most recent delivered text. Lets the UI show what was actually heard
+    /// (onboarding's "say hello" confirms the loop works even when the paste
+    /// lands in another app).
+    @Published private(set) var lastTranscript: String?
     @Published var settings: Settings
 
     // Ported feature stores (dictionary, snippets, styles, profile, history).
@@ -222,6 +226,7 @@ final class AppController: ObservableObject {
         let pasted = settings.autoPaste ? Paster.paste(text) : true
         historyStore.record(app: app, text: text, words: words)
         lastError = nil
+        lastTranscript = text
         if pasted {
             hud.show(.result(words: words), autoHideAfter: 1.8)  // holds ~1.8 s
         } else {

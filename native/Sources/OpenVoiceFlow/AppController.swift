@@ -19,6 +19,16 @@ final class AppController: ObservableObject {
     /// (onboarding's "say hello" confirms the loop works even when the paste
     /// lands in another app).
     @Published private(set) var lastTranscript: String?
+    /// Live partial transcript, published only while `streamPartials` is on.
+    /// Onboarding's ink fill is the sole consumer — see `streamPartials`.
+    @Published private(set) var partialTranscript: String?
+    /// How long the last take was held, for onboarding's spoken-vs-typed line.
+    @Published private(set) var lastSpeechSeconds: Double = 0
+
+    /// Opt-in live partials. Off everywhere except the onboarding try-it step:
+    /// re-transcribing a growing buffer every 300 ms costs real CPU, and the
+    /// normal dictation path has no use for it (the HUD shows a coil, not text).
+    var streamPartials = false
     @Published var settings: Settings
 
     // Ported feature stores (dictionary, snippets, styles, profile, history).
@@ -42,6 +52,7 @@ final class AppController: ObservableObject {
     /// Below this a take is too brief to transcribe reliably — nudge, don't error.
     private let minSpeakSeconds: Double = 0.5
     private var maxRecordTask: Task<Void, Never>?
+    private var partialTask: Task<Void, Never>?
     private var resumeTask: Task<Void, Never>?
     private var pressTime = Date.distantPast
     private var lastSamples: [Float] = []
@@ -156,6 +167,7 @@ final class AppController: ObservableObject {
             hud.setMaxSeconds(maxRecordingSeconds)
             hud.setShowChip(shouldShowHotkeyChip)
             hud.show(.recording(hotkey: settings.hotkey))
+            if streamPartials { startPartialStream() }
             maxRecordTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(self?.maxRecordingSeconds ?? 300))
                 if !Task.isCancelled { self?.stopAndProcess() }  // finish + insert, never drop audio
@@ -171,8 +183,11 @@ final class AppController: ObservableObject {
         guard isRecording else { return }
         isRecording = false
         maxRecordTask?.cancel()
+        partialTask?.cancel()
+        partialTask = nil
         let samples = audio.stop()
         let elapsed = Date().timeIntervalSince(pressTime)
+        lastSpeechSeconds = elapsed
         guard !samples.isEmpty else { hud.hide(); return }
         // Released too soon to catch speech — nudge to keep talking, don't transcribe.
         guard elapsed >= minSpeakSeconds else {
@@ -182,6 +197,25 @@ final class AppController: ObservableObject {
         lastSamples = samples
         hud.show(.transcribing)
         Task { await process(samples) }
+    }
+
+    /// Re-transcribe the growing buffer on a 300 ms beat so the ink fill has
+    /// words to reveal while the key is still held. Every partial is
+    /// best-effort: a failure or a slow pass is skipped, never surfaced, and
+    /// never allowed to delay the real transcription on release.
+    private func startPartialStream() {
+        partialTranscript = nil
+        partialTask?.cancel()
+        partialTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(300))
+                guard let self, !Task.isCancelled, self.isRecording else { return }
+                let buffer = self.audio.snapshot()
+                guard let text = await self.transcriber.partial(buffer, language: self.settings.language),
+                      !text.isEmpty else { continue }
+                if !Task.isCancelled { self.partialTranscript = text }
+            }
+        }
     }
 
     private func retryLastTranscription() {
@@ -236,6 +270,7 @@ final class AppController: ObservableObject {
         historyStore.record(app: app, text: text, words: words)
         lastError = nil
         lastTranscript = text
+        partialTranscript = nil
         markFirstSuccess()
         if pasted {
             hud.setShowChip(shouldShowHotkeyChip)

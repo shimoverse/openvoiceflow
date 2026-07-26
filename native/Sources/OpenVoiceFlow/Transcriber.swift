@@ -46,20 +46,15 @@ actor Transcriber {
             return
         }
 
-        var total: Int64 = 0
-        let track: DownloadProgressObserver = { received, expected in
-            if expected > 0 { total = expected }
-            observer(received, expected)
-        }
         do {
-            kit = try await downloadAndLoad(progress: track)
+            kit = try await downloadAndLoad(progress: observer)
         } catch {
             purgeDownloadedModel()
-            kit = try await downloadAndLoad(progress: track)
+            kit = try await downloadAndLoad(progress: observer)
         }
-        // Land the bar exactly on full rather than wherever the last callback
-        // happened to fire.
-        observer(max(total, 1), max(total, 1))
+        // No synthetic final callback: tracking the running total in a captured
+        // var races WhisperKit's progress thread (a hard error under Swift 6).
+        // The caller lands the bar on full instead — see DownloadMeter.complete().
     }
 
     private func downloadAndLoad(progress observer: @escaping DownloadProgressObserver) async throws -> WhisperKit {
@@ -89,6 +84,16 @@ actor Transcriber {
         for variant in variants where variant.lastPathComponent.hasSuffix(modelName) {
             try? fm.removeItem(at: variant)
         }
+    }
+
+    /// Transcribe an in-progress buffer for a live preview.
+    ///
+    /// Returns nil rather than waiting when the model isn't resident or the
+    /// buffer is too short to say anything: a partial is a nicety, and it must
+    /// never delay or fail the real transcription that follows.
+    func partial(_ samples: [Float], language: String = "en") async -> String? {
+        guard kit != nil, samples.count > 16_000 / 2 else { return nil }
+        return try? await transcribe(samples, language: language)
     }
 
     /// Transcribe 16 kHz mono float samples to text. Returns "" for silence.

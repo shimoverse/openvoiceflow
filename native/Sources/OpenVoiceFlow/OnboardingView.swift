@@ -58,6 +58,12 @@ struct OnboardingView: View {
     @State private var permissionWatch: Task<Void, Never>?
     /// The menu-bar glyph waves once per run (T7).
     @State private var helloWaved = false
+    /// How many words of the ink fill have been inked in (T9).
+    @State private var revealedWords = 0
+    @State private var fillTask: Task<Void, Never>?
+    /// Download progress, mirrored up from the step so the footer can show it.
+    @State private var downloadPercent = "0%"
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var scheme
 
     private var p: OBPalette { OBPalette.resolve(scheme) }
@@ -83,7 +89,7 @@ struct OnboardingView: View {
 
     private var footer: some View {
         HStack {
-            if step > 0 {
+            if step > 0 && step < 4 {
                 Button("‹ Back") { step -= 1 }
                     .buttonStyle(.plain).foregroundStyle(p.ink2)
             } else {
@@ -112,8 +118,11 @@ struct OnboardingView: View {
             if downloadDone {
                 pill("Try it") { step = 3 }
             } else {
-                quiet("Getting ready")
+                quiet(downloadPercent)
             }
+        case 3:
+            // No pill here at all: the only way forward is to speak (or Skip).
+            EmptyView()
         default:
             pill("Start using it", disabled: !helloDone) {
                 controller.settings.didOnboard = true
@@ -151,8 +160,10 @@ struct OnboardingView: View {
         switch step {
         case 0: welcome
         case 1: permissions
-        case 2: KnowMeDownloadStep(controller: controller, done: $downloadDone, palette: p)
-        default: helloStep
+        case 2: KnowMeDownloadStep(controller: controller, done: $downloadDone,
+                                   percent: $downloadPercent, palette: p)
+        case 3: tryItStep
+        default: payoffStep
         }
     }
 
@@ -319,17 +330,24 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: say anything
+    // MARK: say anything → the payoff
 
-    private var helloStep: some View {
-        VStack(alignment: .leading, spacing: 16) {
+    /// Step 3 — the moment the app stops being a promise.
+    ///
+    /// A suggested sentence sits in the field in grey; the user's own words ink
+    /// in over it as they speak, and the caret walks the boundary between spoken
+    /// and unspoken. The grey line is a suggestion, not a script: say something
+    /// else and it is discarded the instant the first real word lands.
+    private var tryItStep: some View {
+        VStack(alignment: .leading, spacing: 0) {
             Text("Say anything.")
-                .font(.system(size: 24, weight: .bold)).kerning(-0.5)
+                .font(.system(size: 25, weight: .bold)).kerning(-0.625)
                 .foregroundStyle(p.ink)
             (Text("Hold ")
                 + Text(controller.settings.hotkey.displayName).bold()
-                + Text(" and talk. Let go when you're done."))
+                + Text(" and talk. Not sure what to say? Read the grey line."))
                 .font(.system(size: 13)).foregroundStyle(p.ink2)
+                .padding(.top, 6)
 
             // macOS gives fn/🌐 its own job (emoji picker / input switch) unless
             // it's set to do nothing, which would otherwise fire on every take.
@@ -345,43 +363,138 @@ struct OnboardingView: View {
                     .buttonStyle(.plain)
                     .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(p.accent)
                 }
+                .padding(.top, 10)
             }
 
-            // Shows what was actually heard. The paste itself goes to whatever
-            // app has focus, so echoing the transcript here is the honest
-            // confirmation that the whole loop works.
-            HStack(spacing: 0) {
-                Text(controller.lastTranscript ?? "")
-                    .font(.system(size: 13.5)).foregroundStyle(p.ink)
-                if controller.lastTranscript == nil {
-                    Text(controller.isRecording ? "Listening…"
-                         : controller.isWorking ? "Working…" : "Waiting for you…")
-                        .font(.system(size: 13)).foregroundStyle(p.ink3)
-                }
-                Rectangle().fill(p.accent).frame(width: 2, height: 15)
-            }
-            .frame(maxWidth: .infinity, minHeight: 60, alignment: .topLeading)
-            .padding(14)
-            .background(RoundedRectangle(cornerRadius: 10).fill(p.card))
+            InkFillView(
+                suggestion: Self.suggestion,
+                spoken: spokenText,
+                revealedWords: revealedWords,
+                idleHint: controller.isRecording ? nil : "Waiting for you…",
+                palette: p)
+                .padding(.top, 18)
 
-            if helloDone {
-                Text("That worked. You're set — hold the key in any app. ↗")
-                    .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(DT.moss)
-            } else {
-                Button("Skip") { helloDone = true }
+            if !helloDone {
+                Button("Skip") { helloDone = true; step = 4 }
                     .buttonStyle(.plain)
                     .font(.system(size: 11.5)).foregroundStyle(p.ink3)
+                    .padding(.top, 14)
             }
             Spacer()
         }
-        .onAppear { _ = controller.startListening() }
-        // Auto-detect: the moment a dictation lands, mark the step complete.
-        .onChange(of: controller.lastTranscript) { transcript in
-            if transcript?.isEmpty == false { helloDone = true }
+        .onAppear {
+            controller.streamPartials = true
+            _ = controller.startListening()
+        }
+        .onDisappear { controller.streamPartials = false }
+        // Live partials reveal as they arrive; the final transcript completes
+        // the fill and moves on to the payoff.
+        .onChange(of: controller.partialTranscript) { _ in revealFromPartial() }
+        .onChange(of: controller.lastTranscript) { text in
+            guard text?.isEmpty == false else { return }
+            helloDone = true
+            completeFill()
         }
     }
-}
 
+    /// The grey line. Deliberately a plain sentence someone would actually say —
+    /// it has to be readable aloud at a glance.
+    static let suggestion = "This is much faster than typing."
+
+    /// What the user has actually said so far: the live partial while holding,
+    /// the final transcript once it lands.
+    private var spokenText: String {
+        controller.lastTranscript ?? controller.partialTranscript ?? ""
+    }
+
+    /// Reveal on a 300 ms beat while the key is held — one word per partial that
+    /// brings a new word, so the fill tracks speech rather than jumping.
+    private func revealFromPartial() {
+        let count = spokenText.split(whereSeparator: \.isWhitespace).count
+        guard count > revealedWords else { return }
+        withAnimation(reduceMotion ? nil : DT.arrive) { revealedWords = count }
+    }
+
+    /// On release the remainder completes at 70 ms per word — fast, but still a
+    /// fill rather than a cut, so the eye can follow it. Reduce Motion inks the
+    /// whole line at once instead.
+    private func completeFill() {
+        let total = spokenText.split(whereSeparator: \.isWhitespace).count
+        guard total > 0 else { return }
+        if reduceMotion {
+            revealedWords = total
+            advanceToPayoff()
+            return
+        }
+        fillTask?.cancel()
+        fillTask = Task {
+            while revealedWords < total, !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(70))
+                if Task.isCancelled { return }
+                revealedWords += 1
+            }
+            try? await Task.sleep(for: .milliseconds(420))
+            if !Task.isCancelled { advanceToPayoff() }
+        }
+    }
+
+    private func advanceToPayoff() {
+        guard step == 3 else { return }
+        withAnimation(reduceMotion ? .linear(duration: 0.2) : DT.settle) { step = 4 }
+    }
+
+    /// Step 4 — the payoff. Everything else falls away; what's left is the
+    /// user's own sentence and the one number that matters.
+    private var payoffStep: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            RingGlyph(size: 76)
+                .padding(.bottom, 22)
+            Text("YOUR FIRST WORDS")
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .kerning(0.77)
+                .foregroundStyle(DT.moss)
+                .accessibilityAddTraits(.isHeader)
+            Text("“\(controller.lastTranscript ?? Self.suggestion)”")
+                .font(.system(size: 21, weight: .medium))
+                .lineSpacing(10.5)
+                .foregroundStyle(p.ink)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 460)
+                .padding(.top, 14)
+            if let comparison = spokenComparison {
+                Text(comparison)
+                    .font(.system(size: 13)).foregroundStyle(p.ink2)
+                    .padding(.top, 16)
+            }
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .onAppear {
+            // The most important instant in the app shouldn't be silent.
+            NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
+                                 userInfo: [.announcement: payoffAnnouncement,
+                                            .priority: NSAccessibilityPriorityLevel.high.rawValue])
+        }
+    }
+
+    /// "You spoke for 4 seconds. Typing that would have taken 18." — the same
+    /// 40 wpm divisor the dashboard uses, so the two never disagree.
+    private var spokenComparison: String? {
+        guard let text = controller.lastTranscript, !text.isEmpty else { return nil }
+        let words = text.split(whereSeparator: \.isWhitespace).count
+        let spoke = max(1, Int(speechSeconds.rounded()))
+        let typed = max(1, Int((Double(words) / 40.0 * 60).rounded()))
+        guard typed > spoke else { return nil }
+        return "You spoke for \(spoke) seconds. Typing that would have taken \(typed)."
+    }
+
+    private var speechSeconds: Double { controller.lastSpeechSeconds }
+
+    private var payoffAnnouncement: String {
+        "Your first words: \(controller.lastTranscript ?? "")"
+    }
+}
 
 /// Turns raw byte callbacks into the three numbers that make waiting bearable:
 /// size, rate, and a time remaining that doesn't jitter.
@@ -413,6 +526,14 @@ final class DownloadMeter: ObservableObject {
     }
 
     var percentText: String { "\(Int((fraction * 100).rounded()))%" }
+
+    /// Land the bar exactly on full when the load finishes, rather than leaving
+    /// it wherever the last progress callback happened to fire.
+    func complete() {
+        if expected > 0 { received = expected } else { expected = 1; received = 1 }
+        etaText = ""
+        rateText = ""
+    }
 
     func update(received: Int64, expected: Int64, now: Date = Date()) {
         self.received = received
@@ -446,6 +567,7 @@ final class DownloadMeter: ObservableObject {
 private struct KnowMeDownloadStep: View {
     @ObservedObject var controller: AppController
     @Binding var done: Bool
+    @Binding var percent: String
     let palette: OBPalette
     @StateObject private var meter = DownloadMeter()
     @State private var failed = false
@@ -599,8 +721,12 @@ private struct KnowMeDownloadStep: View {
             }
             do {
                 try await controller.prepareModelForOnboarding { received, expected in
-                    Task { @MainActor in meter.update(received: received, expected: expected) }
+                    Task { @MainActor in
+                        meter.update(received: received, expected: expected)
+                        percent = meter.percentText
+                    }
                 }
+                meter.complete()
                 done = true
             } catch {
                 failed = true
@@ -617,5 +743,106 @@ private struct KnowMeDownloadStep: View {
         profile.technicalTerms = words
         controller.profileStore.profile = profile
         controller.dictionaryStore.seed(with: controller.profileStore.dictionaryWords)
+    }
+}
+
+/// The ink fill — the moment the app stops being a promise.
+///
+/// A suggested sentence sits in the field in grey and the user's own words ink in
+/// over it, word by word, with the caret walking the boundary between spoken and
+/// unspoken.
+///
+/// The suggestion is a *suggestion*, not a script. If the user says something
+/// else, the grey line is discarded the instant their words stop matching it and
+/// their own words fill the field instead — so the moment still belongs to them.
+/// When the two happen to agree it reads as a clean colour fill.
+private struct InkFillView: View {
+    let suggestion: String
+    /// What the user has actually said (live partial, then the final transcript).
+    let spoken: String
+    /// How many of those words have been inked in so far.
+    let revealedWords: Int
+    /// Shown before anything has been heard.
+    let idleHint: String?
+    let palette: OBPalette
+
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // Spoken / unspoken / caret, per appearance.
+    private var inked: Color { scheme == .dark ? Color(hex: 0xEAE6DD) : Color(hex: 0x26221B) }
+    private var unInked: Color { scheme == .dark ? Color(hex: 0x3E3A33) : Color(hex: 0xC6C0B2) }
+    private var caret: Color { scheme == .dark ? Color(hex: 0xE8974E) : Color(hex: 0xB4661F) }
+
+    private var spokenWords: [String] {
+        spoken.split(whereSeparator: \.isWhitespace).map(String.init)
+    }
+
+    private var suggestionWords: [String] {
+        suggestion.split(whereSeparator: \.isWhitespace).map(String.init)
+    }
+
+    /// The words to draw, and how many of them are inked.
+    ///
+    /// While the spoken words still match the suggestion word-for-word, the rest
+    /// of the suggestion stays on as the grey tail. The moment they diverge the
+    /// suggestion is dropped — showing a grey tail the user is not going to say
+    /// would be a lie about what happens next.
+    private var line: (words: [String], inkedCount: Int) {
+        let said = spokenWords
+        guard !said.isEmpty else { return (suggestionWords, 0) }
+        let shown = min(revealedWords, said.count)
+        let matches = zip(said, suggestionWords).allSatisfy { normalise($0) == normalise($1) }
+        if matches && said.count <= suggestionWords.count {
+            return (suggestionWords, shown)
+        }
+        return (said, shown)
+    }
+
+    /// Case- and punctuation-insensitive, so "typing." and "typing" agree.
+    private func normalise(_ s: String) -> String {
+        s.lowercased().trimmingCharacters(in: .punctuationCharacters)
+    }
+
+    var body: some View {
+        let content = line
+        return VStack(alignment: .leading, spacing: 0) {
+            // A wrapping run of words, each coloured by whether it's been said.
+            // Under Reduce Motion the whole line inks at once, with no per-word
+            // stagger and no caret walk.
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                wrapped(content.words, inkedCount: content.inkedCount)
+                if !reduceMotion, content.inkedCount < content.words.count || content.inkedCount == 0 {
+                    Rectangle().fill(caret)
+                        .frame(width: 2, height: 22)
+                        .padding(.leading, 3)
+                }
+            }
+            if let idleHint, spokenWords.isEmpty {
+                Text(idleHint)
+                    .font(.system(size: 11.5)).foregroundStyle(palette.ink3)
+                    .padding(.top, 10)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 64, alignment: .topLeading)
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: DT.rCard).fill(palette.card))
+        .overlay(RoundedRectangle(cornerRadius: DT.rCard).strokeBorder(palette.hairline))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(spokenWords.isEmpty ? (idleHint ?? suggestion) : spoken)
+    }
+
+    /// `Text` concatenation wraps as one paragraph, which a word-per-view HStack
+    /// cannot do — and per-word colouring is exactly what `Text` + `+` is for.
+    private func wrapped(_ words: [String], inkedCount: Int) -> some View {
+        let run = words.enumerated().reduce(Text("")) { acc, pair in
+            let (i, word) = pair
+            return acc + Text(i == 0 ? word : " " + word)
+                .font(.system(size: 21))
+                .foregroundColor(i < inkedCount ? inked : unInked)
+        }
+        return run
+            .kerning(-0.21)      // −0.01em at 21 pt
+            .lineSpacing(6.3)    // line-height 1.5
     }
 }

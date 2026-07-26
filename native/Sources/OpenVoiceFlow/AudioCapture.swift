@@ -65,6 +65,13 @@ final class AudioCapture {
     }
 
     /// Seconds of audio captured so far (for the "too short" guard).
+    /// A copy of what's been captured so far, without stopping. Only the
+    /// onboarding ink fill uses this — a live preview needs the buffer mid-take,
+    /// and the real dictation path still reads everything once on stop().
+    func snapshot() -> [Float] {
+        lock.withLock { samples }
+    }
+
     var duration: TimeInterval {
         lock.withLock { Double(samples.count) / 16_000.0 }
     }

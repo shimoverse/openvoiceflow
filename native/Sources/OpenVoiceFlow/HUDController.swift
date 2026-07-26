@@ -769,3 +769,17 @@ private struct HUDView: View {
 extension Notification.Name {
     static let ovfRetryTranscription = Notification.Name("ovfRetryTranscription")
 }
+
+extension Hotkey {
+    /// The single character (or "fn") shown in the HUD chip and the menu-bar
+    /// summary. Lives here because the chip is its only consumer.
+    var glyph: String {
+        switch self {
+        case .rightCommand, .leftCommand: return "⌘"
+        case .rightOption, .leftOption: return "⌥"
+        case .rightControl: return "⌃"
+        case .fn: return "fn"
+        default: return rawValue.uppercased()  // F5…F12
+        }
+    }
+}

@@ -8,8 +8,8 @@
     <key>CFBundleExecutable</key><string>OpenVoiceFlow</string>
     <key>CFBundleIconFile</key><string>OpenVoiceFlow.icns</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.5.0</string>
-    <key>CFBundleVersion</key><string>5</string>
+    <key>CFBundleShortVersionString</key><string>0.5.1</string>
+    <key>CFBundleVersion</key><string>6</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <!-- Launch as an accessory so the dashboard Window scene stays dormant (a
          regular app would auto-present it at every launch, on top of first-run

@@ -5,8 +5,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.com"
-RELEASE_VERSION = "0.4.3"
-UNIVERSAL_SHA256 = "5d67785605a8e4ed1150926b2cf75568ca9f6c11de1281d717399670e871d266"
+RELEASE_VERSION = "0.5.0"
+UNIVERSAL_SHA256 = "39d0d8af50f8eba51e0d01b21c98c6c0d1bc22a8860a4266254ea36bb2cb5c2c"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"
 
 
@@ -38,9 +38,15 @@ def test_client_chooser_always_targets_the_universal_native_dmg():
 
 def test_appcast_is_present_and_signed_for_the_final_native_release():
     appcast = (DOCS / "appcast.xml").read_text(encoding="utf-8")
-    assert "sparkle:shortVersionString>0.4.3" in appcast
+    # Derived, not hardcoded: this line was left at 0.4.3 through a version bump
+    # that updated everything around it.
+    assert f"sparkle:shortVersionString>{RELEASE_VERSION}" in appcast
     assert "sparkle:edSignature=" in appcast
     assert f"OpenVoiceFlow-{RELEASE_VERSION}.dmg" in appcast
+    # Sparkle orders updates by CFBundleVersion, so a build number that doesn't
+    # climb means nobody is offered the update, with no error to explain why.
+    build = int(appcast.split("sparkle:version>")[1].split("<")[0])
+    assert build >= 5, f"appcast build {build} must exceed the previously published 4"
 
 
 def test_legacy_split_downloads_redirect_to_the_universal_native_dmg():

@@ -19,6 +19,9 @@ actor Transcriber {
     /// downloads plus the purge-and-retry path deleting the cache folder the
     /// other is writing into produced the cold-run "That stopped" failures.
     private var loadTask: Task<WhisperKit, Error>?
+    /// Identity for the task above — Task is a struct, so ownership of the
+    /// slot is tracked by token, not by reference comparison.
+    private var loadToken = UUID()
     private let log = Logger(subsystem: "app.openvoiceflow", category: "transcriber")
 
     init(model: String = "base.en") {
@@ -79,8 +82,12 @@ actor Transcriber {
                 return try await self.downloadAndLoad(model: model, progress: observer)
             }
         }
+        let token = UUID()
+        loadToken = token
         loadTask = task
-        defer { if loadTask === task { loadTask = nil } }
+        // Clear only our own slot: a setModel during the await may already
+        // have replaced it with a newer load that must not be evicted.
+        defer { if loadToken == token { loadTask = nil } }
 
         let loaded = try await task.value
         // A setModel that raced this load already cancelled the task; this

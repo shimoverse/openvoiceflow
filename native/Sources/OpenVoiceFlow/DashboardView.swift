@@ -721,7 +721,7 @@ struct DashboardView: View {
         ("tiny", "Tiny — 39 MB"),
         ("small", "Small — 466 MB"),
         ("medium", "Medium — 1.5 GB"),
-        ("large-v3-turbo", "Large v3 turbo — 1.6 GB"),
+        ("large-v3-v20240930", "Large v3 turbo — 1.6 GB"),
     ]
     static let languages: [(String, String)] = [
         ("en", "English"), ("es", "Spanish"), ("fr", "French"), ("de", "German"),

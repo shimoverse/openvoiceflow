@@ -672,15 +672,37 @@ private struct KnowMeDownloadStep: View {
 
     /// The engines on offer — size and benefit up front, decision theirs.
     /// Same ids the dashboard and menu speak.
-    private static let engines: [(id: String, name: String, size: String, benefit: String, recommended: Bool)] = [
-        ("tiny", "Tiny", "39 MB", "Fastest. Fine for quick notes.", false),
-        ("small", "Small", "466 MB", "Everyday dictation on any Mac.", true),
-        ("medium", "Medium", "1.5 GB", "Hears more, asks more of your Mac.", false),
+    private static let engines: [(id: String, name: String, size: String, benefit: String)] = [
+        ("tiny", "Tiny", "39 MB", "Fastest. Fine for quick notes."),
+        ("small", "Small", "466 MB", "Everyday dictation on any Mac."),
+        ("medium", "Medium", "1.5 GB", "Hears more, asks more of your Mac."),
         // The id is the WhisperKit repo folder suffix (openai_whisper-…);
         // "large-v3-turbo" shipped in 0.5.2 and matched NOTHING — every user
         // who picked it hit a guaranteed "no models found" failure.
-        ("large-v3-v20240930", "Large turbo", "1.6 GB", "Hears the most. Best on Apple Silicon.", false),
+        ("large-v3-v20240930", "Large turbo", "1.6 GB", "Hears the most. Best on Apple Silicon."),
     ]
+
+    /// Which engine the RECOMMENDED chip sits on, decided from this Mac —
+    /// no permissions involved: chip type and free disk are plain reads.
+    /// Apple Silicon absorbs Large turbo easily and its accuracy is what
+    /// people keep once they've heard it; Intel gets Small, and so does any
+    /// Mac without real headroom past the 1.6 GB download.
+    private static let recommendedEngineID: String = {
+        var sysinfo = utsname()
+        uname(&sysinfo)
+        let machine = withUnsafeBytes(of: &sysinfo.machine) { buf in
+            String(decoding: buf.prefix(while: { $0 != 0 }), as: UTF8.self)
+        }
+        let appleSilicon = machine.hasPrefix("arm64")
+
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let free = (try? home.resourceValues(
+            forKeys: [.volumeAvailableCapacityForImportantUsageKey]
+        ))?.volumeAvailableCapacityForImportantUsage ?? 0
+        let roomy = free > 5_000_000_000  // model + working headroom
+
+        return (appleSilicon && roomy) ? "large-v3-v20240930" : "small"
+    }()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -716,8 +738,8 @@ private struct KnowMeDownloadStep: View {
                             .frame(width: 15, height: 15)
                         Text(engine.name)
                             .font(.system(size: 13, weight: .semibold)).foregroundStyle(p.ink)
-                        if engine.recommended {
-                            Text("POPULAR")
+                        if engine.id == Self.recommendedEngineID {
+                            Text("RECOMMENDED")
                                 .font(.system(size: 9, weight: .bold)).kerning(0.5)
                                 .foregroundStyle(p.accent)
                                 .padding(.horizontal, 6).padding(.vertical, 2)

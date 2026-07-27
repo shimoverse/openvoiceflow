@@ -573,9 +573,18 @@ final class DownloadMeter: ObservableObject {
         return min(1, max(0, Double(received) / Double(expected)))
     }
 
-    /// "412 of 981 MB" — decimal MB, matching how the OS reports download sizes.
+    /// WhisperKit's progress callback reports Foundation Progress unit counts:
+    /// bytes for a single-file transfer, but abstract units for multi-file
+    /// model downloads. The first real cold-run showed "0 of 0 MB · 0.0 MB/s"
+    /// over a half-full bar — the fraction was always right, the byte
+    /// assumption never was. Every model is >10 MB, so a smaller total is
+    /// unit-count, not bytes: show nothing invented in that case.
+    var unitsAreBytes: Bool { expected >= 10_000_000 }
+
+    /// "412 of 981 MB" when units are bytes; the honest percent otherwise.
     var sizeText: String {
         guard expected > 0 else { return "" }
+        guard unitsAreBytes else { return percentText }
         let mb = 1_000_000.0
         return "\(Int(Double(received) / mb)) of \(Int(Double(expected) / mb)) MB"
     }
@@ -612,7 +621,9 @@ final class DownloadMeter: ObservableObject {
         guard seconds > 0.25 else { return }
 
         let perSecond = Double(received - first.bytes) / seconds
-        rateText = perSecond > 0 ? String(format: "%.1f MB/s", perSecond / 1_000_000) : ""
+        // A rate can only be shown when the units really are bytes; the ETA
+        // below stays honest either way because it's a ratio of like units.
+        rateText = (unitsAreBytes && perSecond > 0) ? String(format: "%.1f MB/s", perSecond / 1_000_000) : ""
 
         guard now.timeIntervalSince(lastETAUpdate) >= 1 else { return }
         lastETAUpdate = now

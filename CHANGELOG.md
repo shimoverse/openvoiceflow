@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] — 2026-07-27
+
+### Fixed
+- The download meter showed "0 of 0 MB · 0.0 MB/s" over a moving bar:
+  WhisperKit reports abstract progress units for multi-file model downloads,
+  not bytes. The meter now shows percent (and the always-honest ETA) when
+  units can't be bytes, instead of inventing megabytes.
+
 ## [0.5.3] — 2026-07-27
 
 ### Fixed

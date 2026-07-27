@@ -650,6 +650,12 @@ private struct KnowMeDownloadStep: View {
     /// Invalidates a superseded download's callbacks when the user switches
     /// engines mid-transfer, so the old transfer can't drive the new bar.
     @State private var generation = 0
+    /// The pending/running download task, cancelled whenever a newer choice
+    /// supersedes it — cancellation reaches all the way into the transfer.
+    @State private var pending: Task<Void, Never>?
+    /// True during the grace window between tapping an engine and the
+    /// download actually starting — browsing must not start four downloads.
+    @State private var debouncing = false
 
     private var p: OBPalette { palette }
 
@@ -659,7 +665,10 @@ private struct KnowMeDownloadStep: View {
         ("tiny", "Tiny", "39 MB", "Fastest. Fine for quick notes.", false),
         ("small", "Small", "466 MB", "Everyday dictation on any Mac.", true),
         ("medium", "Medium", "1.5 GB", "Hears more, asks more of your Mac.", false),
-        ("large-v3-turbo", "Large turbo", "1.6 GB", "Hears the most. Best on Apple Silicon.", false),
+        // The id is the WhisperKit repo folder suffix (openai_whisper-…);
+        // "large-v3-turbo" shipped in 0.5.2 and matched NOTHING — every user
+        // who picked it hit a guaranteed "no models found" failure.
+        ("large-v3-v20240930", "Large turbo", "1.6 GB", "Hears the most. Best on Apple Silicon.", false),
     ]
 
     var body: some View {
@@ -776,11 +785,13 @@ private struct KnowMeDownloadStep: View {
             .padding(.top, 11)
 
             if failed {
-                Text("That stopped. Check your connection?")
+                // Not "check your connection" — the 0.5.2 model-id bug proved
+                // that guessing a cause gaslights the user when it's wrong.
+                Text("That stopped — Details has the reason.")
                     .font(.system(size: 12.5)).foregroundStyle(Color(hex: 0xC9C3B4))
                     .padding(.top, 9)
                 HStack(spacing: 14) {
-                    Button("Try again") { if let selected { download(engine: selected) } }
+                    Button("Try again") { if let selected { restart(engine: selected, delayMilliseconds: 0) } }
                         .buttonStyle(.plain)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(p.onAccent)
@@ -802,7 +813,11 @@ private struct KnowMeDownloadStep: View {
                         .padding(.top, 6)
                 }
             } else {
-                Text("Downloaded once. After this, everything runs offline on this Mac.")
+                // The grace window says so out loud — a bar that sits at zero
+                // for a second with no explanation reads as broken.
+                Text(debouncing
+                     ? "Starting in a moment — switch engines freely."
+                     : "Downloaded once. After this, everything runs offline on this Mac.")
                     .font(.system(size: 11)).foregroundStyle(p.ink3)
                     .padding(.top, 9)
             }
@@ -842,48 +857,63 @@ private struct KnowMeDownloadStep: View {
     private func choose(_ id: String) {
         guard id != selected else { return }
         selected = id
-        download(engine: id)
+        restart(engine: id, delayMilliseconds: 1500)
     }
 
-    private func download(engine: String) {
-        // A switch mid-transfer supersedes the old download; its straggling
-        // callbacks must not touch the new bar or declare the step done.
+    /// Supersede whatever the previous tap started — pending or mid-transfer —
+    /// and begin `engine` after the grace window (zero for Try again). The
+    /// window is what makes browsing safe: compare all four options and only
+    /// the one your choice rests on downloads.
+    private func restart(engine: String, delayMilliseconds: Int) {
         generation += 1
         let gen = generation
+        pending?.cancel()
         done = false
         failed = false
         failureDetail = nil
         showDetail = false
         meter.reset()
-        percent = "0%"
+        percent = "starting…"
+        debouncing = delayMilliseconds > 0
 
-        Task {
-            await controller.selectModel(engine)
+        pending = Task {
+            if delayMilliseconds > 0 {
+                try? await Task.sleep(for: .milliseconds(delayMilliseconds))
+                guard !Task.isCancelled, gen == generation else { return }
+                debouncing = false
+            }
+            await download(engine: engine, gen: gen)
+        }
+    }
+
+    private func download(engine: String, gen: Int) async {
+        await controller.selectModel(engine)
+        guard gen == generation else { return }
+        // Switching back to an engine that already finished downloading:
+        // land the bar, no second transfer.
+        if await controller.isModelReady() {
             guard gen == generation else { return }
-            // Switching back to an engine that already finished downloading:
-            // land the bar, no second transfer.
-            if await controller.isModelReady() {
-                guard gen == generation else { return }
-                meter.complete()
-                done = true
-                return
-            }
-            do {
-                try await controller.prepareModelForOnboarding { received, expected in
-                    Task { @MainActor in
-                        guard gen == generation else { return }
-                        meter.update(received: received, expected: expected)
-                        percent = meter.percentText
-                    }
+            meter.complete()
+            done = true
+            return
+        }
+        do {
+            try await controller.prepareModelForOnboarding { received, expected in
+                Task { @MainActor in
+                    guard gen == generation else { return }
+                    meter.update(received: received, expected: expected)
+                    percent = meter.percentText
                 }
-                guard gen == generation else { return }
-                meter.complete()
-                done = true
-            } catch {
-                guard gen == generation else { return }
-                failed = true
-                failureDetail = error.localizedDescription
             }
+            guard gen == generation else { return }
+            meter.complete()
+            done = true
+        } catch is CancellationError {
+            // Superseded by a newer choice — the new download owns the UI.
+        } catch {
+            guard gen == generation else { return }
+            failed = true
+            failureDetail = error.localizedDescription
         }
     }
 

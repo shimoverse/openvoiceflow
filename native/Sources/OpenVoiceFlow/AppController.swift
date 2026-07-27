@@ -163,7 +163,9 @@ final class AppController: ObservableObject {
         guard name != settings.whisperModel else { return }
         settings.whisperModel = name
         settings.save()
-        Task { await transcriber.setModel(name) }
+        // setModel no longer loads (onboarding needs the swap and the download
+        // decoupled); the Settings path still wants the hot-swap immediately.
+        Task { await transcriber.setModel(name); try? await transcriber.warmUp() }
     }
 
     // MARK: dictation loop

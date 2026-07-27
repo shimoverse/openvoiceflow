@@ -85,6 +85,12 @@ struct Settings: Codable, Equatable {
             decoded.loginItemMigrated = true
             decoded.save()
         }
+        // 0.5.2 offered a model id that doesn't exist in the WhisperKit repo;
+        // anyone who saved it was stuck failing every download. Idempotent.
+        if decoded.whisperModel == "large-v3-turbo" {
+            decoded.whisperModel = "large-v3-v20240930"
+            decoded.save()
+        }
         return decoded
     }
 

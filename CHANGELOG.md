@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] — 2026-07-27
+
+### Fixed
+- **Large turbo could never download.** Its model id didn't exist in the
+  WhisperKit repo; every user who chose it hit "no models found" disguised as
+  a connection error. Correct id shipped, saved settings migrate silently.
+- Browsing the engine chooser no longer starts a download per click: a 1.5 s
+  grace window ("Starting in a moment — switch engines freely") starts the
+  transfer only once the choice rests, and switching cancels the superseded
+  download outright. Model loads are single-flight, so overlapping transfers
+  can no longer corrupt each other's cache.
+- Download failure copy points at Details instead of guessing "check your
+  connection" — the guess was wrong exactly when it mattered.
+
 ## [0.5.2] — 2026-07-26
 
 The first-run field-notes release.

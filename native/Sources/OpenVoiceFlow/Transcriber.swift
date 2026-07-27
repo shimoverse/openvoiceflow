@@ -13,23 +13,32 @@ actor Transcriber {
 
     private var kit: WhisperKit?
     private var modelName: String
+    /// The one in-flight download+load. Single-flight is the whole point:
+    /// onboarding's engine chooser can fire warmUp while another warmUp is
+    /// mid-download (actor re-entrancy at the awaits), and two concurrent
+    /// downloads plus the purge-and-retry path deleting the cache folder the
+    /// other is writing into produced the cold-run "That stopped" failures.
+    private var loadTask: Task<WhisperKit, Error>?
+    /// Identity for the task above — Task is a struct, so ownership of the
+    /// slot is tracked by token, not by reference comparison.
+    private var loadToken = UUID()
     private let log = Logger(subsystem: "app.openvoiceflow", category: "transcriber")
 
     init(model: String = "base.en") {
         self.modelName = model
     }
 
-    /// Switch the transcription model at runtime so a Settings change takes
-    /// effect without an app restart: drop the loaded model and reload the new
-    /// one. Best-effort — if the reload fails, the next `transcribe` re-tries
-    /// warmUp (and can recover a truncated download). Note the shipped default
-    /// `base.en` is English-only; a non-English language needs a multilingual
-    /// model (the Settings picker offers them).
+    /// Switch the transcription model: drop the loaded model, cancel any
+    /// in-flight load of the old one, and leave loading to the next warmUp —
+    /// callers decide when the download starts (onboarding debounces it; the
+    /// Settings path warms up immediately). Note the shipped default `base.en`
+    /// is English-only; a non-English language needs a multilingual model.
     func setModel(_ name: String) async {
         guard name != modelName else { return }
         modelName = name
         kit = nil
-        try? await warmUp()
+        loadTask?.cancel()
+        loadTask = nil
     }
 
     /// True once the model is loaded in memory — lets onboarding skip the
@@ -48,25 +57,54 @@ actor Transcriber {
             return
         }
 
-        do {
-            kit = try await downloadAndLoad(progress: observer)
-        } catch {
-            // The first failure must leave a trace: without it, a machine
-            // that fails twice presents only the second error, and the
-            // truncated-download recovery path is invisible in the log.
-            log.error("model \(self.modelName, privacy: .public) load failed, purging and retrying: \(error.localizedDescription, privacy: .public)")
-            purgeDownloadedModel()
-            kit = try await downloadAndLoad(progress: observer)
+        // Join the in-flight load rather than starting a second one. The
+        // joiner gets no byte progress (rare path — e.g. transcribe racing
+        // onboarding); correctness over cosmetics.
+        if let inFlight = loadTask {
+            kit = try await inFlight.value
+            observer(1, 1)
+            return
         }
+
+        let model = modelName
+        let task = Task { () throws -> WhisperKit in
+            do {
+                return try await self.downloadAndLoad(model: model, progress: observer)
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                // The first failure must leave a trace: without it, a machine
+                // that fails twice presents only the second error, and the
+                // truncated-download recovery path is invisible in the log.
+                self.log.error("model \(model, privacy: .public) load failed, purging and retrying: \(error.localizedDescription, privacy: .public)")
+                self.purgeDownloadedModel(matching: model)
+                try Task.checkCancellation()
+                return try await self.downloadAndLoad(model: model, progress: observer)
+            }
+        }
+        let token = UUID()
+        loadToken = token
+        loadTask = task
+        // Clear only our own slot: a setModel during the await may already
+        // have replaced it with a newer load that must not be evicted.
+        defer { if loadToken == token { loadTask = nil } }
+
+        let loaded = try await task.value
+        // A setModel that raced this load already cancelled the task; this
+        // guard covers the narrow window where the swap lands between the
+        // last await and here — a stale model must never become `kit`.
+        guard model == modelName else { throw CancellationError() }
+        kit = loaded
         // No synthetic final callback: tracking the running total in a captured
         // var races WhisperKit's progress thread (a hard error under Swift 6).
         // The caller lands the bar on full instead — see DownloadMeter.complete().
     }
 
-    private func downloadAndLoad(progress observer: @escaping DownloadProgressObserver) async throws -> WhisperKit {
-        let modelFolder = try await WhisperKit.download(variant: modelName) { progress in
+    private func downloadAndLoad(model: String, progress observer: @escaping DownloadProgressObserver) async throws -> WhisperKit {
+        let modelFolder = try await WhisperKit.download(variant: model) { progress in
             observer(progress.completedUnitCount, progress.totalUnitCount)
         }
+        try Task.checkCancellation()
         return try await WhisperKit(
             WhisperKitConfig(
                 modelFolder: modelFolder.path,
@@ -78,16 +116,18 @@ actor Transcriber {
         )
     }
 
-    /// Remove every on-disk variant of this model from WhisperKit's default
-    /// download location so the retry starts with fresh model files.
-    private func purgeDownloadedModel() {
+    /// Remove every on-disk variant of one model from WhisperKit's default
+    /// download location so the retry starts with fresh model files. Takes the
+    /// model explicitly so a purge can never race a swap and delete the folder
+    /// a *different* model's download is writing into.
+    private func purgeDownloadedModel(matching model: String) {
         let fm = FileManager.default
         let repo = fm.urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appending(path: "huggingface/models/argmaxinc/whisperkit-coreml")
         guard let variants = try? fm.contentsOfDirectory(
             at: repo, includingPropertiesForKeys: nil
         ) else { return }
-        for variant in variants where variant.lastPathComponent.hasSuffix(modelName) {
+        for variant in variants where variant.lastPathComponent.hasSuffix(model) {
             try? fm.removeItem(at: variant)
         }
     }

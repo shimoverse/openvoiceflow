@@ -163,7 +163,7 @@ private struct MenuContent: View {
         ("tiny", "tiny — 39 MB"),
         ("small", "small — 466 MB"),
         ("medium", "medium — 1.5 GB"),
-        ("large-v3-turbo", "large-v3-turbo — 1.6 GB"),
+        ("large-v3-v20240930", "large-v3-turbo — 1.6 GB"),
     ]
 
     var body: some View {

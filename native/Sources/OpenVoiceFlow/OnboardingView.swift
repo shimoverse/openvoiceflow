@@ -123,6 +123,8 @@ struct OnboardingView: View {
             if downloadDone {
                 pill("Try it") { step = 3 }
             } else {
+                // Mirrors the card's status, so the footer never reads 100%
+                // while the button that 100% implies is still missing.
                 quiet(downloadPercent)
             }
         case 3:
@@ -564,6 +566,18 @@ final class DownloadMeter: ObservableObject {
     @Published private(set) var expected: Int64 = 0
     @Published private(set) var rateText = ""
     @Published private(set) var etaText = ""
+    /// True between the transfer finishing and the model actually being ready:
+    /// WhisperKit compiles/specializes the model for this chip after the
+    /// download, minutes on a first run of a large model, with no progress
+    /// signal. The first cold-run test showed the result — a bar parked at
+    /// 100% with no way forward. The bar now saves its last stretch for this
+    /// phase and only touches 100% when the step is genuinely done.
+    @Published private(set) var optimizing = false
+    /// The slow crawl through the optimizing stretch — real motion, honestly
+    /// labeled, never reaching the end on its own.
+    @Published private(set) var creep: Double = 0
+    private var creepTask: Task<Void, Never>?
+    private var finished = false
 
     private var samples: [(t: Date, bytes: Int64)] = []
     private var lastETAUpdate = Date.distantPast
@@ -571,6 +585,14 @@ final class DownloadMeter: ObservableObject {
     var fraction: Double {
         guard expected > 0 else { return 0 }
         return min(1, max(0, Double(received) / Double(expected)))
+    }
+
+    /// What the bar draws: the transfer owns 0–90%, the optimize phase creeps
+    /// through the 90s, and 100% is reserved for actually being done.
+    var displayFraction: Double {
+        if finished { return 1 }
+        if optimizing { return 0.9 + creep }
+        return fraction * 0.9
     }
 
     /// WhisperKit's progress callback reports Foundation Progress unit counts:
@@ -589,22 +611,54 @@ final class DownloadMeter: ObservableObject {
         return "\(Int(Double(received) / mb)) of \(Int(Double(expected) / mb)) MB"
     }
 
-    var percentText: String { "\(Int((fraction * 100).rounded()))%" }
+    var percentText: String {
+        if finished { return "100%" }
+        if optimizing { return "optimizing…" }
+        return "\(Int((displayFraction * 100).rounded()))%"
+    }
 
     /// Back to zero for a fresh transfer — switching speech engines mid-step
     /// must not inherit the previous download's bar, rate, or ETA.
     func reset() {
+        creepTask?.cancel()
+        creepTask = nil
         received = 0
         expected = 0
         rateText = ""
         etaText = ""
+        optimizing = false
+        creep = 0
+        finished = false
         samples = []
         lastETAUpdate = .distantPast
+    }
+
+    /// The transfer is done but the model isn't loaded yet. Hold the bar in
+    /// the reserved stretch and keep it moving — asymptotically, so it can
+    /// never arrive on its own no matter how long the compile takes.
+    func beginOptimizing() {
+        guard !finished, !optimizing else { return }
+        optimizing = true
+        rateText = ""
+        etaText = ""
+        creepTask?.cancel()
+        creepTask = Task { [weak self] in
+            // 90% → ~99.5%, each step covering a shrinking slice of what's left.
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(400))
+                guard let self, !Task.isCancelled, self.optimizing else { return }
+                self.creep += (0.095 - self.creep) * 0.06
+            }
+        }
     }
 
     /// Land the bar exactly on full when the load finishes, rather than leaving
     /// it wherever the last progress callback happened to fire.
     func complete() {
+        creepTask?.cancel()
+        creepTask = nil
+        optimizing = false
+        finished = true
         if expected > 0 { received = expected } else { expected = 1; received = 1 }
         etaText = ""
         rateText = ""
@@ -810,11 +864,11 @@ private struct KnowMeDownloadStep: View {
                 ZStack(alignment: .leading) {
                     Capsule().fill(p.ink.opacity(0.09))
                     Capsule().fill(failed ? DT.errorAccent : p.accent)
-                        .frame(width: geo.size.width * meter.fraction)
+                        .frame(width: geo.size.width * meter.displayFraction)
                 }
             }
             .frame(height: 5)
-            .animation(DT.spineCurve, value: meter.fraction)
+            .animation(DT.spineCurve, value: meter.displayFraction)
             .padding(.top, 11)
 
             if failed {
@@ -846,11 +900,14 @@ private struct KnowMeDownloadStep: View {
                         .padding(.top, 6)
                 }
             } else {
-                // The grace window says so out loud — a bar that sits at zero
-                // for a second with no explanation reads as broken.
+                // Every wait names itself. A bar with no explanation reads as
+                // broken — at zero during the grace window, and (the cold-run
+                // finding) at "100%" while the model is still being compiled.
                 Text(debouncing
                      ? "Starting in a moment — switch engines freely."
-                     : "Downloaded once. After this, everything runs offline on this Mac.")
+                     : meter.optimizing
+                       ? "Downloaded — now optimizing for your Mac. First run only."
+                       : "Downloaded once. After this, everything runs offline on this Mac.")
                     .font(.system(size: 11)).foregroundStyle(p.ink3)
                     .padding(.top, 9)
             }
@@ -935,6 +992,10 @@ private struct KnowMeDownloadStep: View {
                 Task { @MainActor in
                     guard gen == generation else { return }
                     meter.update(received: received, expected: expected)
+                    // The last progress callback is the transfer ending, not
+                    // the model being ready — the compile that follows has no
+                    // progress of its own, so hand the bar over here.
+                    if expected > 0 && received >= expected { meter.beginOptimizing() }
                     percent = meter.percentText
                 }
             }

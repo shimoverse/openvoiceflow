@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5] — 2026-07-27
+
+### Fixed
+- The progress bar no longer parks at 100% with no way forward. WhisperKit
+  compiles the model for your chip after the download — minutes on a first
+  large-model run, with no progress signal — so the transfer now owns 0–90%
+  and the compile creeps through the 90s under "Downloaded — now optimizing
+  for your Mac. First run only." 100% arrives only with the Try It button.
+
+### Changed
+- RECOMMENDED now adapts to the Mac: Large turbo on Apple Silicon with disk
+  headroom, Small on Intel or a tight disk. No permissions involved.
+
 ## [0.5.4] — 2026-07-27
 
 ### Fixed

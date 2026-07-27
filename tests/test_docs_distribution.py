@@ -5,8 +5,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.com"
-RELEASE_VERSION = "0.5.2"
-UNIVERSAL_SHA256 = "caa9bdbcff9333976c0c6fe0540e816e9b18dea0b059a616e0bb1af7bfb8db89"
+RELEASE_VERSION = "0.5.3"
+UNIVERSAL_SHA256 = "e77ac808784cfa60c617ee35631088b0b3d6a6d48f46d44f73fe62bf187c957c"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"
 
 

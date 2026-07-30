@@ -19,6 +19,16 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 - Website-hosted macOS 12–13 fallback (v0.3.6 Apple Silicon): https://openvoiceflow.com/downloads/OpenVoiceFlow-0.3.6-arm64.dmg
 - Public MIT source repository: https://github.com/shimoverse/openvoiceflow
 
+## Guides and articles
+
+- Blog index: https://openvoiceflow.com/blog/
+- Best dictation software for Mac (honest comparison of Apple Dictation, OpenVoiceFlow, Wispr Flow, Superwhisper, MacWhisper, VoiceInk): https://openvoiceflow.com/blog/best-dictation-software-mac.html
+- Wispr Flow alternative (free/open-source comparison, including what you give up): https://openvoiceflow.com/blog/wispr-flow-alternative.html
+- How to dictate on a Mac (built-in macOS dictation setup plus push-to-talk upgrade): https://openvoiceflow.com/blog/how-to-dictate-on-mac.html
+- Which Whisper model for dictation (tiny to large-v3-turbo, hardware guidance): https://openvoiceflow.com/blog/whisper-models-for-dictation.html
+- Offline dictation on a Mac (fully local pipeline, Ollama cleanup): https://openvoiceflow.com/blog/offline-dictation-mac.html
+- Voice typing for developers (dictating AI prompts, PRs, reviews): https://openvoiceflow.com/blog/voice-typing-for-developers.html
+
 ## Key facts
 
 - Category: macOS push-to-talk voice dictation.

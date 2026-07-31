@@ -189,6 +189,24 @@ def test_the_docs_stylesheet_and_sidebar_script_are_present():
     assert "docs_nav_click" in site_js, "docs nav analytics missing"
 
 
+def test_mobile_only_controls_cannot_flash_before_the_stylesheet():
+    """The hamburger and the docs sidebar toggle are hidden on desktop by
+    style.css — a separate request. A paint that beats that stylesheet (the
+    browser occasionally does this on same-site navigation with a
+    revalidating cache) flashed them as bordered rectangles in the top-left.
+    An inline rule shipped with the HTML closes that window, and it must
+    stay BEFORE the stylesheet link so the mobile media queries, which come
+    later in style.css, still win and reveal the controls on phones."""
+    inline = ".nav-hamburger,.docs-sidebar-toggle{display:none}"
+    for rel in ALL_PAGES:
+        html = read(rel)
+        assert inline in html, f"{rel}: missing the anti-flash inline style"
+        assert html.index(inline) < html.index('rel="stylesheet"'), (
+            f"{rel}: inline style must precede the stylesheet link, or the "
+            f"mobile media queries can no longer override it"
+        )
+
+
 def test_manual_internal_links_all_resolve():
     """A manual that links to its own 404s is worse than no manual."""
     import re as _re

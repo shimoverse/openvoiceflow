@@ -74,6 +74,14 @@ FAVICON = (
     "stroke-linecap='round' stroke-dasharray='186 28' transform='rotate(-58 50 50)'/%3E%3C/svg%3E"
 )
 
+# Mobile-only controls are hidden by style.css, which is a separate request.
+# When the browser paints before that stylesheet applies — it occasionally
+# does on same-site navigation with a revalidating cache — the unstyled
+# buttons flash as bordered rectangles in the top-left. Hiding them from an
+# inline block that ships with the HTML closes that window. The media
+# queries in style.css load after this and still reveal them on phones.
+CRITICAL_CSS = "  <style>.nav-hamburger,.docs-sidebar-toggle{display:none}</style>"
+
 ANALYTICS = """  <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
@@ -235,6 +243,7 @@ def render(slug: str, page: dict) -> str:
   <meta name="twitter:image" content="https://openvoiceflow.com/assets/og-card.png" />
   <link rel="canonical" href="{url}" />
   <link rel="icon" href="{FAVICON}" />
+{CRITICAL_CSS}
   <link rel="stylesheet" href="../style.css" />
 {chr(10).join(schemas)}
 {ANALYTICS}

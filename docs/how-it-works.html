@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>How OpenVoiceFlow Works — Local Dictation Pipeline</title>
-  <meta name="description" content="Learn how OpenVoiceFlow records locally, transcribes with on-device WhisperKit, applies voice commands, optionally cleans text with an LLM, and pastes at your cursor." />
+  <meta name="description" content="Learn how OpenVoiceFlow records locally, transcribes with on-device WhisperKit, expands voice snippets, optionally cleans text with an LLM, and pastes at your cursor." />
   <meta property="og:title" content="How OpenVoiceFlow Works" />
   <meta property="og:description" content="The local-audio-first OpenVoiceFlow dictation pipeline explained." />
   <meta property="og:url" content="https://openvoiceflow.com/how-it-works.html" />
@@ -32,6 +32,7 @@
         <li><a href="mission.html">Mission</a></li>
         <li><a href="how-it-works.html">How it works</a></li>
         <li><a href="install.html">Install</a></li>
+        <li><a href="docs/index.html">Docs</a></li>
         <li><a href="blog/index.html">Blog</a></li>
         <li><a href="download.html" class="btn btn-primary">Download</a></li>
       </ul>
@@ -43,6 +44,7 @@
       <a href="download.html">Download</a>
       <a href="install.html">Install</a>
       <a href="how-it-works.html">How it works</a>
+      <a href="docs/index.html">Docs</a>
       <a href="blog/index.html">Blog</a>
       <a href="download.html" class="btn btn-primary">Download for Mac</a>
     </div>
@@ -52,13 +54,13 @@
     <section class="page-hero"><div class="container hero-inner">
       <span class="mono-kicker">How it works · local audio first</span>
       <h1 class="hero-title">How OpenVoiceFlow works</h1>
-      <p class="hero-sub answer-block">OpenVoiceFlow turns push-to-talk speech into cleaned text at your cursor. It records locally, transcribes with on-device WhisperKit, applies voice commands and optional LLM cleanup, then pastes the result into the app you were using.</p>
-      <div class="page-link-row"><a class="btn btn-primary btn-lg" href="download.html">Download for macOS</a><a class="btn btn-outline btn-lg" href="install.html">View install guide</a></div>
+      <p class="hero-sub answer-block">OpenVoiceFlow turns push-to-talk speech into cleaned text at your cursor. It records locally, transcribes with on-device WhisperKit, expands voice snippets and applies optional LLM cleanup, then pastes the result into the app you were using.</p>
+      <div class="page-link-row"><a class="btn btn-primary btn-lg" href="download.html">Download for macOS</a><a class="btn btn-outline btn-lg" href="docs/how-transcription-works.html">The full pipeline, in the docs</a></div>
 
       <div class="pipeline">
         <div class="pipeline-step"><span class="pipeline-num">01 · HOLD</span><div><div class="pipeline-step-title">Hold a hotkey</div><div class="pipeline-step-desc">Speak naturally in any macOS app. One key — the fn / 🌐 Globe key by default — works everywhere.</div></div></div>
         <div class="pipeline-step"><span class="pipeline-num">02 · SPEAK</span><div><div class="pipeline-step-title">Transcribe locally</div><div class="pipeline-step-desc">WhisperKit processes audio on your Mac. The recording never touches a network.</div></div></div>
-        <div class="pipeline-step"><span class="pipeline-num">03 · SHAPE</span><div><div class="pipeline-step-title">Apply voice commands</div><div class="pipeline-step-desc">Natural phrases become punctuation and formatting.</div></div></div>
+        <div class="pipeline-step"><span class="pipeline-num">03 · SHAPE</span><div><div class="pipeline-step-title">Expand voice snippets</div><div class="pipeline-step-desc">A spoken shortcut expands to its full text — no cleanup call, no network.</div></div></div>
         <div class="pipeline-step"><span class="pipeline-num">04 · CLEAN</span><div><div class="pipeline-step-title">Clean up text</div><div class="pipeline-step-desc">Optional LLM cleanup uses your selected backend — local Ollama, your own cloud key, or none.</div></div></div>
         <div class="pipeline-step"><span class="pipeline-num">05 · PASTE</span><div><div class="pipeline-step-title">Paste at cursor</div><div class="pipeline-step-desc">The final text appears where you were working.</div></div></div>
       </div>
@@ -78,6 +80,7 @@
         <a href="download.html">Download</a>
         <a href="install.html">Install</a>
         <a href="privacy.html">Privacy</a>
+        <a href="docs/index.html">Docs</a>
         <a href="blog/index.html">Blog</a>
         <a href="llms.txt">llms.txt</a>
       </nav>

@@ -330,6 +330,12 @@
       track('github_click', { source_path: pathname() });
     });
   });
+
+  document.querySelectorAll('video[data-film]').forEach(video => {
+    video.addEventListener('play', () => {
+      track('demo_play', { source_path: pathname() });
+    }, { once: true });
+  });
 })();
 
 /* ── Waveform identity ──────────────────────────────────────────────────

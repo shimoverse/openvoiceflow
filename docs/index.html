@@ -72,6 +72,20 @@
     ]
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": "OpenVoiceFlow — Speak. It types.",
+    "description": "A 52-second film: push-to-talk voice dictation on macOS with on-device Whisper transcription. Free forever, open source, and your audio never leaves your Mac.",
+    "thumbnailUrl": "https://openvoiceflow.com/assets/demo-poster.jpg",
+    "contentUrl": "https://openvoiceflow.com/assets/openvoiceflow-demo.mp4",
+    "embedUrl": "https://openvoiceflow.com/",
+    "uploadDate": "2026-07-31",
+    "duration": "PT52S",
+    "publisher": {"@type": "Organization", "name": "OpenVoiceFlow", "url": "https://openvoiceflow.com/"}
+  }
+  </script>
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
@@ -126,6 +140,20 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ─── 1b · The film ──────────────────────────────────── -->
+    <section class="container section" aria-label="Product film">
+      <h2 class="section-title">Fifty-two seconds. The whole idea.</h2>
+      <p class="section-sub">Speak at 150 words a minute. Type at 40. Watch what that gap is worth.</p>
+      <div class="film-frame">
+        <video data-film controls playsinline preload="metadata" poster="assets/demo-poster.jpg">
+          <source src="assets/openvoiceflow-demo.mp4" type="video/mp4" />
+          <track kind="captions" src="assets/openvoiceflow-demo.en.vtt" srclang="en" label="English" default />
+          Your browser doesn't play MP4 video — <a href="assets/openvoiceflow-demo.mp4">download the film</a> instead.
+        </video>
+      </div>
+      <p class="film-note">Original score. On-screen text mirrors real app behavior — on-device Whisper, cleanup Off by default.</p>
     </section>
 
     <!-- ─── 2 · The two USPs ───────────────────────────────── -->

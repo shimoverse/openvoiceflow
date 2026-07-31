@@ -162,6 +162,29 @@ def test_llms_txt_covers_the_blog_and_never_links_a_404():
         assert (DOCS / path.lstrip("/")).exists(), f"llms.txt links missing file {path}"
 
 
+def test_the_product_film_ships_with_its_plumbing():
+    """The homepage embeds a 52s product film. A missing poster means a black
+    rectangle above the fold; a missing captions track fails accessibility;
+    a VideoObject whose contentUrl 404s becomes a broken rich result."""
+    film = DOCS / "assets" / "openvoiceflow-demo.mp4"
+    poster = DOCS / "assets" / "demo-poster.jpg"
+    vtt = DOCS / "assets" / "openvoiceflow-demo.en.vtt"
+    assert film.exists() and film.stat().st_size > 500_000, "film missing or truncated"
+    assert poster.exists() and poster.stat().st_size > 10_000, "poster missing or truncated"
+    assert vtt.exists() and vtt.read_text(encoding="utf-8").startswith("WEBVTT")
+
+    home = read("index.html")
+    assert '<video data-film' in home
+    assert 'poster="assets/demo-poster.jpg"' in home
+    assert 'src="assets/openvoiceflow-demo.mp4"' in home
+    assert '<track kind="captions" src="assets/openvoiceflow-demo.en.vtt"' in home
+    assert '"@type": "VideoObject"' in home
+    assert '"contentUrl": "https://openvoiceflow.com/assets/openvoiceflow-demo.mp4"' in home
+
+    site_js = read("site.js")
+    assert "demo_play" in site_js, "film plays must be visible in analytics"
+
+
 def test_articles_keep_the_competitor_claims_hedged():
     # AGENTS.md: claims on the website must be true of the shipped app, and
     # competitor claims must be dated. Comparison pages carry the hedge line

@@ -336,6 +336,36 @@
       track('demo_play', { source_path: pathname() });
     }, { once: true });
   });
+
+  document.querySelectorAll('.docs-sidebar a').forEach(link => {
+    link.addEventListener('click', () => {
+      track('docs_nav_click', {
+        destination: link.getAttribute('href') || '',
+        source_path: pathname(),
+      });
+    });
+  });
+})();
+
+/* ── Docs sidebar: collapsed on phones, always open on desktop ────────
+   The markup ships collapsed so a phone doesn't open on 25 links; this
+   expands it on wide viewports so desktop never depends on JS running. */
+(() => {
+  const sidebar = document.getElementById('docsSidebar');
+  const toggle = document.getElementById('docsSidebarToggle');
+  if (!sidebar || !toggle) return;
+
+  const wide = window.matchMedia('(min-width: 861px)');
+  const sync = () => { if (wide.matches) sidebar.dataset.collapsed = 'false'; };
+  sync();
+  wide.addEventListener('change', sync);
+
+  toggle.addEventListener('click', () => {
+    const open = sidebar.dataset.collapsed === 'false';
+    sidebar.dataset.collapsed = open ? 'true' : 'false';
+    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    toggle.textContent = open ? 'Documentation menu ▾' : 'Documentation menu ▴';
+  });
 })();
 
 /* ── Waveform identity ──────────────────────────────────────────────────

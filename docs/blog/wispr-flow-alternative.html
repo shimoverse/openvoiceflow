@@ -40,7 +40,7 @@
       {"@type": "Question", "name": "Does OpenVoiceFlow work offline like Wispr Flow?",
        "acceptedAnswer": {"@type": "Answer", "text": "OpenVoiceFlow works offline out of the box because transcription happens on your Mac. Wispr Flow transcribes in the cloud, so it needs a connection. With cleanup Off (the default) or local Ollama cleanup, OpenVoiceFlow needs no internet at all after the one-time model download."}},
       {"@type": "Question", "name": "What does OpenVoiceFlow not do that Wispr Flow does?",
-       "acceptedAnswer": {"@type": "Answer", "text": "As of July 2026 OpenVoiceFlow is macOS-only — no Windows app, and the iOS version is still in development. AI cleanup is bring-your-own-key rather than bundled, and support is community-based via GitHub rather than a paid support team."}},
+       "acceptedAnswer": {"@type": "Answer", "text": "As of July 2026 OpenVoiceFlow is macOS-only — no Windows app, and the iOS version is still in development. AI cleanup is bring-your-own-key rather than bundled, and support is community-based rather than a paid support team."}},
       {"@type": "Question", "name": "Is OpenVoiceFlow affiliated with Wispr Flow?",
        "acceptedAnswer": {"@type": "Answer", "text": "No. OpenVoiceFlow is an independent open-source project by Shimoverse Studios and contributors, with no affiliation to Wispr Flow. Comparison details come from Wispr Flow's published pricing and documentation as of July 2026."}}
     ]
@@ -72,7 +72,6 @@
         <li><a href="../how-it-works.html">How it works</a></li>
         <li><a href="../install.html">Install</a></li>
         <li><a href="index.html">Blog</a></li>
-        <li><a href="https://github.com/shimoverse/openvoiceflow">GitHub ↗</a></li>
         <li><a href="../download.html" class="btn btn-primary">Download</a></li>
       </ul>
       <button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer"><span></span><span></span><span></span></button>
@@ -114,8 +113,8 @@
 
           <h2>What OpenVoiceFlow does differently</h2>
           <p>OpenVoiceFlow keeps the interaction Wispr Flow got right — hold a key, talk, release, text appears at your cursor — and moves everything underneath it onto your own machine.</p>
-          <p><strong>Transcription is local, always.</strong> <a href="https://github.com/argmaxinc/WhisperKit">WhisperKit</a> runs OpenAI's Whisper models directly on your Mac, from <code>tiny</code> to <code>large-v3-turbo</code>. Audio is processed in memory and discarded the moment text exists. There is no server to upload to — we don't run any. Airplane mode works fine. (More on picking a model in <a href="whisper-models-for-dictation.html">our Whisper model guide</a>.)</p>
-          <p><strong>It's free because there's nothing to sell.</strong> No account, no telemetry, no trial that expires. The code is MIT-licensed and <a href="https://github.com/shimoverse/openvoiceflow">public on GitHub</a>, so "your audio never leaves your Mac" isn't a marketing claim you have to trust — it's a code path you can read.</p>
+          <p><strong>Transcription is local, always.</strong> WhisperKit runs OpenAI's Whisper models directly on your Mac, from <code>tiny</code> to <code>large-v3-turbo</code>. Audio is processed in memory and discarded the moment text exists. There is no server to upload to — we don't run any. Airplane mode works fine. (More on picking a model in <a href="whisper-models-for-dictation.html">our Whisper model guide</a>.)</p>
+          <p><strong>It's free because there's nothing to sell.</strong> No account, no telemetry, no trial that expires. The code is MIT-licensed and public, so "your audio never leaves your Mac" isn't a marketing claim you have to trust — it's a code path anyone can read.</p>
           <p><strong>AI cleanup is optional and yours.</strong> Out of the box you get the raw on-device transcript. Flip on cleanup and it polishes grammar and drops the "um"s using a backend <em>you</em> choose: OpenRouter, OpenAI, Anthropic, or Groq with your own API key — or a fully local model through Ollama. You pay the model provider cents for tokens, not a middleman a flat monthly fee. Only cleaned <em>text</em> ever touches an API; audio never does.</p>
           <p><strong>The details that make dictation stick are here too.</strong> A personal dictionary so it stops mangling your coworkers' names. Spoken snippets that expand to full text. Per-app styles, so you sound casual in Slack and buttoned-up in Mail. A live HUD so you can see it hearing you.</p>
 
@@ -132,7 +131,7 @@
                 <tr><td>Source code</td><td>Open — MIT</td><td>Closed</td></tr>
                 <tr><td>AI cleanup</td><td>Optional, your key or local Ollama</td><td>Bundled, their pipeline</td></tr>
                 <tr><td>Platforms</td><td>macOS 14+ (Apple Silicon &amp; Intel)</td><td>macOS, Windows, iOS</td></tr>
-                <tr><td>Support</td><td>GitHub issues, community</td><td>Paid product support</td></tr>
+                <tr><td>Support</td><td>Community</td><td>Paid product support</td></tr>
               </tbody>
             </table>
           </div>
@@ -144,7 +143,7 @@
             <li><strong>No Windows app, no phone app today.</strong> OpenVoiceFlow is macOS 14+ only. iOS and Android versions are in development but you cannot download them yet. If you dictate across a Mac and a Windows machine daily, Wispr Flow currently serves you better.</li>
             <li><strong>Cleanup takes five minutes of setup.</strong> Wispr's polish is bundled; ours is bring-your-own-key. Pasting an OpenRouter key into settings is genuinely easy, but it is one more step than a checkout page.</li>
             <li><strong>Your Mac does the work.</strong> On-device Whisper is fast on Apple Silicon and fine on Intel with smaller models — but a cloud GPU farm will always outrun an eight-year-old MacBook Air. If your machine is old, temper expectations or stick with a smaller model.</li>
-            <li><strong>Community support.</strong> There's no support team, just maintainers and other users on GitHub. Bug reports get read; SLAs don't exist.</li>
+            <li><strong>Community support only.</strong> There's no support team, just maintainers and a community of users. Bug reports get read; SLAs don't exist.</li>
           </ul>
 
           <h2>Switching takes about ten minutes</h2>
@@ -199,7 +198,6 @@
         <a href="../how-it-works.html">How it works</a>
         <a href="index.html">Blog</a>
         <a href="../privacy.html">Privacy</a>
-        <a href="https://github.com/shimoverse/openvoiceflow">Source</a>
         <a href="../llms.txt">llms.txt</a>
       </nav>
     </div>

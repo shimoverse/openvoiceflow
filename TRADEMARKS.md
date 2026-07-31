@@ -1,8 +1,9 @@
 # Brand and trademark policy
 
-The OpenVoiceFlow **code** is MIT-licensed: use it, fork it, build on it,
-ship it — commercially or not. The MIT license already requires that our
-copyright notice travel with every copy.
+The OpenVoiceFlow **code** is MIT-licensed — free for any use, commercially
+or not. The MIT license already requires that our copyright notice travel
+with every copy, and we ask anyone building on the code to keep that credit
+visible and to tell us about it at shimoverse@gmail.com.
 
 The OpenVoiceFlow **name, logo, and visual identity** are a different thing.
 They identify this project, built and maintained by Shimoverse Studios, and

@@ -70,7 +70,6 @@
         <li><a href="../how-it-works.html">How it works</a></li>
         <li><a href="../install.html">Install</a></li>
         <li><a href="index.html">Blog</a></li>
-        <li><a href="https://github.com/shimoverse/openvoiceflow">GitHub ↗</a></li>
         <li><a href="../download.html" class="btn btn-primary">Download</a></li>
       </ul>
       <button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer"><span></span><span></span><span></span></button>
@@ -116,7 +115,7 @@
           <h2>The setup that actually sticks</h2>
           <p>OpenVoiceFlow is <a href="../index.html">our app</a>, free and open source, so the specifics below use it — but the principles port anywhere.</p>
           <ol>
-            <li><strong>Push-to-talk on a key you don't fight over.</strong> Default is <code>fn</code>. Hold, talk, release; text lands in whatever has focus — Cursor's chat pane, a GitHub comment box, your terminal. It's a <a href="../how-it-works.html">five-stage local pipeline</a> under the hood, but it feels like a longer spacebar.</li>
+            <li><strong>Push-to-talk on a key you don't fight over.</strong> Default is <code>fn</code>. Hold, talk, release; text lands in whatever has focus — Cursor's chat pane, a code-review comment box, your terminal. It's a <a href="../how-it-works.html">five-stage local pipeline</a> under the hood, but it feels like a longer spacebar.</li>
             <li><strong>Load the dictionary before you judge accuracy.</strong> Whisper has never seen your service names, and no model size fixes that (<a href="whisper-models-for-dictation.html">we explain why</a>). Spend five minutes: <code>kubectl</code>, <code>useEffect</code>, <code>psql</code>, <code>nginx</code>, teammates' names, the staging cluster's cursed codename. Every term is fixed once, forever.</li>
             <li><strong>Per-app styles.</strong> Casual in Slack, imperative-mood in commit messages, formal in email — configured once per app, applied automatically.</li>
             <li><strong>Snippets for the boilerplate.</strong> Spoken shortcuts that expand to full text: your standup preamble, the bug-report template, the "thanks, merging" sign-off.</li>
@@ -124,7 +123,7 @@
           </ol>
 
           <h2>The part your security team will ask about</h2>
-          <p>Speaking your codebase's internals aloud to a cloud transcription service is a genuinely reasonable thing for a security team to veto. The clean answer is architectural: with on-device transcription, the audio never leaves the Mac — there's no server, no account, no retention policy to audit, because there's no upload. OpenVoiceFlow's transcription is local always; with cleanup Off or pointed at Ollama, the entire pipeline is airtight, NDA-code included. The <a href="../privacy.html">privacy page</a> states it plainly, and since the app is MIT-licensed, "trust us" is replaced by <a href="https://github.com/shimoverse/openvoiceflow">"read it"</a> — an argument that tends to end the meeting. It also works offline entirely, as <a href="offline-dictation-mac.html">we've tested with the radios off</a>.</p>
+          <p>Speaking your codebase's internals aloud to a cloud transcription service is a genuinely reasonable thing for a security team to veto. The clean answer is architectural: with on-device transcription, the audio never leaves the Mac — there's no server, no account, no retention policy to audit, because there's no upload. OpenVoiceFlow's transcription is local always; with cleanup Off or pointed at Ollama, the entire pipeline is airtight, NDA-code included. The <a href="../privacy.html">privacy page</a> states it plainly, and since the app is MIT-licensed, "trust us" is replaced by "read it" — an argument that tends to end the meeting. It also works offline entirely, as <a href="offline-dictation-mac.html">we've tested with the radios off</a>.</p>
 
           <h2>A week-long experiment worth running</h2>
           <p>Don't change your workflow; add one held key. For one week, dictate only two things: every AI prompt, and every PR description or review comment. Notice two effects — the obvious one (words per minute) and the sneaky one: your prompts get <em>longer and better</em>, because the cost of context dropped to nearly zero. Most people who try this stop noticing they're doing it by Thursday, which is the highest compliment an input method can earn.</p>
@@ -144,7 +143,7 @@
             <p>Free and open source. Hold a key, describe the bug properly for once, release. The keyboard keeps the semicolons.</p>
             <div class="hero-cta-row">
               <a class="btn btn-primary btn-lg" href="../download.html">Download for Mac — free</a>
-              <a class="btn btn-outline btn-lg" href="https://github.com/shimoverse/openvoiceflow">Read the source ↗</a>
+              <a class="btn btn-outline btn-lg" href="../how-it-works.html">See how it works</a>
             </div>
           </div>
 
@@ -172,7 +171,6 @@
         <a href="../how-it-works.html">How it works</a>
         <a href="index.html">Blog</a>
         <a href="../privacy.html">Privacy</a>
-        <a href="https://github.com/shimoverse/openvoiceflow">Source</a>
         <a href="../llms.txt">llms.txt</a>
       </nav>
     </div>

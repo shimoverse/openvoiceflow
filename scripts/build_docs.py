@@ -137,7 +137,7 @@ def sidebar(current: str) -> str:
 
 def pager(slug: str) -> str:
     i = ORDER.index(slug)
-    labels = {s: l for _, items in NAV for s, l in items}
+    labels = {slug_: label for _, items in NAV for slug_, label in items}
     parts = ['      <nav class="docs-pager" aria-label="Pagination">']
     if i > 0:
         p = ORDER[i - 1]
@@ -183,7 +183,7 @@ def howto_schema(name: str, description: str, total_time: str, steps: list[tuple
 def render(slug: str, page: dict) -> str:
     url = f"{CANONICAL}/docs/" if slug == "index" else f"{CANONICAL}/docs/{slug}.html"
     title = page["title"]
-    label = {s: l for _, items in NAV for s, l in items}[slug]
+    label = {slug_: text for _, items in NAV for slug_, text in items}[slug]
     crumb = ('      <div class="docs-breadcrumb"><a href="../index.html">Home</a>'
              '<span class="sep">/</span><a href="index.html">Docs</a>')
     if slug != "index":

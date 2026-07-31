@@ -64,4 +64,11 @@ line-length = 120
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
 ignore = []
-per-file-ignores = {"voiceflow/llm/__init__.py" = ["F401"]}  # re-exports
+[tool.ruff.lint.per-file-ignores]
+"voiceflow/llm/__init__.py" = ["F401"]  # re-exports
+# The docs generator carries the manual's prose and HTML as string literals.
+# Wrapping a paragraph at 120 columns would put line breaks inside sentences
+# and inside tags, making the content harder to edit and diff for no gain —
+# the output is HTML, where line length means nothing.
+"scripts/docs_content.py" = ["E501"]
+"scripts/build_docs.py" = ["E501"]  # page chrome (nav, analytics tags) verbatim

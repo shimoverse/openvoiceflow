@@ -68,4 +68,4 @@ The one-page version: audio on-device always; text to a cloud only if you enable
 
 ## License
 
-[MIT](LICENSE) © Shimoverse Studios and contributors — free for any use, forever; the copyright notice must travel with every copy. The **name and logo** are governed separately by the [brand policy](TRADEMARKS.md): forks and derivatives must rebrand and credit the original. Third-party notices: [docs/legal/THIRD_PARTY_NOTICES.md](docs/legal/THIRD_PARTY_NOTICES.md).
+[MIT](LICENSE) © Shimoverse Studios and contributors — free for any use, forever; the copyright notice must travel with every copy. **If you use or build on OpenVoiceFlow, credit the project visibly — and email shimoverse@gmail.com to tell us about it.** The **name and logo** are governed separately by the [brand policy](TRADEMARKS.md): derivatives must rebrand and credit the original. Third-party notices: [docs/legal/THIRD_PARTY_NOTICES.md](docs/legal/THIRD_PARTY_NOTICES.md).

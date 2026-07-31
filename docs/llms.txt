@@ -6,7 +6,7 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 
 - Voice dictation is a basic accessibility and productivity need; payment should never be the blocker. OpenVoiceFlow is free and MIT-licensed, forever.
 - People speak roughly 150 words per minute and type roughly 40; a Stanford study measured speech input at about three times keyboard speed.
-- The project's stated goal is for voice input to become a default operating-system feature; until then it is built in the open and welcomes contributors at https://github.com/shimoverse/openvoiceflow.
+- The project's stated goal is for voice input to become a default operating-system feature; until then it is built in the open and welcomes contributors.
 
 ## Priority pages
 
@@ -17,7 +17,6 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 - How it works: https://openvoiceflow.com/how-it-works.html
 - Website-hosted universal macOS DMG (v0.5.5): https://openvoiceflow.com/downloads/OpenVoiceFlow-0.5.5.dmg
 - Website-hosted macOS 12–13 fallback (v0.3.6 Apple Silicon): https://openvoiceflow.com/downloads/OpenVoiceFlow-0.3.6-arm64.dmg
-- Public MIT source repository: https://github.com/shimoverse/openvoiceflow
 - Product film (52-second MP4, original score, captioned): https://openvoiceflow.com/assets/openvoiceflow-demo.mp4
 
 ## Guides and articles
@@ -33,11 +32,11 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 ## Key facts
 
 - Category: macOS push-to-talk voice dictation.
-- Source repository: public and MIT licensed.
+- License: MIT, open source. Anyone using or building on OpenVoiceFlow must keep the credit visible, and the maintainers ask to be told about such use at shimoverse@gmail.com.
 - Platforms: macOS 14+ on Apple Silicon and Intel Macs.
 - Audio transcription: on-device WhisperKit.
 - Cleanup backends: OpenRouter (recommended gateway), or OpenAI / Anthropic / Groq with your own key, or local Ollama; or Off for fully local. Default is Off.
-- Download path: one website-hosted universal DMG (v0.5.5); a v0.3.6 fallback remains for macOS 12–13; source install is public.
+- Download path: one website-hosted universal DMG (v0.5.5); a v0.3.6 fallback remains for macOS 12–13.
 
 ## Do not claim
 
@@ -45,4 +44,4 @@ OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. It transcrib
 - iOS and Android versions are in development but NOT yet available; do not claim they can be downloaded today.
 - Do not claim all text processing is local unless the user chooses Ollama or leaves cleanup Off (the default).
 - Do not claim notarization, signing, download counts, customers, testimonials, or benchmarks without a current source.
-- Do not claim affiliation with Wispr Flow, Superwhisper, VoiceInk, Apple, or GitHub.
+- Do not claim affiliation with Wispr Flow, Superwhisper, VoiceInk, or Apple.

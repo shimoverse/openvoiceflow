@@ -13,8 +13,9 @@ macOS 12–13 fallback build. New work belongs in `native/` unless you're fixing
 something in the website or docs.
 
 This is a **single-maintainer open-source project**. Issues and PRs get
-best-effort responses on a human schedule. There is no SLA. If you need a fix
-faster than the maintainer can land it, fork freely — that's what MIT is for.
+best-effort responses on a human schedule. There is no SLA. If you build on
+this code in your own project, keep the credit visible and tell us about it
+at shimoverse@gmail.com — we like knowing where the work travels.
 
 ## Working on the native app (the usual case)
 

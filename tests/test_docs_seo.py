@@ -185,6 +185,22 @@ def test_the_product_film_ships_with_its_plumbing():
     assert "demo_play" in site_js, "film plays must be visible in analytics"
 
 
+def test_the_website_ui_carries_no_github_links():
+    """Maintainer decision (July 2026): the website should not send visitors
+    to GitHub — no nav item, no footer Source link, no in-prose repo links,
+    and no fork-promotion copy. The project stays MIT/open-source and the
+    site still says so; only the links and CTAs were removed. site.js keeps
+    its inert github_click handler for the observability contract."""
+    for rel in ALL_PAGES:
+        html = read(rel)
+        assert "github" not in html.lower(), f"{rel}: GitHub reference present"
+    llms = read("llms.txt")
+    assert "github" not in llms.lower(), "llms.txt: GitHub reference present"
+    # the credit-and-tell-us ask replaces the repo link as the reuse policy
+    assert "shimoverse@gmail.com" in llms
+    assert "shimoverse@gmail.com" in read("mission.html")
+
+
 def test_articles_keep_the_competitor_claims_hedged():
     # AGENTS.md: claims on the website must be true of the shipped app, and
     # competitor claims must be dated. Comparison pages carry the hedge line

@@ -301,7 +301,7 @@
     });
   });
 
-  document.querySelectorAll('a[href="install.html"], a[href="/install.html"]').forEach(link => {
+  document.querySelectorAll('a[href="install.html"], a[href="/install.html"], a[href="../install.html"]').forEach(link => {
     link.addEventListener('click', () => {
       track('install_guide_click', { source_path: pathname() });
     });

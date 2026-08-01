@@ -60,6 +60,9 @@ markers = [
 [tool.ruff]
 target-version = "py39"
 line-length = 120
+# .claude/skills ships vendored agent-skill templates that must stay
+# byte-portable to other environments — they are not project code.
+extend-exclude = [".claude"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]

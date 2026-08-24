@@ -57,6 +57,9 @@ Full product manual (25 pages) for OpenVoiceFlow 0.5.5:
 - Which Whisper model for dictation (tiny to large-v3-turbo, hardware guidance): https://openvoiceflow.com/blog/whisper-models-for-dictation.html
 - Offline dictation on a Mac (fully local pipeline, Ollama cleanup): https://openvoiceflow.com/blog/offline-dictation-mac.html
 - Voice typing for developers (dictating AI prompts, PRs, reviews): https://openvoiceflow.com/blog/voice-typing-for-developers.html
+- Building a personal dictionary (fixing misheard names and jargon, how dictionary entries work): https://openvoiceflow.com/blog/personal-dictionary-dictation.html
+- Dictation for writers (drafting long-form work by voice, pacing and revision): https://openvoiceflow.com/blog/dictation-for-writers.html
+- Is on-device dictation actually private (verification checklist, audio/network/telemetry breakdown): https://openvoiceflow.com/blog/is-on-device-dictation-private.html
 
 ## Key facts
 

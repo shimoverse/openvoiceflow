@@ -51,7 +51,7 @@ def expected_url(rel: str) -> str:
 
 
 def test_blog_launch_set_is_present():
-    # The six launch articles. If one is renamed, every reference below —
+    # The current article set. If one is renamed, every reference below —
     # sitemap, llms.txt, homepage cards — must move with it; start here.
     assert ARTICLES == sorted([
         "best-dictation-software-mac.html",
@@ -60,6 +60,9 @@ def test_blog_launch_set_is_present():
         "whisper-models-for-dictation.html",
         "offline-dictation-mac.html",
         "voice-typing-for-developers.html",
+        "personal-dictionary-dictation.html",
+        "dictation-for-writers.html",
+        "is-on-device-dictation-private.html",
     ])
 
 
@@ -113,11 +116,14 @@ def test_robots_txt_still_points_at_the_sitemap():
 
 def test_every_article_carries_its_structured_data():
     """BlogPosting + FAQPage JSON-LD is how articles become rich results and
-    AI-assistant citations rather than plain blue links."""
+    AI-assistant citations rather than plain blue links. Publish dates are
+    deliberately omitted (maintainer decision, August 2026): every article
+    launched on the same day, and a shared datePublished across the whole
+    blog reads as fake freshness rather than real dates worth showing."""
     for name in ARTICLES:
         html = read(f"blog/{name}")
         assert '"@type": "BlogPosting"' in html, f"{name}: missing BlogPosting schema"
-        assert '"datePublished"' in html, f"{name}: missing datePublished"
+        assert '"datePublished"' not in html, f"{name}: should not carry datePublished"
         assert '"@type": "FAQPage"' in html, f"{name}: missing FAQPage schema"
         blobs = re.findall(
             r'<script type="application/ld\+json">\s*(\{.*?\})\s*</script>', html, re.S

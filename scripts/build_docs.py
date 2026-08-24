@@ -68,10 +68,15 @@ NAV: list[tuple[str, list[tuple[str, str]]]] = [
 
 ORDER = [slug for _, items in NAV for slug, _ in items]
 
+# Real, standalone files rather than a data: URI — Google's favicon-in-
+# search pipeline fetches the icon as its own crawlable resource and falls
+# back to a generic globe when it can't (data: URIs aren't a stable,
+# separately-fetchable URL, which is exactly the failure mode this fixes).
 FAVICON = (
-    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E"
-    "%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23E8974E' stroke-width='13' "
-    "stroke-linecap='round' stroke-dasharray='186 28' transform='rotate(-58 50 50)'/%3E%3C/svg%3E"
+    '  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />\n'
+    '  <link rel="icon" href="../favicon-48.png" sizes="48x48" type="image/png" />\n'
+    '  <link rel="icon" href="../favicon.ico" sizes="any" />\n'
+    '  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />'
 )
 
 # Mobile-only controls are hidden by style.css, which is a separate request.
@@ -242,7 +247,7 @@ def render(slug: str, page: dict) -> str:
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://openvoiceflow.com/assets/og-card.png" />
   <link rel="canonical" href="{url}" />
-  <link rel="icon" href="{FAVICON}" />
+{FAVICON}
 {CRITICAL_CSS}
   <link rel="stylesheet" href="../style.css" />
 {chr(10).join(schemas)}

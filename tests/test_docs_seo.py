@@ -10,6 +10,7 @@ are visible on the rendered page — which is exactly why they're tests.
 """
 import json
 import re
+import struct
 from datetime import date
 from pathlib import Path
 
@@ -305,3 +306,33 @@ def test_articles_keep_the_competitor_claims_hedged():
         html = read(f"blog/{name}")
         assert "July 2026" in html, f"{name}: competitor claims lost their date hedge"
         assert "affiliation" in html.lower(), f"{name}: missing no-affiliation note"
+
+
+def test_favicon_is_a_real_file_not_a_data_uri():
+    # Google's favicon-in-search pipeline fetches the icon as its own
+    # crawlable resource and falls back to a generic globe when it can't —
+    # a data: URI isn't a stable, separately-fetchable URL. Every page must
+    # link real files, and those files must actually exist and be square.
+    for rel in ALL_PAGES:
+        html = read(rel)
+        assert "data:image/svg+xml" not in html, f"{rel}: favicon reverted to a data: URI"
+        assert 'rel="icon" href="' in html, f"{rel}: missing a real <link rel=\"icon\">"
+
+    for asset in ["favicon.svg", "favicon.ico", "favicon-48.png", "favicon-192.png", "apple-touch-icon.png"]:
+        path = DOCS / asset
+        assert path.is_file(), f"missing {asset} at the site root"
+        assert path.stat().st_size > 0, f"{asset} is empty"
+
+    assert png_dimensions("favicon-48.png") == (48, 48), \
+        "favicon-48.png must be exactly 48x48 (square, per Google's guidance)"
+    assert png_dimensions("apple-touch-icon.png") == (180, 180), \
+        "apple-touch-icon.png must be 180x180 per Apple's convention"
+
+
+def png_dimensions(name: str) -> tuple[int, int]:
+    # PNG width/height live as big-endian uint32s right after the 8-byte
+    # signature + IHDR chunk header (bytes 16:20 and 20:24). No imaging
+    # library needed for a bounds check this simple.
+    header = (DOCS / name).read_bytes()[:24]
+    width, height = struct.unpack(">II", header[16:24])
+    return width, height

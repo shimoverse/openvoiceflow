@@ -1,36 +1,36 @@
-&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-  &lt;meta charset="UTF-8" /&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
-  &lt;title&gt;OpenVoiceFlow — Free Voice Dictation for macOS&lt;/title&gt;
-  &lt;meta name="description" content="Free push-to-talk voice dictation for macOS. Audio transcription runs locally with WhisperKit; optional LLM cleanup uses the backend you choose." /&gt;
-  &lt;meta name="keywords" content="voice dictation macOS, Wispr Flow alternative, whisper dictation, free voice dictation mac, local transcription" /&gt;
-  &lt;meta property="og:title" content="OpenVoiceFlow — Free Voice Dictation for macOS" /&gt;
-  &lt;meta property="og:description" content="Speak. It types. Free forever, and your audio never leaves your Mac. Push-to-talk dictation with local on-device WhisperKit transcription." /&gt;
-  &lt;meta property="og:url" content="https://openvoiceflow.com/" /&gt;
-  &lt;meta property="og:type" content="website" /&gt;
-  &lt;meta property="og:image" content="https://openvoiceflow.com/assets/og-card.png" /&gt;
-  &lt;meta name="twitter:card" content="summary_large_image" /&gt;
-  &lt;meta name="twitter:title" content="OpenVoiceFlow — Free Voice Dictation for macOS" /&gt;
-  &lt;meta name="twitter:description" content="Free voice dictation for macOS. $0 forever." /&gt;
-  &lt;meta name="twitter:image" content="https://openvoiceflow.com/assets/og-card.png" /&gt;
-  &lt;link rel="canonical" href="https://openvoiceflow.com/" /&gt;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenVoiceFlow — Free Voice Dictation for macOS</title>
+  <meta name="description" content="Free push-to-talk voice dictation for macOS. Audio transcription runs locally with WhisperKit; optional LLM cleanup uses the backend you choose." />
+  <meta name="keywords" content="voice dictation macOS, Wispr Flow alternative, whisper dictation, free voice dictation mac, local transcription" />
+  <meta property="og:title" content="OpenVoiceFlow — Free Voice Dictation for macOS" />
+  <meta property="og:description" content="Speak. It types. Free forever, and your audio never leaves your Mac. Push-to-talk dictation with local on-device WhisperKit transcription." />
+  <meta property="og:url" content="https://openvoiceflow.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://openvoiceflow.com/assets/og-card.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="OpenVoiceFlow — Free Voice Dictation for macOS" />
+  <meta name="twitter:description" content="Free voice dictation for macOS. $0 forever." />
+  <meta name="twitter:image" content="https://openvoiceflow.com/assets/og-card.png" />
+  <link rel="canonical" href="https://openvoiceflow.com/" />
 
-  &lt;!-- Waveform-ring favicon (brand glyph) --&gt;
-  &lt;link rel="icon" href="favicon.svg" type="image/svg+xml" /&gt;
-  &lt;link rel="icon" href="favicon-48.png" sizes="48x48" type="image/png" /&gt;
-  &lt;link rel="icon" href="favicon.ico" sizes="any" /&gt;
-  &lt;link rel="apple-touch-icon" href="apple-touch-icon.png" /&gt;
+  <!-- Waveform-ring favicon (brand glyph) -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="favicon-48.png" sizes="48x48" type="image/png" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 
-  &lt;!-- Hide mobile-only controls before style.css lands: a paint that beats
+  <!-- Hide mobile-only controls before style.css lands: a paint that beats
        the stylesheet would otherwise flash unstyled bordered buttons. The
-       media queries in style.css load after this and still reveal them. --&gt;
-  &lt;style&gt;.nav-hamburger,.docs-sidebar-toggle{display:none}&lt;/style&gt;
-  &lt;link rel="stylesheet" href="style.css" /&gt;
+       media queries in style.css load after this and still reveal them. -->
+  <style>.nav-hamburger,.docs-sidebar-toggle{display:none}</style>
+  <link rel="stylesheet" href="style.css" />
 
-  &lt;!-- Structured Data: SoftwareApplication --&gt;
-  &lt;script type="application/ld+json"&gt;
+  <!-- Structured Data: SoftwareApplication -->
+  <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -50,8 +50,8 @@
     "codeRepository": "https://github.com/shimoverse/openvoiceflow",
     "sameAs": "https://github.com/shimoverse/openvoiceflow"
   }
-  &lt;/script&gt;
-  &lt;script type="application/ld+json"&gt;
+  </script>
+  <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -61,8 +61,8 @@
     "description": "Open-source, free-forever voice dictation for macOS with on-device transcription. Mission: voice input as a basic feature for everyone, never gated by payment.",
     "sameAs": ["https://github.com/shimoverse/openvoiceflow", "https://github.com/shimoverse"]
   }
-  &lt;/script&gt;
-  &lt;script type="application/ld+json"&gt;
+  </script>
+  <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -81,8 +81,8 @@
        "acceptedAnswer": {"@type": "Answer", "text": "Settings and history stay in Application Support on your Mac; API keys live in the macOS Keychain. Audio is processed on-device and discarded."}}
     ]
   }
-  &lt;/script&gt;
-  &lt;script type="application/ld+json"&gt;
+  </script>
+  <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "VideoObject",
@@ -95,301 +95,301 @@
     "duration": "PT52S",
     "publisher": {"@type": "Organization", "name": "OpenVoiceFlow", "url": "https://openvoiceflow.com/"}
   }
-  &lt;/script&gt;
-  &lt;script&gt;
+  </script>
+  <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-  &lt;/script&gt;
-  &lt;script defer src="https://va.vercel-scripts.com/v1/script.js" data-view-endpoint="https://vitals.vercel-analytics.com/v1/view?dsn=hbQ2mG8dCYsBmC0cvPE6eVdkD" data-event-endpoint="https://vitals.vercel-analytics.com/v1/event?dsn=hbQ2mG8dCYsBmC0cvPE6eVdkD"&gt;&lt;/script&gt;
-  &lt;script defer src="/_vercel/speed-insights/script.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
+  </script>
+  <script defer src="https://va.vercel-scripts.com/v1/script.js" data-view-endpoint="https://vitals.vercel-analytics.com/v1/view?dsn=hbQ2mG8dCYsBmC0cvPE6eVdkD" data-event-endpoint="https://vitals.vercel-analytics.com/v1/event?dsn=hbQ2mG8dCYsBmC0cvPE6eVdkD"></script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+</head>
+<body>
 
-  &lt;nav class="nav" id="nav" aria-label="Main"&gt;
-    &lt;div class="nav-inner container"&gt;
-      &lt;a href="index.html" class="nav-logo"&gt;&lt;canvas class="nav-glyph" data-wf="glyph" aria-hidden="true"&gt;&lt;/canvas&gt;&lt;span class="nav-logo-text"&gt;OpenVoiceFlow&lt;/span&gt;&lt;/a&gt;
-      &lt;ul class="nav-links"&gt;
-        &lt;li&gt;&lt;a href="mission.html"&gt;Mission&lt;/a&gt;&lt;/li&gt;
-        &lt;li&gt;&lt;a href="how-it-works.html"&gt;How it works&lt;/a&gt;&lt;/li&gt;
-        &lt;li&gt;&lt;a href="install.html"&gt;Install&lt;/a&gt;&lt;/li&gt;
-        &lt;li&gt;&lt;a href="docs/index.html"&gt;Docs&lt;/a&gt;&lt;/li&gt;
-        &lt;li&gt;&lt;a href="blog/index.html"&gt;Blog&lt;/a&gt;&lt;/li&gt;
-        &lt;li&gt;&lt;a href="download.html" class="btn btn-primary"&gt;Download&lt;/a&gt;&lt;/li&gt;
-      &lt;/ul&gt;
-      &lt;button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer"&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;/button&gt;
-    &lt;/div&gt;
-    &lt;div class="nav-drawer" id="navDrawer"&gt;
-      &lt;a href="index.html"&gt;Home&lt;/a&gt;
-      &lt;a href="mission.html"&gt;Mission&lt;/a&gt;
-      &lt;a href="download.html"&gt;Download&lt;/a&gt;
-      &lt;a href="install.html"&gt;Install&lt;/a&gt;
-      &lt;a href="how-it-works.html"&gt;How it works&lt;/a&gt;
-      &lt;a href="docs/index.html"&gt;Docs&lt;/a&gt;
-      &lt;a href="blog/index.html"&gt;Blog&lt;/a&gt;
-      &lt;a href="download.html" class="btn btn-primary"&gt;Download for Mac&lt;/a&gt;
-    &lt;/div&gt;
-  &lt;/nav&gt;
+  <nav class="nav" id="nav" aria-label="Main">
+    <div class="nav-inner container">
+      <a href="index.html" class="nav-logo"><canvas class="nav-glyph" data-wf="glyph" aria-hidden="true"></canvas><span class="nav-logo-text">OpenVoiceFlow</span></a>
+      <ul class="nav-links">
+        <li><a href="mission.html">Mission</a></li>
+        <li><a href="how-it-works.html">How it works</a></li>
+        <li><a href="install.html">Install</a></li>
+        <li><a href="docs/index.html">Docs</a></li>
+        <li><a href="blog/index.html">Blog</a></li>
+        <li><a href="download.html" class="btn btn-primary">Download</a></li>
+      </ul>
+      <button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer"><span></span><span></span><span></span></button>
+    </div>
+    <div class="nav-drawer" id="navDrawer">
+      <a href="index.html">Home</a>
+      <a href="mission.html">Mission</a>
+      <a href="download.html">Download</a>
+      <a href="install.html">Install</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="docs/index.html">Docs</a>
+      <a href="blog/index.html">Blog</a>
+      <a href="download.html" class="btn btn-primary">Download for Mac</a>
+    </div>
+  </nav>
 
-  &lt;main&gt;
-    &lt;!-- ─── 1 · Hero ───────────────────────────────────────── --&gt;
-    &lt;section class="container hero-inner" aria-label="Introduction"&gt;
-      &lt;span class="hero-badge"&gt;&lt;span class="badge-dot"&gt;&lt;/span&gt;FREE FOREVER · 100% LOCAL AUDIO · OPEN SOURCE&lt;/span&gt;
-      &lt;h1 class="hero-title"&gt;Speak. It types.&lt;br /&gt;Your voice stays on your&amp;nbsp;Mac.&lt;/h1&gt;
-      &lt;p class="hero-sub answer-block"&gt;OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. Hold a key, talk, release — polished text lands in any app.&lt;/p&gt;
-      &lt;div class="hero-cta-row"&gt;
-        &lt;a class="btn btn-primary btn-lg" href="download.html"&gt;Download for Mac&lt;/a&gt;
-        &lt;a class="btn btn-outline btn-lg" href="how-it-works.html"&gt;See how it works&lt;/a&gt;
-      &lt;/div&gt;
-      &lt;div class="hero-trust"&gt;Signed &amp;amp; notarized · macOS 14+ · Apple Silicon &amp;amp; Intel · no account, ever&lt;/div&gt;
+  <main>
+    <!-- ─── 1 · Hero ───────────────────────────────────────── -->
+    <section class="container hero-inner" aria-label="Introduction">
+      <span class="hero-badge"><span class="badge-dot"></span>FREE FOREVER · 100% LOCAL AUDIO · OPEN SOURCE</span>
+      <h1 class="hero-title">Speak. It types.<br />Your voice stays on your&nbsp;Mac.</h1>
+      <p class="hero-sub answer-block">OpenVoiceFlow is a free push-to-talk voice dictation app for macOS. Hold a key, talk, release — polished text lands in any app.</p>
+      <div class="hero-cta-row">
+        <a class="btn btn-primary btn-lg" href="download.html">Download for Mac</a>
+        <a class="btn btn-outline btn-lg" href="how-it-works.html">See how it works</a>
+      </div>
+      <div class="hero-trust">Signed &amp; notarized · macOS 14+ · Apple Silicon &amp; Intel · no account, ever</div>
 
-      &lt;div class="hero-demo" aria-hidden="true"&gt;
-        &lt;div class="typed-box"&gt;&lt;span id="typedDemo"&gt;Ship the beta tonight — the release notes are already in the doc.&lt;/span&gt;&lt;span class="caret"&gt;&lt;/span&gt;&lt;/div&gt;
-        &lt;div class="hero-cap-row"&gt;
-          &lt;div class="hero-cap"&gt;
-            &lt;span class="hero-chip" id="heroChip"&gt;fn&lt;small&gt;HELD&lt;/small&gt;&lt;/span&gt;
-            &lt;canvas data-wf="hero"&gt;&lt;/canvas&gt;
-            &lt;span class="hero-status" id="heroStatus"&gt;listening&lt;/span&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
+      <div class="hero-demo" aria-hidden="true">
+        <div class="typed-box"><span id="typedDemo">Ship the beta tonight — the release notes are already in the doc.</span><span class="caret"></span></div>
+        <div class="hero-cap-row">
+          <div class="hero-cap">
+            <span class="hero-chip" id="heroChip">fn<small>HELD</small></span>
+            <canvas data-wf="hero"></canvas>
+            <span class="hero-status" id="heroStatus">listening</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    &lt;!-- ─── 1b · The film ──────────────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="Product film"&gt;
-      &lt;h2 class="section-title"&gt;Fifty-two seconds. The whole idea.&lt;/h2&gt;
-      &lt;p class="section-sub"&gt;Speak at 150 words a minute. Type at 40. Watch what that gap is worth.&lt;/p&gt;
-      &lt;div class="film-frame"&gt;
-        &lt;video data-film controls playsinline preload="metadata" poster="assets/demo-poster.jpg"&gt;
-          &lt;source src="assets/openvoiceflow-demo.mp4" type="video/mp4" /&gt;
-          &lt;track kind="captions" src="assets/openvoiceflow-demo.en.vtt" srclang="en" label="English" default /&gt;
-          Your browser doesn't play MP4 video — &lt;a href="assets/openvoiceflow-demo.mp4"&gt;download the film&lt;/a&gt; instead.
-        &lt;/video&gt;
-      &lt;/div&gt;
-      &lt;p class="film-note"&gt;Original score. On-screen text mirrors real app behavior — on-device Whisper, cleanup Off by default.&lt;/p&gt;
-    &lt;/section&gt;
+    <!-- ─── 1b · The film ──────────────────────────────────── -->
+    <section class="container section" aria-label="Product film">
+      <h2 class="section-title">Fifty-two seconds. The whole idea.</h2>
+      <p class="section-sub">Speak at 150 words a minute. Type at 40. Watch what that gap is worth.</p>
+      <div class="film-frame">
+        <video data-film controls playsinline preload="metadata" poster="assets/demo-poster.jpg">
+          <source src="assets/openvoiceflow-demo.mp4" type="video/mp4" />
+          <track kind="captions" src="assets/openvoiceflow-demo.en.vtt" srclang="en" label="English" default />
+          Your browser doesn't play MP4 video — <a href="assets/openvoiceflow-demo.mp4">download the film</a> instead.
+        </video>
+      </div>
+      <p class="film-note">Original score. On-screen text mirrors real app behavior — on-device Whisper, cleanup Off by default.</p>
+    </section>
 
-    &lt;!-- ─── 2 · The two USPs ───────────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="Why OpenVoiceFlow"&gt;
-      &lt;div class="usp-grid"&gt;
-        &lt;div class="usp-card"&gt;
-          &lt;span class="mono-kicker"&gt;USP 01 · FREE FOREVER&lt;/span&gt;
-          &lt;div class="usp-value"&gt;$0&lt;/div&gt;
-          &lt;p class="usp-body"&gt;No subscription. No account. MIT open source.&lt;/p&gt;
-        &lt;/div&gt;
-        &lt;div class="usp-card"&gt;
-          &lt;span class="mono-kicker"&gt;USP 02 · EVERYTHING LOCAL&lt;/span&gt;
-          &lt;div class="usp-value"&gt;0 bytes&lt;/div&gt;
-          &lt;p class="usp-body"&gt;of audio ever leave your Mac. Airplane mode? Fine.&lt;/p&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
+    <!-- ─── 2 · The two USPs ───────────────────────────────── -->
+    <section class="container section" aria-label="Why OpenVoiceFlow">
+      <div class="usp-grid">
+        <div class="usp-card">
+          <span class="mono-kicker">USP 01 · FREE FOREVER</span>
+          <div class="usp-value">$0</div>
+          <p class="usp-body">No subscription. No account. MIT open source.</p>
+        </div>
+        <div class="usp-card">
+          <span class="mono-kicker">USP 02 · EVERYTHING LOCAL</span>
+          <div class="usp-value">0 bytes</div>
+          <p class="usp-body">of audio ever leave your Mac. Airplane mode? Fine.</p>
+        </div>
+      </div>
+    </section>
 
-    &lt;!-- ─── 3 · How it works ───────────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="How it works"&gt;
-      &lt;h2 class="section-title"&gt;How it works&lt;/h2&gt;
-      &lt;div class="card-grid"&gt;
-        &lt;div class="card"&gt;
-          &lt;span class="mono-kicker"&gt;01 · Hold&lt;/span&gt;
-          &lt;span class="key-chip"&gt;fn &lt;small&gt;Globe&lt;/small&gt;&lt;/span&gt;
-          &lt;div class="card-body"&gt;Hold, speak, release. One key, any app.&lt;/div&gt;
-        &lt;/div&gt;
-        &lt;div class="card"&gt;
-          &lt;span class="mono-kicker"&gt;02 · Speak&lt;/span&gt;
-          &lt;canvas data-wf="card" aria-hidden="true"&gt;&lt;/canvas&gt;
-          &lt;div class="card-body"&gt;Whisper transcribes on-device.&lt;/div&gt;
-        &lt;/div&gt;
-        &lt;div class="card"&gt;
-          &lt;span class="mono-kicker"&gt;03 · Release&lt;/span&gt;
-          &lt;div class="card-lede"&gt;Polished text at your cursor&lt;span class="caret-sm"&gt;&lt;/span&gt;&lt;/div&gt;
-          &lt;div class="card-body"&gt;&lt;a href="how-it-works.html"&gt;Full pipeline →&lt;/a&gt;&lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
+    <!-- ─── 3 · How it works ───────────────────────────────── -->
+    <section class="container section" aria-label="How it works">
+      <h2 class="section-title">How it works</h2>
+      <div class="card-grid">
+        <div class="card">
+          <span class="mono-kicker">01 · Hold</span>
+          <span class="key-chip">fn <small>Globe</small></span>
+          <div class="card-body">Hold, speak, release. One key, any app.</div>
+        </div>
+        <div class="card">
+          <span class="mono-kicker">02 · Speak</span>
+          <canvas data-wf="card" aria-hidden="true"></canvas>
+          <div class="card-body">Whisper transcribes on-device.</div>
+        </div>
+        <div class="card">
+          <span class="mono-kicker">03 · Release</span>
+          <div class="card-lede">Polished text at your cursor<span class="caret-sm"></span></div>
+          <div class="card-body"><a href="how-it-works.html">Full pipeline →</a></div>
+        </div>
+      </div>
+    </section>
 
-    &lt;!-- ─── 4 · USP deep-dive: Everything local ────────────── --&gt;
-    &lt;section class="container section" aria-label="Privacy"&gt;
-      &lt;div class="privacy-panel"&gt;
-        &lt;div class="privacy-grid"&gt;
-          &lt;div class="privacy-copy"&gt;
-            &lt;div class="privacy-title"&gt;Your voice never leaves your&amp;nbsp;Mac.&lt;/div&gt;
-            &lt;div class="privacy-body"&gt;Not &amp;ldquo;encrypted.&amp;rdquo; Not &amp;ldquo;anonymized.&amp;rdquo; &lt;b&gt;Not sent.&lt;/b&gt; Audio is transcribed on your Mac and discarded the moment text exists.&lt;/div&gt;
-            &lt;div class="privacy-note"&gt;Not a promise — an architecture. The code is MIT-licensed open source.&lt;/div&gt;
-          &lt;/div&gt;
-          &lt;div class="privacy-box"&gt;
-            &lt;div class="privacy-box-label"&gt;YOUR MAC — AUDIO NEVER LEAVES THIS BOX&lt;/div&gt;
-            &lt;div class="pipe-row"&gt;
-              &lt;span class="pipe-chip"&gt;mic&lt;/span&gt;&lt;span class="pipe-arrow"&gt;→&lt;/span&gt;
-              &lt;span class="pipe-chip"&gt;Whisper&lt;/span&gt;&lt;span class="pipe-arrow"&gt;→&lt;/span&gt;
-              &lt;span class="pipe-chip"&gt;cleanup&lt;/span&gt;&lt;span class="pipe-arrow"&gt;→&lt;/span&gt;
-              &lt;span class="pipe-chip dest"&gt;your cursor&lt;/span&gt;
-            &lt;/div&gt;
-            &lt;canvas data-wf="pline" aria-hidden="true"&gt;&lt;/canvas&gt;
-            &lt;div class="privacy-box-note"&gt;With Ollama or cleanup off, no byte crosses this border at all.&lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
+    <!-- ─── 4 · USP deep-dive: Everything local ────────────── -->
+    <section class="container section" aria-label="Privacy">
+      <div class="privacy-panel">
+        <div class="privacy-grid">
+          <div class="privacy-copy">
+            <div class="privacy-title">Your voice never leaves your&nbsp;Mac.</div>
+            <div class="privacy-body">Not &ldquo;encrypted.&rdquo; Not &ldquo;anonymized.&rdquo; <b>Not sent.</b> Audio is transcribed on your Mac and discarded the moment text exists.</div>
+            <div class="privacy-note">Not a promise — an architecture. The code is MIT-licensed open source.</div>
+          </div>
+          <div class="privacy-box">
+            <div class="privacy-box-label">YOUR MAC — AUDIO NEVER LEAVES THIS BOX</div>
+            <div class="pipe-row">
+              <span class="pipe-chip">mic</span><span class="pipe-arrow">→</span>
+              <span class="pipe-chip">Whisper</span><span class="pipe-arrow">→</span>
+              <span class="pipe-chip">cleanup</span><span class="pipe-arrow">→</span>
+              <span class="pipe-chip dest">your cursor</span>
+            </div>
+            <canvas data-wf="pline" aria-hidden="true"></canvas>
+            <div class="privacy-box-note">With Ollama or cleanup off, no byte crosses this border at all.</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    &lt;!-- ─── 5 · Features ───────────────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="Features"&gt;
-      &lt;h2 class="section-title"&gt;Everything you need. Nothing you don't.&lt;/h2&gt;
-      &lt;div class="card-grid"&gt;
-        &lt;div class="card"&gt;&lt;span class="mono-kicker"&gt;Live HUD&lt;/span&gt;&lt;div class="card-title"&gt;See it listening&lt;/div&gt;&lt;div class="card-body"&gt;A waveform tracks your voice while you hold the key.&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="card"&gt;&lt;span class="mono-kicker"&gt;Profile&lt;/span&gt;&lt;div class="card-title"&gt;Know-Me interview&lt;/div&gt;&lt;div class="card-body"&gt;Learns your name, team, and jargon.&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="card"&gt;&lt;span class="mono-kicker"&gt;Dictionary&lt;/span&gt;&lt;div class="card-title"&gt;Your words&lt;/div&gt;&lt;div class="card-body"&gt;Teach it the names and jargon it should never misspell.&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="card"&gt;&lt;span class="mono-kicker"&gt;Context&lt;/span&gt;&lt;div class="card-title"&gt;Per-app style&lt;/div&gt;&lt;div class="card-body"&gt;Casual in Slack, formal in Mail.&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="card"&gt;&lt;span class="mono-kicker"&gt;Docs&lt;/span&gt;&lt;div class="card-title"&gt;A real manual&lt;/div&gt;&lt;div class="card-body"&gt;Twenty-five pages covering every setting, model, and fix.&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="card"&gt;&lt;span class="mono-kicker"&gt;Snippets&lt;/span&gt;&lt;div class="card-title"&gt;Say it, expand it&lt;/div&gt;&lt;div class="card-body"&gt;Voice-triggered text expansion.&lt;/div&gt;&lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
+    <!-- ─── 5 · Features ───────────────────────────────────── -->
+    <section class="container section" aria-label="Features">
+      <h2 class="section-title">Everything you need. Nothing you don't.</h2>
+      <div class="card-grid">
+        <div class="card"><span class="mono-kicker">Live HUD</span><div class="card-title">See it listening</div><div class="card-body">A waveform tracks your voice while you hold the key.</div></div>
+        <div class="card"><span class="mono-kicker">Profile</span><div class="card-title">Know-Me interview</div><div class="card-body">Learns your name, team, and jargon.</div></div>
+        <div class="card"><span class="mono-kicker">Dictionary</span><div class="card-title">Your words</div><div class="card-body">Teach it the names and jargon it should never misspell.</div></div>
+        <div class="card"><span class="mono-kicker">Context</span><div class="card-title">Per-app style</div><div class="card-body">Casual in Slack, formal in Mail.</div></div>
+        <div class="card"><span class="mono-kicker">Docs</span><div class="card-title">A real manual</div><div class="card-body">Twenty-five pages covering every setting, model, and fix.</div></div>
+        <div class="card"><span class="mono-kicker">Snippets</span><div class="card-title">Say it, expand it</div><div class="card-body">Voice-triggered text expansion.</div></div>
+      </div>
+    </section>
 
-    &lt;!-- ─── 6 · USP deep-dive: Free forever ────────────────── --&gt;
-    &lt;section class="container section" aria-label="Free forever and comparison with Wispr Flow"&gt;
-      &lt;h2 class="section-title"&gt;Free forever&lt;/h2&gt;
-      &lt;p class="section-sub"&gt;Wispr Flow is $144 a year for someone else's cloud.&lt;/p&gt;
-      &lt;div class="stat-row"&gt;
-        &lt;div class="stat-card"&gt;&lt;div class="stat-value"&gt;$0&lt;/div&gt;&lt;div class="stat-label"&gt;Annual cost&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="stat-card stat-accent"&gt;&lt;div class="stat-value"&gt;$144&lt;/div&gt;&lt;div class="stat-label"&gt;Saved every year&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="stat-card"&gt;&lt;div class="stat-value"&gt;MIT&lt;/div&gt;&lt;div class="stat-label"&gt;License&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="stat-card"&gt;&lt;div class="stat-value"&gt;∞&lt;/div&gt;&lt;div class="stat-label"&gt;Cleanup models via OpenRouter&lt;/div&gt;&lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class="compare-table"&gt;
-        &lt;div class="compare-grid"&gt;
-          &lt;div class="compare-head-dim" aria-hidden="true"&gt;&amp;nbsp;&lt;/div&gt;&lt;div class="compare-head"&gt;OpenVoiceFlow&lt;/div&gt;&lt;div class="compare-head-dim"&gt;Wispr Flow&lt;/div&gt;
-          &lt;div class="compare-label"&gt;Price&lt;/div&gt;&lt;div class="compare-us-strong"&gt;$0, forever&lt;/div&gt;&lt;div class="compare-them"&gt;$12/mo — $144/yr&lt;/div&gt;
-          &lt;div class="compare-label"&gt;Transcription&lt;/div&gt;&lt;div class="compare-us"&gt;On this Mac&lt;/div&gt;&lt;div class="compare-them"&gt;Their cloud&lt;/div&gt;
-          &lt;div class="compare-label"&gt;Works offline&lt;/div&gt;&lt;div class="compare-yes"&gt;Yes&lt;/div&gt;&lt;div class="compare-them"&gt;No&lt;/div&gt;
-          &lt;div class="compare-label"&gt;Audio leaves the machine&lt;/div&gt;&lt;div class="compare-yes"&gt;Never&lt;/div&gt;&lt;div class="compare-them"&gt;Uploaded&lt;/div&gt;
-          &lt;div class="compare-label"&gt;Source code&lt;/div&gt;&lt;div class="compare-us"&gt;Open — MIT&lt;/div&gt;&lt;div class="compare-them"&gt;Closed&lt;/div&gt;
-          &lt;div class="compare-label"&gt;Account required&lt;/div&gt;&lt;div class="compare-yes"&gt;No&lt;/div&gt;&lt;div class="compare-them"&gt;Yes&lt;/div&gt;
-          &lt;div class="compare-label"&gt;AI cleanup&lt;/div&gt;&lt;div class="compare-us"&gt;Your choice&lt;/div&gt;&lt;div class="compare-them"&gt;Their pipeline&lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-      &lt;p class="compare-footnote"&gt;Competitor details per their published pricing and docs, July 2026.&lt;/p&gt;
-    &lt;/section&gt;
+    <!-- ─── 6 · USP deep-dive: Free forever ────────────────── -->
+    <section class="container section" aria-label="Free forever and comparison with Wispr Flow">
+      <h2 class="section-title">Free forever</h2>
+      <p class="section-sub">Wispr Flow is $144 a year for someone else's cloud.</p>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-value">$0</div><div class="stat-label">Annual cost</div></div>
+        <div class="stat-card stat-accent"><div class="stat-value">$144</div><div class="stat-label">Saved every year</div></div>
+        <div class="stat-card"><div class="stat-value">MIT</div><div class="stat-label">License</div></div>
+        <div class="stat-card"><div class="stat-value">∞</div><div class="stat-label">Cleanup models via OpenRouter</div></div>
+      </div>
+      <div class="compare-table">
+        <div class="compare-grid">
+          <div class="compare-head-dim" aria-hidden="true">&nbsp;</div><div class="compare-head">OpenVoiceFlow</div><div class="compare-head-dim">Wispr Flow</div>
+          <div class="compare-label">Price</div><div class="compare-us-strong">$0, forever</div><div class="compare-them">$12/mo — $144/yr</div>
+          <div class="compare-label">Transcription</div><div class="compare-us">On this Mac</div><div class="compare-them">Their cloud</div>
+          <div class="compare-label">Works offline</div><div class="compare-yes">Yes</div><div class="compare-them">No</div>
+          <div class="compare-label">Audio leaves the machine</div><div class="compare-yes">Never</div><div class="compare-them">Uploaded</div>
+          <div class="compare-label">Source code</div><div class="compare-us">Open — MIT</div><div class="compare-them">Closed</div>
+          <div class="compare-label">Account required</div><div class="compare-yes">No</div><div class="compare-them">Yes</div>
+          <div class="compare-label">AI cleanup</div><div class="compare-us">Your choice</div><div class="compare-them">Their pipeline</div>
+        </div>
+      </div>
+      <p class="compare-footnote">Competitor details per their published pricing and docs, July 2026.</p>
+    </section>
 
-    &lt;!-- ─── 7b · Mission ───────────────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="Mission" id="mission"&gt;
-      &lt;h2 class="section-title"&gt;Talking is how humans work.&lt;br /&gt;Typing is the workaround.&lt;/h2&gt;
-      &lt;p class="section-sub answer-block"&gt;People speak at roughly 150 words a minute and type at roughly 40. A Stanford study measured speech input at about three times the speed of typing on mobile keyboards. Your voice has always been the faster interface — the tools just hadn't caught up.&lt;/p&gt;
-      &lt;div class="stat-row"&gt;
-        &lt;div class="stat-card stat-accent"&gt;&lt;div class="stat-value"&gt;~150&lt;/div&gt;&lt;div class="stat-label"&gt;Words per minute, speaking&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="stat-card"&gt;&lt;div class="stat-value"&gt;~40&lt;/div&gt;&lt;div class="stat-label"&gt;Words per minute, typing&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="stat-card"&gt;&lt;div class="stat-value"&gt;~3×&lt;/div&gt;&lt;div class="stat-label"&gt;Speech vs. keyboard, Stanford study&lt;/div&gt;&lt;/div&gt;
-      &lt;/div&gt;
-      &lt;div class="content-card"&gt;
-        &lt;h2&gt;Our mission&lt;/h2&gt;
-        &lt;p class="answer-block"&gt;In the AI era, talking to your computer is a basic need — and basic needs should never be gated by payment. Don't pay companies $144 a year for your own voice: dictation here is free for everyone, on-device, MIT-licensed, forever. The only optional extra, AI cleanup, is bring-your-own-key — pay the model provider cents for tokens, not a middleman for permission.&lt;/p&gt;
-        &lt;p class="answer-block"&gt;Honestly, we think every operating system should ship this as a default feature, and the day that happens well enough, apps like this one become unnecessary. Until then, we build it in the open — MIT-licensed and free for everyone, forever.&lt;/p&gt;
-        &lt;p class="answer-block"&gt;&lt;a href="mission.html"&gt;&lt;strong&gt;Read the full mission →&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
+    <!-- ─── 7b · Mission ───────────────────────────────────── -->
+    <section class="container section" aria-label="Mission" id="mission">
+      <h2 class="section-title">Talking is how humans work.<br />Typing is the workaround.</h2>
+      <p class="section-sub answer-block">People speak at roughly 150 words a minute and type at roughly 40. A Stanford study measured speech input at about three times the speed of typing on mobile keyboards. Your voice has always been the faster interface — the tools just hadn't caught up.</p>
+      <div class="stat-row">
+        <div class="stat-card stat-accent"><div class="stat-value">~150</div><div class="stat-label">Words per minute, speaking</div></div>
+        <div class="stat-card"><div class="stat-value">~40</div><div class="stat-label">Words per minute, typing</div></div>
+        <div class="stat-card"><div class="stat-value">~3×</div><div class="stat-label">Speech vs. keyboard, Stanford study</div></div>
+      </div>
+      <div class="content-card">
+        <h2>Our mission</h2>
+        <p class="answer-block">In the AI era, talking to your computer is a basic need — and basic needs should never be gated by payment. Don't pay companies $144 a year for your own voice: dictation here is free for everyone, on-device, MIT-licensed, forever. The only optional extra, AI cleanup, is bring-your-own-key — pay the model provider cents for tokens, not a middleman for permission.</p>
+        <p class="answer-block">Honestly, we think every operating system should ship this as a default feature, and the day that happens well enough, apps like this one become unnecessary. Until then, we build it in the open — MIT-licensed and free for everyone, forever.</p>
+        <p class="answer-block"><a href="mission.html"><strong>Read the full mission →</strong></a></p>
+      </div>
+    </section>
 
-    &lt;!-- ─── 7 · Pick your backend ──────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="Cleanup backend options"&gt;
-      &lt;h2 class="section-title"&gt;Pick your backend.&lt;/h2&gt;
-      &lt;p class="section-sub"&gt;Fully local to ultra-fast API. You decide what runs where.&lt;/p&gt;
-      &lt;div class="card-grid backend-grid"&gt;
-        &lt;div class="card backend-card is-flagged"&gt;&lt;div class="backend-head"&gt;&lt;span class="mono-kicker"&gt;OpenRouter&lt;/span&gt;&lt;span class="backend-flag"&gt;CLOUD · RECOMMENDED&lt;/span&gt;&lt;/div&gt;&lt;div class="backend-meta"&gt;&lt;span class="backend-cost"&gt;One key, any model&lt;/span&gt;&lt;span class="backend-chip mid"&gt;audio stays local&lt;/span&gt;&lt;/div&gt;&lt;div class="card-body"&gt;One OpenRouter key reaches any model it hosts — the simplest way in. Bring your own key.&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="card backend-card"&gt;&lt;span class="mono-kicker"&gt;OpenAI · Claude · Groq&lt;/span&gt;&lt;div class="backend-meta"&gt;&lt;span class="backend-cost"&gt;Your own key&lt;/span&gt;&lt;span class="backend-chip mid"&gt;audio stays local&lt;/span&gt;&lt;/div&gt;&lt;div class="card-body"&gt;Prefer a provider directly? Point cleanup at OpenAI, Anthropic, or Groq instead.&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="card backend-card is-flagged is-local"&gt;&lt;div class="backend-head"&gt;&lt;span class="mono-kicker"&gt;Ollama&lt;/span&gt;&lt;span class="backend-flag local"&gt;ON-DEVICE&lt;/span&gt;&lt;/div&gt;&lt;div class="backend-meta"&gt;&lt;span class="backend-cost free"&gt;$0 / forever&lt;/span&gt;&lt;span class="backend-chip local"&gt;never leaves Mac&lt;/span&gt;&lt;/div&gt;&lt;div class="card-body"&gt;Fully offline cleanup with any local model.&lt;/div&gt;&lt;/div&gt;
-        &lt;div class="card backend-card is-local"&gt;&lt;div class="backend-head"&gt;&lt;span class="mono-kicker"&gt;Off&lt;/span&gt;&lt;span class="backend-flag local"&gt;RAW TRANSCRIPT&lt;/span&gt;&lt;/div&gt;&lt;div class="backend-meta"&gt;&lt;span class="backend-cost free"&gt;$0 / forever&lt;/span&gt;&lt;span class="backend-chip local"&gt;never leaves Mac&lt;/span&gt;&lt;/div&gt;&lt;div class="card-body"&gt;Raw on-device transcript, pasted as-is. The default.&lt;/div&gt;&lt;/div&gt;
-      &lt;/div&gt;
-      &lt;p class="backend-note"&gt;&lt;strong&gt;All options:&lt;/strong&gt; audio transcription is &lt;em&gt;always&lt;/em&gt; on-device. Only cloud cleanup touches an API — and only if you turn it on.&lt;/p&gt;
-    &lt;/section&gt;
+    <!-- ─── 7 · Pick your backend ──────────────────────────── -->
+    <section class="container section" aria-label="Cleanup backend options">
+      <h2 class="section-title">Pick your backend.</h2>
+      <p class="section-sub">Fully local to ultra-fast API. You decide what runs where.</p>
+      <div class="card-grid backend-grid">
+        <div class="card backend-card is-flagged"><div class="backend-head"><span class="mono-kicker">OpenRouter</span><span class="backend-flag">CLOUD · RECOMMENDED</span></div><div class="backend-meta"><span class="backend-cost">One key, any model</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">One OpenRouter key reaches any model it hosts — the simplest way in. Bring your own key.</div></div>
+        <div class="card backend-card"><span class="mono-kicker">OpenAI · Claude · Groq</span><div class="backend-meta"><span class="backend-cost">Your own key</span><span class="backend-chip mid">audio stays local</span></div><div class="card-body">Prefer a provider directly? Point cleanup at OpenAI, Anthropic, or Groq instead.</div></div>
+        <div class="card backend-card is-flagged is-local"><div class="backend-head"><span class="mono-kicker">Ollama</span><span class="backend-flag local">ON-DEVICE</span></div><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Fully offline cleanup with any local model.</div></div>
+        <div class="card backend-card is-local"><div class="backend-head"><span class="mono-kicker">Off</span><span class="backend-flag local">RAW TRANSCRIPT</span></div><div class="backend-meta"><span class="backend-cost free">$0 / forever</span><span class="backend-chip local">never leaves Mac</span></div><div class="card-body">Raw on-device transcript, pasted as-is. The default.</div></div>
+      </div>
+      <p class="backend-note"><strong>All options:</strong> audio transcription is <em>always</em> on-device. Only cloud cleanup touches an API — and only if you turn it on.</p>
+    </section>
 
-    &lt;!-- ─── 8 · Install ────────────────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="Installation overview"&gt;
-      &lt;h2 class="section-title"&gt;Up and running in 60 seconds.&lt;/h2&gt;
-      &lt;div class="step-grid"&gt;
-        &lt;div class="step-card"&gt;&lt;div class="step-num"&gt;1&lt;/div&gt;&lt;h3&gt;Download the DMG&lt;/h3&gt;&lt;p&gt;Notarized — no Gatekeeper warnings.&lt;/p&gt;&lt;/div&gt;
-        &lt;div class="step-card"&gt;&lt;div class="step-num"&gt;2&lt;/div&gt;&lt;h3&gt;Drag to Applications&lt;/h3&gt;&lt;p&gt;That's it. No installer wizard.&lt;/p&gt;&lt;/div&gt;
-        &lt;div class="step-card"&gt;&lt;div class="step-num"&gt;3&lt;/div&gt;&lt;h3&gt;Say hello&lt;/h3&gt;&lt;p&gt;One ~5-minute setup, then talk. &lt;a href="docs/quickstart.html"&gt;Quickstart →&lt;/a&gt;&lt;/p&gt;&lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
+    <!-- ─── 8 · Install ────────────────────────────────────── -->
+    <section class="container section" aria-label="Installation overview">
+      <h2 class="section-title">Up and running in 60 seconds.</h2>
+      <div class="step-grid">
+        <div class="step-card"><div class="step-num">1</div><h3>Download the DMG</h3><p>Notarized — no Gatekeeper warnings.</p></div>
+        <div class="step-card"><div class="step-num">2</div><h3>Drag to Applications</h3><p>That's it. No installer wizard.</p></div>
+        <div class="step-card"><div class="step-num">3</div><h3>Say hello</h3><p>One ~5-minute setup, then talk. <a href="docs/quickstart.html">Quickstart →</a></p></div>
+      </div>
+    </section>
 
-    &lt;!-- ─── 8b · From the blog ─────────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="From the blog"&gt;
-      &lt;h2 class="section-title"&gt;From the blog&lt;/h2&gt;
-      &lt;p class="section-sub"&gt;Guides and honest comparisons from the people who build this.&lt;/p&gt;
-      &lt;div class="post-grid"&gt;
-        &lt;a class="post-card" href="blog/best-dictation-software-mac.html"&gt;
-          &lt;span class="post-cover" aria-hidden="true"&gt;&lt;svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;path d="M6 40V22"/&gt;&lt;path d="M18 40V14"/&gt;&lt;path d="M30 40V26"/&gt;&lt;path d="M42 40V8"/&gt;&lt;/svg&gt;&lt;/span&gt;
-          &lt;span class="post-card-meta"&gt;COMPARISONS · 9 MIN&lt;/span&gt;
-          &lt;span class="post-card-title"&gt;The best dictation software for Mac in 2026, honestly compared&lt;/span&gt;
-          &lt;span class="post-card-excerpt"&gt;Six real options — including ours — sorted by where your audio goes, how you pay, and what happens after transcription.&lt;/span&gt;
-        &lt;/a&gt;
-        &lt;a class="post-card" href="blog/how-to-dictate-on-mac.html"&gt;
-          &lt;span class="post-cover" aria-hidden="true"&gt;&lt;svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;rect x="18" y="6" width="12" height="22" rx="6"/&gt;&lt;path d="M12 22a12 12 0 0 0 24 0"/&gt;&lt;path d="M24 34v8"/&gt;&lt;path d="M17 42h14"/&gt;&lt;/svg&gt;&lt;/span&gt;
-          &lt;span class="post-card-meta"&gt;HOW-TO · 8 MIN&lt;/span&gt;
-          &lt;span class="post-card-title"&gt;How to dictate on a Mac — and when you'll outgrow the built-in way&lt;/span&gt;
-          &lt;span class="post-card-excerpt"&gt;Turn on macOS dictation in two minutes, learn the commands worth memorizing, and see where it runs out of road.&lt;/span&gt;
-        &lt;/a&gt;
-        &lt;a class="post-card" href="blog/voice-typing-for-developers.html"&gt;
-          &lt;span class="post-cover" aria-hidden="true"&gt;&lt;svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"&gt;&lt;path d="M16 14 6 24l10 10"/&gt;&lt;path d="M32 14l10 10-10 10"/&gt;&lt;path d="M27 10 21 38"/&gt;&lt;/svg&gt;&lt;/span&gt;
-          &lt;span class="post-card-meta"&gt;WORKFLOWS · 7 MIN&lt;/span&gt;
-          &lt;span class="post-card-title"&gt;Voice typing for developers: prompts, PRs, and reviews&lt;/span&gt;
-          &lt;span class="post-card-excerpt"&gt;AI pair programming turned your main output into prose. Speak the English; keep the keyboard for the code.&lt;/span&gt;
-        &lt;/a&gt;
-      &lt;/div&gt;
-      &lt;p class="section-sub" style="margin-top:16px;margin-bottom:0"&gt;&lt;a href="blog/index.html"&gt;&lt;strong&gt;All posts →&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
-    &lt;/section&gt;
+    <!-- ─── 8b · From the blog ─────────────────────────────── -->
+    <section class="container section" aria-label="From the blog">
+      <h2 class="section-title">From the blog</h2>
+      <p class="section-sub">Guides and honest comparisons from the people who build this.</p>
+      <div class="post-grid">
+        <a class="post-card" href="blog/best-dictation-software-mac.html">
+          <span class="post-cover" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 40V22"/><path d="M18 40V14"/><path d="M30 40V26"/><path d="M42 40V8"/></svg></span>
+          <span class="post-card-meta">COMPARISONS · 9 MIN</span>
+          <span class="post-card-title">The best dictation software for Mac in 2026, honestly compared</span>
+          <span class="post-card-excerpt">Six real options — including ours — sorted by where your audio goes, how you pay, and what happens after transcription.</span>
+        </a>
+        <a class="post-card" href="blog/how-to-dictate-on-mac.html">
+          <span class="post-cover" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="6" width="12" height="22" rx="6"/><path d="M12 22a12 12 0 0 0 24 0"/><path d="M24 34v8"/><path d="M17 42h14"/></svg></span>
+          <span class="post-card-meta">HOW-TO · 8 MIN</span>
+          <span class="post-card-title">How to dictate on a Mac — and when you'll outgrow the built-in way</span>
+          <span class="post-card-excerpt">Turn on macOS dictation in two minutes, learn the commands worth memorizing, and see where it runs out of road.</span>
+        </a>
+        <a class="post-card" href="blog/voice-typing-for-developers.html">
+          <span class="post-cover" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 14 6 24l10 10"/><path d="M32 14l10 10-10 10"/><path d="M27 10 21 38"/></svg></span>
+          <span class="post-card-meta">WORKFLOWS · 7 MIN</span>
+          <span class="post-card-title">Voice typing for developers: prompts, PRs, and reviews</span>
+          <span class="post-card-excerpt">AI pair programming turned your main output into prose. Speak the English; keep the keyboard for the code.</span>
+        </a>
+      </div>
+      <p class="section-sub" style="margin-top:16px;margin-bottom:0"><a href="blog/index.html"><strong>All posts →</strong></a></p>
+    </section>
 
-    &lt;!-- ─── 9 · FAQ ────────────────────────────────────────── --&gt;
-    &lt;section class="container section faq" aria-label="Frequently asked questions"&gt;
-      &lt;h2 class="section-title"&gt;Questions&lt;/h2&gt;
-      &lt;details&gt;
-        &lt;summary&gt;Really free? What's the catch?&lt;/summary&gt;
-        &lt;p&gt;MIT-licensed, no account, no telemetry. Your Mac provides the compute — there is nothing to sell you.&lt;/p&gt;
-      &lt;/details&gt;
-      &lt;details&gt;
-        &lt;summary&gt;How accurate is it?&lt;/summary&gt;
-        &lt;p&gt;Whisper on-device, models from tiny to large. Your personal dictionary fixes names and jargon once, forever.&lt;/p&gt;
-      &lt;/details&gt;
-      &lt;details&gt;
-        &lt;summary&gt;Does AI cleanup send my text to the cloud?&lt;/summary&gt;
-        &lt;p&gt;Cleanup is &lt;strong&gt;Off&lt;/strong&gt; by default, so the raw on-device transcript is pasted as-is. Turn on cleanup and pick OpenRouter (one key, any model), a direct provider — OpenAI, Anthropic, or Groq — with your own key, or local Ollama for fully on-device. Audio never goes anywhere, regardless.&lt;/p&gt;
-      &lt;/details&gt;
-      &lt;details&gt;
-        &lt;summary&gt;Which Macs?&lt;/summary&gt;
-        &lt;p&gt;macOS 14 Sonoma or newer. Apple Silicon flies; Intel works with smaller models.&lt;/p&gt;
-      &lt;/details&gt;
-      &lt;details&gt;
-        &lt;summary&gt;Where does my data live?&lt;/summary&gt;
-        &lt;p&gt;Settings and history stay in Application Support on your Mac, and API keys live in the macOS Keychain. Uninstall the app and remove those to erase every trace.&lt;/p&gt;
-      &lt;/details&gt;
-    &lt;/section&gt;
+    <!-- ─── 9 · FAQ ────────────────────────────────────────── -->
+    <section class="container section faq" aria-label="Frequently asked questions">
+      <h2 class="section-title">Questions</h2>
+      <details>
+        <summary>Really free? What's the catch?</summary>
+        <p>MIT-licensed, no account, no telemetry. Your Mac provides the compute — there is nothing to sell you.</p>
+      </details>
+      <details>
+        <summary>How accurate is it?</summary>
+        <p>Whisper on-device, models from tiny to large. Your personal dictionary fixes names and jargon once, forever.</p>
+      </details>
+      <details>
+        <summary>Does AI cleanup send my text to the cloud?</summary>
+        <p>Cleanup is <strong>Off</strong> by default, so the raw on-device transcript is pasted as-is. Turn on cleanup and pick OpenRouter (one key, any model), a direct provider — OpenAI, Anthropic, or Groq — with your own key, or local Ollama for fully on-device. Audio never goes anywhere, regardless.</p>
+      </details>
+      <details>
+        <summary>Which Macs?</summary>
+        <p>macOS 14 Sonoma or newer. Apple Silicon flies; Intel works with smaller models.</p>
+      </details>
+      <details>
+        <summary>Where does my data live?</summary>
+        <p>Settings and history stay in Application Support on your Mac, and API keys live in the macOS Keychain. Uninstall the app and remove those to erase every trace.</p>
+      </details>
+    </section>
 
-    &lt;!-- ─── 10 · Closing CTA ───────────────────────────────── --&gt;
-    &lt;section class="container section" aria-label="Get started"&gt;
-      &lt;div class="cta-panel"&gt;
-        &lt;h2 class="cta-title"&gt;Start dictating for free.&lt;br /&gt;Right now.&lt;/h2&gt;
-        &lt;p class="cta-sub"&gt;No account. No credit card. No cloud.&lt;/p&gt;
-        &lt;div class="hero-cta-row"&gt;
-          &lt;a class="btn btn-primary btn-lg" href="download.html"&gt;Download for Mac — Free&lt;/a&gt;
-          &lt;a class="btn btn-outline btn-lg" href="install.html"&gt;Install guide&lt;/a&gt;
-        &lt;/div&gt;
-        &lt;p class="cta-footnote"&gt;macOS 14+ · Sonoma → Sequoia · Apple Silicon &amp;amp; Intel&lt;/p&gt;
-      &lt;/div&gt;
-    &lt;/section&gt;
-  &lt;/main&gt;
+    <!-- ─── 10 · Closing CTA ───────────────────────────────── -->
+    <section class="container section" aria-label="Get started">
+      <div class="cta-panel">
+        <h2 class="cta-title">Start dictating for free.<br />Right now.</h2>
+        <p class="cta-sub">No account. No credit card. No cloud.</p>
+        <div class="hero-cta-row">
+          <a class="btn btn-primary btn-lg" href="download.html">Download for Mac — Free</a>
+          <a class="btn btn-outline btn-lg" href="install.html">Install guide</a>
+        </div>
+        <p class="cta-footnote">macOS 14+ · Sonoma → Sequoia · Apple Silicon &amp; Intel</p>
+      </div>
+    </section>
+  </main>
 
-  &lt;!-- ─── Footer ─────────────────────────────────────────── --&gt;
-  &lt;footer class="footer"&gt;
-    &lt;div class="container footer-inner"&gt;
-      &lt;canvas class="footer-glyph" data-wf="glyph" aria-hidden="true"&gt;&lt;/canvas&gt;
-      &lt;p class="footer-copy"&gt;© 2026 OpenVoiceFlow contributors. MIT License · made for people who talk faster than they type.&lt;/p&gt;
-      &lt;nav class="footer-links" aria-label="Footer"&gt;
-        &lt;a href="download.html"&gt;Download&lt;/a&gt;
-        &lt;a href="install.html"&gt;Install&lt;/a&gt;
-        &lt;a href="how-it-works.html"&gt;How it works&lt;/a&gt;
-        &lt;a href="privacy.html"&gt;Privacy&lt;/a&gt;
-        &lt;a href="docs/index.html"&gt;Docs&lt;/a&gt;
-        &lt;a href="blog/index.html"&gt;Blog&lt;/a&gt;
-        &lt;a href="llms.txt"&gt;llms.txt&lt;/a&gt;
-      &lt;/nav&gt;
-    &lt;/div&gt;
-  &lt;/footer&gt;
+  <!-- ─── Footer ─────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <canvas class="footer-glyph" data-wf="glyph" aria-hidden="true"></canvas>
+      <p class="footer-copy">© 2026 OpenVoiceFlow contributors. MIT License · made for people who talk faster than they type.</p>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="download.html">Download</a>
+        <a href="install.html">Install</a>
+        <a href="how-it-works.html">How it works</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="docs/index.html">Docs</a>
+        <a href="blog/index.html">Blog</a>
+        <a href="llms.txt">llms.txt</a>
+      </nav>
+    </div>
+  </footer>
 
-  &lt;script src="site.js"&gt;&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+  <script src="site.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Legacy Python app (superseded by native/, the shipping Swift/SwiftUI app;
+# kept only for reference and the macOS 12-13 fallback build). Excluding it
+# from GitHub's language stats keeps the repo correctly classified as a
+# Swift project instead of Python.
+voiceflow/* linguist-vendored
+
+# Marketing website — not representative of the app's implementation
+# language either.
+docs/* linguist-documentation

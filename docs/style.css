@@ -1097,6 +1097,30 @@ img, canvas { max-width: 100%; }
 .post-card-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-2); letter-spacing: .04em; }
 a.post-card, a.post-card:hover { text-decoration: none; }
 
+/* ─── Blog: cover art (index cards + article header) ────────────────────
+   One glyph per post, on the same warm-tint block, in the site's --acc
+   ember. Keeps every post visually distinct without new image assets. */
+.post-cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-md);
+  border: 1px solid var(--hair);
+  background: linear-gradient(150deg, var(--fill), transparent 75%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--acc);
+  flex-shrink: 0;
+}
+.post-cover svg { width: 40%; height: 40%; max-width: 64px; max-height: 64px; }
+.post-card .post-cover { margin-bottom: 2px; }
+
+.article-cover {
+  aspect-ratio: 21 / 9;
+  margin: 18px 0 8px;
+}
+.article-cover svg { max-width: 88px; max-height: 88px; }
+
 /* ─── Blog: long-form article ────────────────────────────────────────── */
 .article-page { padding-top: 44px; padding-bottom: 24px; }
 

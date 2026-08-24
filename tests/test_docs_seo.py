@@ -296,12 +296,40 @@ def test_the_website_ui_carries_no_github_links():
     its inert github_click handler for the observability contract."""
     for rel in ALL_PAGES:
         html = read(rel)
-        assert "github" not in html.lower(), f"{rel}: GitHub reference present"
+        # GitHub remains intentionally absent from rendered UI and copy.
+        # JSON-LD may identify the canonical source repository for search and
+        # answer engines without exposing another user-facing destination.
+        rendered_html = re.sub(
+            r'<script type="application/ld\+json">.*?</script>',
+            "",
+            html,
+            flags=re.DOTALL,
+        )
+        assert "github" not in rendered_html.lower(), f"{rel}: GitHub reference present"
     llms = read("llms.txt")
     assert "github" not in llms.lower(), "llms.txt: GitHub reference present"
     # the credit-and-tell-us ask replaces the repo link as the reuse policy
     assert "shimoverse@gmail.com" in llms
     assert "shimoverse@gmail.com" in read("mission.html")
+
+
+def test_homepage_structured_data_links_the_project_to_its_repository():
+    blocks = [
+        json.loads(raw)
+        for raw in re.findall(
+            r'<script type="application/ld\+json">(.*?)</script>',
+            read("index.html"),
+            flags=re.DOTALL,
+        )
+    ]
+    software = next(block for block in blocks if block.get("@type") == "SoftwareApplication")
+    organization = next(block for block in blocks if block.get("@type") == "Organization")
+    repository = "https://github.com/shimoverse/openvoiceflow"
+
+    assert software["license"] == "https://opensource.org/licenses/MIT"
+    assert software["codeRepository"] == repository
+    assert software["sameAs"] == repository
+    assert organization["sameAs"] == [repository, "https://github.com/shimoverse"]
 
 
 def test_articles_keep_the_competitor_claims_hedged():

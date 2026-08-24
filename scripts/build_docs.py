@@ -209,7 +209,7 @@ def render(slug: str, page: dict) -> str:
         f'    "headline": {json_str(title)},\n    "description": {json_str(page["description"])},\n'
         f'    "url": "{url}",\n    "datePublished": "{UPDATED}",\n    "dateModified": "{UPDATED}",\n'
         '    "author": {"@type": "Organization", "name": "OpenVoiceFlow maintainers", "url": "https://openvoiceflow.com/"},\n'
-        '    "publisher": {"@type": "Organization", "name": "OpenVoiceFlow", "url": "https://openvoiceflow.com/", "logo": {"@type": "ImageObject", "url": "https://openvoiceflow.com/assets/openvoiceflow-icon-512.png"}},\n'
+        '    "publisher": {"@type": "Organization", "name": "OpenVoiceFlow", "url": "https://openvoiceflow.com/", "logo": {"@type": "ImageObject", "url": "https://openvoiceflow.com/assets/openvoiceflow-logo-512.png"}},\n'
         f'    "proficiencyLevel": "Beginner",\n    "about": {json_str("OpenVoiceFlow " + VERSION + " for macOS")},\n'
         f'    "mainEntityOfPage": "{url}"\n  }}\n  </script>',
         '  <script type="application/ld+json">\n  {\n'

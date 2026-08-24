@@ -370,3 +370,22 @@ def png_dimensions(name: str) -> tuple[int, int]:
     header = (DOCS / name).read_bytes()[:24]
     width, height = struct.unpack(">II", header[16:24])
     return width, height
+
+
+def test_organization_logo_is_on_brand_and_square():
+    """The Organization/BlogPosting "logo" feeds Google's rich-result and
+    Knowledge Panel branding. It must point at the current brand icon (the
+    amber waveform ring on the dark app-icon square) rather than the
+    retired mic-and-waveform icon the legacy Python app's icon generator
+    draws, and rather than the 1200x630 og:image social card — Google
+    expects a roughly square logo, and a wide card fails that shape."""
+    assert png_dimensions("assets/openvoiceflow-logo-512.png") == (512, 512), \
+        "brand logo must be square"
+    for rel in ALL_PAGES:
+        html = read(rel)
+        assert "openvoiceflow-icon-512.png" not in html, (
+            f"{rel}: still references the retired mic-icon logo"
+        )
+        assert '"logo": "https://openvoiceflow.com/assets/og-card.png"' not in html, (
+            f"{rel}: Organization logo is the wide social card, not a square logo"
+        )

@@ -226,7 +226,7 @@ def test_manual_internal_links_all_resolve():
 
 
 def test_the_manual_never_claims_spoken_punctuation_commands():
-    """v0.5.5 has no spoken-punctuation command table — that feature lives
+    """v0.5.6 has no spoken-punctuation command table — that feature lives
     only in the retired Python app. The marketing site claimed it once;
     this test keeps the claim from coming back anywhere."""
     for rel in ALL_PAGES:

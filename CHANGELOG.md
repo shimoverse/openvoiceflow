@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The language picker now offers all 99 languages in Whisper's multilingual
+  set (previously eleven), including Ukrainian. Tiny, Small, Medium, and
+  Large turbo all share the same tokenizer, so the list applies to every
+  engine offered in Settings.
+
 ## [0.5.5] — 2026-07-27
 
 ### Fixed

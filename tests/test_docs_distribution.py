@@ -7,6 +7,7 @@ DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.com"
 RELEASE_VERSION = "0.5.6"
 RELEASE_BUILD = 11
+PREVIOUS_RELEASE_VERSION = "0.5.5"
 UNIVERSAL_SHA256 = "7a3d835404476ef92760a24b29580e161b59246cdb55ee729e0090a394f1cf37"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"
 
@@ -17,6 +18,7 @@ def test_native_distribution_assets_exist_and_match_hashes():
     assert universal.exists()
     assert fallback.exists(), "macOS 12–13 fallback must remain reachable"
     assert sha256(universal.read_bytes()).hexdigest() == UNIVERSAL_SHA256
+    assert not (DOCS / "downloads" / f"OpenVoiceFlow-{PREVIOUS_RELEASE_VERSION}.dmg").exists()
 
 
 def test_download_page_has_one_native_universal_primary_and_a_clear_fallback():
@@ -58,6 +60,10 @@ def test_legacy_split_downloads_redirect_to_the_universal_native_dmg():
             item = redirects[f"/downloads/OpenVoiceFlow-{previous}-{arch}.dmg"]
             assert item["destination"] == f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}.dmg"
             assert item["permanent"] is True
+
+    previous = redirects[f"/downloads/OpenVoiceFlow-{PREVIOUS_RELEASE_VERSION}.dmg"]
+    assert previous["destination"] == f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}.dmg"
+    assert previous["permanent"] is True
 
 
 def test_public_downloads_remain_website_hosted():

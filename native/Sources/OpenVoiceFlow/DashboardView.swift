@@ -723,10 +723,38 @@ struct DashboardView: View {
         ("medium", "Medium — 1.5 GB"),
         ("large-v3-v20240930", "Large v3 turbo — 1.6 GB"),
     ]
+    // Whisper's standard 99-language multilingual set — shared by tiny, small,
+    // medium, and large-v3-turbo, since all four ship the same tokenizer's
+    // language tokens. (large-v3 also added Cantonese as an unofficial 100th,
+    // but tiny/small/medium have no token for it, so it's left off this
+    // shared list.)
     static let languages: [(String, String)] = [
-        ("en", "English"), ("es", "Spanish"), ("fr", "French"), ("de", "German"),
-        ("it", "Italian"), ("pt", "Portuguese"), ("nl", "Dutch"), ("hi", "Hindi"),
-        ("ja", "Japanese"), ("zh", "Chinese"), ("ko", "Korean"),
+        ("en", "English"),
+        ("af", "Afrikaans"), ("sq", "Albanian"), ("am", "Amharic"), ("ar", "Arabic"),
+        ("hy", "Armenian"), ("as", "Assamese"), ("az", "Azerbaijani"), ("ba", "Bashkir"),
+        ("eu", "Basque"), ("be", "Belarusian"), ("bn", "Bengali"), ("bs", "Bosnian"),
+        ("br", "Breton"), ("bg", "Bulgarian"), ("my", "Burmese"), ("ca", "Catalan"),
+        ("zh", "Chinese"), ("hr", "Croatian"), ("cs", "Czech"), ("da", "Danish"),
+        ("nl", "Dutch"), ("et", "Estonian"), ("fo", "Faroese"), ("fi", "Finnish"),
+        ("fr", "French"), ("gl", "Galician"), ("ka", "Georgian"), ("de", "German"),
+        ("el", "Greek"), ("gu", "Gujarati"), ("ht", "Haitian Creole"), ("ha", "Hausa"),
+        ("haw", "Hawaiian"), ("he", "Hebrew"), ("hi", "Hindi"), ("hu", "Hungarian"),
+        ("is", "Icelandic"), ("id", "Indonesian"), ("it", "Italian"), ("ja", "Japanese"),
+        ("jw", "Javanese"), ("kn", "Kannada"), ("kk", "Kazakh"), ("km", "Khmer"),
+        ("ko", "Korean"), ("lo", "Lao"), ("la", "Latin"), ("lv", "Latvian"),
+        ("ln", "Lingala"), ("lt", "Lithuanian"), ("lb", "Luxembourgish"), ("mk", "Macedonian"),
+        ("mg", "Malagasy"), ("ms", "Malay"), ("ml", "Malayalam"), ("mt", "Maltese"),
+        ("mi", "Maori"), ("mr", "Marathi"), ("mn", "Mongolian"), ("ne", "Nepali"),
+        ("no", "Norwegian"), ("nn", "Norwegian Nynorsk"), ("oc", "Occitan"), ("ps", "Pashto"),
+        ("fa", "Persian"), ("pl", "Polish"), ("pt", "Portuguese"), ("pa", "Punjabi"),
+        ("ro", "Romanian"), ("ru", "Russian"), ("sa", "Sanskrit"), ("sr", "Serbian"),
+        ("sn", "Shona"), ("sd", "Sindhi"), ("si", "Sinhala"), ("sk", "Slovak"),
+        ("sl", "Slovenian"), ("so", "Somali"), ("es", "Spanish"), ("su", "Sundanese"),
+        ("sw", "Swahili"), ("sv", "Swedish"), ("tl", "Tagalog"), ("tg", "Tajik"),
+        ("ta", "Tamil"), ("tt", "Tatar"), ("te", "Telugu"), ("th", "Thai"),
+        ("bo", "Tibetan"), ("tr", "Turkish"), ("tk", "Turkmen"), ("uk", "Ukrainian"),
+        ("ur", "Urdu"), ("uz", "Uzbek"), ("vi", "Vietnamese"), ("cy", "Welsh"),
+        ("yi", "Yiddish"), ("yo", "Yoruba"),
     ]
     /// Cleanup providers offered when cleanup is on (excludes `.none`).
     static let cleanupProviders: [Backend] = [.anthropic, .openai, .groq, .openrouter, .ollama]

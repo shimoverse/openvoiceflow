@@ -524,21 +524,66 @@ PAGES["languages"] = {
     "head_title": "Dictation Languages in OpenVoiceFlow — Whisper Multilingual Support",
     "title": "Languages",
     "description": "The languages OpenVoiceFlow supports for dictation, how to change the language, and why model choice matters more outside English.",
-    "lede": "Whisper is multilingual, and OpenVoiceFlow exposes eleven languages in its picker. Which model you run matters more here than anywhere else in the app.",
+    "lede": "Whisper is multilingual, and OpenVoiceFlow exposes its full 99-language picker. Which model you run matters more here than anywhere else in the app.",
     "body": """
         <h2 id="supported">Languages in the picker</h2>
-        <p><strong>Dashboard ▸ Settings ▸ Transcription — on this Mac ▸ Language</strong> offers:</p>
+        <p><strong>Dashboard ▸ Settings ▸ Transcription — on this Mac ▸ Language</strong> offers every language Whisper's multilingual models are trained on:</p>
         <table>
           <thead><tr><th scope="col">Language</th><th scope="col">Code</th><th scope="col">Language</th><th scope="col">Code</th></tr></thead>
           <tbody>
-            <tr><td>English</td><td><code>en</code></td><td>Dutch</td><td><code>nl</code></td></tr>
-            <tr><td>Spanish</td><td><code>es</code></td><td>Hindi</td><td><code>hi</code></td></tr>
-            <tr><td>French</td><td><code>fr</code></td><td>Japanese</td><td><code>ja</code></td></tr>
-            <tr><td>German</td><td><code>de</code></td><td>Chinese</td><td><code>zh</code></td></tr>
-            <tr><td>Italian</td><td><code>it</code></td><td>Korean</td><td><code>ko</code></td></tr>
-            <tr><td>Portuguese</td><td><code>pt</code></td><td></td><td></td></tr>
+            <tr><td>English</td><td><code>en</code></td><td>Afrikaans</td><td><code>af</code></td></tr>
+            <tr><td>Albanian</td><td><code>sq</code></td><td>Amharic</td><td><code>am</code></td></tr>
+            <tr><td>Arabic</td><td><code>ar</code></td><td>Armenian</td><td><code>hy</code></td></tr>
+            <tr><td>Assamese</td><td><code>as</code></td><td>Azerbaijani</td><td><code>az</code></td></tr>
+            <tr><td>Bashkir</td><td><code>ba</code></td><td>Basque</td><td><code>eu</code></td></tr>
+            <tr><td>Belarusian</td><td><code>be</code></td><td>Bengali</td><td><code>bn</code></td></tr>
+            <tr><td>Bosnian</td><td><code>bs</code></td><td>Breton</td><td><code>br</code></td></tr>
+            <tr><td>Bulgarian</td><td><code>bg</code></td><td>Burmese</td><td><code>my</code></td></tr>
+            <tr><td>Catalan</td><td><code>ca</code></td><td>Chinese</td><td><code>zh</code></td></tr>
+            <tr><td>Croatian</td><td><code>hr</code></td><td>Czech</td><td><code>cs</code></td></tr>
+            <tr><td>Danish</td><td><code>da</code></td><td>Dutch</td><td><code>nl</code></td></tr>
+            <tr><td>Estonian</td><td><code>et</code></td><td>Faroese</td><td><code>fo</code></td></tr>
+            <tr><td>Finnish</td><td><code>fi</code></td><td>French</td><td><code>fr</code></td></tr>
+            <tr><td>Galician</td><td><code>gl</code></td><td>Georgian</td><td><code>ka</code></td></tr>
+            <tr><td>German</td><td><code>de</code></td><td>Greek</td><td><code>el</code></td></tr>
+            <tr><td>Gujarati</td><td><code>gu</code></td><td>Haitian Creole</td><td><code>ht</code></td></tr>
+            <tr><td>Hausa</td><td><code>ha</code></td><td>Hawaiian</td><td><code>haw</code></td></tr>
+            <tr><td>Hebrew</td><td><code>he</code></td><td>Hindi</td><td><code>hi</code></td></tr>
+            <tr><td>Hungarian</td><td><code>hu</code></td><td>Icelandic</td><td><code>is</code></td></tr>
+            <tr><td>Indonesian</td><td><code>id</code></td><td>Italian</td><td><code>it</code></td></tr>
+            <tr><td>Japanese</td><td><code>ja</code></td><td>Javanese</td><td><code>jw</code></td></tr>
+            <tr><td>Kannada</td><td><code>kn</code></td><td>Kazakh</td><td><code>kk</code></td></tr>
+            <tr><td>Khmer</td><td><code>km</code></td><td>Korean</td><td><code>ko</code></td></tr>
+            <tr><td>Lao</td><td><code>lo</code></td><td>Latin</td><td><code>la</code></td></tr>
+            <tr><td>Latvian</td><td><code>lv</code></td><td>Lingala</td><td><code>ln</code></td></tr>
+            <tr><td>Lithuanian</td><td><code>lt</code></td><td>Luxembourgish</td><td><code>lb</code></td></tr>
+            <tr><td>Macedonian</td><td><code>mk</code></td><td>Malagasy</td><td><code>mg</code></td></tr>
+            <tr><td>Malay</td><td><code>ms</code></td><td>Malayalam</td><td><code>ml</code></td></tr>
+            <tr><td>Maltese</td><td><code>mt</code></td><td>Maori</td><td><code>mi</code></td></tr>
+            <tr><td>Marathi</td><td><code>mr</code></td><td>Mongolian</td><td><code>mn</code></td></tr>
+            <tr><td>Nepali</td><td><code>ne</code></td><td>Norwegian</td><td><code>no</code></td></tr>
+            <tr><td>Norwegian Nynorsk</td><td><code>nn</code></td><td>Occitan</td><td><code>oc</code></td></tr>
+            <tr><td>Pashto</td><td><code>ps</code></td><td>Persian</td><td><code>fa</code></td></tr>
+            <tr><td>Polish</td><td><code>pl</code></td><td>Portuguese</td><td><code>pt</code></td></tr>
+            <tr><td>Punjabi</td><td><code>pa</code></td><td>Romanian</td><td><code>ro</code></td></tr>
+            <tr><td>Russian</td><td><code>ru</code></td><td>Sanskrit</td><td><code>sa</code></td></tr>
+            <tr><td>Serbian</td><td><code>sr</code></td><td>Shona</td><td><code>sn</code></td></tr>
+            <tr><td>Sindhi</td><td><code>sd</code></td><td>Sinhala</td><td><code>si</code></td></tr>
+            <tr><td>Slovak</td><td><code>sk</code></td><td>Slovenian</td><td><code>sl</code></td></tr>
+            <tr><td>Somali</td><td><code>so</code></td><td>Spanish</td><td><code>es</code></td></tr>
+            <tr><td>Sundanese</td><td><code>su</code></td><td>Swahili</td><td><code>sw</code></td></tr>
+            <tr><td>Swedish</td><td><code>sv</code></td><td>Tagalog</td><td><code>tl</code></td></tr>
+            <tr><td>Tajik</td><td><code>tg</code></td><td>Tamil</td><td><code>ta</code></td></tr>
+            <tr><td>Tatar</td><td><code>tt</code></td><td>Telugu</td><td><code>te</code></td></tr>
+            <tr><td>Thai</td><td><code>th</code></td><td>Tibetan</td><td><code>bo</code></td></tr>
+            <tr><td>Turkish</td><td><code>tr</code></td><td>Turkmen</td><td><code>tk</code></td></tr>
+            <tr><td>Ukrainian</td><td><code>uk</code></td><td>Urdu</td><td><code>ur</code></td></tr>
+            <tr><td>Uzbek</td><td><code>uz</code></td><td>Vietnamese</td><td><code>vi</code></td></tr>
+            <tr><td>Welsh</td><td><code>cy</code></td><td>Yiddish</td><td><code>yi</code></td></tr>
+            <tr><td>Yoruba</td><td><code>yo</code></td><td></td><td></td></tr>
           </tbody>
         </table>
+        <p>That's every language in Whisper's standard 99-language set. (Large turbo also recognizes Cantonese under the hood, but that language token doesn't exist in Tiny, Small, or Medium's vocabulary, so it's left out of the shared picker above.)</p>
 
         <div class="callout warn">
           <span class="callout-label">Pair the language with a multilingual model</span>
@@ -929,7 +974,7 @@ PAGES["settings"] = {
           <thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">What it does</th></tr></thead>
           <tbody>
             <tr><td>Whisper model</td><td>Chosen during onboarding</td><td>Which engine transcribes your speech. Changing it here loads the new model immediately — see <a href="models.html">Whisper models</a>.</td></tr>
-            <tr><td>Language</td><td>English</td><td>The language you dictate in. Eleven options — see <a href="languages.html">Languages</a>.</td></tr>
+            <tr><td>Language</td><td>English</td><td>The language you dictate in. All 99 languages in Whisper's multilingual set, including Ukrainian — see <a href="languages.html">Languages</a>.</td></tr>
           </tbody>
         </table>
 
@@ -1310,7 +1355,7 @@ PAGES["faq"] = {
         ("Why is my dictionary not working?",
          "The personal dictionary, Know-Me profile, and per-app styles are all applied during AI cleanup. With cleanup set to None, which is the default, they have no effect. Turn cleanup on, or use local Ollama if you want that behaviour without sending text to a cloud."),
         ("Which languages does it support?",
-         "Eleven in the picker: English, Spanish, French, German, Italian, Portuguese, Dutch, Hindi, Japanese, Chinese, and Korean. Accuracy outside English depends heavily on model size, so use the largest model your Mac handles comfortably."),
+         "All 99 languages in Whisper's multilingual set, including Ukrainian, Arabic, Hindi, and Chinese — see the full list on the <a href=\"languages.html\">Languages</a> page. Accuracy outside English depends heavily on model size, so use the largest model your Mac handles comfortably."),
         ("What happens if the AI cleanup service fails?",
          "You get your raw transcript. Cleanup is designed to fail open: on a missing key, an error, a timeout, or an unparseable response, the app inserts the on-device transcription rather than losing your words."),
         ("Does it collect any analytics?",

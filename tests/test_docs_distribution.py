@@ -5,8 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.com"
-RELEASE_VERSION = "0.5.5"
-UNIVERSAL_SHA256 = "78778870fce38cef87cd8054a0201a288bf720c394b2ff0bde9e6ee6a16a0b53"
+RELEASE_VERSION = "0.5.6"
+RELEASE_BUILD = 11
+UNIVERSAL_SHA256 = "7a3d835404476ef92760a24b29580e161b59246cdb55ee729e0090a394f1cf37"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"
 
 
@@ -43,10 +44,11 @@ def test_appcast_is_present_and_signed_for_the_final_native_release():
     assert f"sparkle:shortVersionString>{RELEASE_VERSION}" in appcast
     assert "sparkle:edSignature=" in appcast
     assert f"OpenVoiceFlow-{RELEASE_VERSION}.dmg" in appcast
-    # Sparkle orders updates by CFBundleVersion, so a build number that doesn't
-    # climb means nobody is offered the update, with no error to explain why.
+    # Sparkle orders updates by CFBundleVersion, so this must match the new
+    # release and strictly exceed the previously published build 10.
     build = int(appcast.split("sparkle:version>")[1].split("<")[0])
-    assert build >= 5, f"appcast build {build} must exceed the previously published 4"
+    assert build == RELEASE_BUILD
+    assert build > 10, f"appcast build {build} must exceed the previously published 10"
 
 
 def test_legacy_split_downloads_redirect_to_the_universal_native_dmg():

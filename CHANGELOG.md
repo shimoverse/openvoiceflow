@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7] — 2026-08-28
+
+### Added
+- A Feedback item in the sidebar, below Settings. Opens a short form (bug /
+  idea / praise / other, plus an optional reply email) and, only on Send,
+  opens a `mailto:` with the message and a small aggregate usage snapshot
+  (words dictated, time saved, streak, last 7 days, first-use date) —
+  never dictation text, snippets, dictionary entries, or the Know-Me
+  profile, and nothing is sent until Send is pressed.
+
 ## [0.5.6] — 2026-08-25
 
 ### Added

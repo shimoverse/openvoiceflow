@@ -23,6 +23,7 @@ htmlcov/
 public/
 node_modules/
 .ruff_cache/
+.analytics-dashboard/
 .idea/
 .vscode/
 *.swp

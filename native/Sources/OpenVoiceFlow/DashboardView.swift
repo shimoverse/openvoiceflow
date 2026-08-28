@@ -20,6 +20,7 @@ struct DashboardView: View {
     @ObservedObject private var updater = UpdaterController.shared
     @State private var pane: Pane = .home
     @State private var showInterview = false
+    @State private var showFeedback = false
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
     @State private var showDeleteHistory = false
     // Live TCC statuses for the Settings permissions card. Polled (not
@@ -105,6 +106,19 @@ struct DashboardView: View {
                 .buttonStyle(.plain)
             }
 
+            Button { showFeedback = true } label: {
+                HStack(spacing: 8) {
+                    Circle().fill(.clear).frame(width: 6, height: 6)
+                    Text("Feedback")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(ink)
+                    Spacer()
+                }
+                .padding(.vertical, 7)
+                .padding(.horizontal, 10)
+            }
+            .buttonStyle(.plain)
+
             Spacer()
 
             HStack(spacing: 6) {
@@ -140,6 +154,9 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showInterview) {
             KnowMeInterview(controller: controller)
+        }
+        .sheet(isPresented: $showFeedback) {
+            FeedbackView(controller: controller)
         }
         // The first-words card is the one thing a user is likely to miss, so it
         // is a separate, explicit choice rather than collateral damage.

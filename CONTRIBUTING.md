@@ -70,6 +70,27 @@ They pin download filenames, checksums, appcast integrity, and the
 Gatekeeper-warning cards. If your change breaks one, read the test — each one
 documents the support question or invariant it protects.
 
+## Maintainer analytics dashboard
+
+Repository traffic and aggregate website analytics can be combined into a
+private local dashboard:
+
+```bash
+gh auth status
+vercel whoami
+python3 scripts/analytics_dashboard.py --open
+```
+
+The generated HTML and normalized snapshot live in `.analytics-dashboard/`,
+use owner-only file permissions, and are ignored by Git. The dashboard never
+copies GitHub or Vercel credentials into its output. It deliberately keeps
+repository views, clone operations, CI checkouts, release-asset requests,
+website visitors, and verified installs separate: none is a proxy for another.
+
+The GitHub traffic window is short, so rebuild or archive the private snapshot
+regularly if trend history matters. Website data comes from Vercel's documented
+Web Analytics REST API. Add `--no-vercel` to generate the GitHub-only dashboard.
+
 ## Working on the legacy Python app
 
 Only security-relevant or fallback-critical fixes are accepted; features

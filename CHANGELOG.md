@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.8] — 2026-08-28
+
 ### Added
 - Anonymous usage sharing and an in-app Leaderboard, ranked by time saved.
   **On by default** — a real, disclosed change from every prior release,

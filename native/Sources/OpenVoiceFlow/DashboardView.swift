@@ -1027,11 +1027,6 @@ struct DashboardView: View {
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 200)
                     }
-                    settingsRow("Device ID") {
-                        Text(analyticsIdentity.identity.deviceId)
-                            .font(.system(size: 11, design: .monospaced)).foregroundStyle(ink2)
-                            .textSelection(.enabled)
-                    }
                     settingsRow("Delete my leaderboard data") {
                         Button("Delete…") {
                             Task { await analyticsClient.deleteMyData(deviceId: analyticsIdentity.identity.deviceId) }
@@ -1039,13 +1034,6 @@ struct DashboardView: View {
                         .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(DT.destructive)
                     }
                 }
-                Text("Sends word/time totals, which features you use, and a display "
-                     + "name you can change — never dictation text, snippets, dictionary, "
-                     + "or your Know-Me profile. Powers the Leaderboard pane. Off stops it entirely; "
-                     + "your device ID above is how to ask us to delete a past submission.")
-                    .font(.system(size: 11)).foregroundStyle(ink2)
-                    .padding(.horizontal, 16).padding(.bottom, 8)
-                    .fixedSize(horizontal: false, vertical: true)
                 settingsToggle("Automatic updates", isOn: autoUpdateBinding)
                 settingsRow("You're on v\(updater.appVersion)") {
                     Button("Check for updates now") { updater.checkForUpdates() }

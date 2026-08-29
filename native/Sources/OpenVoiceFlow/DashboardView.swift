@@ -581,7 +581,7 @@ struct DashboardView: View {
 
     @ViewBuilder private var historyPane: some View {
         VStack(alignment: .leading, spacing: 14) {
-            paneTitle("History")
+            paneTitle("History", "Stored only on this Mac — never synced to a server.")
             if history.entries.isEmpty {
                 emptyPanel(
                     title: "Nothing yet.",

@@ -33,6 +33,86 @@ def test_feedback_uses_a_centered_native_modal() -> None:
     assert "let onDismiss: () -> Void" in feedback
 
 
+def test_feedback_sheet_dismisses_when_the_user_clicks_outside_it() -> None:
+    feedback = source("FeedbackView.swift")
+    dismissal = source("SheetOutsideClickDismissal.swift")
+
+    assert ".background(SheetOutsideClickDismissal(onOutsideClick: onDismiss))" in feedback
+    assert "NSEvent.addLocalMonitorForEvents" in dismissal
+    assert ".leftMouseDown, .rightMouseDown, .otherMouseDown" in dismissal
+    assert "let parentWindow = sheetWindow.sheetParent" in dismissal
+    assert "Coordinator.shouldDismiss(" in dismissal
+    assert "onOutsideClick()" in dismissal
+
+
+def test_feedback_sheet_dismissal_targets_only_its_parent_window(tmp_path: Path) -> None:
+    if shutil.which("xcrun") is None:
+        pytest.skip("Swift contract requires the macOS Xcode toolchain")
+
+    dismissal_source = NATIVE_SOURCES / "SheetOutsideClickDismissal.swift"
+    harness = tmp_path / "main.swift"
+    harness.write_text(
+        """
+import AppKit
+
+let parent = NSWindow()
+let sheet = NSWindow()
+let other = NSWindow()
+
+precondition(SheetOutsideClickDismissal.Coordinator.shouldDismiss(
+    eventWindow: parent,
+    parentWindow: parent
+))
+precondition(!SheetOutsideClickDismissal.Coordinator.shouldDismiss(
+    eventWindow: sheet,
+    parentWindow: parent
+))
+precondition(!SheetOutsideClickDismissal.Coordinator.shouldDismiss(
+    eventWindow: other,
+    parentWindow: parent
+))
+precondition(!SheetOutsideClickDismissal.Coordinator.shouldDismiss(
+    eventWindow: nil,
+    parentWindow: parent
+))
+precondition(!SheetOutsideClickDismissal.Coordinator.shouldDismiss(
+    eventWindow: parent,
+    parentWindow: nil
+))
+print("ok")
+""",
+        encoding="utf-8",
+    )
+    binary = tmp_path / "sheet-dismissal-contract"
+
+    compile_result = subprocess.run(
+        ["xcrun", "swiftc", str(dismissal_source), str(harness), "-o", str(binary)],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert compile_result.returncode == 0, compile_result.stderr
+
+    run_result = subprocess.run([str(binary)], text=True, capture_output=True, check=False)
+    assert run_result.returncode == 0, run_result.stderr
+    assert run_result.stdout.strip() == "ok"
+
+
+def test_personalized_styles_show_real_app_icons_with_branded_fallbacks() -> None:
+    dashboard = source("DashboardView.swift")
+    provider = source("AppIconProvider.swift")
+    project = (ROOT / "native" / "project.yml").read_text(encoding="utf-8")
+
+    assert "AppStyleIcon(name: app" in dashboard
+    assert "AppIconProvider.icon(for: name)" in dashboard
+    assert '"Discord": "discord"' in provider
+    assert '"Gmail": "gmail"' in provider
+    assert "bundledBrandIcon(named: name)" in provider
+    assert "path: Resources/BrandIcons" in project
+    assert (ROOT / "native" / "Resources" / "BrandIcons" / "discord.svg").is_file()
+    assert (ROOT / "native" / "Resources" / "BrandIcons" / "gmail.svg").is_file()
+
+
 def test_know_me_is_a_personalize_tab_not_a_sidebar_pane() -> None:
     dashboard = source("DashboardView.swift")
 

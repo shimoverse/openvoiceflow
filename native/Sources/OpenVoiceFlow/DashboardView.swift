@@ -829,10 +829,7 @@ struct DashboardView: View {
     @ViewBuilder private var stylesSection: some View {
         ForEach(styleStore.map.sorted(by: { $0.key < $1.key }), id: \.key) { app, styleID in
             HStack(spacing: 12) {
-                Text(AppIconProvider.monogram(app))
-                    .font(.system(size: 11, weight: .bold)).foregroundStyle(ink2)
-                    .frame(width: 30, height: 30)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(fill))
+                AppStyleIcon(name: app, fill: fill, ink2: ink2)
                 Text(app).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
                     .frame(width: 150, alignment: .leading)
                 Picker("", selection: styleBinding(for: app)) {
@@ -1503,5 +1500,33 @@ private struct AppTimeIcon: View {
                     .font(.system(size: 8, weight: .bold)).foregroundStyle(ink2)
             )
         }
+    }
+}
+
+/// A familiar app mark makes a long Styles list scannable. Installed apps use
+/// their exact macOS icon; seeded services with no local app use a bundled
+/// brand fallback; only unknown names fall back to initials.
+private struct AppStyleIcon: View {
+    let name: String
+    let fill: Color
+    let ink2: Color
+
+    var body: some View {
+        Group {
+            if let nsImage = AppIconProvider.icon(for: name) {
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(3)
+            } else {
+                Text(AppIconProvider.monogram(name))
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(ink2)
+            }
+        }
+        .frame(width: 30, height: 30)
+        .background(RoundedRectangle(cornerRadius: 7).fill(fill))
+        .clipShape(RoundedRectangle(cornerRadius: 7))
+        .accessibilityHidden(true)
     }
 }

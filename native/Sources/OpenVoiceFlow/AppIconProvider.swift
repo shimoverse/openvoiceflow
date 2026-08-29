@@ -4,14 +4,17 @@ import AppKit
 /// by display name — the only identifier `HistoryStore` tracks (see
 /// `HistoryEntry.app`, captured from `NSWorkspace.frontmostApplication`).
 ///
-/// Deliberately does *not* ship any bundled logo assets: a fixed icon set
-/// would only cover a handful of apps, needs upkeep as logos change, and
-/// means redistributing third-party trademarks. Asking macOS for the icon
-/// it already has on disk covers every app a user could possibly dictate
-/// into, with zero maintenance.
+/// Prefer the app icon already installed on this Mac. A tiny branded fallback
+/// set covers virtual/default entries (notably Gmail) and common apps that may
+/// not be installed yet, so the Styles pane never substitutes initials for the
+/// two recognizable services it presents out of the box.
 @MainActor
 enum AppIconProvider {
     private static var cache: [String: NSImage?] = [:]
+    private static let bundledBrands = [
+        "Discord": "discord",
+        "Gmail": "gmail",
+    ]
 
     /// The running-or-installed app's own icon, or nil if nothing on this
     /// Mac matches `name` (uninstalled since, or the name isn't really an
@@ -19,7 +22,9 @@ enum AppIconProvider {
     /// same as the Styles pane already does for apps with no icon.
     static func icon(for name: String) -> NSImage? {
         if let cached = cache[name] { return cached }
-        let resolved = runningAppIcon(named: name) ?? installedAppIcon(named: name)
+        let resolved = runningAppIcon(named: name)
+            ?? installedAppIcon(named: name)
+            ?? bundledBrandIcon(named: name)
         cache[name] = resolved
         return resolved
     }
@@ -41,6 +46,17 @@ enum AppIconProvider {
     private static func installedAppIcon(named name: String) -> NSImage? {
         guard let path = NSWorkspace.shared.fullPath(forApplication: name) else { return nil }
         return NSWorkspace.shared.icon(forFile: path)
+    }
+
+    /// Gmail may be used in a browser and Discord may not be installed yet,
+    /// but both are seeded style destinations. Their compact SVG marks ship as
+    /// identification-only fallbacks (see Resources/BrandIcons/README.md).
+    private static func bundledBrandIcon(named name: String) -> NSImage? {
+        guard let resource = bundledBrands[name],
+              let url = Bundle.main.url(forResource: resource, withExtension: "svg"),
+              let image = NSImage(contentsOf: url) else { return nil }
+        image.isTemplate = false
+        return image
     }
 
     /// Shared with the Styles pane's per-app row, which shows the same

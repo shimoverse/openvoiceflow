@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.10] — 2026-08-29
+
 ### Changed
 - Dictionary, Snippets, and Styles are now one **Personalize** pane in the
   dashboard sidebar, switched with tabs instead of three separate rows.

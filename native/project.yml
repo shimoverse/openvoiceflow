@@ -25,6 +25,8 @@ targets:
       - path: Sources/OpenVoiceFlow
       - path: Resources/OpenVoiceFlow.icns
         buildPhase: resources
+      - path: Resources/BrandIcons
+        buildPhase: resources
     dependencies:
       - package: WhisperKit
         product: WhisperKit
@@ -36,8 +38,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.openvoiceflow
         INFOPLIST_FILE: Info.plist
         CODE_SIGN_ENTITLEMENTS: OpenVoiceFlow.entitlements
-        MARKETING_VERSION: 0.5.15
-        CURRENT_PROJECT_VERSION: 20
+        MARKETING_VERSION: 0.5.16
+        CURRENT_PROJECT_VERSION: 21
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
 schemes:

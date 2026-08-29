@@ -92,6 +92,7 @@ struct FeedbackView: View {
         }
         .padding(24)
         .frame(width: 480, height: 380)
+        .background(SheetOutsideClickDismissal(onOutsideClick: onDismiss))
     }
 
     private func send() {

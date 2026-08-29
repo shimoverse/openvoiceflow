@@ -24,6 +24,18 @@ struct FeedbackView: View {
         case praise = "Just saying thanks"
         case other = "Something else"
         var id: String { rawValue }
+
+        /// Short enough that all four segments fit a 480pt-wide sheet without
+        /// truncating — the full rawValue is still what goes in the email
+        /// subject/body, this is only what the segmented control displays.
+        var shortLabel: String {
+            switch self {
+            case .bug: return "Bug"
+            case .idea: return "Idea"
+            case .praise: return "Thanks"
+            case .other: return "Other"
+            }
+        }
     }
 
     @State private var category: Category = .idea
@@ -47,7 +59,7 @@ struct FeedbackView: View {
             }
 
             Picker("", selection: $category) {
-                ForEach(Category.allCases) { Text($0.rawValue).tag($0) }
+                ForEach(Category.allCases) { Text($0.shortLabel).tag($0) }
             }
             .labelsHidden().pickerStyle(.segmented)
 
@@ -91,7 +103,7 @@ struct FeedbackView: View {
             }
         }
         .padding(24)
-        .frame(width: 440, height: 420)
+        .frame(width: 480, height: 420)
     }
 
     private func send() {

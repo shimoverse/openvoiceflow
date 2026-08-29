@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.11] — 2026-08-29
+
+### Changed
+- The History pane now carries a subtitle: "Stored only on this Mac —
+  never synced to a server." Scoped deliberately to what's true
+  unconditionally (this list is local storage, full stop) rather than a
+  blanket "nothing leaves this machine" claim, since cloud AI cleanup
+  (opt-in, off by default) does send dictated text to the selected
+  provider before it lands here — that's covered separately by the
+  existing footer line and the privacy docs.
+
 ## [0.5.10] — 2026-08-29
 
 ### Changed

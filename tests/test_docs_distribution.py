@@ -5,11 +5,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.com"
-RELEASE_VERSION = "0.5.13"
-RELEASE_BUILD = 18
-PREVIOUS_NATIVE_BUILD = 17
-PRUNED_RELEASE_VERSIONS = ("0.5.5", "0.5.6", "0.5.8", "0.5.12")
-UNIVERSAL_SHA256 = "66d0415bf912bb65882cb221f8d7bfa56c50a6f830143bd4068c4b67e888e228"
+RELEASE_VERSION = "0.5.14"
+RELEASE_BUILD = 19
+PREVIOUS_NATIVE_BUILD = 18
+PRUNED_RELEASE_VERSIONS = ("0.5.5", "0.5.6", "0.5.8", "0.5.12", "0.5.13")
+UNIVERSAL_SHA256 = "740d6b3ee350ab6ace41a99f99243c4c5728114754188264a91246f18c142142"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"
 
 
@@ -49,11 +49,11 @@ def test_appcast_is_present_and_signed_for_the_final_native_release():
     assert "sparkle:edSignature=" in appcast
     assert f"OpenVoiceFlow-{RELEASE_VERSION}.dmg" in appcast
     # Sparkle orders updates by CFBundleVersion, so this must match the new
-    # release and strictly exceed the previously published 0.5.12 build (17).
+    # release and strictly exceed the previously published 0.5.13 build (18).
     build = int(appcast.split("sparkle:version>")[1].split("<")[0])
     assert build == RELEASE_BUILD
     assert build > PREVIOUS_NATIVE_BUILD, (
-        f"appcast build {build} must exceed 0.5.8 build {PREVIOUS_NATIVE_BUILD}"
+        f"appcast build {build} must exceed 0.5.13 build {PREVIOUS_NATIVE_BUILD}"
     )
 
 

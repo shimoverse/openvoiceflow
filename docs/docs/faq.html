@@ -56,7 +56,7 @@
       {"@type": "Question", "name": "Does my voice leave my Mac?",
        "acceptedAnswer": {"@type": "Answer", "text": "No. Audio is transcribed on-device by Whisper and discarded once text exists. There is no code path that uploads audio. If you turn on cloud AI cleanup, the resulting text is sent to the provider you chose under your own key; choosing Ollama or leaving cleanup off keeps everything local."}},
       {"@type": "Question", "name": "Does it work offline?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Yes. After the one-time model download, dictation works in airplane mode. With cleanup off, which is the default, no network request is made at any point."}},
+       "acceptedAnswer": {"@type": "Answer", "text": "Yes. After the one-time model download, dictation works in airplane mode — the usage-sharing sync (if you've left it on) is fire-and-forget and never blocks it. With cleanup and usage sharing both off, no network request is made at any point."}},
       {"@type": "Question", "name": "Which Macs are supported?",
        "acceptedAnswer": {"@type": "Answer", "text": "macOS 14 Sonoma or newer, on both Apple Silicon and Intel. One universal build covers both. For macOS 12 to 13 a retained 0.3.6 Apple Silicon build is available, but it is end-of-life."}},
       {"@type": "Question", "name": "Is there a Windows, Linux, iPhone, or Android version?",
@@ -72,9 +72,9 @@
       {"@type": "Question", "name": "What happens if the AI cleanup service fails?",
        "acceptedAnswer": {"@type": "Answer", "text": "You get your raw transcript. Cleanup is designed to fail open: on a missing key, an error, a timeout, or an unparseable response, the app inserts the on-device transcription rather than losing your words."}},
       {"@type": "Question", "name": "Does it collect any analytics?",
-       "acceptedAnswer": {"@type": "Answer", "text": "The app contains no telemetry whatsoever — no usage pings, no crash reporting, no feature counters. The website uses privacy-friendly anonymous page-view analytics, which is entirely separate from the app."}},
+       "acceptedAnswer": {"@type": "Answer", "text": "As of 0.5.7, yes, and it's on by default: an anonymous usage summary (word/time totals, which features you use, your country, and a display name you choose) powers an in-app leaderboard. Never audio, never dictated text, never anything from your dictionary, snippets, or Know-Me profile. Turn it off in Settings ▸ Privacy ▸ \"Share anonymous usage & leaderboard rank\" — full detail in Privacy architecture's Analytics & leaderboard section. The website separately uses privacy-friendly anonymous page-view analytics, unrelated to the app."}},
       {"@type": "Question", "name": "How do I get support?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Email shimoverse@gmail.com. Include your macOS version, your Mac's chip, your OpenVoiceFlow version, and what you saw versus what you expected. Because the app has no telemetry, your description is all we have to work from."}},
+       "acceptedAnswer": {"@type": "Answer", "text": "Use the Feedback item in the dashboard sidebar, or email shimoverse@gmail.com. Include your macOS version, your Mac's chip, your OpenVoiceFlow version, and what you saw versus what you expected — the usage summary is aggregate counts, not diagnostics, so your description is still what gets things fixed."}},
       {"@type": "Question", "name": "Can I use OpenVoiceFlow at work with confidential material?",
        "acceptedAnswer": {"@type": "Answer", "text": "The architecture is designed for exactly that case: audio never leaves the machine, and with cleanup off or pointed at local Ollama, neither does text. Your organization's own policy still applies, and the source being open means your security team can verify the claims rather than trust them."}},
       {"@type": "Question", "name": "Can I use the code in my own project?",
@@ -192,7 +192,7 @@
         <h3>Does my voice leave my Mac?</h3>
         No. Audio is transcribed on-device by Whisper and discarded once text exists. There is no code path that uploads audio. If you turn on cloud AI cleanup, the resulting text is sent to the provider you chose under your own key; choosing Ollama or leaving cleanup off keeps everything local.
         <h3>Does it work offline?</h3>
-        Yes. After the one-time model download, dictation works in airplane mode. With cleanup off, which is the default, no network request is made at any point.
+        Yes. After the one-time model download, dictation works in airplane mode — the usage-sharing sync (if you've left it on) is fire-and-forget and never blocks it. With cleanup and usage sharing both off, no network request is made at any point.
         <h3>Which Macs are supported?</h3>
         macOS 14 Sonoma or newer, on both Apple Silicon and Intel. One universal build covers both. For macOS 12 to 13 a retained 0.3.6 Apple Silicon build is available, but it is end-of-life.
         <h3>Is there a Windows, Linux, iPhone, or Android version?</h3>
@@ -208,9 +208,9 @@
         <h3>What happens if the AI cleanup service fails?</h3>
         You get your raw transcript. Cleanup is designed to fail open: on a missing key, an error, a timeout, or an unparseable response, the app inserts the on-device transcription rather than losing your words.
         <h3>Does it collect any analytics?</h3>
-        The app contains no telemetry whatsoever — no usage pings, no crash reporting, no feature counters. The website uses privacy-friendly anonymous page-view analytics, which is entirely separate from the app.
+        As of 0.5.7, yes, and it's on by default: an anonymous usage summary (word/time totals, which features you use, your country, and a display name you choose) powers an in-app leaderboard. Never audio, never dictated text, never anything from your dictionary, snippets, or Know-Me profile. Turn it off in Settings ▸ Privacy ▸ "Share anonymous usage & leaderboard rank" — full detail in Privacy architecture's Analytics & leaderboard section. The website separately uses privacy-friendly anonymous page-view analytics, unrelated to the app.
         <h3>How do I get support?</h3>
-        Email shimoverse@gmail.com. Include your macOS version, your Mac's chip, your OpenVoiceFlow version, and what you saw versus what you expected. Because the app has no telemetry, your description is all we have to work from.
+        Use the Feedback item in the dashboard sidebar, or email shimoverse@gmail.com. Include your macOS version, your Mac's chip, your OpenVoiceFlow version, and what you saw versus what you expected — the usage summary is aggregate counts, not diagnostics, so your description is still what gets things fixed.
         <h3>Can I use OpenVoiceFlow at work with confidential material?</h3>
         The architecture is designed for exactly that case: audio never leaves the machine, and with cleanup off or pointed at local Ollama, neither does text. Your organization's own policy still applies, and the source being open means your security team can verify the claims rather than trust them.
         <h3>Can I use the code in my own project?</h3>

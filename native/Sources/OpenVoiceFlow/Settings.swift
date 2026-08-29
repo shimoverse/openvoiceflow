@@ -39,6 +39,13 @@ struct Settings: Codable, Equatable {
     var echoInsertedText: Bool = true
     /// First ever dictation — powers "since March" on the dashboard.
     var firstUseDate: Date?
+    /// Anonymous usage counters (words, minutes saved, streak, which
+    /// features are on) plus the leaderboard rank they unlock, tagged by a
+    /// random device ID and an editable display name. On by default; never
+    /// dictation text, snippets, dictionary, or the Know-Me profile. See
+    /// Settings ▸ Privacy and the Analytics & leaderboard privacy-docs
+    /// section for the exact fields sent.
+    var shareAnalytics: Bool = true
 
     enum Style: String, Codable, CaseIterable { case `default`, casual, formal, code, email }
 
@@ -66,6 +73,7 @@ struct Settings: Codable, Equatable {
         hotkeyLearnedAt = try c.decodeIfPresent(Date.self, forKey: .hotkeyLearnedAt)
         echoInsertedText = try c.decodeIfPresent(Bool.self, forKey: .echoInsertedText) ?? true
         firstUseDate = try c.decodeIfPresent(Date.self, forKey: .firstUseDate)
+        shareAnalytics = try c.decodeIfPresent(Bool.self, forKey: .shareAnalytics) ?? true
     }
 
     private static var url: URL {

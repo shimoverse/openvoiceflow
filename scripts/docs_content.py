@@ -52,8 +52,8 @@ PAGES["index"] = {
         <ul>
           <li><strong>macOS only.</strong> macOS 14 (Sonoma) or newer, Apple Silicon and Intel. There is no Windows or Linux build. iOS and Android are in development and cannot be downloaded today.</li>
           <li><strong>No spoken punctuation commands.</strong> Saying &ldquo;comma&rdquo; types the word &ldquo;comma&rdquo;. Whisper punctuates from sentence structure on its own, and <a href="ai-cleanup.html">AI cleanup</a> handles the rest if you turn it on.</li>
-          <li><strong>No meeting recording, no cloud sync, no accounts.</strong> There is no OpenVoiceFlow server to sync to.</li>
-          <li><strong>No telemetry in the app.</strong> Nothing about your dictation is reported anywhere.</li>
+          <li><strong>No meeting recording, no cloud sync, no accounts.</strong> There is no server your dictation history syncs to.</li>
+          <li><strong>Dictation itself is never reported anywhere.</strong> As of 0.5.7, an opt-out anonymous usage summary (word/time totals, which features you use, a display name you choose) powers an in-app leaderboard — never audio, never dictated text. Off in one toggle: <a href="privacy-architecture.html#analytics">details and how to turn it off</a>.</li>
         </ul>
 
         <h2 id="map">The whole manual</h2>
@@ -1038,35 +1038,48 @@ PAGES["privacy-architecture"] = {
         <p>Speech models are cached separately at <code>~/Documents/huggingface/models/argmaxinc/whisperkit-coreml/</code>. API keys are in the <strong>macOS Keychain</strong>, service <code>app.openvoiceflow.apikeys</code> — never in any file above.</p>
 
         <h2 id="network">Every outbound connection</h2>
-        <p>The app makes exactly three kinds of network request, and you can reason about all of them:</p>
+        <p>The app makes exactly four kinds of network request, and you can reason about all of them:</p>
         <table>
           <thead><tr><th scope="col">Request</th><th scope="col">When</th><th scope="col">Contains</th></tr></thead>
           <tbody>
             <tr><td>Model download</td><td>The first time you select a given Whisper model</td><td>Nothing about you — it is a public model file fetch.</td></tr>
             <tr><td>Update check</td><td>Daily, and at launch, if automatic updates are on</td><td>A request for the signed appcast at openvoiceflow.com. No account, no identifier.</td></tr>
             <tr><td>Cleanup request</td><td>Per dictation, <strong>only</strong> if you enabled a cloud backend</td><td>Transcript text, cleanup instruction, style, and your dictionary/profile context. Never audio.</td></tr>
+            <tr><td>Usage sync</td><td>Roughly every few minutes of active dictation, <strong>only</strong> if &ldquo;Share anonymous usage &amp; leaderboard rank&rdquo; is on (Settings ▸ Privacy — on by default since 0.5.7)</td><td>See <a href="#analytics">Analytics &amp; leaderboard</a> below. Never audio, never dictated text.</td></tr>
           </tbody>
         </table>
-        <p>Set cleanup to <strong>None</strong> (the default) or <strong>Ollama</strong>, and the third row never happens. Turn off automatic updates and the second stops too.</p>
+        <p>Set cleanup to <strong>None</strong> (the default) or <strong>Ollama</strong>, and the cleanup row never happens. Turn off automatic updates and the update-check row stops too. Turn off usage sharing and the fourth row stops immediately — nothing queues up and sends later.</p>
+
+        <h2 id="analytics">Analytics &amp; leaderboard</h2>
+        <p>Since <strong>0.5.7</strong>, the app can share an anonymous usage summary to power an in-app leaderboard ranked by time saved. This is a real change from earlier versions, which sent nothing — it's on by default, and this section says exactly what that means.</p>
+        <p><strong>Turning it off:</strong> Settings ▸ Privacy ▸ <em>&ldquo;Share anonymous usage &amp; leaderboard rank&rdquo;</em>. Off stops every request in the row above; nothing is cached to send later.</p>
+        <p><strong>What's sent, when it's on:</strong></p>
+        <ul>
+          <li>A random device ID generated on your Mac (not tied to your Apple ID, email, or any account — there is no account) and a display name you can change, shown to other users on the leaderboard.</li>
+          <li>Aggregate counters already shown on your Home pane: total words dictated, total time saved, your streak, and which features are on (cleanup enabled, snippet/dictionary counts, whether you've run Know-Me) — counts only, never contents.</li>
+          <li>Your country, derived server-side from the request at the moment it arrives. Your IP address itself is never logged or stored.</li>
+        </ul>
+        <p><strong>What's never sent, whether or not this is on:</strong> dictated text, snippets, dictionary entries, Know-Me profile content, or anything from the cleanup path. Those stay exactly as described in the rest of this page.</p>
+        <p>The leaderboard itself never discloses how many people use OpenVoiceFlow in total — only ranks and time-saved figures for the people shown.</p>
 
         <h2 id="never">What is never collected</h2>
         <ul>
-          <li><strong>No telemetry or analytics in the app.</strong> No usage pings, crash reports, or feature counters.</li>
-          <li><strong>No account.</strong> Nothing to sign up for, so nothing to profile.</li>
-          <li><strong>No OpenVoiceFlow servers.</strong> There is no backend that could hold your data — this website is a static site.</li>
+          <li><strong>No dictation content, ever.</strong> Not your words, not your audio — the usage summary above is aggregate counts only.</li>
+          <li><strong>No account.</strong> Nothing to sign up for. The device ID above identifies a Mac, not a person.</li>
+          <li><strong>No precise location.</strong> Country-level only, derived at request time; no IP address is stored.</li>
           <li><strong>No screen reading.</strong> Accessibility permission is used only to send a paste keystroke.</li>
           <li><strong>No keystroke logging.</strong> Input Monitoring watches for one key; everything else passes straight through.</li>
         </ul>
         <div class="callout">
           <span class="callout-label">About this website</span>
-          <p>openvoiceflow.com uses privacy-friendly Vercel Analytics for anonymous page views and Speed Insights for performance. That is website measurement only, with no advertising cookies and no cross-site profile — and it is entirely separate from the app, which contains no analytics of any kind. Details on the <a href="../privacy.html">privacy page</a>.</p>
+          <p>openvoiceflow.com uses privacy-friendly Vercel Analytics for anonymous page views and Speed Insights for performance — website measurement only, with no advertising cookies and no cross-site profile. That's separate from the app-level usage summary described above, which is documented in full in this section rather than folded into the website's own analytics. Details on the <a href="../privacy.html">privacy page</a>.</p>
         </div>
 
         <h2 id="verify">Verifying this yourself</h2>
         <p>Two checks anyone can run:</p>
         <ul>
-          <li><strong>Airplane mode.</strong> Turn off Wi-Fi with cleanup set to None and dictate. It works, because nothing in that path needs a network.</li>
-          <li><strong>Network monitor.</strong> Run Little Snitch or similar and watch. With cleanup off, dictation generates no connections at all.</li>
+          <li><strong>Airplane mode.</strong> Turn off Wi-Fi with cleanup set to None and dictate. It works, because dictation itself never needs a network — the usage sync above is fire-and-forget and never blocks it.</li>
+          <li><strong>Network monitor.</strong> Run Little Snitch or similar and watch. With cleanup off and usage sharing off, dictation generates no connections at all. With usage sharing on (the default), you'll see the occasional request described in the table above, and nothing else.</li>
         </ul>
         <p>OpenVoiceFlow is MIT-licensed open source, so every claim here is checkable in the code itself rather than taken on trust. If anything on this page does not match what the app does, that is a bug — tell us at <a href="mailto:shimoverse@gmail.com">shimoverse@gmail.com</a>.</p>
 """,
@@ -1096,7 +1109,7 @@ PAGES["updates"] = {
         <p><strong>Dashboard ▸ Settings ▸ Automatic updates</strong>. With it off, no background checks are made and no update downloads — you can still check manually at any time.</p>
         <div class="callout tip">
           <span class="callout-label">A reason to leave it on</span>
-          <p>Because the app has no telemetry, we cannot see who is on an old build. Automatic updates are how a fix for something like a broken model download actually reaches you.</p>
+          <p>Even with usage sharing on, the anonymous summary doesn't tell us who's on an old build in any actionable way — there's no way to reach a specific device. Automatic updates are how a fix for something like a broken model download actually reaches you.</p>
         </div>
 
         <h2 id="version">Checking your version</h2>
@@ -1328,7 +1341,7 @@ PAGES["troubleshooting"] = {
         </div>
 
         <h2 id="still">Still stuck?</h2>
-        <p>Email <a href="mailto:shimoverse@gmail.com">shimoverse@gmail.com</a> with your macOS version, your Mac's chip, your OpenVoiceFlow version (Settings shows it), the model you are using, and what you saw versus what you expected. Since the app collects no telemetry, that description is genuinely all we have to go on — and detailed reports get fixed.</p>
+        <p>Use the <strong>Feedback</strong> item in the dashboard sidebar, or email <a href="mailto:shimoverse@gmail.com">shimoverse@gmail.com</a> with your macOS version, your Mac's chip, your OpenVoiceFlow version (Settings shows it), the model you are using, and what you saw versus what you expected. The anonymous usage summary (see <a href="privacy-architecture.html#analytics">Privacy architecture</a>) is aggregate counts, not diagnostics — it can't tell us what went wrong on your machine, so a real description is still what gets bugs fixed.</p>
 """,
 }
 
@@ -1343,7 +1356,7 @@ PAGES["faq"] = {
         ("Does my voice leave my Mac?",
          "No. Audio is transcribed on-device by Whisper and discarded once text exists. There is no code path that uploads audio. If you turn on cloud AI cleanup, the resulting text is sent to the provider you chose under your own key; choosing Ollama or leaving cleanup off keeps everything local."),
         ("Does it work offline?",
-         "Yes. After the one-time model download, dictation works in airplane mode. With cleanup off, which is the default, no network request is made at any point."),
+         "Yes. After the one-time model download, dictation works in airplane mode — the usage-sharing sync (if you've left it on) is fire-and-forget and never blocks it. With cleanup and usage sharing both off, no network request is made at any point."),
         ("Which Macs are supported?",
          "macOS 14 Sonoma or newer, on both Apple Silicon and Intel. One universal build covers both. For macOS 12 to 13 a retained 0.3.6 Apple Silicon build is available, but it is end-of-life."),
         ("Is there a Windows, Linux, iPhone, or Android version?",
@@ -1359,9 +1372,9 @@ PAGES["faq"] = {
         ("What happens if the AI cleanup service fails?",
          "You get your raw transcript. Cleanup is designed to fail open: on a missing key, an error, a timeout, or an unparseable response, the app inserts the on-device transcription rather than losing your words."),
         ("Does it collect any analytics?",
-         "The app contains no telemetry whatsoever — no usage pings, no crash reporting, no feature counters. The website uses privacy-friendly anonymous page-view analytics, which is entirely separate from the app."),
+         "As of 0.5.7, yes, and it's on by default: an anonymous usage summary (word/time totals, which features you use, your country, and a display name you choose) powers an in-app leaderboard. Never audio, never dictated text, never anything from your dictionary, snippets, or Know-Me profile. Turn it off in Settings ▸ Privacy ▸ \"Share anonymous usage & leaderboard rank\" — full detail in Privacy architecture's Analytics & leaderboard section. The website separately uses privacy-friendly anonymous page-view analytics, unrelated to the app."),
         ("How do I get support?",
-         "Email shimoverse@gmail.com. Include your macOS version, your Mac's chip, your OpenVoiceFlow version, and what you saw versus what you expected. Because the app has no telemetry, your description is all we have to work from."),
+         "Use the Feedback item in the dashboard sidebar, or email shimoverse@gmail.com. Include your macOS version, your Mac's chip, your OpenVoiceFlow version, and what you saw versus what you expected — the usage summary is aggregate counts, not diagnostics, so your description is still what gets things fixed."),
         ("Can I use OpenVoiceFlow at work with confidential material?",
          "The architecture is designed for exactly that case: audio never leaves the machine, and with cleanup off or pointed at local Ollama, neither does text. Your organization's own policy still applies, and the source being open means your security team can verify the claims rather than trust them."),
         ("Can I use the code in my own project?",

@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.16] — 2026-08-29
+
+### Fixed
+- Personalized Styles now shows recognizable Discord and Gmail icons, using installed app icons first and bundled brand marks when those apps are unavailable.
+- Clicking the dashboard outside the centered Feedback sheet now dismisses it, while clicks inside the sheet or in unrelated OpenVoiceFlow windows keep their normal behavior.
+
 ## [0.5.15] — 2026-08-29
 
 ### Fixed

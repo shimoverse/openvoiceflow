@@ -1,7 +1,10 @@
 """Regression contracts for the native feedback and Personalize UX."""
 
+import shutil
 import subprocess
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 NATIVE_SOURCES = ROOT / "native" / "Sources" / "OpenVoiceFlow"
@@ -42,6 +45,9 @@ def test_know_me_is_a_personalize_tab_not_a_sidebar_pane() -> None:
 
 
 def test_leaderboard_alias_is_one_token_and_migrates_only_legacy_defaults(tmp_path: Path) -> None:
+    if shutil.which("xcrun") is None:
+        pytest.skip("Swift contract requires the macOS Xcode toolchain")
+
     alias_source = NATIVE_SOURCES / "LeaderboardAlias.swift"
     harness = tmp_path / "main.swift"
     harness.write_text(

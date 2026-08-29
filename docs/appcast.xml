@@ -6,13 +6,13 @@
     <description>OpenVoiceFlow native app updates.</description>
     <language>en</language>
     <item>
-      <title>Version 0.5.6</title>
+      <title>Version 0.5.8</title>
       <sparkle:releaseNotesLink>https://openvoiceflow.com/how-it-works.html</sparkle:releaseNotesLink>
-      <pubDate>Wed, 26 Aug 2026 06:51:45 +0000</pubDate>
-      <sparkle:version>11</sparkle:version>
-      <sparkle:shortVersionString>0.5.6</sparkle:shortVersionString>
+      <pubDate>Sat, 29 Aug 2026 03:48:06 +0000</pubDate>
+      <sparkle:version>13</sparkle:version>
+      <sparkle:shortVersionString>0.5.8</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://openvoiceflow.com/downloads/OpenVoiceFlow-0.5.6.dmg" sparkle:edSignature="C3pWGPVWl379tqK7LpcCtAfMRS0kRPYnEOZ51/bUgrVx2BXqyD5hlZ/hty8ZbVFoV26elo96eEn2/scBAKgJBw==" length="5599144" type="application/octet-stream" />
+      <enclosure url="https://openvoiceflow.com/downloads/OpenVoiceFlow-0.5.8.dmg" sparkle:edSignature="TJL9cq6oXgyzNzEK7WKkzS0itSL/iV46W0fAMhoxCB2i40yymj6RISa9/zB1+dR31PyTZgl0/BlFPHMsHNb7AA==" length="5720453" type="application/octet-stream" />
     </item>
   </channel>
 </rss>

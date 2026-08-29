@@ -53,18 +53,18 @@ struct DashboardView: View {
         /// one job — teach the app something once. Now they're tabs inside
         /// this single pane.
         case personalize = "Personalize"
-        case knowMe = "Know-Me"
         case settings = "Settings"
         /// Not in the main sidebar loop — it gets its own row below Feedback,
         /// same treatment as the Feedback button itself.
         case leaderboard = "Leaderboard"
     }
 
-    /// The three destinations merged into the Personalize pane.
+    /// The destinations merged into the Personalize pane.
     enum PersonalizeTab: String, CaseIterable, Identifiable, Hashable {
         case dictionary = "Dictionary"
         case snippets = "Snippets"
         case styles = "Styles"
+        case knowMe = "Know Me"
 
         var id: String { rawValue }
 
@@ -73,6 +73,7 @@ struct DashboardView: View {
             case .dictionary: return "Words I keep getting wrong. Fix them once."
             case .snippets: return "Say the short thing, get the long thing."
             case .styles: return "How you sound, per app."
+            case .knowMe: return "Teach cleanup your names, jargon, and voice."
             }
         }
     }
@@ -144,6 +145,9 @@ struct DashboardView: View {
                 .padding(.horizontal, 10)
             }
             .buttonStyle(.plain)
+            .popover(isPresented: $showFeedback) {
+                FeedbackView(controller: controller, onDismiss: { showFeedback = false })
+            }
 
             Button { pane = .leaderboard } label: {
                 HStack(spacing: 8) {
@@ -191,7 +195,6 @@ struct DashboardView: View {
                 case .home: home
                 case .history: historyPane
                 case .personalize: personalizePane
-                case .knowMe: knowMe
                 case .settings: settingsPane
                 case .leaderboard: leaderboardPane
                 }
@@ -200,9 +203,6 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showInterview) {
             KnowMeInterview(controller: controller)
-        }
-        .sheet(isPresented: $showFeedback) {
-            FeedbackView(controller: controller)
         }
         // The first-words card is the one thing a user is likely to miss, so it
         // is a separate, explicit choice rather than collateral damage.
@@ -702,12 +702,10 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: Personalize (Dictionary + Snippets + Styles)
+    // MARK: Personalize (Dictionary + Snippets + Styles + Know Me)
     //
-    // Three sidebar rows for one job — teach the app something once so it
-    // stops needing to be told again — read as three unrelated destinations.
-    // One pane, one set of tabs: switching between words, shortcuts, and
-    // tone now feels like turning a page, not leaving the topic.
+    // Dictionary, snippets, styles, and Know Me all teach the app something
+    // once. One pane keeps them together as facets of the same job.
 
     @ViewBuilder private var personalizePane: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -752,6 +750,7 @@ struct DashboardView: View {
         case .dictionary: return dictionary.entries.count
         case .snippets: return snippets.snippets.count
         case .styles: return styleStore.map.count
+        case .knowMe: return profileStore.hasProfile ? 1 : 0
         }
     }
 
@@ -761,6 +760,7 @@ struct DashboardView: View {
             case .dictionary: dictionarySection
             case .snippets: snippetsSection
             case .styles: stylesSection
+            case .knowMe: knowMe
             }
         }
         .padding(18)
@@ -863,7 +863,6 @@ struct DashboardView: View {
 
     private var knowMe: some View {
         VStack(alignment: .leading, spacing: 18) {
-            paneTitle("Know-Me", "Two minutes, and your name comes out right every time.")
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 14)], spacing: 14) {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Profile").font(.system(size: 13, weight: .bold)).foregroundStyle(ink)

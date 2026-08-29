@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.12] — 2026-08-29
+
+### Changed
+- “Where you dictate” now shows each app’s real icon with a time-share ring,
+  making the per-app breakdown easier to scan while preserving the existing
+  local-only usage data and accessibility labels.
+
 ## [0.5.11] — 2026-08-29
 
 ### Changed

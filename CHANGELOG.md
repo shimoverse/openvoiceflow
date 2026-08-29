@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.13] — 2026-08-29
+
+### Changed
+- Settings no longer exposes the anonymous analytics device ID or the long
+  leaderboard-sharing explanation, and the Feedback sheet no longer shows its
+  usage-snapshot explainer. The sharing toggle, leaderboard name, deletion
+  action, and feedback behavior are unchanged.
+
 ## [0.5.12] — 2026-08-29
 
 ### Changed

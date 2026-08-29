@@ -5,10 +5,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 CANONICAL = "https://openvoiceflow.com"
-RELEASE_VERSION = "0.5.6"
-RELEASE_BUILD = 11
-PREVIOUS_RELEASE_VERSION = "0.5.5"
-UNIVERSAL_SHA256 = "7a3d835404476ef92760a24b29580e161b59246cdb55ee729e0090a394f1cf37"
+RELEASE_VERSION = "0.5.8"
+RELEASE_BUILD = 13
+PREVIOUS_NATIVE_BUILD = 12
+PRUNED_RELEASE_VERSION = "0.5.5"
+UNIVERSAL_SHA256 = "1db5a1b661749c6e04358bd11d4dc4dc22a2a4e2c569f8d5b8f4f3401819a68e"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"
 
 
@@ -18,7 +19,7 @@ def test_native_distribution_assets_exist_and_match_hashes():
     assert universal.exists()
     assert fallback.exists(), "macOS 12–13 fallback must remain reachable"
     assert sha256(universal.read_bytes()).hexdigest() == UNIVERSAL_SHA256
-    assert not (DOCS / "downloads" / f"OpenVoiceFlow-{PREVIOUS_RELEASE_VERSION}.dmg").exists()
+    assert not (DOCS / "downloads" / f"OpenVoiceFlow-{PRUNED_RELEASE_VERSION}.dmg").exists()
 
 
 def test_download_page_has_one_native_universal_primary_and_a_clear_fallback():
@@ -47,10 +48,12 @@ def test_appcast_is_present_and_signed_for_the_final_native_release():
     assert "sparkle:edSignature=" in appcast
     assert f"OpenVoiceFlow-{RELEASE_VERSION}.dmg" in appcast
     # Sparkle orders updates by CFBundleVersion, so this must match the new
-    # release and strictly exceed the previously published build 10.
+    # release and strictly exceed the 0.5.7 native build (12).
     build = int(appcast.split("sparkle:version>")[1].split("<")[0])
     assert build == RELEASE_BUILD
-    assert build > 10, f"appcast build {build} must exceed the previously published 10"
+    assert build > PREVIOUS_NATIVE_BUILD, (
+        f"appcast build {build} must exceed 0.5.7 build {PREVIOUS_NATIVE_BUILD}"
+    )
 
 
 def test_legacy_split_downloads_redirect_to_the_universal_native_dmg():
@@ -61,9 +64,9 @@ def test_legacy_split_downloads_redirect_to_the_universal_native_dmg():
             assert item["destination"] == f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}.dmg"
             assert item["permanent"] is True
 
-    previous = redirects[f"/downloads/OpenVoiceFlow-{PREVIOUS_RELEASE_VERSION}.dmg"]
-    assert previous["destination"] == f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}.dmg"
-    assert previous["permanent"] is True
+    pruned = redirects[f"/downloads/OpenVoiceFlow-{PRUNED_RELEASE_VERSION}.dmg"]
+    assert pruned["destination"] == f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}.dmg"
+    assert pruned["permanent"] is True
 
 
 def test_public_downloads_remain_website_hosted():

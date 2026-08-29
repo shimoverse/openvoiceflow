@@ -426,16 +426,21 @@ struct DashboardView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 5))
                 .padding(.top, 14)
 
-                VStack(spacing: 9) {
+                VStack(spacing: 12) {
                     ForEach(Array(top.enumerated()), id: \.offset) { i, row in
-                        HStack(spacing: 8) {
-                            Circle().fill(DT.emberWave.opacity(1 - Double(i) * 0.13))
-                                .frame(width: 7, height: 7)
+                        HStack(spacing: 10) {
+                            AppTimeIcon(
+                                name: row.app, fraction: row.fraction,
+                                ringColor: DT.emberWave.opacity(1 - Double(i) * 0.13),
+                                trackColor: hair, ink2: ink2
+                            )
                             Text(row.app).font(.system(size: 12.5)).foregroundStyle(ink).lineLimit(1)
                             Spacer()
                             Text("\(Int((row.fraction * 100).rounded()))%")
                                 .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(ink)
                         }
+                        .help("\(row.app) — \(Int((row.fraction * 100).rounded()))% of your dictation, "
+                              + "≈\(HistoryStore.minutes(fromWords: row.words))m of typing given back")
                     }
                 }
                 .padding(.top, 14)
@@ -824,7 +829,7 @@ struct DashboardView: View {
     @ViewBuilder private var stylesSection: some View {
         ForEach(styleStore.map.sorted(by: { $0.key < $1.key }), id: \.key) { app, styleID in
             HStack(spacing: 12) {
-                Text(monogram(app))
+                Text(AppIconProvider.monogram(app))
                     .font(.system(size: 11, weight: .bold)).foregroundStyle(ink2)
                     .frame(width: 30, height: 30)
                     .background(RoundedRectangle(cornerRadius: 7).fill(fill))
@@ -852,10 +857,6 @@ struct DashboardView: View {
     private func styleBinding(for app: String) -> Binding<String> {
         Binding(get: { styleStore.map[app] ?? "default" },
                 set: { styleStore.map[app] = $0 })
-    }
-
-    private func monogram(_ app: String) -> String {
-        String(app.split(separator: " ").prefix(2).compactMap { $0.first }).uppercased()
     }
 
     // MARK: Know-Me
@@ -1474,5 +1475,46 @@ private struct SnippetAddRow: View {
         guard !t.isEmpty, !e.isEmpty else { return }
         onAdd(t, e)
         trigger = ""; expansion = ""
+    }
+}
+
+/// One "Where you dictate" row's leading icon: the app's real macOS icon,
+/// ringed like an activity ring whose fill is that app's share of total
+/// dictation time — readable at a glance, no percentage needed to parse it.
+/// Falls back to the same letter monogram the Styles pane uses when macOS
+/// has no icon for the name.
+private struct AppTimeIcon: View {
+    let name: String
+    let fraction: Double
+    let ringColor: Color
+    let trackColor: Color
+    let ink2: Color
+    var diameter: CGFloat = 24
+
+    private var lineWidth: CGFloat { 2 }
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(trackColor, lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: max(fraction, 0.03))
+                .stroke(ringColor, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            icon
+                .frame(width: diameter - lineWidth * 3, height: diameter - lineWidth * 3)
+                .clipShape(Circle())
+        }
+        .frame(width: diameter, height: diameter)
+    }
+
+    @ViewBuilder private var icon: some View {
+        if let nsImage = AppIconProvider.icon(for: name) {
+            Image(nsImage: nsImage).resizable().scaledToFit()
+        } else {
+            Circle().fill(ink2.opacity(0.12)).overlay(
+                Text(AppIconProvider.monogram(name))
+                    .font(.system(size: 8, weight: .bold)).foregroundStyle(ink2)
+            )
+        }
     }
 }

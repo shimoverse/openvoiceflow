@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */; };
+		E2D8D98E3249EC25B29F5A86 /* AppIconProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61BE137CDD498B29369B9D4E /* AppIconProvider.swift */; };
 		21718FD49AAD5FFDCB42DF41 /* KnowMeInterview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */; };
 		2976A8647F7E72B7567DFD8F /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */; };
 		2BECEA0193E7CFDB54AFEC47 /* FeatureStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C990C954D554F3DB4F1C0F /* FeatureStores.swift */; };
@@ -31,6 +32,7 @@
 
 /* Begin PBXFileReference section */
 		1AEE4987BADD8952A8D2BD91 /* AppController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppController.swift; sourceTree = "<group>"; };
+		61BE137CDD498B29369B9D4E /* AppIconProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconProvider.swift; sourceTree = "<group>"; };
 		2B693C11C689950AA094C951 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
 		2BF148CC7407807156F032DE /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
 		34D72CC634525CAF888070FE /* Paster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Paster.swift; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				1AEE4987BADD8952A8D2BD91 /* AppController.swift */,
+				61BE137CDD498B29369B9D4E /* AppIconProvider.swift */,
 				3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */,
 				DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */,
 				9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */,
@@ -196,6 +199,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FFC25E3AEBF348F41F0EEC56 /* AppController.swift in Sources */,
+				E2D8D98E3249EC25B29F5A86 /* AppIconProvider.swift in Sources */,
 				2976A8647F7E72B7567DFD8F /* AudioCapture.swift in Sources */,
 				E7D6DB42A76697F5E75E3FD9 /* CleanupProvider.swift in Sources */,
 				8D95E21B1C470A7D28C9D177 /* DashboardView.swift in Sources */,

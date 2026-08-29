@@ -15,6 +15,8 @@ struct DashboardView: View {
     @ObservedObject private var snippets: SnippetStore
     @ObservedObject private var styleStore: StyleStore
     @ObservedObject private var profileStore: ProfileStore
+    @ObservedObject private var analyticsClient: AnalyticsClient
+    @ObservedObject private var analyticsIdentity: AnalyticsIdentityStore
     // Observe the updater so the "Check for updates now" CTA re-enables when a
     // background check finishes.
     @ObservedObject private var updater = UpdaterController.shared
@@ -39,6 +41,8 @@ struct DashboardView: View {
         self.snippets = controller.snippetStore
         self.styleStore = controller.styleStore
         self.profileStore = controller.profileStore
+        self.analyticsClient = controller.analyticsClient
+        self.analyticsIdentity = controller.analyticsIdentity
     }
 
     enum Pane: String, CaseIterable {
@@ -49,6 +53,9 @@ struct DashboardView: View {
         case styles = "Styles"
         case knowMe = "Know-Me"
         case settings = "Settings"
+        /// Not in the main sidebar loop — it gets its own row below Feedback,
+        /// same treatment as the Feedback button itself.
+        case leaderboard = "Leaderboard"
     }
 
     private var dark: Bool { scheme == .dark }
@@ -83,7 +90,7 @@ struct DashboardView: View {
             .padding(.bottom, 14)
             .padding(.top, 34)  // room for traffic lights
 
-            ForEach(Pane.allCases, id: \.self) { item in
+            ForEach(Pane.allCases.filter { $0 != .leaderboard }, id: \.self) { item in
                 Button { pane = item } label: {
                     HStack(spacing: 8) {
                         Circle()
@@ -119,6 +126,27 @@ struct DashboardView: View {
             }
             .buttonStyle(.plain)
 
+            Button { pane = .leaderboard } label: {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(pane == .leaderboard ? accent : .clear)
+                        .frame(width: 6, height: 6)
+                    Text("Leaderboard")
+                        .font(.system(size: 13, weight: pane == .leaderboard ? .semibold : .regular))
+                        .foregroundStyle(ink)
+                    Spacer()
+                }
+                .padding(.vertical, 7)
+                .padding(.horizontal, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(pane == .leaderboard
+                              ? (dark ? DT.emberDark.opacity(0.14) : DT.emberLight.opacity(0.10))
+                              : .clear)
+                )
+            }
+            .buttonStyle(.plain)
+
             Spacer()
 
             HStack(spacing: 6) {
@@ -148,6 +176,7 @@ struct DashboardView: View {
                 case .styles: styles
                 case .knowMe: knowMe
                 case .settings: settingsPane
+                case .leaderboard: leaderboardPane
                 }
             }
             .padding(.bottom, 30)
@@ -563,6 +592,94 @@ struct DashboardView: View {
         }
     }
 
+    // MARK: Leaderboard
+
+    @ViewBuilder private var leaderboardPane: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            paneTitle("Leaderboard", "Ranked by time saved. Your name is the one you set in Settings.")
+            if !controller.settings.shareAnalytics {
+                emptyPanel(
+                    title: "Sharing is off",
+                    body: "Turn on \u{201C}Share anonymous usage & leaderboard rank\u{201D} in Settings ▸ Privacy to join.",
+                    button: "Open Settings",
+                    action: { pane = .settings }
+                )
+            } else if analyticsClient.isLoadingLeaderboard && analyticsClient.leaderboard == nil {
+                emptyPanel(title: "Loading…", body: "Fetching the current standings.", button: nil)
+            } else if let board = analyticsClient.leaderboard {
+                leaderboardCard(board)
+            } else {
+                emptyPanel(
+                    title: "No standings yet",
+                    body: "Dictate a bit, then check back — this refreshes automatically.",
+                    button: nil
+                )
+            }
+        }
+        .task(id: controller.settings.shareAnalytics) {
+            guard controller.settings.shareAnalytics else { return }
+            await analyticsClient.fetchLeaderboard(deviceId: analyticsIdentity.identity.deviceId)
+        }
+    }
+
+    @ViewBuilder private func leaderboardCard(_ board: LeaderboardResponse) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(board.top.enumerated()), id: \.element.id) { i, row in
+                leaderboardRow(rank: row.rank, name: row.displayName, minutes: row.minutesSaved,
+                                isYou: board.you?.inTop == true && board.you?.rank == row.rank
+                                    && board.you?.displayName == row.displayName)
+                if i < board.top.count - 1 {
+                    Rectangle().fill(hair).frame(height: 1)
+                }
+            }
+            if let you = board.you, !you.inTop {
+                Rectangle().fill(hair).frame(height: 1)
+                HStack {
+                    Text("···").font(.system(size: 13, weight: .bold)).foregroundStyle(ink3)
+                    Spacer()
+                }
+                .padding(.vertical, 6).padding(.horizontal, 4)
+                Rectangle().fill(hair).frame(height: 1)
+                leaderboardRow(rank: you.rank, name: you.displayName, minutes: you.minutesSaved, isYou: true)
+            }
+        }
+        .padding(.horizontal, 20).padding(.vertical, 8)
+        .background(cardBackground)
+    }
+
+    private func leaderboardRow(rank: Int, name: String, minutes: Int, isYou: Bool) -> some View {
+        HStack(spacing: 12) {
+            Text(Self.medal(for: rank) ?? "#\(rank)")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(rank <= 3 ? DT.emberWave : ink2)
+                .frame(width: 34, alignment: .leading)
+            Text(name)
+                .font(.system(size: 13, weight: isYou ? .bold : .regular))
+                .foregroundStyle(ink)
+            if isYou {
+                Text("YOU")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundStyle(DT.emberWave)
+                    .padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(RoundedRectangle(cornerRadius: 5).fill(DT.emberWave.opacity(0.12)))
+            }
+            Spacer()
+            Text(Self.hoursMinutes(minutes) + " saved")
+                .font(.system(size: 12.5, weight: .medium)).foregroundStyle(ink2)
+        }
+        .padding(.vertical, 11)
+        .background(isYou ? (dark ? DT.emberDark.opacity(0.10) : DT.emberLight.opacity(0.08)) : .clear)
+    }
+
+    private static func medal(for rank: Int) -> String? {
+        switch rank {
+        case 1: return "🥇"
+        case 2: return "🥈"
+        case 3: return "🥉"
+        default: return nil
+        }
+    }
+
     // MARK: Dictionary
 
     @ViewBuilder private var dictionaryPane: some View {
@@ -833,6 +950,32 @@ struct DashboardView: View {
                     .font(.system(size: 12))
                 }
                 settingsToggle("Show what was typed in the HUD", isOn: bind(\.echoInsertedText))
+                settingsToggle("Share anonymous usage & leaderboard rank", isOn: shareAnalyticsBinding)
+                if controller.settings.shareAnalytics {
+                    settingsRow("Leaderboard name") {
+                        TextField("Display name", text: displayNameBinding)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 200)
+                    }
+                    settingsRow("Device ID") {
+                        Text(analyticsIdentity.identity.deviceId)
+                            .font(.system(size: 11, design: .monospaced)).foregroundStyle(ink2)
+                            .textSelection(.enabled)
+                    }
+                    settingsRow("Delete my leaderboard data") {
+                        Button("Delete…") {
+                            Task { await analyticsClient.deleteMyData(deviceId: analyticsIdentity.identity.deviceId) }
+                        }
+                        .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(DT.destructive)
+                    }
+                }
+                Text("Sends word/time totals, which features you use, and a display "
+                     + "name you can change — never dictation text, snippets, dictionary, "
+                     + "or your Know-Me profile. Powers the Leaderboard pane. Off stops it entirely; "
+                     + "your device ID above is how to ask us to delete a past submission.")
+                    .font(.system(size: 11)).foregroundStyle(ink2)
+                    .padding(.horizontal, 16).padding(.bottom, 8)
+                    .fixedSize(horizontal: false, vertical: true)
                 settingsToggle("Automatic updates", isOn: autoUpdateBinding)
                 settingsRow("You're on v\(updater.appVersion)") {
                     Button("Check for updates now") { updater.checkForUpdates() }
@@ -1029,6 +1172,27 @@ struct DashboardView: View {
         )
     }
 
+    /// Turning sharing on sends the first sync immediately rather than
+    /// waiting for the next dictation, so the leaderboard has something to
+    /// show right away.
+    private var shareAnalyticsBinding: Binding<Bool> {
+        Binding(
+            get: { controller.settings.shareAnalytics },
+            set: { on in
+                controller.settings.shareAnalytics = on
+                controller.settings.save()
+                if on { analyticsClient.syncIfDue(controller: controller, force: true) }
+            }
+        )
+    }
+
+    private var displayNameBinding: Binding<String> {
+        Binding(
+            get: { analyticsIdentity.identity.displayName },
+            set: { analyticsIdentity.identity.displayName = $0 }
+        )
+    }
+
     private var autoUpdateBinding: Binding<Bool> {
         Binding(
             get: { controller.settings.automaticUpdates },
@@ -1072,7 +1236,8 @@ struct DashboardView: View {
 
     // MARK: shared empty state (dashed border, waveform, CTA)
 
-    private func emptyPanel(title: String, body bodyText: String, button: String?) -> some View {
+    private func emptyPanel(title: String, body bodyText: String, button: String?,
+                             action: (() -> Void)? = nil) -> some View {
         VStack(spacing: 12) {
             EmptyWave()
                 .frame(width: 220, height: 34)
@@ -1082,7 +1247,7 @@ struct DashboardView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 320)
             if let button {
-                Button(button) {}
+                Button(button) { action?() }
                     .buttonStyle(.plain)
                     .font(.system(size: 12.5, weight: .semibold))
                     .foregroundStyle(.white)

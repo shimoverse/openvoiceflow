@@ -37,6 +37,8 @@ final class AppController: ObservableObject {
     let snippetStore = SnippetStore()
     let styleStore = StyleStore()
     let historyStore = HistoryStore()
+    let analyticsIdentity = AnalyticsIdentityStore()
+    let analyticsClient = AnalyticsClient()
 
     /// Today's dictated words — read straight from the persisted stats.
     var wordsToday: Int { historyStore.wordsToday }
@@ -288,6 +290,7 @@ final class AppController: ObservableObject {
         // returns false, and we nudge the user to paste it manually.
         let pasted = settings.autoPaste ? Paster.paste(text) : true
         historyStore.record(app: app, text: text, words: words)
+        analyticsClient.syncIfDue(controller: self)
         lastError = nil
         lastTranscript = text
         partialTranscript = nil

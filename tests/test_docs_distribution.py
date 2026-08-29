@@ -85,7 +85,10 @@ def test_privacy_friendly_web_observability_is_present_without_native_telemetry(
         assert event in site_js
 
     privacy = (ROOT / "PRIVACY.md").read_text(encoding="utf-8")
-    assert "No in-app telemetry" in privacy
+    # Since v0.5.7 there IS in-app usage sharing (opt-out, on by default) —
+    # the policy discloses it plainly rather than claiming it doesn't exist.
+    assert "Share anonymous usage & leaderboard rank" in privacy
+    assert "on by default" in privacy
     assert "Vercel Speed Insights" in privacy
 
 

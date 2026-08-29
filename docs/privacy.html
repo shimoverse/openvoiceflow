@@ -58,7 +58,7 @@
     <section class="page-hero"><div class="container hero-inner">
       <span class="mono-kicker">Privacy · what stays on your Mac</span>
       <h1 class="hero-title">OpenVoiceFlow privacy</h1>
-      <p class="hero-sub answer-block">OpenVoiceFlow is a native macOS app that runs on your Mac. Your voice is transcribed on-device with WhisperKit and never uploaded. There are no OpenVoiceFlow servers, no accounts, and no telemetry inside the app. This page is the plain-language summary of the project's privacy policy.</p>
+      <p class="hero-sub answer-block">OpenVoiceFlow is a native macOS app that runs on your Mac. Your voice is transcribed on-device with WhisperKit and never uploaded, and there are no accounts. Since v0.5.7, an opt-out anonymous usage summary — on by default — powers an in-app leaderboard; it's disclosed in full below, not glossed over. This page is the plain-language summary of the project's privacy policy.</p>
       <div class="page-link-row"><a class="btn btn-primary btn-lg" href="download.html">Download for macOS</a><a class="btn btn-outline btn-lg" href="how-it-works.html">See how it works</a></div>
 
       <section class="content-card">
@@ -68,8 +68,19 @@
           <li><strong>Cleanup is Off by default.</strong> Out of the box you get the raw on-device transcript, pasted as-is. Nothing is sent anywhere.</li>
           <li><strong>Cloud cleanup is opt-in and bring-your-own-key.</strong> If you turn on OpenRouter cleanup, only the transcript text and your personal context are sent — under your own key, to a provider you contract with directly.</li>
           <li><strong>API keys live in the macOS Keychain.</strong> Not a plaintext config file — the system Keychain, protected by macOS.</li>
-          <li><strong>No servers, no accounts, no in-app telemetry.</strong> OpenVoiceFlow keeps no copy of anything you dictate.</li>
+          <li><strong>No accounts, and OpenVoiceFlow keeps no copy of anything you dictate.</strong> The one exception, disclosed in full below: since v0.5.7, an opt-out anonymous usage summary — on by default — powers an in-app leaderboard.</li>
         </ul>
+      </section>
+
+      <section class="content-card">
+        <h2>Anonymous usage summary &amp; leaderboard (since v0.5.7)</h2>
+        <p>Settings ▸ Privacy ▸ <em>&ldquo;Share anonymous usage &amp; leaderboard rank&rdquo;</em> — <strong>on by default</strong>. While it's on, the app periodically sends:</p>
+        <ul class="check-list">
+          <li>A random device ID generated on your Mac, and a display name you choose — shown to other users on the leaderboard, tied to no account or email.</li>
+          <li>Aggregate counters already shown on your Home pane: total words, total time saved, streak, and which features are on. Counts only, never content.</li>
+          <li>Your country, derived from the request when it arrives. Your IP address is never stored.</li>
+        </ul>
+        <p>Never sent, sharing on or off: dictated text, snippets, dictionary entries, or your Know-Me profile. Turn the toggle off and every request stops immediately. A &ldquo;Delete my leaderboard data&rdquo; button in the same Settings row removes a past submission outright. The leaderboard never discloses how many people use OpenVoiceFlow in total.</p>
       </section>
 
       <section class="content-card">
@@ -106,7 +117,7 @@
 
       <section class="content-card">
         <h2>This website</h2>
-        <p>The download site uses privacy-friendly <a href="https://vercel.com/docs/analytics/privacy-policy">Vercel Analytics</a> for anonymous page views, aggregated visitor/referrer/geography trends, and selected website actions such as download, install-guide, and navigation clicks. It also uses Vercel Speed Insights for aggregated real-user page-performance measurement. These services set no advertising cookies, build no cross-site profile, and never link a visit to an individual. This is website measurement only — the app itself contains no analytics or telemetry.</p>
+        <p>The download site uses privacy-friendly <a href="https://vercel.com/docs/analytics/privacy-policy">Vercel Analytics</a> for anonymous page views, aggregated visitor/referrer/geography trends, and selected website actions such as download, install-guide, and navigation clicks. It also uses Vercel Speed Insights for aggregated real-user page-performance measurement. These services set no advertising cookies, build no cross-site profile, and never link a visit to an individual. This is separate from the in-app usage summary described above.</p>
       </section>
 
       <section class="content-card">

@@ -11,7 +11,8 @@ This policy applies to the native OpenVoiceFlow macOS app (`v0.4.0` and later, i
 - **Your audio never leaves your Mac.** Transcription happens on-device via **WhisperKit**. The recording is discarded the moment the transcript exists. There is no audio upload, ever.
 - **Cleanup is Off by default.** Out of the box, OpenVoiceFlow pastes the raw on-device transcript with no LLM step and no network call. You have to turn cleanup on yourself.
 - **Cloud cleanup is opt-in and bring-your-own-key.** If you enable **OpenRouter** cleanup, only the transcript text (plus your personal context — see below) is sent, under your own key, to a provider you contract with directly. You can instead run **Ollama** locally, or leave cleanup **Off**.
-- **OpenVoiceFlow has no servers.** The app itself has no telemetry, no analytics, no crash reporting, no accounts, and no cloud sync. It checks for updates through Sparkle (see §3).
+- **No accounts, no cloud sync, no crash reporting.** OpenVoiceFlow has no sign-up and doesn't sync your settings or profile anywhere. It checks for updates through Sparkle (see §3).
+- **Since v0.5.7: an opt-out anonymous usage summary, on by default.** Word/time totals, which features you use, your country, and a display name you can change — powering an in-app leaderboard. Never audio, never dictated text, never your dictionary/snippets/profile content. Turn it off in Settings ▸ Privacy. See §7.
 - **Your keys are in the Keychain; your data is on your disk.** API keys are stored in the macOS **Keychain**. Settings, history, and your personal context live locally in the app's **Application Support** folder.
 
 ---
@@ -33,6 +34,7 @@ Everything OpenVoiceFlow knows about you lives in one of the rows below.
 | **Snippets** | App Application Support folder | Voice triggers and their expansions. May contain signature blocks. | Empty until you add snippets | **No** — but expansions become part of dictated text and follow whatever path you've set for that text. |
 | **History / stats** | App Application Support folder | Recent dictations and aggregate counters | Local | **No.** Never sent anywhere. |
 | **Sparkle update check** | In transit to the appcast host | A request for the update feed to see if a newer signed build exists | On by default | **Yes** — an anonymous request for the update manifest. No PII, no key, no user ID. |
+| **Anonymous usage summary** | App Application Support folder (device ID + display name), synced to our leaderboard API | Total words, total time saved, streak, feature-usage counts, a random device ID, a display name you choose | **On by default** since v0.5.7 — toggle in Settings ▸ Privacy | **Yes, if the toggle is on.** Never dictated text, snippets, dictionary, or profile content. Country is derived server-side from the request; no IP address is stored. |
 
 ### Data flow for a single dictation
 
@@ -60,7 +62,7 @@ With cleanup **Off** (the default) or set to **Ollama**, no byte of your dictati
 
 ## 3. Sub-processors — who else sees your data
 
-OpenVoiceFlow itself is **not** a sub-processor of your data. We have no servers, no database, no logs, and no copy of anything you dictate. When you point the app at a cloud LLM, you are contracting directly with that provider under their terms; we are not in the middle.
+OpenVoiceFlow has no copy of anything you dictate, and never has. We do run one small server-side service as of v0.5.7 — the anonymous usage/leaderboard API described in §7 — which is the one exception to "no servers, no database" below. When you point the app at a cloud LLM, you are contracting directly with that provider under their terms; we are not in the middle of that path.
 
 The third parties your install can talk to:
 
@@ -70,6 +72,7 @@ The third parties your install can talk to:
 - **Off** — no cleanup call. The raw WhisperKit output is pasted without cleanup.
 - **WhisperKit model download** (`huggingface.co`) — used **once**, during first-run onboarding, to download the on-device speech model. No account required, no PII sent. After that, the model is on disk and never re-fetched unless you change models.
 - **Sparkle updates** — the app checks a signed appcast for newer builds and can download and install them in place. The request is anonymous (no auth, no key, no user ID); updates are Developer-ID-signed and verified before install.
+- **OpenVoiceFlow's own analytics API** (`openvoiceflow.com/api/...`) — **only if** "Share anonymous usage & leaderboard rank" is on (Settings ▸ Privacy, on by default since v0.5.7). Receives a device ID, a display name you choose, and aggregate counters — see §7 for the exact fields and how to turn it off.
 
 Cleanup is **Off by default** — the raw on-device transcript is pasted as-is and nothing leaves your Mac. A cloud provider only ever receives text if you turn cleanup on and select one.
 
@@ -102,20 +105,28 @@ Because cleanup ships **Off**, a fresh install does nothing over the network at 
 
 ## 6. What the app doesn't do
 
-- **No in-app telemetry.** The app does not collect usage data, feature usage, dictation counts, or error rates. Nothing about how you use the app is sent anywhere. (The **website** uses privacy-friendly analytics — see §7.)
+- **No dictation content ever leaves the Mac, sharing on or off.** Not your words, not your audio. The anonymous usage summary (§7) is aggregate counts only, and it's a real, disclosed exception to the rest of this list — not something folded in quietly.
 - **No crash reports from the app.** macOS may keep a system-level crash log under `~/Library/Logs/DiagnosticReports/`; that's Apple's, not ours.
 - **No shared keys.** OpenVoiceFlow ships with no embedded API keys. You bring your own, and it lives in your Keychain.
-- **No cloud sync.** Your settings and profile do not sync across machines.
-- **No accounts.** There is no sign-up, no login, no email collected.
-- **No third-party analytics or tracking SDKs** inside the app.
+- **No cloud sync of settings or profile.** Those stay local regardless of the usage-sharing toggle.
+- **No accounts.** There is no sign-up, no login, no email collected. The usage summary's device ID identifies a Mac, not a person.
+- **No third-party analytics or tracking SDKs** inside the app. The usage summary goes to our own API, described in §7 — not a third party.
 
 Anything you've already sent to OpenRouter lives by that provider's retention policy — delete it through their account or API.
 
 ---
 
-## 7. This website
+## 7. App analytics & the website
 
-The download site (`openvoiceflow.com`) uses **Vercel Analytics** and **Vercel Speed Insights**. Analytics measures anonymous page views, aggregated visitor/referrer/geography trends, and selected website actions such as download, install-guide, navigation, and GitHub-source clicks. Speed Insights measures aggregated real-user page performance. These services set no advertising cookies, build no cross-site profile, and do not link a visit to an individual. This is **website** measurement only and is separate from the app, which contains no analytics. Vercel's analytics privacy notice: <https://vercel.com/docs/analytics/privacy-policy>.
+**In-app usage summary & leaderboard (since v0.5.7).** With "Share anonymous usage & leaderboard rank" on in Settings ▸ Privacy — **on by default** — the app periodically sends:
+
+- A random device ID generated on your Mac, and a display name you choose (shown to other users on the leaderboard).
+- Aggregate counters: total words dictated, total time saved, streak, and which features are on (cleanup enabled, snippet/dictionary counts, whether you've completed Know Me) — counts only, never content.
+- Your country, derived server-side from the request at the moment it arrives. We do not log or store your IP address.
+
+This never includes dictated text, snippets, dictionary entries, Know-Me profile content, or anything from the cleanup path. Turn the toggle off and every one of these requests stops immediately — nothing queues up to send later. The leaderboard itself does not disclose how many people use OpenVoiceFlow in total.
+
+**The website.** The download site (`openvoiceflow.com`) separately uses **Vercel Analytics** and **Vercel Speed Insights** for anonymous page views, aggregated visitor/referrer/geography trends, and performance — no advertising cookies, no cross-site profile. This is independent of the in-app usage summary above. Vercel's analytics privacy notice: <https://vercel.com/docs/analytics/privacy-policy>.
 
 ---
 
@@ -123,7 +134,8 @@ The download site (`openvoiceflow.com`) uses **Vercel Analytics** and **Vercel S
 
 OpenVoiceFlow is a **bring-your-own-key (BYOK), self-managed, personal-productivity tool**. Practically:
 
-- **OpenVoiceFlow is not a controller or processor** of your dictation data under GDPR. We don't run servers and we have no copy of anything you dictate, store, or configure.
+- **OpenVoiceFlow is not a controller or processor of your dictation data** under GDPR — we have no copy of anything you dictate, store, or configure.
+- **We are a controller for the one thing that does reach us: the anonymous usage summary in §7.** It's pseudonymous (a random device ID, not an account) and deliberately minimized (aggregate counts, country-level only, no IP stored) — but a persistent per-device identifier combined with usage history is personal data under GDPR even without a name attached, and we treat it that way. The legal basis is your consent, given by the Settings toggle staying on; turning it off withdraws that consent and stops every request immediately. Delete-on-request: Settings ▸ Privacy has a "Delete my leaderboard data" button that removes your row directly; your device ID is shown right there if you'd rather ask us by email (§11) instead.
 - **You are the controller** of the data on your Mac. You decide whether to fill out the Know Me interview and whether to enable cloud cleanup.
 - **If you enable OpenRouter cleanup, OpenRouter is an independent controller / processor** for the text you send it. If you need a Data Processing Addendum (DPA), Standard Contractual Clauses, or any other GDPR paperwork, you negotiate that **directly with OpenRouter** under your own account. OpenVoiceFlow cannot sign a DPA on their behalf and does not pretend to.
 - **EU users:** if your dictations contain personal data and you enable cloud cleanup, you are responsible for the lawful basis and the international-transfer story. The simplest way to take every cloud provider out of the picture is to leave cleanup **Off** or use **Ollama**.

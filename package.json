@@ -2,6 +2,7 @@
   "name": "openvoiceflow-site",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "description": "Vercel static-site build wrapper for OpenVoiceFlow docs.",
   "scripts": {
     "build": "node scripts/vercel-build.mjs",
@@ -9,5 +10,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@vercel/postgres": "^0.10.0"
   }
 }

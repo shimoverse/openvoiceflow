@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Anonymous usage sharing and an in-app Leaderboard, ranked by time saved.
+  **On by default** — a real, disclosed change from every prior release,
+  which sent nothing. Settings ▸ Privacy ▸ "Share anonymous usage &
+  leaderboard rank" turns it off, deletes nothing retroactively but stops
+  every future request immediately; a "Delete my leaderboard data" button
+  removes a past submission outright. What's sent: a random per-device ID,
+  a display name you can change, aggregate word/time/streak/feature-usage
+  counters already shown on Home, and a server-derived country (no IP
+  stored). Never dictation text, snippets, dictionary entries, or the
+  Know-Me profile. Full detail in `PRIVACY.md` §7 and the docs site's
+  Privacy architecture ▸ Analytics & leaderboard section.
+
+### Changed
+- Docs and `PRIVACY.md` updated to describe the above plainly, replacing
+  the "no telemetry" claims that were accurate through 0.5.7 and are not
+  anymore.
+
 ## [0.5.7] — 2026-08-28
 
 ### Added

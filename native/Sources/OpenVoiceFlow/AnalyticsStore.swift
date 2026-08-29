@@ -23,25 +23,24 @@ final class AnalyticsIdentityStore: ObservableObject {
     @Published var identity: AnalyticsIdentity { didSet { AppSupport.save(identity, to: "analytics_identity.json") } }
 
     init() {
-        identity = AppSupport.load(AnalyticsIdentity.self, from: "analytics_identity.json")
-            ?? AnalyticsIdentityStore.makeIdentity()
+        if var saved = AppSupport.load(AnalyticsIdentity.self, from: "analytics_identity.json") {
+            let compactName = LeaderboardAlias.compactLegacyDefault(saved.displayName)
+            if compactName != saved.displayName {
+                saved.displayName = compactName
+                AppSupport.save(saved, to: "analytics_identity.json")
+            }
+            identity = saved
+        } else {
+            identity = AnalyticsIdentityStore.makeIdentity()
+        }
     }
 
     private static func makeIdentity() -> AnalyticsIdentity {
-        AnalyticsIdentity(deviceId: UUID().uuidString, displayName: randomDisplayName())
+        AnalyticsIdentity(deviceId: UUID().uuidString, displayName: LeaderboardAlias.random())
     }
 
-    private static let adjectives = [
-        "Quiet", "Swift", "Calm", "Bright", "Steady", "Clever", "Brisk", "Gentle",
-        "Sunny", "Nimble", "Bold", "Sharp", "Warm", "Cool", "Vivid", "Keen",
-    ]
-    private static let nouns = [
-        "Falcon", "Otter", "Maple", "Comet", "Harbor", "Ember", "Willow", "Lynx",
-        "Meadow", "Aspen", "Heron", "Cedar", "Ridge", "Sparrow", "Tundra", "Coral",
-    ]
-
     static func randomDisplayName() -> String {
-        "\(adjectives.randomElement()!) \(nouns.randomElement()!) \(Int.random(in: 10...99))"
+        LeaderboardAlias.random()
     }
 }
 

@@ -15,7 +15,7 @@ import SwiftUI
 /// Know-Me profile — only counters already shown on the dashboard.
 struct FeedbackView: View {
     @ObservedObject var controller: AppController
-    @Environment(\.dismiss) private var dismiss
+    let onDismiss: () -> Void
     @Environment(\.colorScheme) private var scheme
 
     enum Category: String, CaseIterable, Identifiable {
@@ -40,7 +40,6 @@ struct FeedbackView: View {
 
     @State private var category: Category = .idea
     @State private var message = ""
-    @State private var includeContact = false
     @State private var contact = ""
 
     private var dark: Bool { scheme == .dark }
@@ -55,7 +54,7 @@ struct FeedbackView: View {
             HStack {
                 Text("Send feedback").font(.system(size: 20, weight: .bold)).foregroundStyle(ink)
                 Spacer()
-                Button("Cancel") { dismiss() }.buttonStyle(.plain).foregroundStyle(ink2)
+                Button("Cancel") { onDismiss() }.buttonStyle(.plain).foregroundStyle(ink2)
             }
 
             Picker("", selection: $category) {
@@ -78,14 +77,9 @@ struct FeedbackView: View {
                     }
                 }
 
-            Toggle("Include my email so you can follow up", isOn: $includeContact)
-                .toggleStyle(.switch).tint(DT.moss)
-                .font(.system(size: 12.5)).foregroundStyle(ink)
-            if includeContact {
-                TextField("you@example.com", text: $contact)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 13))
-            }
+            TextField("Email (optional)", text: $contact)
+                .textFieldStyle(.roundedBorder)
+                .font(.system(size: 13))
 
             Spacer(minLength: 0)
 
@@ -97,14 +91,14 @@ struct FeedbackView: View {
             }
         }
         .padding(24)
-        .frame(width: 480, height: 420)
+        .frame(width: 480, height: 380)
     }
 
     private func send() {
         let body = Self.emailBody(
             category: category.rawValue,
             message: message.trimmingCharacters(in: .whitespacesAndNewlines),
-            contact: includeContact ? contact.trimmingCharacters(in: .whitespaces) : nil,
+            contact: contact.trimmingCharacters(in: .whitespacesAndNewlines),
             snapshot: UsageSnapshot(controller: controller)
         )
         var components = URLComponents()
@@ -117,7 +111,7 @@ struct FeedbackView: View {
         if let url = components.url {
             NSWorkspace.shared.open(url)
         }
-        dismiss()
+        onDismiss()
     }
 
     static func emailBody(category: String, message: String, contact: String?, snapshot: UsageSnapshot) -> String {

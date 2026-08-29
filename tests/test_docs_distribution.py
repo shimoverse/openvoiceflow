@@ -8,7 +8,7 @@ CANONICAL = "https://openvoiceflow.com"
 RELEASE_VERSION = "0.5.12"
 RELEASE_BUILD = 17
 PREVIOUS_NATIVE_BUILD = 13
-PRUNED_RELEASE_VERSION = "0.5.5"
+PRUNED_RELEASE_VERSIONS = ("0.5.5", "0.5.6", "0.5.8")
 UNIVERSAL_SHA256 = "411058bc133314fcf9c4760bce4906b85c33270bd5d8be637b78ca3a3069ef3b"
 FALLBACK = "OpenVoiceFlow-0.3.6-arm64.dmg"
 
@@ -19,7 +19,8 @@ def test_native_distribution_assets_exist_and_match_hashes():
     assert universal.exists()
     assert fallback.exists(), "macOS 12–13 fallback must remain reachable"
     assert sha256(universal.read_bytes()).hexdigest() == UNIVERSAL_SHA256
-    assert not (DOCS / "downloads" / f"OpenVoiceFlow-{PRUNED_RELEASE_VERSION}.dmg").exists()
+    for version in PRUNED_RELEASE_VERSIONS:
+        assert not (DOCS / "downloads" / f"OpenVoiceFlow-{version}.dmg").exists()
 
 
 def test_download_page_has_one_native_universal_primary_and_a_clear_fallback():
@@ -64,9 +65,10 @@ def test_legacy_split_downloads_redirect_to_the_universal_native_dmg():
             assert item["destination"] == f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}.dmg"
             assert item["permanent"] is True
 
-    pruned = redirects[f"/downloads/OpenVoiceFlow-{PRUNED_RELEASE_VERSION}.dmg"]
-    assert pruned["destination"] == f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}.dmg"
-    assert pruned["permanent"] is True
+    for version in PRUNED_RELEASE_VERSIONS:
+        pruned = redirects[f"/downloads/OpenVoiceFlow-{version}.dmg"]
+        assert pruned["destination"] == f"/downloads/OpenVoiceFlow-{RELEASE_VERSION}.dmg"
+        assert pruned["permanent"] is True
 
 
 def test_public_downloads_remain_website_hosted():

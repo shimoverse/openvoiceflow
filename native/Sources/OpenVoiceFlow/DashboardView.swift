@@ -21,6 +21,7 @@ struct DashboardView: View {
     // background check finishes.
     @ObservedObject private var updater = UpdaterController.shared
     @State private var pane: Pane = .home
+    @State private var personalizeTab: PersonalizeTab = .dictionary
     @State private var showInterview = false
     @State private var showFeedback = false
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
@@ -48,14 +49,32 @@ struct DashboardView: View {
     enum Pane: String, CaseIterable {
         case home = "Home"
         case history = "History"
-        case dictionary = "Dictionary"
-        case snippets = "Snippets"
-        case styles = "Styles"
+        /// Dictionary, Snippets, and Styles used to be three sidebar rows for
+        /// one job — teach the app something once. Now they're tabs inside
+        /// this single pane.
+        case personalize = "Personalize"
         case knowMe = "Know-Me"
         case settings = "Settings"
         /// Not in the main sidebar loop — it gets its own row below Feedback,
         /// same treatment as the Feedback button itself.
         case leaderboard = "Leaderboard"
+    }
+
+    /// The three destinations merged into the Personalize pane.
+    enum PersonalizeTab: String, CaseIterable, Identifiable, Hashable {
+        case dictionary = "Dictionary"
+        case snippets = "Snippets"
+        case styles = "Styles"
+
+        var id: String { rawValue }
+
+        var caption: String {
+            switch self {
+            case .dictionary: return "Words I keep getting wrong. Fix them once."
+            case .snippets: return "Say the short thing, get the long thing."
+            case .styles: return "How you sound, per app."
+            }
+        }
     }
 
     private var dark: Bool { scheme == .dark }
@@ -171,9 +190,7 @@ struct DashboardView: View {
                 switch pane {
                 case .home: home
                 case .history: historyPane
-                case .dictionary: dictionaryPane
-                case .snippets: snippetsPane
-                case .styles: styles
+                case .personalize: personalizePane
                 case .knowMe: knowMe
                 case .settings: settingsPane
                 case .leaderboard: leaderboardPane
@@ -680,104 +697,156 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: Dictionary
+    // MARK: Personalize (Dictionary + Snippets + Styles)
+    //
+    // Three sidebar rows for one job — teach the app something once so it
+    // stops needing to be told again — read as three unrelated destinations.
+    // One pane, one set of tabs: switching between words, shortcuts, and
+    // tone now feels like turning a page, not leaving the topic.
 
-    @ViewBuilder private var dictionaryPane: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            paneTitle("Dictionary", "Words I keep getting wrong. Fix them once.")
-            addRow(placeholder: "Add a word (e.g. WhisperKit)") { dictionary.add(word: $0) }
-            if dictionary.entries.isEmpty {
-                emptyPanel(title: "No corrections yet",
-                           body: "Add a word above, or run the Know-Me interview to seed names and jargon automatically.",
-                           button: nil)
-            } else {
-                ForEach(dictionary.entries) { entry in
-                    HStack {
-                        Text(entry.word).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
-                        if !entry.aliases.isEmpty {
-                            Text("↤ \(entry.aliases.joined(separator: ", "))")
-                                .font(.system(size: 11)).foregroundStyle(ink2)
-                        }
-                        Spacer()
-                        Button { dictionary.remove(entry) } label: {
-                            Image(systemName: "xmark.circle.fill").foregroundStyle(ink2)
-                        }.buttonStyle(.plain)
+    @ViewBuilder private var personalizePane: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            paneTitle("Personalize", personalizeTab.caption)
+            personalizeTabBar
+            personalizeCard
+        }
+    }
+
+    private var personalizeTabBar: some View {
+        HStack(spacing: 4) {
+            ForEach(PersonalizeTab.allCases) { tab in
+                Button {
+                    withAnimation(DT.snap) { personalizeTab = tab }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(tab.rawValue)
+                            .font(.system(size: 12.5, weight: personalizeTab == tab ? .semibold : .regular))
+                            .foregroundStyle(personalizeTab == tab ? ink : ink2)
+                        Text("\(personalizeCount(tab))")
+                            .font(.system(size: 10.5, weight: .bold))
+                            .foregroundStyle(personalizeTab == tab ? .white : ink2)
+                            .padding(.horizontal, 5.5).padding(.vertical, 1.5)
+                            .background(Capsule().fill(personalizeTab == tab ? DT.emberWave : fill))
                     }
-                    .padding(.vertical, 9)
-                    .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
+                    .padding(.vertical, 7).padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(personalizeTab == tab ? card : .clear)
+                    )
                 }
+                .buttonStyle(.plain)
+            }
+            Spacer()
+        }
+        .padding(4)
+        .background(RoundedRectangle(cornerRadius: 10).fill(fill))
+    }
+
+    private func personalizeCount(_ tab: PersonalizeTab) -> Int {
+        switch tab {
+        case .dictionary: return dictionary.entries.count
+        case .snippets: return snippets.snippets.count
+        case .styles: return styleStore.map.count
+        }
+    }
+
+    @ViewBuilder private var personalizeCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            switch personalizeTab {
+            case .dictionary: dictionarySection
+            case .snippets: snippetsSection
+            case .styles: stylesSection
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(cardBackground)
+        .id(personalizeTab)
+        .transition(.opacity)
+    }
+
+    @ViewBuilder private var dictionarySection: some View {
+        addRow(placeholder: "Add a word (e.g. WhisperKit)") { dictionary.add(word: $0) }
+        if dictionary.entries.isEmpty {
+            emptyPanel(title: "No corrections yet",
+                       body: "Add a word above, or run the Know-Me interview to seed names and jargon automatically.",
+                       button: nil)
+        } else {
+            ForEach(dictionary.entries) { entry in
+                HStack {
+                    Text(entry.word).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
+                    if !entry.aliases.isEmpty {
+                        Text("↤ \(entry.aliases.joined(separator: ", "))")
+                            .font(.system(size: 11)).foregroundStyle(ink2)
+                    }
+                    Spacer()
+                    Button { dictionary.remove(entry) } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(ink2)
+                    }.buttonStyle(.plain)
+                }
+                .padding(.vertical, 9)
+                .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
             }
         }
     }
 
-    // MARK: Snippets
-
-    @ViewBuilder private var snippetsPane: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            paneTitle("Snippets", "Say the short thing, get the long thing.")
-            SnippetAddRow(fill: fill, ink: ink, ink2: ink2, accent: DT.emberLight) { trigger, expansion in
-                snippets.add(trigger: trigger, expansion: expansion)
-            }
-            if snippets.snippets.isEmpty {
-                emptyPanel(title: "No snippets yet",
-                           body: "Try \"my address\". Then just say it.",
-                           button: nil)
-            } else {
-                ForEach(snippets.snippets) { snip in
-                    HStack(alignment: .top, spacing: 12) {
-                        Text(snip.trigger).font(.system(size: 11, weight: .bold)).foregroundStyle(DT.emberLight)
-                            .padding(.horizontal, 6).padding(.vertical, 2)
-                            .background(RoundedRectangle(cornerRadius: 6).fill(fill))
-                        Text(snip.expansion).font(.system(size: 12.5)).foregroundStyle(ink)
-                        Spacer()
-                        Button { snippets.remove(snip) } label: {
-                            Image(systemName: "xmark.circle.fill").foregroundStyle(ink2)
-                        }.buttonStyle(.plain)
-                    }
-                    .padding(.vertical, 10)
-                    .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
+    @ViewBuilder private var snippetsSection: some View {
+        SnippetAddRow(fill: fill, ink: ink, ink2: ink2, accent: DT.emberLight) { trigger, expansion in
+            snippets.add(trigger: trigger, expansion: expansion)
+        }
+        if snippets.snippets.isEmpty {
+            emptyPanel(title: "No snippets yet",
+                       body: "Try \"my address\". Then just say it.",
+                       button: nil)
+        } else {
+            ForEach(snippets.snippets) { snip in
+                HStack(alignment: .top, spacing: 12) {
+                    Text(snip.trigger).font(.system(size: 11, weight: .bold)).foregroundStyle(DT.emberLight)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(RoundedRectangle(cornerRadius: 6).fill(fill))
+                    Text(snip.expansion).font(.system(size: 12.5)).foregroundStyle(ink)
+                    Spacer()
+                    Button { snippets.remove(snip) } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(ink2)
+                    }.buttonStyle(.plain)
                 }
+                .padding(.vertical, 10)
+                .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
             }
         }
     }
 
-    /// A one-field add row used by the Dictionary pane.
+    /// A one-field add row used by the Dictionary tab.
     private func addRow(placeholder: String, onAdd: @escaping (String) -> Void) -> some View {
         InlineAddField(placeholder: placeholder, fill: fill, ink: ink, accent: DT.emberLight, onAdd: onAdd)
     }
 
-    // MARK: Styles
-
-    private var styles: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            paneTitle("Styles", "How you sound, per app.")
-                .padding(.bottom, 12)
-            ForEach(styleStore.map.sorted(by: { $0.key < $1.key }), id: \.key) { app, styleID in
-                HStack(spacing: 12) {
-                    Text(monogram(app))
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(ink2)
-                        .frame(width: 30, height: 30)
-                        .background(RoundedRectangle(cornerRadius: 7).fill(fill))
-                    Text(app).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
-                        .frame(width: 150, alignment: .leading)
-                    Picker("", selection: styleBinding(for: app)) {
-                        Text("Casual").tag("casual")
-                        Text("Neutral").tag("default")
-                        Text("Formal").tag("formal")
-                        Text("Code").tag("code")
-                        Text("Email").tag("email")
-                    }
-                    .labelsHidden()
-                    .frame(width: 130)
-                    Spacer()
+    @ViewBuilder private var stylesSection: some View {
+        ForEach(styleStore.map.sorted(by: { $0.key < $1.key }), id: \.key) { app, styleID in
+            HStack(spacing: 12) {
+                Text(monogram(app))
+                    .font(.system(size: 11, weight: .bold)).foregroundStyle(ink2)
+                    .frame(width: 30, height: 30)
+                    .background(RoundedRectangle(cornerRadius: 7).fill(fill))
+                Text(app).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
+                    .frame(width: 150, alignment: .leading)
+                Picker("", selection: styleBinding(for: app)) {
+                    Text("Casual").tag("casual")
+                    Text("Neutral").tag("default")
+                    Text("Formal").tag("formal")
+                    Text("Code").tag("code")
+                    Text("Email").tag("email")
                 }
-                .padding(.vertical, 11)
-                .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
+                .labelsHidden()
+                .frame(width: 130)
+                Spacer()
             }
-            Text("Cleanup uses the frontmost app's style automatically; the menu-bar Style is the fallback.")
-                .font(.system(size: 11)).foregroundStyle(ink2)
-                .padding(.top, 12)
+            .padding(.vertical, 11)
+            .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)
         }
+        Text("Cleanup uses the frontmost app's style automatically; the menu-bar Style is the fallback.")
+            .font(.system(size: 11)).foregroundStyle(ink2)
+            .padding(.top, 12)
     }
 
     private func styleBinding(for app: String) -> Binding<String> {

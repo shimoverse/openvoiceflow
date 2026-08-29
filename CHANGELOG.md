@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Dictionary, Snippets, and Styles are now one **Personalize** pane in the
+  dashboard sidebar, switched with tabs instead of three separate rows.
+  Each tab keeps its item count, the content area now sits in a single card,
+  and switching tabs animates instead of jumping. No data or behavior
+  changes — same stores, same add/remove actions, same empty states. Docs
+  updated to describe the new location (`Dashboard ▸ Personalize`).
+
 ## [0.5.9] — 2026-08-29
 
 ### Fixed

@@ -145,7 +145,7 @@ struct DashboardView: View {
                 .padding(.horizontal, 10)
             }
             .buttonStyle(.plain)
-            .popover(isPresented: $showFeedback) {
+            .sheet(isPresented: $showFeedback) {
                 FeedbackView(controller: controller, onDismiss: { showFeedback = false })
             }
 

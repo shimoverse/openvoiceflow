@@ -22,12 +22,12 @@ def test_feedback_uses_an_always_visible_optional_email_field() -> None:
     assert "contact: contact.trimmingCharacters(in: .whitespacesAndNewlines)" in feedback
 
 
-def test_feedback_uses_a_native_click_outside_dismissible_popover() -> None:
+def test_feedback_uses_a_centered_native_modal() -> None:
     dashboard = source("DashboardView.swift")
     feedback = source("FeedbackView.swift")
 
-    assert ".sheet(isPresented: $showFeedback)" not in dashboard
-    assert ".popover(isPresented: $showFeedback)" in dashboard
+    assert ".sheet(isPresented: $showFeedback)" in dashboard
+    assert ".popover(isPresented: $showFeedback)" not in dashboard
     assert "private var feedbackOverlay" not in dashboard
     assert "FeedbackView(controller: controller, onDismiss:" in dashboard
     assert "let onDismiss: () -> Void" in feedback

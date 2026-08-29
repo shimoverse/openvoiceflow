@@ -87,12 +87,6 @@ struct FeedbackView: View {
                     .font(.system(size: 13))
             }
 
-            Text("This opens an email with usage totals attached — words dictated, time saved, "
-                 + "your streak, and this week's activity. Never the words themselves, and nothing "
-                 + "is sent unless you hit Send.")
-                .font(.system(size: 11)).foregroundStyle(ink2)
-                .fixedSize(horizontal: false, vertical: true)
-
             Spacer(minLength: 0)
 
             HStack {

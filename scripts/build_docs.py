@@ -18,8 +18,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "docs"
 CANONICAL = "https://openvoiceflow.com"
-VERSION = "0.5.8"
-UPDATED = "2026-08-28"
+VERSION = "0.5.12"
+UPDATED = "2026-08-29"
 
 # ── sidebar / page order ────────────────────────────────────────────────
 # (group title, [(slug, sidebar label)]). Order here is reading order and

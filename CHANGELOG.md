@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.14] — 2026-08-29
+
+### Changed
+- Simplified feedback to one optional email field in a native macOS popover that dismisses with Cancel, Send, Escape, or an outside click.
+- Moved Know Me into Personalize so related controls stay together.
+- Changed generated leaderboard aliases to compact one-token handles while preserving custom names during legacy migration.
+
 ## [0.5.13] — 2026-08-29
 
 ### Changed

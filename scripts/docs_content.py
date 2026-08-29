@@ -388,12 +388,18 @@ PAGES["dashboard"] = {
         <p>To clear it: <strong>Settings ▸ Privacy ▸ Delete history…</strong>, which offers <strong>Delete, keep my first words</strong> or <strong>Delete everything</strong>. The first option exists because people tend to want the memento even when clearing the log.</p>
 
         <h2 id="panes">The other panes</h2>
+        <p><strong>Personalize</strong> is one pane with three tabs — everything that teaches the app something once so it stops needing to be told again:</p>
         <table>
-          <thead><tr><th scope="col">Pane</th><th scope="col">What it is for</th></tr></thead>
+          <thead><tr><th scope="col">Tab</th><th scope="col">What it is for</th></tr></thead>
           <tbody>
             <tr><td><a href="dictionary.html">Dictionary</a></td><td>Words it keeps getting wrong. Fix them once.</td></tr>
             <tr><td><a href="snippets.html">Snippets</a></td><td>Say the short thing, get the long thing.</td></tr>
             <tr><td><a href="styles.html">Styles</a></td><td>How you sound, per app.</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <thead><tr><th scope="col">Pane</th><th scope="col">What it is for</th></tr></thead>
+          <tbody>
             <tr><td><a href="profile.html">Know-Me</a></td><td>A short profile that helps cleanup spell your world correctly.</td></tr>
             <tr><td><a href="settings.html">Settings</a></td><td>Permissions, dictation, transcription, cleanup, privacy, and updates.</td></tr>
           </tbody>
@@ -660,7 +666,7 @@ PAGES["dictionary"] = {
         </div>
 
         <h2 id="adding">Adding words</h2>
-        <p>Open <strong>Dashboard ▸ Dictionary</strong> and type the word as it should be spelled, then press add. Entries are stored immediately.</p>
+        <p>Open <strong>Dashboard ▸ Personalize</strong> and type the word as it should be spelled, then press add. Entries are stored immediately.</p>
         <p>Good candidates:</p>
         <ul>
           <li>Colleagues' and clients' names, especially non-English spellings.</li>
@@ -696,7 +702,7 @@ PAGES["snippets"] = {
         <p>Common uses: your email signature, your address, a standup preamble, a bug-report template, a legal disclaimer, a support reply you send daily.</p>
 
         <h2 id="creating">Creating one</h2>
-        <p><strong>Dashboard ▸ Snippets</strong> has two fields — trigger and expansion. Keep triggers short and distinctive: <code>my address</code>, <code>signature</code>, <code>standup intro</code>. Triggers are stored lowercase and matched case-insensitively, so you do not need to worry about how you capitalize them.</p>
+        <p>The Snippets tab in <strong>Dashboard ▸ Personalize</strong> has two fields — trigger and expansion. Keep triggers short and distinctive: <code>my address</code>, <code>signature</code>, <code>standup intro</code>. Triggers are stored lowercase and matched case-insensitively, so you do not need to worry about how you capitalize them.</p>
         <p>Adding a trigger that already exists replaces its expansion, which makes editing a snippet as simple as re-adding it.</p>
 
         <h2 id="matching">How matching works</h2>
@@ -760,11 +766,11 @@ PAGES["styles"] = {
             <tr><td>Neutral</td><td>Microsoft Word, Pages, Notion, Safari, Google Chrome</td></tr>
           </tbody>
         </table>
-        <p>Dictate into an app that is not on this list and the fallback style applies. You can change the style assigned to any app already in the list from <strong>Dashboard ▸ Styles</strong>.</p>
+        <p>Dictate into an app that is not on this list and the fallback style applies. You can change the style assigned to any app already in the list from the Styles tab in <strong>Dashboard ▸ Personalize</strong>.</p>
 
         <div class="callout">
           <span class="callout-label">In this version</span>
-          <p>The Styles pane edits the mapping for apps already listed; there is no control for adding an app that is not on the list, so unlisted apps use the fallback. If per-app tone in a specific app matters to you, tell us at <a href="mailto:shimoverse@gmail.com">shimoverse@gmail.com</a> — that feedback is how the list grows.</p>
+          <p>The Styles tab edits the mapping for apps already listed; there is no control for adding an app that is not on the list, so unlisted apps use the fallback. If per-app tone in a specific app matters to you, tell us at <a href="mailto:shimoverse@gmail.com">shimoverse@gmail.com</a> — that feedback is how the list grows.</p>
         </div>
 
         <h2 id="storage">Where it is stored</h2>
@@ -1143,7 +1149,7 @@ PAGES["uninstall"] = {
         </div>
 
         <h2 id="keep">Clearing your data but keeping the app</h2>
-        <p>You do not have to uninstall to reset. <strong>Dashboard ▸ Settings ▸ Delete history…</strong> clears your transcripts, with an option to keep your first-ever dictation. <strong>Know-Me ▸ Clear</strong> empties your profile. Dictionary and snippet entries can be deleted individually from their panes.</p>
+        <p>You do not have to uninstall to reset. <strong>Dashboard ▸ Settings ▸ Delete history…</strong> clears your transcripts, with an option to keep your first-ever dictation. <strong>Know-Me ▸ Clear</strong> empties your profile. Dictionary and snippet entries can be deleted individually from the Personalize pane.</p>
 
         <h2 id="reinstall">Reinstalling later</h2>
         <p>If you leave the Application Support folder in place, reinstalling picks up exactly where you left off — same settings, same history, same dictionary. Remove that folder first if you want a genuinely clean start.</p>

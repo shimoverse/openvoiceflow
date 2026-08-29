@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   changes — same stores, same add/remove actions, same empty states. Docs
   updated to describe the new location (`Dashboard ▸ Personalize`).
 
+## [0.5.9] — 2026-08-29
+
+### Fixed
+- The Feedback sheet's category picker ("Something's broken" / "Feature
+  idea" / "Just saying thanks" / "Something else") overflowed a 440pt-wide
+  sheet, truncating the leading and trailing segments. Segmented control now
+  shows short labels (Bug/Idea/Thanks/Other); the full wording still goes
+  into the email subject and body. Sheet widened to 480pt for margin.
+
 ## [0.5.8] — 2026-08-28
 
 ### Added

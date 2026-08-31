@@ -75,3 +75,20 @@ def test_nickname_commit_syncs_once_and_failures_are_retryable() -> None:
     assert "@Published private(set) var syncError: String?" in analytics
     assert "func syncNow(controller: AppController) async -> Bool" in analytics
     assert "(200..<300).contains(http.statusCode)" in analytics
+
+
+def test_opening_leaderboard_republishes_saved_totals_before_fetching() -> None:
+    """Existing installations must restore their row without another dictation."""
+    dashboard = (NATIVE_SOURCES / "DashboardView.swift").read_text(encoding="utf-8")
+
+    pane = dashboard.split("@ViewBuilder private var leaderboardPane", 1)[1].split(
+        "@ViewBuilder private func leaderboardCard", 1
+    )[0]
+    refresh = dashboard.split("private func refreshLeaderboard() async", 1)[1].split(
+        "private func commitLeaderboardName()", 1
+    )[0]
+
+    assert "await refreshLeaderboard()" in pane
+    assert refresh.index("await analyticsClient.syncNow(controller: controller)") < refresh.index(
+        "await analyticsClient.fetchLeaderboard"
+    )

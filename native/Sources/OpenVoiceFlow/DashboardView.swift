@@ -28,6 +28,7 @@ struct DashboardView: View {
     @State private var showDeleteHistory = false
     @State private var leaderboardNameDraft: String
     @State private var leaderboardNameValidationError: String?
+    @State private var isRefreshingLeaderboard = false
     @StateObject private var copyFeedback = HistoryCopyFeedback()
     @FocusState private var leaderboardNameFocused: Bool
     // Live TCC statuses for the Settings permissions card. Polled (not
@@ -639,18 +640,19 @@ struct DashboardView: View {
                     button: "Open Settings",
                     action: { pane = .settings }
                 )
-            } else if analyticsClient.isLoadingLeaderboard && analyticsClient.leaderboard == nil {
+            } else if (isRefreshingLeaderboard || analyticsClient.isLoadingLeaderboard)
+                        && analyticsClient.leaderboard == nil {
                 emptyPanel(title: "Loading…", body: "Fetching the current standings.", button: nil)
-            } else if let error = analyticsClient.leaderboardError {
+            } else if let error = analyticsClient.leaderboardError ?? analyticsClient.syncError {
                 emptyPanel(
-                    title: "Leaderboard unavailable",
+                    title: analyticsClient.leaderboardError == nil
+                        ? "Leaderboard update failed"
+                        : "Leaderboard unavailable",
                     body: error,
                     button: "Try again",
                     action: {
                         Task {
-                            await analyticsClient.fetchLeaderboard(
-                                deviceId: analyticsIdentity.identity.deviceId
-                            )
+                            await refreshLeaderboard()
                         }
                     }
                 )
@@ -666,7 +668,7 @@ struct DashboardView: View {
         }
         .task(id: controller.settings.shareAnalytics) {
             guard controller.settings.shareAnalytics else { return }
-            await analyticsClient.fetchLeaderboard(deviceId: analyticsIdentity.identity.deviceId)
+            await refreshLeaderboard()
         }
     }
 
@@ -1280,6 +1282,13 @@ struct DashboardView: View {
                 if on { analyticsClient.syncIfDue(controller: controller, force: true) }
             }
         )
+    }
+
+    private func refreshLeaderboard() async {
+        isRefreshingLeaderboard = true
+        defer { isRefreshingLeaderboard = false }
+        _ = await analyticsClient.syncNow(controller: controller)
+        await analyticsClient.fetchLeaderboard(deviceId: analyticsIdentity.identity.deviceId)
     }
 
     private func commitLeaderboardName() {

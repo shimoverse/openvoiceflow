@@ -26,6 +26,7 @@ struct DashboardView: View {
     @State private var showFeedback = false
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
     @State private var showDeleteHistory = false
+    @StateObject private var copyFeedback = HistoryCopyFeedback()
     // Live TCC statuses for the Settings permissions card. Polled (not
     // event-driven) because a grant can land in System Settings while this
     // window stays key — see Permission.watch.
@@ -590,6 +591,7 @@ struct DashboardView: View {
                 )
             } else {
                 ForEach(history.entries) { entry in
+                    let isCopied = copyFeedback.isCopied(entry.id)
                     HStack(spacing: 12) {
                         Text(entry.timestamp, format: .dateTime.hour().minute())
                             .font(.system(size: 11)).foregroundStyle(ink2).frame(width: 56, alignment: .leading)
@@ -599,11 +601,17 @@ struct DashboardView: View {
                         Text(entry.text).font(.system(size: 12.5)).foregroundStyle(ink).lineLimit(1)
                         Spacer()
                         Text("\(entry.words)").font(.system(size: 11)).foregroundStyle(ink2)
-                        Button("Copy") {
+                        Button {
                             NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(entry.text, forType: .string)
+                            if NSPasteboard.general.setString(entry.text, forType: .string) {
+                                copyFeedback.markCopied(entry.id)
+                            }
+                        } label: {
+                            Label(isCopied ? "Copied" : "Copy",
+                                  systemImage: isCopied ? "checkmark" : "doc.on.doc")
                         }
                         .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(DT.emberLight)
+                        .animation(.easeOut(duration: 0.15), value: isCopied)
                     }
                     .padding(.vertical, 10)
                     .overlay(Rectangle().fill(hair).frame(height: 1), alignment: .top)

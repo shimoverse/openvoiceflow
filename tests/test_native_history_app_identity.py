@@ -1,0 +1,64 @@
+"""Behavior contracts for History feedback and dashboard app identities."""
+
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+NATIVE_SOURCES = ROOT / "native" / "Sources" / "OpenVoiceFlow"
+
+
+def compile_and_run_swift(tmp_path: Path, sources: list[Path], harness_source: str) -> None:
+    if shutil.which("xcrun") is None:
+        pytest.skip("Swift contract requires the macOS Xcode toolchain")
+
+    harness = tmp_path / "main.swift"
+    harness.write_text(harness_source, encoding="utf-8")
+    binary = tmp_path / "contract"
+    compile_result = subprocess.run(
+        ["xcrun", "swiftc", "-parse-as-library", *map(str, sources), str(harness), "-o", str(binary)],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert compile_result.returncode == 0, compile_result.stderr
+
+    run_result = subprocess.run([str(binary)], text=True, capture_output=True, check=False)
+    assert run_result.returncode == 0, run_result.stderr
+
+
+def test_copy_feedback_moves_between_rows_and_self_dismisses(tmp_path: Path) -> None:
+    """A stale timer must not clear a newer row's acknowledgement."""
+    compile_and_run_swift(
+        tmp_path,
+        [NATIVE_SOURCES / "HistoryCopyFeedback.swift"],
+        """
+import Foundation
+
+@main
+struct Runner {
+    @MainActor
+    static func main() async {
+        let first = UUID()
+        let second = UUID()
+        let feedback = HistoryCopyFeedback()
+
+        feedback.markCopied(first, dismissAfterNanoseconds: 80_000_000)
+        let firstIsCopied = feedback.isCopied(first)
+        precondition(firstIsCopied)
+
+        feedback.markCopied(second, dismissAfterNanoseconds: 10_000_000)
+        let firstWasCleared = !feedback.isCopied(first)
+        let secondIsCopied = feedback.isCopied(second)
+        precondition(firstWasCleared)
+        precondition(secondIsCopied)
+
+        try? await Task.sleep(nanoseconds: 30_000_000)
+        let secondWasDismissed = !feedback.isCopied(second)
+        precondition(secondWasDismissed)
+    }
+}
+""",
+    )

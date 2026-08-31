@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.17] — 2026-08-30
+
 ### Added
 - App names across Home, History, and Personalize now use recognizable app or company logos, including Claude, Discord, Notion, and Outlook. Installed macOS app icons remain the first choice, with bundled brand marks as reliable fallbacks.
 

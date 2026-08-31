@@ -430,12 +430,12 @@ struct DashboardView: View {
                 VStack(spacing: 12) {
                     ForEach(Array(top.enumerated()), id: \.offset) { i, row in
                         HStack(spacing: 10) {
-                            AppTimeIcon(
-                                name: row.app, fraction: row.fraction,
+                            AppIdentityLabel(
+                                name: row.app, iconSize: 24, spacing: 10, ringFraction: row.fraction,
                                 ringColor: DT.emberWave.opacity(1 - Double(i) * 0.13),
-                                trackColor: hair, ink2: ink2
+                                trackColor: hair
                             )
-                            Text(row.app).font(.system(size: 12.5)).foregroundStyle(ink).lineLimit(1)
+                            .font(.system(size: 12.5)).foregroundStyle(ink)
                             Spacer()
                             Text("\(Int((row.fraction * 100).rounded()))%")
                                 .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(ink)
@@ -473,7 +473,7 @@ struct DashboardView: View {
                             Text(entry.timestamp, format: .dateTime.hour().minute())
                                 .font(.system(size: 11)).foregroundStyle(ink2)
                                 .frame(width: 46, alignment: .leading)
-                            Text(entry.app)
+                            AppIdentityLabel(name: entry.app, iconSize: 16, spacing: 5)
                                 .font(.system(size: 10, weight: .bold)).foregroundStyle(ink2)
                                 .padding(.horizontal, 6).padding(.vertical, 2)
                                 .background(RoundedRectangle(cornerRadius: 5).fill(fill))
@@ -595,7 +595,8 @@ struct DashboardView: View {
                     HStack(spacing: 12) {
                         Text(entry.timestamp, format: .dateTime.hour().minute())
                             .font(.system(size: 11)).foregroundStyle(ink2).frame(width: 56, alignment: .leading)
-                        Text(entry.app).font(.system(size: 10, weight: .bold)).foregroundStyle(ink2)
+                        AppIdentityLabel(name: entry.app, iconSize: 16, spacing: 5)
+                            .font(.system(size: 10, weight: .bold)).foregroundStyle(ink2)
                             .padding(.horizontal, 6).padding(.vertical, 2)
                             .background(RoundedRectangle(cornerRadius: 5).fill(fill))
                         Text(entry.text).font(.system(size: 12.5)).foregroundStyle(ink).lineLimit(1)
@@ -837,9 +838,9 @@ struct DashboardView: View {
     @ViewBuilder private var stylesSection: some View {
         ForEach(styleStore.map.sorted(by: { $0.key < $1.key }), id: \.key) { app, styleID in
             HStack(spacing: 12) {
-                AppStyleIcon(name: app, fill: fill, ink2: ink2)
-                Text(app).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
-                    .frame(width: 150, alignment: .leading)
+                AppIdentityLabel(name: app, iconSize: 30, spacing: 12)
+                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
+                    .frame(width: 192, alignment: .leading)
                 Picker("", selection: styleBinding(for: app)) {
                     Text("Casual").tag("casual")
                     Text("Neutral").tag("default")
@@ -1467,74 +1468,5 @@ private struct SnippetAddRow: View {
         guard !t.isEmpty, !e.isEmpty else { return }
         onAdd(t, e)
         trigger = ""; expansion = ""
-    }
-}
-
-/// One "Where you dictate" row's leading icon: the app's real macOS icon,
-/// ringed like an activity ring whose fill is that app's share of total
-/// dictation time — readable at a glance, no percentage needed to parse it.
-/// Falls back to the same letter monogram the Styles pane uses when macOS
-/// has no icon for the name.
-private struct AppTimeIcon: View {
-    let name: String
-    let fraction: Double
-    let ringColor: Color
-    let trackColor: Color
-    let ink2: Color
-    var diameter: CGFloat = 24
-
-    private var lineWidth: CGFloat { 2 }
-
-    var body: some View {
-        ZStack {
-            Circle().stroke(trackColor, lineWidth: lineWidth)
-            Circle()
-                .trim(from: 0, to: max(fraction, 0.03))
-                .stroke(ringColor, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-            icon
-                .frame(width: diameter - lineWidth * 3, height: diameter - lineWidth * 3)
-                .clipShape(Circle())
-        }
-        .frame(width: diameter, height: diameter)
-    }
-
-    @ViewBuilder private var icon: some View {
-        if let nsImage = AppIconProvider.icon(for: name) {
-            Image(nsImage: nsImage).resizable().scaledToFit()
-        } else {
-            Circle().fill(ink2.opacity(0.12)).overlay(
-                Text(AppIconProvider.monogram(name))
-                    .font(.system(size: 8, weight: .bold)).foregroundStyle(ink2)
-            )
-        }
-    }
-}
-
-/// A familiar app mark makes a long Styles list scannable. Installed apps use
-/// their exact macOS icon; seeded services with no local app use a bundled
-/// brand fallback; only unknown names fall back to initials.
-private struct AppStyleIcon: View {
-    let name: String
-    let fill: Color
-    let ink2: Color
-
-    var body: some View {
-        Group {
-            if let nsImage = AppIconProvider.icon(for: name) {
-                Image(nsImage: nsImage)
-                    .resizable()
-                    .scaledToFit()
-                    .padding(3)
-            } else {
-                Text(AppIconProvider.monogram(name))
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(ink2)
-            }
-        }
-        .frame(width: 30, height: 30)
-        .background(RoundedRectangle(cornerRadius: 7).fill(fill))
-        .clipShape(RoundedRectangle(cornerRadius: 7))
-        .accessibilityHidden(true)
     }
 }

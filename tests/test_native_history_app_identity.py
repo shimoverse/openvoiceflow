@@ -1,5 +1,6 @@
 """Behavior contracts for History feedback and dashboard app identities."""
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -132,3 +133,17 @@ def test_every_catalog_brand_fallback_is_packaged() -> None:
         assert svg.is_file() or png.is_file(), f"Missing packaged brand fallback: {resource}"
         if svg.is_file():
             assert "<svg" in svg.read_text(encoding="utf-8")
+
+
+def test_every_dashboard_app_name_uses_the_shared_identity_view() -> None:
+    """Recent, History, usage, and Styles must not regress to text-only app names."""
+    dashboard = (NATIVE_SOURCES / "DashboardView.swift").read_text(encoding="utf-8")
+    identity_view = NATIVE_SOURCES / "AppIdentityView.swift"
+
+    assert identity_view.is_file()
+    assert len(re.findall(r"AppIdentityLabel\(\s*name:", dashboard)) >= 4
+    assert "ringFraction: row.fraction" in dashboard
+    assert "AppIdentityIcon(name: name" in identity_view.read_text(encoding="utf-8")
+    assert "Text(row.app)" not in dashboard
+    assert "Text(entry.app)" not in dashboard
+    assert "Text(app).font(.system(size: 13, weight: .semibold))" not in dashboard

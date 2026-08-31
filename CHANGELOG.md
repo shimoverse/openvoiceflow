@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Leaderboard nicknames now save when Return is pressed or the field loses focus, immediately publish that installation's aggregate totals, and refresh the standings after a successful update. Each installation keeps its own row even when multiple computers use the same nickname.
+- Opening Leaderboard now republishes that installation's saved aggregate totals before fetching standings, restoring existing local usage without requiring another dictation or nickname change.
 - The leaderboard service now uses Neon's supported serverless database client and accepts both current and legacy Vercel database environment-variable names.
 
 ### Fixed

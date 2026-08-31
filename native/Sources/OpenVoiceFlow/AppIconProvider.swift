@@ -12,8 +12,8 @@ enum AppIconProvider {
 
     /// The running-or-installed app's own icon, or nil if nothing on this
     /// Mac matches `name` (uninstalled since, or the name isn't really an
-    /// app — e.g. a browser tab title). Callers fall back to a monogram,
-    /// same as the Styles pane already does for apps with no icon.
+    /// app — e.g. a browser tab title). Callers use a neutral app glyph only
+    /// for names that cannot be resolved or found in the bundled catalog.
     static func icon(for name: String) -> NSImage? {
         if let cached = cache[name] { return cached }
         let resolved = runningAppIcon(named: name)
@@ -61,11 +61,5 @@ enum AppIconProvider {
             }
         }
         return nil
-    }
-
-    /// Shared with the Styles pane's per-app row, which shows the same
-    /// letter fallback when there's no icon to draw.
-    static func monogram(_ name: String) -> String {
-        String(name.split(separator: " ").prefix(2).compactMap { $0.first }).uppercased()
     }
 }

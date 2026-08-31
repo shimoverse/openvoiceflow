@@ -62,3 +62,73 @@ struct Runner {
 }
 """,
     )
+
+
+def test_seeded_apps_and_claude_have_real_identity_descriptors(tmp_path: Path) -> None:
+    """Every app users see before dictating must resolve beyond initials."""
+    compile_and_run_swift(
+        tmp_path,
+        [NATIVE_SOURCES / "AppIdentityCatalog.swift"],
+        r"""
+import Foundation
+
+@main
+struct Runner {
+    static func main() {
+        let knownApps = [
+            "Visual Studio Code", "Xcode", "PyCharm", "Zed", "Terminal", "iTerm2",
+            "Sublime Text", "Nova", "Mail", "Gmail", "Outlook", "Superhuman",
+            "Slack", "Discord", "Messages", "WhatsApp", "Telegram", "Signal",
+            "Microsoft Word", "Pages", "Notion", "Safari", "Google Chrome", "Claude",
+        ]
+
+        for name in knownApps {
+            guard let descriptor = AppIdentityCatalog.descriptor(for: name) else {
+                preconditionFailure("Missing descriptor for \(name)")
+            }
+            precondition(!descriptor.bundleIdentifiers.isEmpty || descriptor.brandResource != nil)
+        }
+
+        precondition(AppIdentityCatalog.descriptor(for: "Notion")?.brandResource == "notion")
+        precondition(AppIdentityCatalog.descriptor(for: "Outlook")?.brandResource == "microsoftoutlook")
+        precondition(AppIdentityCatalog.descriptor(for: "Claude")?.brandResource == "claude")
+        precondition(AppIdentityCatalog.descriptor(for: "Discord")?.brandResource == "discord")
+        precondition(AppIdentityCatalog.descriptor(for: "Unknown") == nil)
+    }
+}
+""",
+    )
+
+
+def test_every_catalog_brand_fallback_is_packaged() -> None:
+    """A descriptor is useless when its SVG is omitted from the app bundle."""
+    brand_dir = ROOT / "native" / "Resources" / "BrandIcons"
+    resources = {
+        "apple",
+        "claude",
+        "discord",
+        "gmail",
+        "googlechrome",
+        "iterm2",
+        "microsoftoutlook",
+        "microsoftword",
+        "notion",
+        "panic",
+        "pycharm",
+        "safari",
+        "signal",
+        "slack",
+        "sublimetext",
+        "superhuman",
+        "telegram",
+        "visualstudiocode",
+        "whatsapp",
+        "zedindustries",
+    }
+
+    for resource in resources:
+        svg = brand_dir / f"{resource}.svg"
+        png = brand_dir / f"{resource}.png"
+        assert svg.is_file() or png.is_file(), f"Missing packaged brand fallback: {resource}"
+        if svg.is_file():
+            assert "<svg" in svg.read_text(encoding="utf-8")

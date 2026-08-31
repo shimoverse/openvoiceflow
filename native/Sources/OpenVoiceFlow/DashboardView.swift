@@ -26,7 +26,10 @@ struct DashboardView: View {
     @State private var showFeedback = false
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
     @State private var showDeleteHistory = false
+    @State private var leaderboardNameDraft: String
+    @State private var leaderboardNameValidationError: String?
     @StateObject private var copyFeedback = HistoryCopyFeedback()
+    @FocusState private var leaderboardNameFocused: Bool
     // Live TCC statuses for the Settings permissions card. Polled (not
     // event-driven) because a grant can land in System Settings while this
     // window stays key — see Permission.watch.
@@ -45,6 +48,7 @@ struct DashboardView: View {
         self.profileStore = controller.profileStore
         self.analyticsClient = controller.analyticsClient
         self.analyticsIdentity = controller.analyticsIdentity
+        self._leaderboardNameDraft = State(initialValue: controller.analyticsIdentity.identity.displayName)
     }
 
     enum Pane: String, CaseIterable {
@@ -637,6 +641,19 @@ struct DashboardView: View {
                 )
             } else if analyticsClient.isLoadingLeaderboard && analyticsClient.leaderboard == nil {
                 emptyPanel(title: "Loading…", body: "Fetching the current standings.", button: nil)
+            } else if let error = analyticsClient.leaderboardError {
+                emptyPanel(
+                    title: "Leaderboard unavailable",
+                    body: error,
+                    button: "Try again",
+                    action: {
+                        Task {
+                            await analyticsClient.fetchLeaderboard(
+                                deviceId: analyticsIdentity.identity.deviceId
+                            )
+                        }
+                    }
+                )
             } else if let board = analyticsClient.leaderboard {
                 leaderboardCard(board)
             } else {
@@ -655,7 +672,7 @@ struct DashboardView: View {
 
     @ViewBuilder private func leaderboardCard(_ board: LeaderboardResponse) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(board.top.enumerated()), id: \.element.id) { i, row in
+            ForEach(Array(board.top.enumerated()), id: \.offset) { i, row in
                 leaderboardRow(rank: row.rank, name: row.displayName, minutes: row.minutesSaved,
                                 isYou: board.you?.inTop == true && board.you?.rank == row.rank
                                     && board.you?.displayName == row.displayName)
@@ -1028,9 +1045,25 @@ struct DashboardView: View {
                 settingsToggle("Share anonymous usage & leaderboard rank", isOn: shareAnalyticsBinding)
                 if controller.settings.shareAnalytics {
                     settingsRow("Leaderboard name") {
-                        TextField("Display name", text: displayNameBinding)
+                        TextField("Display name", text: $leaderboardNameDraft)
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 200)
+                            .focused($leaderboardNameFocused)
+                            .onSubmit { commitLeaderboardName() }
+                            .onChange(of: leaderboardNameFocused) { wasFocused, isFocused in
+                                if wasFocused && !isFocused { commitLeaderboardName() }
+                            }
+                    }
+                    if let error = leaderboardNameValidationError ?? analyticsClient.syncError {
+                        settingsRow("Leaderboard status") {
+                            HStack(spacing: 10) {
+                                Text(error).foregroundStyle(DT.destructive)
+                                Button("Try again") { syncAndRefreshLeaderboard() }
+                                    .buttonStyle(.plain).foregroundStyle(DT.emberLight)
+                            }
+                            .font(.system(size: 11))
+                            .frame(maxWidth: 330, alignment: .trailing)
+                        }
                     }
                     settingsRow("Delete my leaderboard data") {
                         Button("Delete…") {
@@ -1249,11 +1282,26 @@ struct DashboardView: View {
         )
     }
 
-    private var displayNameBinding: Binding<String> {
-        Binding(
-            get: { analyticsIdentity.identity.displayName },
-            set: { analyticsIdentity.identity.displayName = $0 }
-        )
+    private func commitLeaderboardName() {
+        guard let normalized = LeaderboardDisplayName.normalize(leaderboardNameDraft) else {
+            leaderboardNameValidationError = "Enter a nickname to join the leaderboard."
+            return
+        }
+        leaderboardNameValidationError = nil
+        leaderboardNameDraft = normalized
+
+        let changed = normalized != analyticsIdentity.identity.displayName
+        guard changed || analyticsClient.syncError != nil else { return }
+        analyticsIdentity.identity.displayName = normalized
+        syncAndRefreshLeaderboard()
+    }
+
+    private func syncAndRefreshLeaderboard() {
+        Task {
+            if await analyticsClient.syncNow(controller: controller) {
+                await analyticsClient.fetchLeaderboard(deviceId: analyticsIdentity.identity.deviceId)
+            }
+        }
     }
 
     private var autoUpdateBinding: Binding<Bool> {

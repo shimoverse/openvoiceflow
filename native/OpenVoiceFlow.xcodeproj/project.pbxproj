@@ -12,6 +12,7 @@
 		0691FF084B3F93643300B440 /* SheetOutsideClickDismissal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9B49868876683466BAD43E /* SheetOutsideClickDismissal.swift */; };
 		09BCE7B13D7F8D58AA8C0C0A /* safari.svg in Resources */ = {isa = PBXBuildFile; fileRef = 52095F21C97F719CFBF2F44C /* safari.svg */; };
 		16B7C8413EAEB0473598651B /* signal.svg in Resources */ = {isa = PBXBuildFile; fileRef = A7F1007F36C5E64DCCD3EB7E /* signal.svg */; };
+		1A4D3567798DB79679292950 /* LeaderboardDisplayName.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30CB450EDF6CB4B627087F08 /* LeaderboardDisplayName.swift */; };
 		1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */; };
 		1E2BD917BDA859FEF7AAABDE /* notion.svg in Resources */ = {isa = PBXBuildFile; fileRef = BF2DDBAC89754C1D5C7FDAB0 /* notion.svg */; };
 		1FD6EFEDE1B8332E2F41D4F6 /* claude.svg in Resources */ = {isa = PBXBuildFile; fileRef = AADDB319C981CF80E6A9C73E /* claude.svg */; };
@@ -69,6 +70,7 @@
 		2B693C11C689950AA094C951 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
 		2BF148CC7407807156F032DE /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
 		3009B5297BF46F455D12ADB0 /* microsoftword.svg */ = {isa = PBXFileReference; path = microsoftword.svg; sourceTree = "<group>"; };
+		30CB450EDF6CB4B627087F08 /* LeaderboardDisplayName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardDisplayName.swift; sourceTree = "<group>"; };
 		34D72CC634525CAF888070FE /* Paster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Paster.swift; sourceTree = "<group>"; };
 		3DD88DC069C5E880AE0AD150 /* microsoftoutlook.svg */ = {isa = PBXFileReference; path = microsoftoutlook.svg; sourceTree = "<group>"; };
 		3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
@@ -206,6 +208,7 @@
 				2B693C11C689950AA094C951 /* HUDController.swift */,
 				7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */,
 				AFB445806596530420655205 /* LeaderboardAlias.swift */,
+				30CB450EDF6CB4B627087F08 /* LeaderboardDisplayName.swift */,
 				4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */,
 				7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */,
 				34D72CC634525CAF888070FE /* Paster.swift */,
@@ -331,6 +334,7 @@
 				1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */,
 				21718FD49AAD5FFDCB42DF41 /* KnowMeInterview.swift in Sources */,
 				D7AD36C912BD7DEACAE5DE85 /* LeaderboardAlias.swift in Sources */,
+				1A4D3567798DB79679292950 /* LeaderboardDisplayName.swift in Sources */,
 				55CC1617ADA91CEB95284F35 /* OnboardingView.swift in Sources */,
 				ED692D08BF81FCFEDD2CA514 /* OpenVoiceFlowApp.swift in Sources */,
 				766ACDD229EB0376746A7003 /* Paster.swift in Sources */,

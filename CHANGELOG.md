@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- App names across Home, History, and Personalize now use recognizable app or company logos, including Claude, Discord, Notion, and Outlook. Installed macOS app icons remain the first choice, with bundled brand marks as reliable fallbacks.
+
+### Changed
+- Leaderboard nicknames now save when Return is pressed or the field loses focus, immediately publish that installation's aggregate totals, and refresh the standings after a successful update. Each installation keeps its own row even when multiple computers use the same nickname.
+- The leaderboard service now uses Neon's supported serverless database client and accepts both current and legacy Vercel database environment-variable names.
+
+### Fixed
+- History's Copy action now changes to “Copied” with a checkmark after a successful copy and resets automatically after 1.5 seconds.
+- Leaderboard loading and nickname-sync failures now show an honest retry action instead of appearing as empty standings.
+
 ## [0.5.16] — 2026-08-29
 
 ### Fixed

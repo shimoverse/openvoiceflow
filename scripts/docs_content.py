@@ -1061,17 +1061,18 @@ PAGES["privacy-architecture"] = {
         <p><strong>Turning it off:</strong> Settings ▸ Privacy ▸ <em>&ldquo;Share anonymous usage &amp; leaderboard rank&rdquo;</em>. Off stops every request in the row above; nothing is cached to send later.</p>
         <p><strong>What's sent, when it's on:</strong></p>
         <ul>
-          <li>A random device ID generated on your Mac (not tied to your Apple ID, email, or any account — there is no account) and a display name you can change, shown to other users on the leaderboard.</li>
+          <li>A random device ID generated for this installation (not tied to your Apple ID, email, or any account — there is no account) and a display name you can change, shown to other users on the leaderboard. Installations remain separate even when they use the same nickname, so three computers produce three independent rows.</li>
           <li>Aggregate counters already shown on your Home pane: total words dictated, total time saved, your streak, and which features are on (cleanup enabled, snippet/dictionary counts, whether you've run Know-Me) — counts only, never contents.</li>
           <li>Your country, derived server-side from the request at the moment it arrives. Your IP address itself is never logged or stored.</li>
         </ul>
+        <p>Aggregate totals sync periodically during active dictation. Changing a nickname sends the same aggregate snapshot once when you press Return or leave the field, then refreshes the leaderboard; individual keystrokes are not uploaded.</p>
         <p><strong>What's never sent, whether or not this is on:</strong> dictated text, snippets, dictionary entries, Know-Me profile content, or anything from the cleanup path. Those stay exactly as described in the rest of this page.</p>
         <p>The leaderboard itself never discloses how many people use OpenVoiceFlow in total — only ranks and time-saved figures for the people shown.</p>
 
         <h2 id="never">What is never collected</h2>
         <ul>
           <li><strong>No dictation content, ever.</strong> Not your words, not your audio — the usage summary above is aggregate counts only.</li>
-          <li><strong>No account.</strong> Nothing to sign up for. The device ID above identifies a Mac, not a person.</li>
+          <li><strong>No account.</strong> Nothing to sign up for. The device ID above identifies one app installation, not a person; installations are never merged by nickname.</li>
           <li><strong>No precise location.</strong> Country-level only, derived at request time; no IP address is stored.</li>
           <li><strong>No screen reading.</strong> Accessibility permission is used only to send a paste keystroke.</li>
           <li><strong>No keystroke logging.</strong> Input Monitoring watches for one key; everything else passes straight through.</li>

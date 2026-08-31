@@ -5,7 +5,7 @@ This file enumerates the third-party software OpenVoiceFlow depends on at runtim
 OpenVoiceFlow itself is licensed under MIT. See [`LICENSE`](../../LICENSE).
 
 Repository: <https://github.com/shimoverse/openvoiceflow>
-Source of truth for runtime dependencies: [`pyproject.toml`](../../pyproject.toml).
+Sources of truth for runtime dependencies: [`pyproject.toml`](../../pyproject.toml), [`Package.swift`](../../native/Package.swift), and [`package.json`](../../package.json).
 
 ---
 
@@ -77,11 +77,21 @@ OpenVoiceFlow's LLM backends (OpenRouter, Groq, OpenAI, Anthropic, Ollama) are i
 
 This means there is no OpenRouter, `openai`, `anthropic`, or `groq` SDK in our dependency tree, and consequently no licensing obligation flowing from those SDKs.
 
-## 6. Bundled docs, fonts, and assets
+## 6. Website API runtime
 
-The DMG contains Python source code, the launcher shell script, and the project-generated OpenVoiceFlow app icon. No third-party fonts, images, or icon sets with separate licenses are bundled. The overlay HUD draws using macOS system fonts (San Francisco), which carry no separate licensing obligation for an app running on macOS.
+The leaderboard API deployed with the website uses the following server-side dependency. It is not bundled into the macOS app.
 
-## 7. Build- and dev-time only (not shipped)
+| Package | License | Version constraint | Role | Upstream |
+| ------- | ------- | ------------------ | ---- | -------- |
+| `@neondatabase/serverless` | Apache-2.0 | `^0.10.4` | Connect the serverless leaderboard endpoints to their PostgreSQL database. | <https://github.com/neondatabase/serverless/blob/main/LICENSE> |
+
+## 7. Bundled docs, fonts, and assets
+
+The native app bundles small app-identification marks for cases where macOS cannot resolve an installed app icon. Simple Icons assets are CC0 1.0; the SVG Logos assets used here are CC0 1.0; the Microsoft marks sourced from theSVG Color are MIT; Superhuman and Panic fallbacks are vendor-provided public identification marks. File-by-file sources are recorded in [`native/Resources/BrandIcons/README.md`](../../native/Resources/BrandIcons/README.md). Brand names and marks remain the property of their respective owners and are used nominatively; their presence does not imply endorsement.
+
+The overlay HUD draws using macOS system fonts (San Francisco), which carry no separate licensing obligation for an app running on macOS.
+
+## 8. Build- and dev-time only (not shipped)
 
 For completeness — these appear in `[project.optional-dependencies].dev` and never reach end users:
 
@@ -94,30 +104,33 @@ For completeness — these appear in `[project.optional-dependencies].dev` and n
 | `twine`        | Apache-2.0 | PyPI upload tool.          |
 | `setuptools`, `wheel` | MIT | Build backend.            |
 
-## 8. Cumulative license posture
+## 9. Cumulative license posture
 
 The runtime-shipped license set is:
 
 - **MIT** — `sounddevice`, `pyobjc-framework-Cocoa` (+ all pyobjc-* siblings), `pyobjc-core`, `cffi`, `whisper.cpp`, `whisper-stream`, `ggml-*` model files, **WhisperKit**, **Sparkle**, OpenVoiceFlow itself.
 - **BSD-3-Clause** — `numpy`, `rumps`, `pycparser`.
-- **Apache-2.0** — **swift-crypto** (bundled in the native macOS app).
+- **Apache-2.0** — **swift-crypto** (bundled in the native macOS app), `@neondatabase/serverless` (website API runtime).
+- **CC0-1.0 / MIT / vendor-provided marks** — bundled app-identification fallbacks, itemized in `native/Resources/BrandIcons/README.md`.
 - **LGPL-3.0** — `pynput` (dynamically loaded; see §1 note).
 
 There is **no GPL-2.0-or-later or GPL-3.0 obligation** propagating to OpenVoiceFlow or to its consumers. The LGPL-3.0 component is consumed in a manner permitted without copyleft propagation. Apache-2.0 (`swift-crypto`) is a permissive licence with an explicit patent grant and no copyleft.
 
-## 9. Trademark notice
+## 10. Trademark notice
 
-The names "OpenRouter", "Gemma", "GPT-4o", "Claude", "Llama", "Whisper", "Homebrew", "macOS", and "Apple Silicon" are trademarks of their respective owners. OpenVoiceFlow references them descriptively to identify the third-party services or platforms it interoperates with, and does not claim affiliation with, endorsement by, or sponsorship from any of those owners.
+The product and company names shown in OpenVoiceFlow, including Apple, Claude, Discord, Google, Microsoft, Notion, Slack, and others represented by app-identification marks, are trademarks of their respective owners. OpenVoiceFlow references them descriptively to identify third-party apps, services, or platforms it interoperates with, and does not claim affiliation with, endorsement by, or sponsorship from any of those owners.
 
 ---
 
 ## How this list is maintained
 
-This file is regenerated each release. Pull requests that touch `pyproject.toml` (adding, removing, or upgrading a runtime dependency) **must** update this file in the same PR.
+This file is regenerated each release. Pull requests that touch `pyproject.toml`, `native/Package.swift`, or `package.json` (adding, removing, or upgrading a runtime dependency) **must** update this file in the same PR.
 
 **Follow-up flagged for the maintainer:** add this rule to the [`CONTRIBUTING.md`](../../CONTRIBUTING.md) PR checklist so the obligation is enforced at review time rather than relying on memory.
 
 Last reviewed against:
 
 - `pyproject.toml` runtime deps (core + optional extras).
-- `main` branch at v0.3.5.
+- `native/Package.swift` runtime dependencies.
+- `package.json` website API runtime dependencies.
+- `main` branch after v0.5.16.

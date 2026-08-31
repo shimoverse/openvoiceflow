@@ -4,26 +4,20 @@ import AppKit
 /// by display name — the only identifier `HistoryStore` tracks (see
 /// `HistoryEntry.app`, captured from `NSWorkspace.frontmostApplication`).
 ///
-/// Prefer the app icon already installed on this Mac. A tiny branded fallback
-/// set covers virtual/default entries (notably Gmail) and common apps that may
-/// not be installed yet, so the Styles pane never substitutes initials for the
-/// two recognizable services it presents out of the box.
+/// Prefer the app icon already installed on this Mac. Bundled identification
+/// marks cover virtual/default entries and apps that are not installed yet.
 @MainActor
 enum AppIconProvider {
     private static var cache: [String: NSImage?] = [:]
-    private static let bundledBrands = [
-        "Discord": "discord",
-        "Gmail": "gmail",
-    ]
 
     /// The running-or-installed app's own icon, or nil if nothing on this
     /// Mac matches `name` (uninstalled since, or the name isn't really an
-    /// app — e.g. a browser tab title). Callers fall back to a monogram,
-    /// same as the Styles pane already does for apps with no icon.
+    /// app — e.g. a browser tab title). Callers use a neutral app glyph only
+    /// for names that cannot be resolved or found in the bundled catalog.
     static func icon(for name: String) -> NSImage? {
         if let cached = cache[name] { return cached }
         let resolved = runningAppIcon(named: name)
-            ?? installedAppIcon(named: name)
+            ?? installedAppIcon(for: name)
             ?? bundledBrandIcon(named: name)
         cache[name] = resolved
         return resolved
@@ -43,25 +37,29 @@ enum AppIconProvider {
     /// still the one Launch Services API that resolves one — so it stays,
     /// synchronous and cached, rather than reaching for an async Spotlight
     /// query for a nice-to-have icon.
-    private static func installedAppIcon(named name: String) -> NSImage? {
+    private static func installedAppIcon(for name: String) -> NSImage? {
+        if let descriptor = AppIdentityCatalog.descriptor(for: name) {
+            for bundleIdentifier in descriptor.bundleIdentifiers {
+                if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) {
+                    return NSWorkspace.shared.icon(forFile: url.path)
+                }
+            }
+        }
         guard let path = NSWorkspace.shared.fullPath(forApplication: name) else { return nil }
         return NSWorkspace.shared.icon(forFile: path)
     }
 
-    /// Gmail may be used in a browser and Discord may not be installed yet,
-    /// but both are seeded style destinations. Their compact SVG marks ship as
-    /// identification-only fallbacks (see Resources/BrandIcons/README.md).
+    /// Compact SVG marks ship as identification-only fallbacks (see
+    /// Resources/BrandIcons/README.md).
     private static func bundledBrandIcon(named name: String) -> NSImage? {
-        guard let resource = bundledBrands[name],
-              let url = Bundle.main.url(forResource: resource, withExtension: "svg"),
-              let image = NSImage(contentsOf: url) else { return nil }
-        image.isTemplate = false
-        return image
-    }
-
-    /// Shared with the Styles pane's per-app row, which shows the same
-    /// letter fallback when there's no icon to draw.
-    static func monogram(_ name: String) -> String {
-        String(name.split(separator: " ").prefix(2).compactMap { $0.first }).uppercased()
+        guard let resource = AppIdentityCatalog.descriptor(for: name)?.brandResource else { return nil }
+        for fileExtension in ["svg", "png"] {
+            if let url = Bundle.main.url(forResource: resource, withExtension: fileExtension),
+               let image = NSImage(contentsOf: url) {
+                image.isTemplate = false
+                return image
+            }
+        }
+        return nil
     }
 }

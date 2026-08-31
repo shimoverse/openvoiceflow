@@ -73,6 +73,8 @@ struct LeaderboardResponse: Codable {
 final class AnalyticsClient: ObservableObject {
     @Published private(set) var leaderboard: LeaderboardResponse?
     @Published private(set) var isLoadingLeaderboard = false
+    @Published private(set) var leaderboardError: String?
+    @Published private(set) var syncError: String?
 
     /// Base URL for the analytics API. The same Vercel project the docs site
     /// deploys to — see api/analytics/ingest.js and api/leaderboard.js.
@@ -85,11 +87,15 @@ final class AnalyticsClient: ObservableObject {
     func syncIfDue(controller: AppController, force: Bool = false) {
         guard controller.settings.shareAnalytics else { return }
         if !force, let last = lastSyncedAt, Date().timeIntervalSince(last) < minSyncInterval { return }
-        lastSyncedAt = Date()
-        Task { await sync(controller: controller) }
+        Task { _ = await syncNow(controller: controller) }
     }
 
-    private func sync(controller: AppController) async {
+    /// Sends this installation's current aggregate snapshot. Used directly
+    /// after a nickname commit; scheduled dictation syncs call through
+    /// `syncIfDue` so they remain throttled.
+    @discardableResult
+    func syncNow(controller: AppController) async -> Bool {
+        guard controller.settings.shareAnalytics else { return false }
         let identity = controller.analyticsIdentity.identity
         let history = controller.historyStore
         let settings = controller.settings
@@ -117,7 +123,20 @@ final class AnalyticsClient: ObservableObject {
         req.timeoutInterval = 10
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        _ = try? await URLSession.shared.data(for: req)
+        do {
+            let (_, response) = try await URLSession.shared.data(for: req)
+            guard let http = response as? HTTPURLResponse,
+                  (200..<300).contains(http.statusCode) else {
+                syncError = "Couldn’t update the leaderboard. Check your connection and try again."
+                return false
+            }
+            lastSyncedAt = Date()
+            syncError = nil
+            return true
+        } catch {
+            syncError = "Couldn’t update the leaderboard. Check your connection and try again."
+            return false
+        }
     }
 
     /// Deletes this device's row from the leaderboard/analytics table
@@ -140,13 +159,25 @@ final class AnalyticsClient: ObservableObject {
     /// `you` comes back nil.
     func fetchLeaderboard(deviceId: String) async {
         isLoadingLeaderboard = true
+        leaderboardError = nil
         defer { isLoadingLeaderboard = false }
         var components = URLComponents(url: baseURL.appending(path: "api/leaderboard"), resolvingAgainstBaseURL: false)!
         components.queryItems = [URLQueryItem(name: "deviceId", value: deviceId)]
-        guard let url = components.url else { return }
-        guard let (data, response) = try? await URLSession.shared.data(from: url),
-              let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode)
-        else { return }
-        leaderboard = try? JSONDecoder().decode(LeaderboardResponse.self, from: data)
+        guard let url = components.url else {
+            leaderboardError = "Couldn’t load the leaderboard. Try again."
+            return
+        }
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let http = response as? HTTPURLResponse,
+                  (200..<300).contains(http.statusCode) else {
+                leaderboardError = "Couldn’t load the leaderboard. Check your connection and try again."
+                return
+            }
+            leaderboard = try JSONDecoder().decode(LeaderboardResponse.self, from: data)
+            leaderboardError = nil
+        } catch {
+            leaderboardError = "Couldn’t load the leaderboard. Check your connection and try again."
+        }
     }
 }

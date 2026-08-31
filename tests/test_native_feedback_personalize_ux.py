@@ -101,12 +101,14 @@ print("ok")
 def test_personalized_styles_show_real_app_icons_with_branded_fallbacks() -> None:
     dashboard = source("DashboardView.swift")
     provider = source("AppIconProvider.swift")
+    identity_view = source("AppIdentityView.swift")
+    catalog = source("AppIdentityCatalog.swift")
     project = (ROOT / "native" / "project.yml").read_text(encoding="utf-8")
 
-    assert "AppStyleIcon(name: app" in dashboard
-    assert "AppIconProvider.icon(for: name)" in dashboard
-    assert '"Discord": "discord"' in provider
-    assert '"Gmail": "gmail"' in provider
+    assert "AppIdentityLabel(name: app" in dashboard
+    assert "AppIconProvider.icon(for: name)" in identity_view
+    assert '"Discord": .init(' in catalog
+    assert '"Gmail": .init(' in catalog
     assert "bundledBrandIcon(named: name)" in provider
     assert "path: Resources/BrandIcons" in project
     assert (ROOT / "native" / "Resources" / "BrandIcons" / "discord.svg").is_file()

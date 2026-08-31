@@ -7,12 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		032CEF2E6C13E0E840DB6C2C /* microsoftword.svg in Resources */ = {isa = PBXBuildFile; fileRef = 3009B5297BF46F455D12ADB0 /* microsoftword.svg */; };
+		03AE605527ABA99B96615DC6 /* pycharm.svg in Resources */ = {isa = PBXBuildFile; fileRef = 7D4F00E63483DA1B1623091A /* pycharm.svg */; };
+		0691FF084B3F93643300B440 /* SheetOutsideClickDismissal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9B49868876683466BAD43E /* SheetOutsideClickDismissal.swift */; };
+		09BCE7B13D7F8D58AA8C0C0A /* safari.svg in Resources */ = {isa = PBXBuildFile; fileRef = 52095F21C97F719CFBF2F44C /* safari.svg */; };
+		16B7C8413EAEB0473598651B /* signal.svg in Resources */ = {isa = PBXBuildFile; fileRef = A7F1007F36C5E64DCCD3EB7E /* signal.svg */; };
+		1A4D3567798DB79679292950 /* LeaderboardDisplayName.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30CB450EDF6CB4B627087F08 /* LeaderboardDisplayName.swift */; };
 		1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */; };
-		E2D8D98E3249EC25B29F5A86 /* AppIconProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61BE137CDD498B29369B9D4E /* AppIconProvider.swift */; };
+		1E2BD917BDA859FEF7AAABDE /* notion.svg in Resources */ = {isa = PBXBuildFile; fileRef = BF2DDBAC89754C1D5C7FDAB0 /* notion.svg */; };
+		1FD6EFEDE1B8332E2F41D4F6 /* claude.svg in Resources */ = {isa = PBXBuildFile; fileRef = AADDB319C981CF80E6A9C73E /* claude.svg */; };
+		2152C7BFE5CC8DA26B3AE522 /* whatsapp.svg in Resources */ = {isa = PBXBuildFile; fileRef = CD6D980FDBD48EFACC74224C /* whatsapp.svg */; };
 		21718FD49AAD5FFDCB42DF41 /* KnowMeInterview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */; };
+		280E53EE303F783568EE9A43 /* discord.svg in Resources */ = {isa = PBXBuildFile; fileRef = 846539AA391AAABAB389862D /* discord.svg */; };
 		2976A8647F7E72B7567DFD8F /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */; };
 		2BECEA0193E7CFDB54AFEC47 /* FeatureStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C990C954D554F3DB4F1C0F /* FeatureStores.swift */; };
+		2FF72FEF15BFAC8E4E7D6525 /* iterm2.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0ECE8F18062F52D2486A11CC /* iterm2.svg */; };
+		3B2701DB94E08944E3BE79A1 /* visualstudiocode.svg in Resources */ = {isa = PBXBuildFile; fileRef = 58E3C9FB41B5B9AE7BA8F6B3 /* visualstudiocode.svg */; };
+		3B914431DEA5A97C018022CB /* panic.png in Resources */ = {isa = PBXBuildFile; fileRef = AD848DC842B3E7E7EC728C9C /* panic.png */; };
+		4141F1E071CCE897847F4970 /* apple.svg in Resources */ = {isa = PBXBuildFile; fileRef = C1FFE97B3565E77E894DF888 /* apple.svg */; };
 		4308540024A6D657C26C204E /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB20C94F8274CB426A4A7DE /* Updater.swift */; };
+		4550FD0F16D1E77BE7BD9735 /* AppIconProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9FC07388A30A45A0D2AC3 /* AppIconProvider.swift */; };
+		4FDB7E5D18619D16980FB481 /* AppIdentityCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE61ECD5581D6691E2F60465 /* AppIdentityCatalog.swift */; };
 		5458F764832C39AC0FE89B4D /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = EEDE1A79E67D869664D18AA7 /* WhisperKit */; };
 		55CC1617ADA91CEB95284F35 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */; };
 		58610B34F43FC25577A44A79 /* StatusIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */; };
@@ -21,36 +36,81 @@
 		61FF22353B12BB2CD6A316B6 /* HUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B693C11C689950AA094C951 /* HUDController.swift */; };
 		766ACDD229EB0376746A7003 /* Paster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D72CC634525CAF888070FE /* Paster.swift */; };
 		7A219E134ECEA45F37A4A0F2 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB13BCD2402178510295FCF /* DesignTokens.swift */; };
+		866C2C8EEEB28B25BF5D9E36 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = CF56FD2E5388078219B6AA46 /* README.md */; };
 		8D95E21B1C470A7D28C9D177 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */; };
+		A531E807658DFE0E4A528B30 /* telegram.svg in Resources */ = {isa = PBXBuildFile; fileRef = 2948DE372B9742669C346EE0 /* telegram.svg */; };
+		ABDD95E6AE13309134F14824 /* HelloCallout.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBD49D4458412F1D7DD0CE65 /* HelloCallout.swift */; };
+		AD84D3B243B0AFE0904FACC6 /* googlechrome.svg in Resources */ = {isa = PBXBuildFile; fileRef = E53A7938240D3CE4FB4424C6 /* googlechrome.svg */; };
+		B005D734493578099083FD6B /* AnalyticsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E7F2EA2170382562E20EBB /* AnalyticsStore.swift */; };
+		B2EFF3ED8EC772FFFDD9D029 /* slack.svg in Resources */ = {isa = PBXBuildFile; fileRef = E91D4A526364238F5DEA4E7A /* slack.svg */; };
 		BA9ACF75EAA0238774612B88 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57717557E0BEAB2E410856EE /* Settings.swift */; };
+		BB5B13CF1BC9E71F7C321AF9 /* AppIdentityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7300AC18EADE9A50FABFDC09 /* AppIdentityView.swift */; };
+		C3EDE16501EEA9E95923F5CA /* sublimetext.svg in Resources */ = {isa = PBXBuildFile; fileRef = 04AF0DB279ADC907102A8842 /* sublimetext.svg */; };
+		C581FF0006191B3DEE201657 /* microsoftoutlook.svg in Resources */ = {isa = PBXBuildFile; fileRef = 3DD88DC069C5E880AE0AD150 /* microsoftoutlook.svg */; };
 		CA92CBBBC8BD5A1940B73C18 /* OpenVoiceFlow.icns in Resources */ = {isa = PBXBuildFile; fileRef = 88504725BADFBD0FD83F77BB /* OpenVoiceFlow.icns */; };
+		D1B353B64995B24372E2DE49 /* zedindustries.svg in Resources */ = {isa = PBXBuildFile; fileRef = 63B819E4E0B7736CFC18FAC0 /* zedindustries.svg */; };
+		D7A3291DAC205E16EF7B7C7D /* superhuman.svg in Resources */ = {isa = PBXBuildFile; fileRef = 6F3551D7F2952864707B9615 /* superhuman.svg */; };
+		D7AD36C912BD7DEACAE5DE85 /* LeaderboardAlias.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFB445806596530420655205 /* LeaderboardAlias.swift */; };
 		E7D6DB42A76697F5E75E3FD9 /* CleanupProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */; };
 		E97FF93C2CB6F5D37F081A7F /* Permissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF148CC7407807156F032DE /* Permissions.swift */; };
+		EB4499541601E793071216ED /* HistoryCopyFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF31F75002A0A0FE796D3415 /* HistoryCopyFeedback.swift */; };
 		ED692D08BF81FCFEDD2CA514 /* OpenVoiceFlowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */; };
+		F1D41A04F37F5E1E91C1066B /* gmail.svg in Resources */ = {isa = PBXBuildFile; fileRef = 1BBC31759AF5BC4C5CC2D351 /* gmail.svg */; };
+		FF56BD47D317D26963A80CBE /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ABA03E324203D93107829A6 /* FeedbackView.swift */; };
 		FFC25E3AEBF348F41F0EEC56 /* AppController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AEE4987BADD8952A8D2BD91 /* AppController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04AF0DB279ADC907102A8842 /* sublimetext.svg */ = {isa = PBXFileReference; path = sublimetext.svg; sourceTree = "<group>"; };
+		0ECE8F18062F52D2486A11CC /* iterm2.svg */ = {isa = PBXFileReference; path = iterm2.svg; sourceTree = "<group>"; };
 		1AEE4987BADD8952A8D2BD91 /* AppController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppController.swift; sourceTree = "<group>"; };
-		61BE137CDD498B29369B9D4E /* AppIconProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconProvider.swift; sourceTree = "<group>"; };
+		1BBC31759AF5BC4C5CC2D351 /* gmail.svg */ = {isa = PBXFileReference; path = gmail.svg; sourceTree = "<group>"; };
+		25B9FC07388A30A45A0D2AC3 /* AppIconProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconProvider.swift; sourceTree = "<group>"; };
+		2948DE372B9742669C346EE0 /* telegram.svg */ = {isa = PBXFileReference; path = telegram.svg; sourceTree = "<group>"; };
 		2B693C11C689950AA094C951 /* HUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDController.swift; sourceTree = "<group>"; };
 		2BF148CC7407807156F032DE /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
+		3009B5297BF46F455D12ADB0 /* microsoftword.svg */ = {isa = PBXFileReference; path = microsoftword.svg; sourceTree = "<group>"; };
+		30CB450EDF6CB4B627087F08 /* LeaderboardDisplayName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardDisplayName.swift; sourceTree = "<group>"; };
 		34D72CC634525CAF888070FE /* Paster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Paster.swift; sourceTree = "<group>"; };
+		3DD88DC069C5E880AE0AD150 /* microsoftoutlook.svg */ = {isa = PBXFileReference; path = microsoftoutlook.svg; sourceTree = "<group>"; };
 		3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
 		4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		4AB20C94F8274CB426A4A7DE /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
+		52095F21C97F719CFBF2F44C /* safari.svg */ = {isa = PBXFileReference; path = safari.svg; sourceTree = "<group>"; };
 		57717557E0BEAB2E410856EE /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		58E3C9FB41B5B9AE7BA8F6B3 /* visualstudiocode.svg */ = {isa = PBXFileReference; path = visualstudiocode.svg; sourceTree = "<group>"; };
+		63B819E4E0B7736CFC18FAC0 /* zedindustries.svg */ = {isa = PBXFileReference; path = zedindustries.svg; sourceTree = "<group>"; };
+		69E7F2EA2170382562E20EBB /* AnalyticsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsStore.swift; sourceTree = "<group>"; };
+		6F3551D7F2952864707B9615 /* superhuman.svg */ = {isa = PBXFileReference; path = superhuman.svg; sourceTree = "<group>"; };
+		7300AC18EADE9A50FABFDC09 /* AppIdentityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentityView.swift; sourceTree = "<group>"; };
 		7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowMeInterview.swift; sourceTree = "<group>"; };
+		7D4F00E63483DA1B1623091A /* pycharm.svg */ = {isa = PBXFileReference; path = pycharm.svg; sourceTree = "<group>"; };
 		7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenVoiceFlowApp.swift; sourceTree = "<group>"; };
+		846539AA391AAABAB389862D /* discord.svg */ = {isa = PBXFileReference; path = discord.svg; sourceTree = "<group>"; };
 		88504725BADFBD0FD83F77BB /* OpenVoiceFlow.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = OpenVoiceFlow.icns; sourceTree = "<group>"; };
+		8ABA03E324203D93107829A6 /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 		96F80FE49FD6670719657437 /* Transcriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transcriber.swift; sourceTree = "<group>"; };
+		9B9B49868876683466BAD43E /* SheetOutsideClickDismissal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetOutsideClickDismissal.swift; sourceTree = "<group>"; };
 		9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		A7F1007F36C5E64DCCD3EB7E /* signal.svg */ = {isa = PBXFileReference; path = signal.svg; sourceTree = "<group>"; };
+		AADDB319C981CF80E6A9C73E /* claude.svg */ = {isa = PBXFileReference; path = claude.svg; sourceTree = "<group>"; };
+		AD848DC842B3E7E7EC728C9C /* panic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = panic.png; sourceTree = "<group>"; };
+		AF31F75002A0A0FE796D3415 /* HistoryCopyFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryCopyFeedback.swift; sourceTree = "<group>"; };
+		AFB445806596530420655205 /* LeaderboardAlias.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardAlias.swift; sourceTree = "<group>"; };
 		B841C09A127623BFF5AD56DA /* OpenVoiceFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenVoiceFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF2DDBAC89754C1D5C7FDAB0 /* notion.svg */ = {isa = PBXFileReference; path = notion.svg; sourceTree = "<group>"; };
+		C1FFE97B3565E77E894DF888 /* apple.svg */ = {isa = PBXFileReference; path = apple.svg; sourceTree = "<group>"; };
 		CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyEngine.swift; sourceTree = "<group>"; };
+		CD6D980FDBD48EFACC74224C /* whatsapp.svg */ = {isa = PBXFileReference; path = whatsapp.svg; sourceTree = "<group>"; };
+		CF56FD2E5388078219B6AA46 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D7C990C954D554F3DB4F1C0F /* FeatureStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureStores.swift; sourceTree = "<group>"; };
+		DBD49D4458412F1D7DD0CE65 /* HelloCallout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloCallout.swift; sourceTree = "<group>"; };
 		DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupProvider.swift; sourceTree = "<group>"; };
+		E53A7938240D3CE4FB4424C6 /* googlechrome.svg */ = {isa = PBXFileReference; path = googlechrome.svg; sourceTree = "<group>"; };
 		E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusIcon.swift; sourceTree = "<group>"; };
+		E91D4A526364238F5DEA4E7A /* slack.svg */ = {isa = PBXFileReference; path = slack.svg; sourceTree = "<group>"; };
 		EFB13BCD2402178510295FCF /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		FE61ECD5581D6691E2F60465 /* AppIdentityCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentityCatalog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,8 +130,37 @@
 			isa = PBXGroup;
 			children = (
 				88504725BADFBD0FD83F77BB /* OpenVoiceFlow.icns */,
+				4339976C6BF72ADA416E712F /* BrandIcons */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		4339976C6BF72ADA416E712F /* BrandIcons */ = {
+			isa = PBXGroup;
+			children = (
+				C1FFE97B3565E77E894DF888 /* apple.svg */,
+				AADDB319C981CF80E6A9C73E /* claude.svg */,
+				846539AA391AAABAB389862D /* discord.svg */,
+				1BBC31759AF5BC4C5CC2D351 /* gmail.svg */,
+				E53A7938240D3CE4FB4424C6 /* googlechrome.svg */,
+				0ECE8F18062F52D2486A11CC /* iterm2.svg */,
+				3DD88DC069C5E880AE0AD150 /* microsoftoutlook.svg */,
+				3009B5297BF46F455D12ADB0 /* microsoftword.svg */,
+				BF2DDBAC89754C1D5C7FDAB0 /* notion.svg */,
+				AD848DC842B3E7E7EC728C9C /* panic.png */,
+				7D4F00E63483DA1B1623091A /* pycharm.svg */,
+				CF56FD2E5388078219B6AA46 /* README.md */,
+				52095F21C97F719CFBF2F44C /* safari.svg */,
+				A7F1007F36C5E64DCCD3EB7E /* signal.svg */,
+				E91D4A526364238F5DEA4E7A /* slack.svg */,
+				04AF0DB279ADC907102A8842 /* sublimetext.svg */,
+				6F3551D7F2952864707B9615 /* superhuman.svg */,
+				2948DE372B9742669C346EE0 /* telegram.svg */,
+				58E3C9FB41B5B9AE7BA8F6B3 /* visualstudiocode.svg */,
+				CD6D980FDBD48EFACC74224C /* whatsapp.svg */,
+				63B819E4E0B7736CFC18FAC0 /* zedindustries.svg */,
+			);
+			path = BrandIcons;
 			sourceTree = "<group>";
 		};
 		8BA7997FC8D751AFD981D2DB /* Products */ = {
@@ -102,21 +191,30 @@
 		E14222C49F4793213DF778D7 /* OpenVoiceFlow */ = {
 			isa = PBXGroup;
 			children = (
+				69E7F2EA2170382562E20EBB /* AnalyticsStore.swift */,
 				1AEE4987BADD8952A8D2BD91 /* AppController.swift */,
-				61BE137CDD498B29369B9D4E /* AppIconProvider.swift */,
+				25B9FC07388A30A45A0D2AC3 /* AppIconProvider.swift */,
+				FE61ECD5581D6691E2F60465 /* AppIdentityCatalog.swift */,
+				7300AC18EADE9A50FABFDC09 /* AppIdentityView.swift */,
 				3F1DCFDCDBB87F1BAA548B04 /* AudioCapture.swift */,
 				DC8FA7D7EC4D4436012C04C2 /* CleanupProvider.swift */,
 				9BCE6187B5EB8E49A290CC73 /* DashboardView.swift */,
 				EFB13BCD2402178510295FCF /* DesignTokens.swift */,
 				D7C990C954D554F3DB4F1C0F /* FeatureStores.swift */,
+				8ABA03E324203D93107829A6 /* FeedbackView.swift */,
+				DBD49D4458412F1D7DD0CE65 /* HelloCallout.swift */,
+				AF31F75002A0A0FE796D3415 /* HistoryCopyFeedback.swift */,
 				CA52E97784B7D61DB0DA2B3E /* HotkeyEngine.swift */,
 				2B693C11C689950AA094C951 /* HUDController.swift */,
 				7AE7EF596B3AEE5F057EACCD /* KnowMeInterview.swift */,
+				AFB445806596530420655205 /* LeaderboardAlias.swift */,
+				30CB450EDF6CB4B627087F08 /* LeaderboardDisplayName.swift */,
 				4189F73A63C55C3B9AA9D9E1 /* OnboardingView.swift */,
 				7D9D962154FCC7EB145558A8 /* OpenVoiceFlowApp.swift */,
 				34D72CC634525CAF888070FE /* Paster.swift */,
 				2BF148CC7407807156F032DE /* Permissions.swift */,
 				57717557E0BEAB2E410856EE /* Settings.swift */,
+				9B9B49868876683466BAD43E /* SheetOutsideClickDismissal.swift */,
 				E5DD33A7CAA6EE8EFA0A5105 /* StatusIcon.swift */,
 				96F80FE49FD6670719657437 /* Transcriber.swift */,
 				4AB20C94F8274CB426A4A7DE /* Updater.swift */,
@@ -188,6 +286,27 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA92CBBBC8BD5A1940B73C18 /* OpenVoiceFlow.icns in Resources */,
+				866C2C8EEEB28B25BF5D9E36 /* README.md in Resources */,
+				4141F1E071CCE897847F4970 /* apple.svg in Resources */,
+				1FD6EFEDE1B8332E2F41D4F6 /* claude.svg in Resources */,
+				280E53EE303F783568EE9A43 /* discord.svg in Resources */,
+				F1D41A04F37F5E1E91C1066B /* gmail.svg in Resources */,
+				AD84D3B243B0AFE0904FACC6 /* googlechrome.svg in Resources */,
+				2FF72FEF15BFAC8E4E7D6525 /* iterm2.svg in Resources */,
+				C581FF0006191B3DEE201657 /* microsoftoutlook.svg in Resources */,
+				032CEF2E6C13E0E840DB6C2C /* microsoftword.svg in Resources */,
+				1E2BD917BDA859FEF7AAABDE /* notion.svg in Resources */,
+				3B914431DEA5A97C018022CB /* panic.png in Resources */,
+				03AE605527ABA99B96615DC6 /* pycharm.svg in Resources */,
+				09BCE7B13D7F8D58AA8C0C0A /* safari.svg in Resources */,
+				16B7C8413EAEB0473598651B /* signal.svg in Resources */,
+				B2EFF3ED8EC772FFFDD9D029 /* slack.svg in Resources */,
+				C3EDE16501EEA9E95923F5CA /* sublimetext.svg in Resources */,
+				D7A3291DAC205E16EF7B7C7D /* superhuman.svg in Resources */,
+				A531E807658DFE0E4A528B30 /* telegram.svg in Resources */,
+				3B2701DB94E08944E3BE79A1 /* visualstudiocode.svg in Resources */,
+				2152C7BFE5CC8DA26B3AE522 /* whatsapp.svg in Resources */,
+				D1B353B64995B24372E2DE49 /* zedindustries.svg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -198,21 +317,30 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B005D734493578099083FD6B /* AnalyticsStore.swift in Sources */,
 				FFC25E3AEBF348F41F0EEC56 /* AppController.swift in Sources */,
-				E2D8D98E3249EC25B29F5A86 /* AppIconProvider.swift in Sources */,
+				4550FD0F16D1E77BE7BD9735 /* AppIconProvider.swift in Sources */,
+				4FDB7E5D18619D16980FB481 /* AppIdentityCatalog.swift in Sources */,
+				BB5B13CF1BC9E71F7C321AF9 /* AppIdentityView.swift in Sources */,
 				2976A8647F7E72B7567DFD8F /* AudioCapture.swift in Sources */,
 				E7D6DB42A76697F5E75E3FD9 /* CleanupProvider.swift in Sources */,
 				8D95E21B1C470A7D28C9D177 /* DashboardView.swift in Sources */,
 				7A219E134ECEA45F37A4A0F2 /* DesignTokens.swift in Sources */,
 				2BECEA0193E7CFDB54AFEC47 /* FeatureStores.swift in Sources */,
+				FF56BD47D317D26963A80CBE /* FeedbackView.swift in Sources */,
 				61FF22353B12BB2CD6A316B6 /* HUDController.swift in Sources */,
+				ABDD95E6AE13309134F14824 /* HelloCallout.swift in Sources */,
+				EB4499541601E793071216ED /* HistoryCopyFeedback.swift in Sources */,
 				1CFD6F2CDE3892A1A5D8036F /* HotkeyEngine.swift in Sources */,
 				21718FD49AAD5FFDCB42DF41 /* KnowMeInterview.swift in Sources */,
+				D7AD36C912BD7DEACAE5DE85 /* LeaderboardAlias.swift in Sources */,
+				1A4D3567798DB79679292950 /* LeaderboardDisplayName.swift in Sources */,
 				55CC1617ADA91CEB95284F35 /* OnboardingView.swift in Sources */,
 				ED692D08BF81FCFEDD2CA514 /* OpenVoiceFlowApp.swift in Sources */,
 				766ACDD229EB0376746A7003 /* Paster.swift in Sources */,
 				E97FF93C2CB6F5D37F081A7F /* Permissions.swift in Sources */,
 				BA9ACF75EAA0238774612B88 /* Settings.swift in Sources */,
+				0691FF084B3F93643300B440 /* SheetOutsideClickDismissal.swift in Sources */,
 				58610B34F43FC25577A44A79 /* StatusIcon.swift in Sources */,
 				6013198D531D8368BE4E28C3 /* Transcriber.swift in Sources */,
 				4308540024A6D657C26C204E /* Updater.swift in Sources */,
@@ -351,14 +479,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenVoiceFlow.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 21;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.1;
+				MARKETING_VERSION = 0.5.16;
 				PRODUCT_BUNDLE_IDENTIFIER = app.openvoiceflow;
 				PRODUCT_NAME = OpenVoiceFlow;
 				SDKROOT = macosx;
@@ -371,14 +499,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenVoiceFlow.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 21;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.1;
+				MARKETING_VERSION = 0.5.16;
 				PRODUCT_BUNDLE_IDENTIFIER = app.openvoiceflow;
 				PRODUCT_NAME = OpenVoiceFlow;
 				SDKROOT = macosx;

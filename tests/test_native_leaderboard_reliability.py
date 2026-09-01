@@ -69,12 +69,28 @@ def test_nickname_commit_syncs_once_and_failures_are_retryable() -> None:
     assert "analyticsClient.leaderboardError" in dashboard
     assert "analyticsClient.syncError" in dashboard
     assert "displayNameBinding" not in dashboard
-    assert r"ForEach(Array(board.top.enumerated()), id: \.offset)" in dashboard
+    assert r"ForEach(Array(visible.enumerated()), id: \.offset)" in dashboard
 
     assert "@Published private(set) var leaderboardError: String?" in analytics
     assert "@Published private(set) var syncError: String?" in analytics
     assert "func syncNow(controller: AppController) async -> Bool" in analytics
     assert "(200..<300).contains(http.statusCode)" in analytics
+
+
+def test_leaderboard_hides_low_usage_rows_but_always_shows_you() -> None:
+    """Low-usage rows must never render, but the viewer's own row always does."""
+    dashboard = (NATIVE_SOURCES / "DashboardView.swift").read_text(encoding="utf-8")
+
+    assert "private static let leaderboardRevealMinutes = 60" in dashboard
+    assert "private static let leaderboardMaxRows = 5" in dashboard
+    assert "rows.filter { $0.minutesSaved >= leaderboardRevealMinutes }.prefix(leaderboardMaxRows)" in dashboard
+
+    card = dashboard.split("@ViewBuilder private func leaderboardCard", 1)[1].split(
+        "private func leaderboardRow", 1
+    )[0]
+    assert "let visible = Self.visibleRows(board.top)" in card
+    assert "if let you = board.you, !youVisible" in card
+    assert 'leaderboardRow(rank: you.rank, name: you.displayName, minutes: you.minutesSaved, isYou: true)' in card
 
 
 def test_opening_leaderboard_republishes_saved_totals_before_fetching() -> None:

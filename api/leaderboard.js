@@ -1,11 +1,12 @@
 import * as productionDatabase from "./_db.js";
+import { compactLegacyDefault } from "./_leaderboardAlias.js";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TOP_N = 10;
 
 function publicRow(row) {
   return {
-    displayName: row.displayName,
+    displayName: compactLegacyDefault(row.displayName),
     minutesSaved: row.minutesSaved,
     rank: row.rank,
   };

@@ -111,6 +111,21 @@ test("ingest rejects an invalid installation id and blank nickname", async () =>
   assert.deepEqual(blankName.body, { error: "displayName is required" });
 });
 
+test("legacy space-separated aliases are compacted, custom names are untouched", async () => {
+  const database = new MemoryDatabase();
+  const ingest = createIngestHandler(database);
+  const leaderboard = createLeaderboardHandler(database);
+
+  await call(ingest, { method: "POST", body: usage(ID_A, "Warm Comet 20", 900, 6) });
+  await call(ingest, { method: "POST", body: usage(ID_B, "My Custom Name", 900, 6) });
+
+  const board = await call(leaderboard, { method: "GET", query: {} });
+  assert.deepEqual(
+    board.body.top.map((row) => row.displayName).sort(),
+    ["My Custom Name", "WarmComet20"]
+  );
+});
+
 test("database outages return service unavailable without leaking details", async () => {
   const database = {
     async ensureSchema() {

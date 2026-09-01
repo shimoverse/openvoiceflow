@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.18] — 2026-08-31
+
+### Fixed
+- Public leaderboard standings now include only rows with at least 60 minutes saved and show no more than five entries, while still showing your own row separately.
+- Legacy auto-generated leaderboard names now use the same exact 10–99 suffix range as the native app, preserving custom-looking names ending in 00–09.
+
 ## [0.5.17] — 2026-08-30
 
 ### Added

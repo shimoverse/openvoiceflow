@@ -66,11 +66,11 @@ test("duplicate nicknames remain separate installations and one can be renamed",
 
   const first = await call(ingest, {
     method: "POST",
-    body: usage(ID_A, "Desk", 900, 6),
+    body: usage(ID_A, "Desk", 900, 65),
   });
   const second = await call(ingest, {
     method: "POST",
-    body: usage(ID_B, "Desk", 1800, 12),
+    body: usage(ID_B, "Desk", 1800, 130),
   });
   assert.equal(first.statusCode, 200);
   assert.equal(second.statusCode, 200);
@@ -79,12 +79,12 @@ test("duplicate nicknames remain separate installations and one can be renamed",
   assert.equal(board.statusCode, 200);
   assert.equal(board.body.top.length, 2);
   assert.deepEqual(board.body.top.map((row) => row.displayName), ["Desk", "Desk"]);
-  assert.equal(board.body.you.minutesSaved, 6);
+  assert.equal(board.body.you.minutesSaved, 65);
   assert.equal(board.body.you.inTop, true);
 
   const rename = await call(ingest, {
     method: "POST",
-    body: usage(ID_A, "MacMini", 900, 6),
+    body: usage(ID_A, "MacMini", 900, 65),
   });
   assert.equal(rename.statusCode, 200);
 
@@ -116,14 +116,49 @@ test("legacy space-separated aliases are compacted, custom names are untouched",
   const ingest = createIngestHandler(database);
   const leaderboard = createLeaderboardHandler(database);
 
-  await call(ingest, { method: "POST", body: usage(ID_A, "Warm Comet 20", 900, 6) });
-  await call(ingest, { method: "POST", body: usage(ID_B, "My Custom Name", 900, 6) });
+  await call(ingest, { method: "POST", body: usage(ID_A, "Warm Comet 20", 900, 65) });
+  await call(ingest, { method: "POST", body: usage(ID_B, "My Custom Name", 900, 65) });
 
   const board = await call(leaderboard, { method: "GET", query: {} });
   assert.deepEqual(
     board.body.top.map((row) => row.displayName).sort(),
     ["My Custom Name", "WarmComet20"]
   );
+});
+
+test("legacy compaction only fires within the native app's 10-99 range", async () => {
+  const database = new MemoryDatabase();
+  const ingest = createIngestHandler(database);
+  const leaderboard = createLeaderboardHandler(database);
+
+  // Swift's compactLegacyDefault only accepts (10...99); "09" falls outside
+  // that range and must be preserved exactly like the native client does.
+  await call(ingest, { method: "POST", body: usage(ID_A, "Warm Comet 09", 900, 65) });
+  await call(ingest, { method: "POST", body: usage(ID_B, "Warm Comet 99", 900, 130) });
+
+  const board = await call(leaderboard, { method: "GET", query: {} });
+  const byName = Object.fromEntries(board.body.top.map((row) => [row.minutesSaved, row.displayName]));
+  assert.equal(byName[65], "Warm Comet 09");
+  assert.equal(byName[130], "WarmComet99");
+});
+
+test("public leaderboard hides rows under the usage bar, caps at five, but always returns you", async () => {
+  const database = new MemoryDatabase();
+  const ingest = createIngestHandler(database);
+  const leaderboard = createLeaderboardHandler(database);
+
+  const ids = Array.from({ length: 7 }, (_, i) => `00000000-0000-4000-8000-00000000001${i}`);
+  // Six devices clear the one-hour bar (ranks 1-6), one does not.
+  for (const [i, id] of ids.entries()) {
+    await call(ingest, { method: "POST", body: usage(id, `Device${i}`, 900, i < 6 ? 600 - i : 5) });
+  }
+
+  const board = await call(leaderboard, { method: "GET", query: { deviceId: ids[6] } });
+  assert.equal(board.body.top.length, 5);
+  assert.ok(board.body.top.every((row) => row.minutesSaved >= 60));
+
+  assert.equal(board.body.you.minutesSaved, 5);
+  assert.equal(board.body.you.inTop, false);
 });
 
 test("database outages return service unavailable without leaking details", async () => {

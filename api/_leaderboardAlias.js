@@ -17,6 +17,7 @@ export function compactLegacyDefault(name) {
   if (parts.length !== 3) return name;
   const [adjective, noun, numberText] = parts;
   if (!ADJECTIVES.has(adjective) || !NOUNS.has(noun)) return name;
-  if (!/^\d{2}$/.test(numberText)) return name;
-  return `${adjective}${noun}${Number(numberText)}`;
+  const number = Number(numberText);
+  if (!/^\d{2}$/.test(numberText) || number < 10 || number > 99) return name;
+  return `${adjective}${noun}${number}`;
 }

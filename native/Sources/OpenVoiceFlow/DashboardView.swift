@@ -672,41 +672,24 @@ struct DashboardView: View {
         }
     }
 
-    /// Only names above this bar are shown, and the list caps at a fixed size
-    /// regardless of how many devices actually qualify — together these keep
-    /// the board from hinting at how many people use the app.
-    private static let leaderboardRevealMinutes = 60
-    private static let leaderboardMaxRows = 5
-
-    private static func visibleRows(_ rows: [LeaderboardRow]) -> [LeaderboardRow] {
-        Array(rows.filter { $0.minutesSaved >= leaderboardRevealMinutes }.prefix(leaderboardMaxRows))
-    }
-
     @ViewBuilder private func leaderboardCard(_ board: LeaderboardResponse) -> some View {
-        let visible = Self.visibleRows(board.top)
-        let youVisible = board.you.map { you in
-            visible.contains { $0.rank == you.rank && $0.displayName == you.displayName }
-        } ?? false
-
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(visible.enumerated()), id: \.offset) { i, row in
+            ForEach(Array(board.top.enumerated()), id: \.offset) { i, row in
                 leaderboardRow(rank: row.rank, name: row.displayName, minutes: row.minutesSaved,
-                                isYou: youVisible && board.you?.rank == row.rank
+                                isYou: board.you?.inTop == true && board.you?.rank == row.rank
                                     && board.you?.displayName == row.displayName)
-                if i < visible.count - 1 {
+                if i < board.top.count - 1 {
                     Rectangle().fill(hair).frame(height: 1)
                 }
             }
-            if let you = board.you, !youVisible {
-                if !visible.isEmpty {
-                    Rectangle().fill(hair).frame(height: 1)
-                    HStack {
-                        Text("···").font(.system(size: 13, weight: .bold)).foregroundStyle(ink3)
-                        Spacer()
-                    }
-                    .padding(.vertical, 6).padding(.horizontal, 4)
-                    Rectangle().fill(hair).frame(height: 1)
+            if let you = board.you, !you.inTop {
+                Rectangle().fill(hair).frame(height: 1)
+                HStack {
+                    Text("···").font(.system(size: 13, weight: .bold)).foregroundStyle(ink3)
+                    Spacer()
                 }
+                .padding(.vertical, 6).padding(.horizontal, 4)
+                Rectangle().fill(hair).frame(height: 1)
                 leaderboardRow(rank: you.rank, name: you.displayName, minutes: you.minutesSaved, isYou: true)
             }
         }

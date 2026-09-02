@@ -629,6 +629,27 @@ struct DashboardView: View {
     }
 
     // MARK: Leaderboard
+    //
+    // The card is a fixed frame on purpose. `api/leaderboard.js` names only
+    // devices past a real usage bar and caps the list at five, precisely so the
+    // endpoint never hints at the size of the user base — but a card sized to
+    // whatever came back hands that number straight back: four rows reads as
+    // four users. So `boardSlots` rows always render, and every slot the
+    // response doesn't fill is masked.
+    //
+    // The masking is honest about what it is. A masked slot carries no rank, no
+    // name and no total, and the tail fades out instead of ending on a hard
+    // edge: it is an ellipsis, not an assertion that some specific person sits
+    // there. The card says the reveal rule out loud for the same reason — once
+    // a reader knows names unlock at an hour, a short list of names means "few
+    // people past the milestone" rather than "few people here".
+
+    /// Rows the card always draws, named or masked.
+    private static let boardSlots = 7
+
+    /// Mirrors `REVEAL_MINUTES_SAVED` in `api/leaderboard.js`. If that bar
+    /// moves, this moves with it — the footnote is a claim about the server.
+    private static let revealMilestoneMinutes = 60
 
     @ViewBuilder private var leaderboardPane: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -673,15 +694,20 @@ struct DashboardView: View {
     }
 
     @ViewBuilder private func leaderboardCard(_ board: LeaderboardResponse) -> some View {
+        let revealed = Array(board.top.prefix(Self.boardSlots))
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(board.top.enumerated()), id: \.offset) { i, row in
+            ForEach(Array(revealed.enumerated()), id: \.offset) { i, row in
+                if i > 0 {
+                    Rectangle().fill(hair).frame(height: 1)
+                }
                 leaderboardRow(rank: row.rank, name: row.displayName, minutes: row.minutesSaved,
                                 isYou: board.you?.inTop == true && board.you?.rank == row.rank
                                     && board.you?.displayName == row.displayName)
-                if i < board.top.count - 1 {
-                    Rectangle().fill(hair).frame(height: 1)
-                }
             }
+            MaskedBoardTail(count: Self.boardSlots - revealed.count,
+                            leadingDivider: !revealed.isEmpty,
+                            hair: hair,
+                            tint: maskTint)
             if let you = board.you, !you.inTop {
                 Rectangle().fill(hair).frame(height: 1)
                 HStack {
@@ -692,10 +718,34 @@ struct DashboardView: View {
                 Rectangle().fill(hair).frame(height: 1)
                 leaderboardRow(rank: you.rank, name: you.displayName, minutes: you.minutesSaved, isYou: true)
             }
+            Rectangle().fill(hair).frame(height: 1)
+            leaderboardFootnote(you: board.you)
         }
         .padding(.horizontal, 20).padding(.vertical, 8)
         .background(cardBackground)
     }
+
+    /// The masked rows above are only readable as privacy once the rule behind
+    /// them is stated, so it ships with them rather than in a docs page.
+    @ViewBuilder private func leaderboardFootnote(you: YouRow?) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 9)).foregroundStyle(ink3)
+                Text("Only the leaders past 1 hour saved are named. Everyone else stays anonymous.")
+                    .font(.system(size: 11)).foregroundStyle(ink3)
+            }
+            if let you, you.minutesSaved < Self.revealMilestoneMinutes {
+                Text("\(Self.hoursMinutes(Self.revealMilestoneMinutes - you.minutesSaved)) more saved and you're eligible to be named.")
+                    .font(.system(size: 11)).foregroundStyle(ink3)
+                    .padding(.leading, 15)
+            }
+        }
+        .padding(.vertical, 10)
+    }
+
+    /// Faint enough to read as a redaction, solid enough not to look broken.
+    private var maskTint: Color { dark ? .white.opacity(0.11) : .black.opacity(0.09) }
 
     private func leaderboardRow(rank: Int, name: String, minutes: Int, isYou: Bool) -> some View {
         HStack(spacing: 12) {
@@ -1455,6 +1505,105 @@ private struct EmptyWave: View {
             let color = scheme == .dark ? DT.dimWaveDark : DT.dimWaveLight
             ctx.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: 2, lineCap: .round))
         }
+    }
+}
+
+/// The part of the leaderboard that stays anonymous.
+///
+/// Each row is three redaction bars — no rank, no name, no total — under a
+/// highlight that sweeps across them, staggered so the tail cascades rather
+/// than pulsing in unison. The bars deliberately do not resolve into content:
+/// a skeleton promises data that is coming, and this one is withholding it.
+///
+/// Rows also dim as they descend, so the board dissolves at the bottom instead
+/// of stopping on a countable last row. That fade is the whole point — the
+/// tail says "this continues", not "there are exactly this many more".
+///
+/// One timeline drives every bar. Seven rows of three independently animating
+/// `Canvas` views is a lot of redraw for a pane that is otherwise static text.
+private struct MaskedBoardTail: View {
+    var count: Int
+    /// A revealed row sits above us, so the first masked row needs a rule.
+    var leadingDivider: Bool
+    var hair: Color
+    var tint: Color
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Uneven, and prime-ish against `count`, so the column reads as hidden
+    /// names of different lengths instead of a repeating pattern.
+    private static let nameWidths: [CGFloat] = [104, 78, 122, 88, 68, 112, 94]
+
+    private static let barHeight: CGFloat = 9
+    /// Matches the rank column in `leaderboardRow`.
+    private static let rankColumn: CGFloat = 34
+
+    @ViewBuilder var body: some View {
+        if count > 0 {
+            if reduceMotion {
+                rows(t: 0)
+            } else {
+                // 30 fps, not `.animation`: the sweep is slow and the tail is
+                // twenty-odd canvases, so display-rate redraw buys nothing.
+                TimelineView(.periodic(from: .now, by: 1.0 / 30)) { context in
+                    rows(t: context.date.timeIntervalSinceReferenceDate)
+                }
+            }
+        }
+    }
+
+    private func rows(t: Double) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Array(0..<count), id: \.self) { i in
+                if i > 0 || leadingDivider {
+                    Rectangle().fill(hair).frame(height: 1).opacity(fade(i))
+                }
+                row(index: i, t: t)
+            }
+        }
+        // One announcement for the whole tail. Seven identical "anonymous
+        // entry" rows would be noise, and the count is not the point.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Anonymous entries. Names below the top are hidden.")
+    }
+
+    /// Scaled to `count` so the ramp lands in the same place whether two rows
+    /// are masked or seven. It stops short of zero on purpose: a row that
+    /// vanished outright would put a hard edge back at a countable position.
+    private func fade(_ index: Int) -> Double {
+        1 - 0.74 * (Double(index) / Double(max(1, count - 1)))
+    }
+
+    private func row(index: Int, t: Double) -> some View {
+        let stagger = Double(index) * 0.42
+        return HStack(spacing: 12) {
+            bar(width: 18, t: t - stagger)
+                .frame(width: Self.rankColumn, alignment: .leading)
+            bar(width: Self.nameWidths[index % Self.nameWidths.count], t: t - stagger - 0.18)
+            Spacer(minLength: 12)
+            bar(width: 52, t: t - stagger - 0.34)
+        }
+        .padding(.vertical, 11)
+        .opacity(fade(index))
+    }
+
+    /// A redaction bar lit by a highlight travelling left→right at 90 pt/s.
+    private func bar(width: CGFloat, t: Double) -> some View {
+        Canvas { ctx, size in
+            let shape = Path(roundedRect: CGRect(origin: .zero, size: size),
+                             cornerRadius: size.height / 2)
+            ctx.fill(shape, with: .color(tint))
+            let span = size.width + 150
+            let head = (t * 90).truncatingRemainder(dividingBy: span) - 75
+            let gradient = Gradient(stops: [
+                .init(color: tint.opacity(0), location: 0),
+                .init(color: tint.opacity(0.85), location: 0.5),
+                .init(color: tint.opacity(0), location: 1),
+            ])
+            ctx.fill(shape, with: .linearGradient(gradient,
+                                                  startPoint: CGPoint(x: head - 38, y: 0),
+                                                  endPoint: CGPoint(x: head + 38, y: 0)))
+        }
+        .frame(width: width, height: Self.barHeight)
     }
 }
 

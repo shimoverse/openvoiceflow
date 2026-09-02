@@ -31,7 +31,14 @@ def compile_and_run_swift(tmp_path: Path, sources: list[Path], harness_source: s
 
 
 def test_copy_feedback_moves_between_rows_and_self_dismisses(tmp_path: Path) -> None:
-    """A stale timer must not clear a newer row's acknowledgement."""
+    """A stale timer must not clear a newer row's acknowledgement.
+
+    The three delays only have to keep one ordering — the second row's own timer
+    fires inside the wait, the first row's cannot — so they are sized for the
+    slowest runner rather than the fastest. An earlier version proved the same
+    thing with 10 ms / 30 ms / 80 ms and failed in CI when the scheduler took
+    longer than 20 ms to run a due task. Widen these before tightening them.
+    """
     compile_and_run_swift(
         tmp_path,
         [NATIVE_SOURCES / "HistoryCopyFeedback.swift"],
@@ -46,17 +53,17 @@ struct Runner {
         let second = UUID()
         let feedback = HistoryCopyFeedback()
 
-        feedback.markCopied(first, dismissAfterNanoseconds: 80_000_000)
+        feedback.markCopied(first, dismissAfterNanoseconds: 800_000_000)
         let firstIsCopied = feedback.isCopied(first)
         precondition(firstIsCopied)
 
-        feedback.markCopied(second, dismissAfterNanoseconds: 10_000_000)
+        feedback.markCopied(second, dismissAfterNanoseconds: 100_000_000)
         let firstWasCleared = !feedback.isCopied(first)
         let secondIsCopied = feedback.isCopied(second)
         precondition(firstWasCleared)
         precondition(secondIsCopied)
 
-        try? await Task.sleep(nanoseconds: 30_000_000)
+        try? await Task.sleep(nanoseconds: 400_000_000)
         let secondWasDismissed = !feedback.isCopied(second)
         precondition(secondWasDismissed)
     }

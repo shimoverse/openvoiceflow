@@ -1,5 +1,6 @@
 """Behavior contracts for native leaderboard identity and failure handling."""
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -148,11 +149,18 @@ def test_masked_tail_respects_reduce_motion() -> None:
     assert "rows(t: 0)" in tail
 
 
-def test_reveal_milestone_matches_the_server() -> None:
-    """The footnote is a claim about api/leaderboard.js, so it has to track it."""
-    dashboard = (NATIVE_SOURCES / "DashboardView.swift").read_text(encoding="utf-8")
-    api = (ROOT / "api" / "leaderboard.js").read_text(encoding="utf-8")
+def test_card_does_not_publish_the_reveal_threshold() -> None:
+    """Naming the bar lets a reader turn visible names back into a population.
 
-    assert "const REVEAL_MINUTES_SAVED = 60;" in api
-    assert "private static let revealMilestoneMinutes = 60" in dashboard
-    assert "Only the leaders past 1 hour saved are named." in dashboard
+    api/leaderboard.js reveals only rows past REVEAL_MINUTES_SAVED. Printing
+    that bar in the card would have told anyone counting the names exactly what
+    they were counting — people past an hour — which is most of the way back to
+    the headcount the fixed-height board is there to hide.
+    """
+    dashboard = (NATIVE_SOURCES / "DashboardView.swift").read_text(encoding="utf-8")
+    pane = dashboard.split("// MARK: Leaderboard", 1)[1].split("// MARK: Personalize", 1)[0]
+    strings = re.findall(r'Text\("((?:[^"\\]|\\.)*)"', pane)
+
+    for shown in strings:
+        assert "hour" not in shown.lower(), f"card copy states the reveal bar: {shown!r}"
+        assert "60" not in shown, f"card copy states the reveal bar: {shown!r}"

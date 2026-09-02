@@ -640,16 +640,12 @@ struct DashboardView: View {
     // The masking is honest about what it is. A masked slot carries no rank, no
     // name and no total, and the tail fades out instead of ending on a hard
     // edge: it is an ellipsis, not an assertion that some specific person sits
-    // there. The card says the reveal rule out loud for the same reason — once
-    // a reader knows names unlock at an hour, a short list of names means "few
-    // people past the milestone" rather than "few people here".
+    // there. Nothing here explains the reveal rule either — stating the bar
+    // ("named past an hour saved") would have let a reader turn the names they
+    // can see back into a population, which is the leak this closes.
 
     /// Rows the card always draws, named or masked.
     private static let boardSlots = 7
-
-    /// Mirrors `REVEAL_MINUTES_SAVED` in `api/leaderboard.js`. If that bar
-    /// moves, this moves with it — the footnote is a claim about the server.
-    private static let revealMilestoneMinutes = 60
 
     @ViewBuilder private var leaderboardPane: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -718,30 +714,9 @@ struct DashboardView: View {
                 Rectangle().fill(hair).frame(height: 1)
                 leaderboardRow(rank: you.rank, name: you.displayName, minutes: you.minutesSaved, isYou: true)
             }
-            Rectangle().fill(hair).frame(height: 1)
-            leaderboardFootnote(you: board.you)
         }
         .padding(.horizontal, 20).padding(.vertical, 8)
         .background(cardBackground)
-    }
-
-    /// The masked rows above are only readable as privacy once the rule behind
-    /// them is stated, so it ships with them rather than in a docs page.
-    @ViewBuilder private func leaderboardFootnote(you: YouRow?) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 6) {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 9)).foregroundStyle(ink3)
-                Text("Only the leaders past 1 hour saved are named. Everyone else stays anonymous.")
-                    .font(.system(size: 11)).foregroundStyle(ink3)
-            }
-            if let you, you.minutesSaved < Self.revealMilestoneMinutes {
-                Text("\(Self.hoursMinutes(Self.revealMilestoneMinutes - you.minutesSaved)) more saved and you're eligible to be named.")
-                    .font(.system(size: 11)).foregroundStyle(ink3)
-                    .padding(.leading, 15)
-            }
-        }
-        .padding(.vertical, 10)
     }
 
     /// Faint enough to read as a redaction, solid enough not to look broken.

@@ -1057,12 +1057,12 @@ PAGES["privacy-architecture"] = {
         <p>Set cleanup to <strong>None</strong> (the default) or <strong>Ollama</strong>, and the cleanup row never happens. Turn off automatic updates and the update-check row stops too. Turn off usage sharing and the fourth row stops immediately — nothing queues up and sends later.</p>
 
         <h2 id="analytics">Analytics &amp; leaderboard</h2>
-        <p>Since <strong>0.5.7</strong>, the app can share an anonymous usage summary to power an in-app leaderboard ranked by time saved. This is a real change from earlier versions, which sent nothing — it's on by default, and this section says exactly what that means.</p>
+        <p>Since <strong>0.5.7</strong>, the app can share an anonymous usage summary to power an in-app leaderboard ranked by time back (typing time avoided, not a net saving — see the dashboard manual). This is a real change from earlier versions, which sent nothing — it's on by default, and this section says exactly what that means.</p>
         <p><strong>Turning it off:</strong> Settings ▸ Privacy ▸ <em>&ldquo;Share anonymous usage &amp; leaderboard rank&rdquo;</em>. Off stops every request in the row above; nothing is cached to send later.</p>
         <p><strong>What's sent, when it's on:</strong></p>
         <ul>
           <li>A random device ID generated for this installation (not tied to your Apple ID, email, or any account — there is no account) and a display name you can change, shown to other users on the leaderboard. Installations remain separate even when they use the same nickname, so three computers produce three independent rows.</li>
-          <li>Aggregate counters already shown on your Home pane: total words dictated, total time saved, your streak, and which features are on (cleanup enabled, snippet/dictionary counts, whether you've run Know-Me) — counts only, never contents.</li>
+          <li>Aggregate counters already shown on your Home pane: total words dictated, total time back, your streak, and which features are on (cleanup enabled, snippet/dictionary counts, whether you've run Know-Me) — counts only, never contents.</li>
           <li>Your country, derived server-side from the request at the moment it arrives. Your IP address itself is never logged or stored.</li>
         </ul>
         <p>Aggregate totals sync periodically during active dictation. Opening Leaderboard sends the same aggregate snapshot before fetching standings, so saved local totals can restore that installation's row. Changing a nickname also sends the snapshot once when you press Return or leave the field; individual keystrokes are not uploaded.</p>

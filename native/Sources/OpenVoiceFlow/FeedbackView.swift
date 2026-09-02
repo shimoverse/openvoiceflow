@@ -126,7 +126,7 @@ struct FeedbackView: View {
             "  App version: \(snapshot.appVersion)",
             "  Using since: \(snapshot.usingSince)",
             "  Total words dictated: \(snapshot.totalWords)",
-            "  Total time saved: \(snapshot.timeSaved)",
+            "  Total time back: \(snapshot.timeBack)",
             "  Current streak: \(snapshot.streakDays) day(s)",
             "  Last 7 days (minutes returned): \(snapshot.lastWeekMinutes.map(String.init).joined(separator: ", "))",
             "  Total takes recorded: \(snapshot.totalTakes)",
@@ -142,7 +142,7 @@ struct UsageSnapshot {
     let appVersion: String
     let usingSince: String
     let totalWords: Int
-    let timeSaved: String
+    let timeBack: String
     let streakDays: Int
     let lastWeekMinutes: [Int]
     let totalTakes: Int
@@ -160,7 +160,7 @@ struct UsageSnapshot {
         }
         totalWords = history.totalWords
         let minutes = history.totalMinutes
-        timeSaved = minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m" : "\(minutes)m"
+        timeBack = minutes >= 60 ? "\(minutes / 60)h \(minutes % 60)m" : "\(minutes)m"
         streakDays = history.streak
         lastWeekMinutes = history.minutesLastWeek
         totalTakes = history.entries.count

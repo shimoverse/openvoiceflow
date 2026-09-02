@@ -649,7 +649,7 @@ struct DashboardView: View {
 
     @ViewBuilder private var leaderboardPane: some View {
         VStack(alignment: .leading, spacing: 14) {
-            paneTitle("Leaderboard", "Ranked by time saved. Your name is the one you set in Settings.")
+            paneTitle("Leaderboard", "Ranked by time back. Your name is the one you set in Settings.")
             if !controller.settings.shareAnalytics {
                 emptyPanel(
                     title: "Sharing is off",
@@ -739,7 +739,7 @@ struct DashboardView: View {
                     .background(RoundedRectangle(cornerRadius: 5).fill(DT.emberWave.opacity(0.12)))
             }
             Spacer()
-            Text(Self.hoursMinutes(minutes) + " saved")
+            Text(Self.hoursMinutes(minutes) + " back")
                 .font(.system(size: 12.5, weight: .medium)).foregroundStyle(ink2)
         }
         .padding(.vertical, 11)

@@ -306,8 +306,15 @@ final class HistoryStore: ObservableObject {
     // MARK: minutes
     //
     // Words are the app's unit; nobody wants more words. Minutes returned is
-    // the thing worth counting, at the same 40 wpm divisor "time saved" uses so
+    // the thing worth counting, at the same 40 wpm divisor "time back" uses so
     // the two figures can never disagree.
+    //
+    // This is typing time avoided — how long the same words would have taken to
+    // type — not a net saving. Dictating them took real time too, and nothing
+    // here subtracts it. Every surface therefore says "time back", never
+    // "saved"; onboarding shows both numbers side by side rather than the
+    // difference. The wire field and column stay `minutesSaved`/`minutes_saved`
+    // for compatibility with already-shipped clients.
     static let wordsPerMinute = 40.0
 
     static func minutes(fromWords words: Int) -> Int {

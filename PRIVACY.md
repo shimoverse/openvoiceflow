@@ -34,7 +34,7 @@ Everything OpenVoiceFlow knows about you lives in one of the rows below.
 | **Snippets** | App Application Support folder | Voice triggers and their expansions. May contain signature blocks. | Empty until you add snippets | **No** — but expansions become part of dictated text and follow whatever path you've set for that text. |
 | **History / stats** | App Application Support folder | Recent dictations and aggregate counters | Local | **No.** Never sent anywhere. |
 | **Sparkle update check** | In transit to the appcast host | A request for the update feed to see if a newer signed build exists | On by default | **Yes** — an anonymous request for the update manifest. No PII, no key, no user ID. |
-| **Anonymous usage summary** | App Application Support folder (device ID + display name), synced to our leaderboard API | Total words, total time saved, streak, feature-usage counts, a random device ID, a display name you choose | **On by default** since v0.5.7 — toggle in Settings ▸ Privacy | **Yes, if the toggle is on.** Never dictated text, snippets, dictionary, or profile content. Country is derived server-side from the request; no IP address is stored. |
+| **Anonymous usage summary** | App Application Support folder (device ID + display name), synced to our leaderboard API | Total words, total time back, streak, feature-usage counts, a random device ID, a display name you choose | **On by default** since v0.5.7 — toggle in Settings ▸ Privacy | **Yes, if the toggle is on.** Never dictated text, snippets, dictionary, or profile content. Country is derived server-side from the request; no IP address is stored. |
 
 ### Data flow for a single dictation
 
@@ -121,7 +121,7 @@ Anything you've already sent to OpenRouter lives by that provider's retention po
 **In-app usage summary & leaderboard (since v0.5.7).** With "Share anonymous usage & leaderboard rank" on in Settings ▸ Privacy — **on by default** — the app periodically sends:
 
 - A random device ID generated for this installation, and a display name you choose (shown to other users on the leaderboard). There is no account: installations remain separate even when they use the same nickname, so three computers produce three independent leaderboard rows.
-- Aggregate counters: total words dictated, total time saved, streak, and which features are on (cleanup enabled, snippet/dictionary counts, whether you've completed Know Me) — counts only, never content.
+- Aggregate counters: total words dictated, total time back, streak, and which features are on (cleanup enabled, snippet/dictionary counts, whether you've completed Know Me) — counts only, never content.
 - Your country, derived server-side from the request at the moment it arrives. We do not log or store your IP address.
 
 This never includes dictated text, snippets, dictionary entries, Know-Me profile content, or anything from the cleanup path. Aggregate totals sync periodically during active dictation. Opening Leaderboard sends the same aggregate snapshot before fetching standings, so saved local totals can restore that installation's row. Changing a nickname also sends the snapshot once when you press Return or leave the field; individual keystrokes are not uploaded. Turn the toggle off and every one of these requests stops immediately — nothing queues up to send later. The leaderboard itself does not disclose how many people use OpenVoiceFlow in total.

@@ -164,3 +164,38 @@ def test_card_does_not_publish_the_reveal_threshold() -> None:
     for shown in strings:
         assert "hour" not in shown.lower(), f"card copy states the reveal bar: {shown!r}"
         assert "60" not in shown, f"card copy states the reveal bar: {shown!r}"
+
+
+def test_time_back_is_never_called_time_saved() -> None:
+    """The figure is typing time avoided, not a net saving.
+
+    minutes(fromWords:) divides the word count by 40 wpm — how long the same
+    words would have taken to type. Nothing subtracts the time dictating them
+    actually took, so the difference is not a saving and the UI must not call it
+    one. Home ("TIME BACK", "you didn't spend typing"), onboarding ("You spoke
+    for 4 seconds. Typing that would have taken 18.") and the dashboard manual
+    all say this carefully; the leaderboard used to say "saved" and overstated
+    the same number.
+
+    The wire field and column stay minutesSaved/minutes_saved — renaming those
+    would break already-shipped clients — so this pins the copy, not the schema.
+    """
+    sources = {
+        name: (NATIVE_SOURCES / name).read_text(encoding="utf-8")
+        for name in ("DashboardView.swift", "FeedbackView.swift", "OnboardingView.swift")
+    }
+
+    for name, text in sources.items():
+        shown = re.findall(r'Text\("((?:[^"\\]|\\.)*)"', text)
+        shown += re.findall(r'paneTitle\("[^"]*",\s*"((?:[^"\\]|\\.)*)"', text)
+        for line in shown:
+            assert "time saved" not in line.lower(), f"{name} calls time back a saving: {line!r}"
+
+    dashboard = sources["DashboardView.swift"]
+    assert 'paneTitle("Leaderboard", "Ranked by time back.' in dashboard
+    assert 'Text(Self.hoursMinutes(minutes) + " back")' in dashboard
+
+    # The divisor still has to be the single source both figures share.
+    stores = (NATIVE_SOURCES / "FeatureStores.swift").read_text(encoding="utf-8")
+    assert "static let wordsPerMinute = 40.0" in stores
+    assert "Int((Double(words) / wordsPerMinute).rounded())" in stores

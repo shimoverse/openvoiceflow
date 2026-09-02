@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.20] — 2026-09-02
+
 ### Changed
 - The leaderboard now labels its figure "time back" instead of "time saved", matching Home, onboarding, and the manual. The number is how long the same words would have taken to type at 40 wpm; nothing subtracts the time dictating them actually took, so calling it a saving overstated it. The number itself is unchanged, as are the `minutesSaved` field and `minutes_saved` column that already-shipped clients depend on.
 

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The leaderboard now draws a fixed seven rows whatever the standings return, so the height of the card no longer reveals how many people use OpenVoiceFlow. Rows the service doesn't name are masked — a shimmering placeholder with no rank, name, or total — and the tail fades out rather than ending on a countable last row. The card states no rule and shows no threshold: naming the bar would let anyone counting the visible names work out what population they were counting.
+
 ## [0.5.18] — 2026-08-31
 
 ### Fixed

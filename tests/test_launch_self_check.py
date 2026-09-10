@@ -18,6 +18,15 @@ def stub_validate_setup_inputs(monkeypatch, tmp_path):
     # Build an OpenVoiceFlow instance with a synthetic config — no real recorder.
     monkeypatch.setattr(appmod, "AudioRecorder", lambda *a, **kw: object())
 
+    # Never touch macOS TCC from a test: no AXIsProcessTrusted / IOHIDCheckAccess,
+    # and never pop the consent dialog or open System Settings. Without these
+    # stubs the happy path only passes on Macs where the interpreter already
+    # holds Accessibility trust. Tests that need the failure path override
+    # ``_is_accessibility_trusted`` themselves.
+    monkeypatch.setattr(appmod, "_is_accessibility_trusted", lambda: True)
+    monkeypatch.setattr(appmod, "_prompt_accessibility_consent", lambda: None)
+    monkeypatch.setattr(appmod.platform_support, "input_monitoring_status", lambda: None)
+
     return appmod
 
 

@@ -8,7 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.25] — 2026-09-12
+
+### Added
+- **The install DMG window is no longer bare.** It now shows the background artwork it shipped with but never displayed — a dotted arrow leading from the app icon to Applications — with both icons positioned along it and the toolbar hidden. A missing Finder Automation permission degrades to the old plain window instead of failing the build.
+- **Double-click the app in the DMG and it installs itself.** It copies itself into /Applications, relaunches from there, and ejects the disk image — no separate drag step, no hunting through Spotlight afterward. Dragging the icon onto the Applications shortcut by hand still works exactly as before. Guards against replacing a running installed copy, downgrading a newer install, or leaving a half-copied app behind on a failed copy.
+
 ### Changed
+- Onboarding now starts the speech-engine download from the engine already recommended for the Mac (Large Turbo on capable Apple Silicon, Small otherwise) instead of waiting for a tap on an empty picker — still freely overridable. The footer's blank "waiting on your pick" text during the download is now a greyed-out "Try it" pill that fills in step with the transfer.
 - Current source and future releases are now offered under the OpenVoiceFlow Personal and Reciprocal Source License 1.0: use is free for personal purposes only; commercial or organizational use requires separate written permission or a separate written license from Shimoverse Studios. Every Integration must visibly credit OpenVoiceFlow with a link to the original code, including an independent program that merely communicates with an unmodified build through a documented interface. Only a Covered Work that is distributed or offered over a network must publish complete Corresponding Source under the same license. Earlier versions already released under MIT remain available under their original terms, and retained third-party contribution portions remain separately identified under MIT.
 
 ## [0.5.24] — 2026-09-06

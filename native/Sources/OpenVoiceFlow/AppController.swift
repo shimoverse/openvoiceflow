@@ -42,6 +42,7 @@ final class AppController: ObservableObject {
     /// the same opt-out switch as the rest of the analytics payload.
     let usageCounters = UsageCounters()
     let analyticsClient = AnalyticsClient()
+    let referralClient = ReferralClient()
 
     /// Today's dictated words — read straight from the persisted stats.
     var wordsToday: Int { historyStore.wordsToday }
@@ -77,6 +78,8 @@ final class AppController: ObservableObject {
         self.settings = settings
         self.hotkey = HotkeyEngine(hotkey: settings.hotkey)
         self.transcriber = Transcriber(model: settings.whisperModel)
+        // Best-effort, once per installation — see ReferralAttributionCapture.
+        ReferralAttributionCapture.captureIfNeeded(ownDeviceId: analyticsIdentity.identity.deviceId)
         hotkey.onPress = { [weak self] in self?.startRecording() }
         hotkey.onRelease = { [weak self] in self?.stopAndProcess() }
         audio.onLevel = { [weak self] level in

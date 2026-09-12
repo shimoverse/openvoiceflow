@@ -25,6 +25,7 @@ struct DashboardView: View {
     @State private var personalizeTab: PersonalizeTab = .dictionary
     @State private var showInterview = false
     @State private var showFeedback = false
+    @State private var showShare = false
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
     @State private var showDeleteHistory = false
     @State private var leaderboardNameDraft: String
@@ -209,6 +210,25 @@ struct DashboardView: View {
             .buttonStyle(.plain)
             .sheet(isPresented: $showFeedback) {
                 FeedbackView(controller: controller, onDismiss: { showFeedback = false })
+            }
+
+            Button {
+                usageCounters.record(.shareOpened)
+                showShare = true
+            } label: {
+                HStack(spacing: 8) {
+                    Circle().fill(.clear).frame(width: 6, height: 6)
+                    Text("Share")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(ink)
+                    Spacer()
+                }
+                .padding(.vertical, 7)
+                .padding(.horizontal, 10)
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showShare) {
+                ShareView(controller: controller, onDismiss: { showShare = false })
             }
 
             Button { pane = .leaderboard } label: {

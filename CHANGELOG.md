@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Share OpenVoiceFlow.** A new Share sheet builds a referral link out of your existing anonymous leaderboard identity and offers the standard macOS share sheet (Mail, Messages, AirDrop, Copy Link) to send it. Opening the link and installing afterward are counted toward that link's stats, shown back in the same sheet — link opens and installs, nothing else. Rides the existing "Share anonymous usage & leaderboard rank" toggle: off, no link and no tracking. See [`PRIVACY.md`](PRIVACY.md) §7.
+
 ## [0.5.25] — 2026-09-12
 
 ### Added

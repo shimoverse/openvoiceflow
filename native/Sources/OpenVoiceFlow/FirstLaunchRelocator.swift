@@ -42,7 +42,6 @@ enum FirstLaunchRelocator {
             // A stale DMG must never downgrade (or needlessly rewrite) an equal
             // or newer installed build. Launch what is already installed.
             relaunch(destination, sourceMount: sourceMount)
-            NSApplication.shared.terminate(nil)
             return true
         }
 
@@ -79,7 +78,6 @@ enum FirstLaunchRelocator {
         }
 
         relaunch(destination, sourceMount: sourceMount)
-        NSApplication.shared.terminate(nil)
         return true
         #endif
     }
@@ -110,12 +108,19 @@ enum FirstLaunchRelocator {
 
     private static func relaunch(_ destination: URL, sourceMount: URL?) {
         let configuration = NSWorkspace.OpenConfiguration()
+        // The source process has the same bundle identifier, so a normal open
+        // can merely reactivate the DMG instance. Force one installed instance,
+        // then keep this process alive until Launch Services completes the handoff.
+        configuration.createsNewApplicationInstance = true
         if let sourceMount {
             configuration.arguments = [relocatedMarkerArgument, sourceMount.path]
         }
         NSWorkspace.shared.openApplication(at: destination, configuration: configuration) { _, error in
             if let error {
                 logger.error("relaunch from /Applications failed: \(error.localizedDescription, privacy: .public)")
+            }
+            Task { @MainActor in
+                NSApplication.shared.terminate(nil)
             }
         }
     }

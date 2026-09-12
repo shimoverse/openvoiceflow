@@ -122,6 +122,13 @@ final class AnalyticsClient: ObservableObject {
         if let firstUse = settings.firstUseDate {
             body["firstUseDate"] = ISO8601DateFormatter().string(from: firstUse)
         }
+        // Resent on every sync until the server accepts it — harmless, since
+        // the first sync to report a referrer is the one that sticks (see
+        // upsertDevice in the openvoiceflow-web repo). See ReferralStore.swift.
+        if let pending = ReferralAttributionCapture.pending {
+            body["referredBy"] = pending.referredBy
+            body["referredBySig"] = pending.sig
+        }
 
         var req = URLRequest(url: baseURL.appending(path: "api/analytics/ingest"))
         req.httpMethod = "POST"

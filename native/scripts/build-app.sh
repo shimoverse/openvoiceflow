@@ -130,7 +130,13 @@ BG_IMAGE="$HERE/assets/dmg-bg@2x.png"
 rm -rf "$STAGE"; mkdir -p "$STAGE/.background"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
-[[ -f "$BG_IMAGE" ]] && cp "$BG_IMAGE" "$STAGE/.background/background.png"
+if [[ -f "$BG_IMAGE" ]]; then
+  # Finder displays DMG backgrounds at one image pixel per layout point; unlike
+  # app assets it does not interpret @2x filename semantics. Keep the high-res
+  # source in git, but stage a 660×400 copy so the artwork is not cropped to
+  # its upper-left quadrant in the 660×422 Finder window.
+  sips -z 400 660 "$BG_IMAGE" --out "$STAGE/.background/background.png" >/dev/null
+fi
 
 RW_DMG="$BUILD_DIR/OpenVoiceFlow-rw.dmg"
 rm -f "$RW_DMG"
@@ -140,32 +146,64 @@ hdiutil create -volname "$VOLNAME" -srcfolder "$STAGE" -ov -fs HFS+ \
   -format UDRW -size 500m "$RW_DMG" >/dev/null
 
 if [[ -f "$BG_IMAGE" ]]; then
-  hdiutil attach "$RW_DMG" -noautoopen >/dev/null
+  # Parse the actual mount point instead of assuming /Volumes/$VOLNAME. macOS
+  # adds a numeric suffix when that path is already occupied; styling or
+  # detaching by the requested volume name can otherwise target the wrong DMG.
+  ATTACH_PLIST="$BUILD_DIR/dmg-attach.plist"
+  hdiutil attach "$RW_DMG" -noautoopen -plist > "$ATTACH_PLIST"
+  MOUNT_POINT="$(python3 - "$ATTACH_PLIST" <<'PY'
+import plistlib
+import sys
+
+with open(sys.argv[1], "rb") as handle:
+    payload = plistlib.load(handle)
+mounts = [
+    entity["mount-point"]
+    for entity in payload.get("system-entities", [])
+    if entity.get("mount-point")
+]
+if not mounts:
+    raise SystemExit("hdiutil attach returned no mount point")
+print(mounts[-1])
+PY
+)"
+  cleanup_mount() {
+    [[ -n "${MOUNT_POINT:-}" ]] || return 0
+    hdiutil detach "$MOUNT_POINT" >/dev/null 2>&1 \
+      || hdiutil detach "$MOUNT_POINT" -force >/dev/null 2>&1 \
+      || true
+  }
+  trap cleanup_mount EXIT
+
   echo "▸ Styling the DMG window"
   # A stray/first-run Automation permission prompt for Finder would hang here
   # forever with no one to click it — bound the wait so that case degrades to
   # an unstyled DMG instead of stalling the whole release.
-  osascript <<OSA &
-tell application "Finder"
-    tell disk "$VOLNAME"
-        open
-        set current view of container window to icon view
-        set toolbar visible of container window to false
-        set statusbar visible of container window to false
-        set the bounds of container window to {200, 120, 860, 542}
-        set theViewOptions to icon view options of container window
-        set arrangement of theViewOptions to not arranged
-        set icon size of theViewOptions to 128
-        set text size of theViewOptions to 12
-        set background picture of theViewOptions to file ".background:background.png"
-        set position of item "OpenVoiceFlow.app" of container window to {165, 155}
-        set position of item "Applications" of container window to {495, 155}
-        close
-        open
-        update without registering applications
-        delay 2
+  osascript - "$MOUNT_POINT" <<'OSA' &
+on run argv
+    set mountPoint to item 1 of argv
+    set dmgFolder to POSIX file mountPoint as alias
+    tell application "Finder"
+        tell folder dmgFolder
+            open
+            set current view of container window to icon view
+            set toolbar visible of container window to false
+            set statusbar visible of container window to false
+            set the bounds of container window to {200, 120, 860, 542}
+            set theViewOptions to icon view options of container window
+            set arrangement of theViewOptions to not arranged
+            set icon size of theViewOptions to 128
+            set text size of theViewOptions to 12
+            set background picture of theViewOptions to file ".background:background.png"
+            set position of item "OpenVoiceFlow.app" to {165, 155}
+            set position of item "Applications" to {495, 155}
+            close
+            open
+            update without registering applications
+            delay 2
+        end tell
     end tell
-end tell
+end run
 OSA
   osa_pid=$!
   waited=0
@@ -175,9 +213,14 @@ OSA
   if kill -0 "$osa_pid" 2>/dev/null; then
     echo "::warning::DMG styling timed out after 30s (Finder Automation permission?) — shipping an unstyled window"
     kill "$osa_pid" 2>/dev/null || true
+    wait "$osa_pid" 2>/dev/null || true
+  elif ! wait "$osa_pid"; then
+    echo "::warning::DMG styling failed — shipping an unstyled window"
   fi
   sync
-  hdiutil detach "/Volumes/$VOLNAME" >/dev/null 2>&1 || hdiutil detach "/Volumes/$VOLNAME" -force >/dev/null 2>&1 || true
+  cleanup_mount
+  MOUNT_POINT=""
+  trap - EXIT
 fi
 
 hdiutil convert "$RW_DMG" -format UDZO -ov -o "$DMG" >/dev/null

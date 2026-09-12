@@ -49,7 +49,7 @@ WAVE_STROKE_PT = 3.4
 WAVE_DASH_PT = (0.5, 9)         # stroke-dasharray: 0.5 9 — a dotted leader
 CAPTION1_PT = 15.0              # weight 600, letter-spacing −0.01em
 CAPTION2_PT = 12.5              # regular
-CAPTION1_BASELINE_FRAC = 0.09   # baseline 9% up from the bottom
+CAPTION1_BASELINE_FRAC = 0.115  # 11.5% up leaves safe breathing room in Finder
 
 FONT_REG = os.environ.get("OVF_DMG_FONT", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
 FONT_BOLD = os.environ.get("OVF_DMG_FONT_BOLD", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")

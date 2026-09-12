@@ -51,6 +51,13 @@ permission or a separate written license from Shimoverse Studios. Contact
 - where procurement, support, warranty, indemnity, or other commercial terms are
   required.
 
+If you start a commercial or organizational use in good faith and email us, you
+are covered while we sort it out: Section 4.1 of the license gives you thirty
+days from the date of your request, or until we reply, whichever is later. You do
+not have to stop using OpenVoiceFlow while waiting on an answer. That grace
+period is one per organization, not one per person, and it does not suspend the
+credit and source-sharing conditions in Section 5.
+
 Shimoverse Studios can provide separate commercial or organizational terms,
 including negotiated closed-source rights where appropriate. Receiving the
 source, downloading a build, publishing modifications, or making a contribution

@@ -2,11 +2,13 @@
 """Render native/assets/dmg-bg@2x.png — the DMG window background.
 
 Every value here comes from the phase-06 handoff (T1). The ground, the dotted
-ember wave and the chevron are unchanged from the shipped asset; only the
-caption changed, from a checksum note nobody reads off a disk image to the two
-lines that pre-empt Gatekeeper:
+ember wave and the chevron are unchanged from the shipped asset. The caption
+was rewritten again once the app learned to move and relaunch itself
+(FirstLaunchRelocator): double-clicking the icon right here now finishes the
+install on its own, so that's the instruction that leads, with the drag as a
+fallback for anyone who'd rather do it by hand:
 
-    Then open it from Applications.
+    Double-click to install — or drag to Applications.
     macOS can't launch me itself. If it says "downloaded from the Internet",
     click Open.
 
@@ -52,7 +54,7 @@ CAPTION1_BASELINE_FRAC = 0.09   # baseline 9% up from the bottom
 FONT_REG = os.environ.get("OVF_DMG_FONT", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
 FONT_BOLD = os.environ.get("OVF_DMG_FONT_BOLD", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
 
-LINE1 = "Then open it from Applications."
+LINE1 = "Double-click to install — or drag to Applications."
 LINE2 = 'macOS can’t launch me itself. If it says “downloaded from the Internet”, click Open.'
 
 

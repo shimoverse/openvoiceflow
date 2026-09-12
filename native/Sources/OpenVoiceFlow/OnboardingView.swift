@@ -68,6 +68,9 @@ struct OnboardingView: View {
     /// Download progress, mirrored up from the step so the footer can show it.
     /// Starts as a nudge because nothing downloads until an engine is chosen.
     @State private var downloadPercent = "waiting on your pick"
+    /// Mirrors `DownloadMeter.displayFraction` so the footer's "Try it" pill
+    /// can fill up in step with the transfer instead of sitting there mute.
+    @State private var downloadFraction: Double = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var scheme
 
@@ -123,9 +126,11 @@ struct OnboardingView: View {
             if downloadDone {
                 pill("Try it") { step = 3 }
             } else {
-                // Mirrors the card's status, so the footer never reads 100%
-                // while the button that 100% implies is still missing.
-                quiet(downloadPercent)
+                // A greyed-out pill that fills in step with the transfer —
+                // the destination is on screen the whole time, not just the
+                // instant it's reachable, so the wait reads as progress
+                // toward something rather than a stall with no exit.
+                fillingPill("Try it", fraction: downloadFraction)
             }
         case 3:
             // No pill here at all: the only way forward is to speak (or Skip).
@@ -168,6 +173,29 @@ struct OnboardingView: View {
             .padding(.horizontal, 22).padding(.vertical, 10)
     }
 
+    /// The disabled "Try it" pill during the speech-engine download: same
+    /// shape and label as the live pill, but its fill climbs from empty to
+    /// full with the transfer instead of appearing only once tappable. No
+    /// number on it — the fill itself is the progress readout.
+    private func fillingPill(_ title: String, fraction: Double) -> some View {
+        Text(title)
+            .font(.system(size: 13.5, weight: .semibold))
+            .foregroundStyle(p.ink3)
+            .padding(.horizontal, 22).padding(.vertical, 10)
+            .background(
+                Capsule().fill(p.card)
+                    .overlay(alignment: .leading) {
+                        GeometryReader { geo in
+                            Capsule().fill(p.accent.opacity(0.3))
+                                .frame(width: geo.size.width * max(0, min(1, fraction)))
+                        }
+                    }
+                    .clipShape(Capsule())
+            )
+            .overlay(Capsule().strokeBorder(p.hairline))
+            .animation(DT.spineCurve, value: fraction)
+    }
+
     // MARK: steps
 
     @ViewBuilder private var content: some View {
@@ -175,7 +203,7 @@ struct OnboardingView: View {
         case 0: welcome
         case 1: permissions
         case 2: KnowMeDownloadStep(controller: controller, done: $downloadDone,
-                                   percent: $downloadPercent, palette: p)
+                                   percent: $downloadPercent, fraction: $downloadFraction, palette: p)
         case 3: tryItStep
         default: payoffStep
         }
@@ -700,6 +728,8 @@ private struct KnowMeDownloadStep: View {
     @ObservedObject var controller: AppController
     @Binding var done: Bool
     @Binding var percent: String
+    /// Mirrors `meter.displayFraction` up to the footer's filling pill.
+    @Binding var fraction: Double
     let palette: OBPalette
     @StateObject private var meter = DownloadMeter()
     @State private var failed = false
@@ -710,8 +740,10 @@ private struct KnowMeDownloadStep: View {
     @State private var name = ""
     /// Whether the profile draft has been loaded — see appear().
     @State private var hydrated = false
-    /// The engine the user tapped. Nothing downloads until this is non-nil:
-    /// the choice is theirs, not a silent default.
+    /// The engine driving the current (or about-to-start) download. Defaults
+    /// to the recommended pick on appear rather than waiting for a tap — the
+    /// choice is still entirely the user's, they just start from the best
+    /// answer for this Mac instead of a blank row of radio buttons.
     @State private var selected: String?
     /// Invalidates a superseded download's callbacks when the user switches
     /// engines mid-transfer, so the old transfer can't drive the new bar.
@@ -779,6 +811,16 @@ private struct KnowMeDownloadStep: View {
         }
         .onAppear(perform: appear)
         .onDisappear(perform: persist)
+        // Keeps the footer's filling pill honest through the whole ride,
+        // including the optimizing creep after the transfer itself ends —
+        // that phase has no discrete callback of its own to hang an update
+        // off of, so this is the one thing that has to poll.
+        .task {
+            while !Task.isCancelled {
+                fraction = meter.displayFraction
+                try? await Task.sleep(for: .milliseconds(120))
+            }
+        }
     }
 
     private var engineCard: some View {
@@ -936,11 +978,15 @@ private struct KnowMeDownloadStep: View {
         }
         guard !done, selected == nil else { return }
         // A reinstall already has an engine on disk: no choice to re-litigate,
-        // no bar for something instant — straight to the name.
+        // no bar for something instant — straight to the name. Otherwise
+        // start from the engine recommended for this Mac rather than an
+        // empty picker — a tap on any other row still overrides it freely.
         Task {
             if await controller.isModelReady() {
                 skipProgress = true
                 done = true
+            } else if selected == nil {
+                choose(Self.recommendedEngineID)
             }
         }
     }

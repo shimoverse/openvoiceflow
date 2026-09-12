@@ -56,6 +56,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // First thing, before anything else stands up: if this is a launch
+        // straight off the install DMG, hand off to the copy in /Applications
+        // and stop here — this process is already on its way out.
+        if FirstLaunchRelocator.relocateToApplicationsIfNeeded() { return }
+        // No-op unless this launch was itself the relaunch a relocation just
+        // triggered, in which case the install DMG may still be mounted —
+        // sweep it away rather than leave a stray disk-image icon.
+        FirstLaunchRelocator.ejectStaleInstallVolumesIfAny()
         // The app launches as an accessory (LSUIElement) so the dashboard scene
         // stays dormant; promoting to .regular here adds the Dock icon without
         // auto-presenting that window. Settings ▸ Show in Dock flips it back.

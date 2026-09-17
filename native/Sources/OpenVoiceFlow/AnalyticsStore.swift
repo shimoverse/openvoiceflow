@@ -22,19 +22,28 @@ struct AnalyticsIdentity: Codable, Equatable {
 
 @MainActor
 final class AnalyticsIdentityStore: ObservableObject {
-    @Published var identity: AnalyticsIdentity { didSet { AppSupport.save(identity, to: "analytics_identity.json") } }
+    static let fileName = "analytics_identity.json"
+
+    @Published var identity: AnalyticsIdentity { didSet { AppSupport.save(identity, to: AnalyticsIdentityStore.fileName) } }
 
     init() {
-        if var saved = AppSupport.load(AnalyticsIdentity.self, from: "analytics_identity.json") {
+        if var saved = AppSupport.load(AnalyticsIdentity.self, from: AnalyticsIdentityStore.fileName) {
             let compactName = LeaderboardAlias.compactLegacyDefault(saved.displayName)
             if compactName != saved.displayName {
                 saved.displayName = compactName
-                AppSupport.save(saved, to: "analytics_identity.json")
             }
             identity = saved
         } else {
             identity = AnalyticsIdentityStore.makeIdentity()
         }
+        // Property observers don't fire inside init, so without this a freshly
+        // minted identity lived only in memory. Every launch of an install that
+        // never renamed itself then generated a *new* device ID and uploaded the
+        // same lifetime totals as a brand-new leaderboard row — the "two names,
+        // identical time back" duplicates. Writing here pins the identity to the
+        // install alongside history.json, so a reinstall that finds the existing
+        // data also finds the existing device ID.
+        AppSupport.save(identity, to: AnalyticsIdentityStore.fileName)
     }
 
     private static func makeIdentity() -> AnalyticsIdentity {

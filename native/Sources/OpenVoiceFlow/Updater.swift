@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Foundation
 import Sparkle
@@ -28,6 +29,7 @@ private final class UpdaterProbe: NSObject, SPUUpdaterDelegate {
     var onFound: ((SUAppcastItem) -> Void)?
     var onNotFound: (() -> Void)?
     var onAborted: (() -> Void)?
+    var onReadyToInstall: ((SUAppcastItem, @escaping () -> Void) -> Void)?
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
         onFound?(item)
@@ -45,14 +47,33 @@ private final class UpdaterProbe: NSObject, SPUUpdaterDelegate {
     func updater(_ updater: SPUUpdater, didAbortWithError error: any Error) {
         onAborted?()
     }
+
+    /// Sparkle has downloaded and verified an update and would, by default,
+    /// install it when the app quits. A menu-bar app never quits, so left
+    /// alone the update sat on disk until Sparkle's week-long "impatient"
+    /// interval finally raised a dialog — the "it only updates when I check by
+    /// hand" report. Returning true takes ownership: the controller invokes
+    /// the handler as soon as the app is idle, which installs and relaunches.
+    func updater(
+        _ updater: SPUUpdater,
+        willInstallUpdateOnQuit item: SUAppcastItem,
+        immediateInstallationBlock immediateInstallHandler: @escaping () -> Void
+    ) -> Bool {
+        onReadyToInstall?(item, immediateInstallHandler)
+        return true
+    }
 }
 
 /// In-app updates via Sparkle 2 with an EdDSA-signed appcast.
 ///
 /// `SUFeedURL` (the appcast) and `SUPublicEDKey` (the signature-verification
 /// key) live in Info.plist; the matching private key signs each build in the
-/// release pipeline. Created once at launch so Sparkle polls on its schedule;
-/// the menu-bar "Check for Updates…" item drives a manual check.
+/// release pipeline. Created once at launch. The daily check runs at 3 PM
+/// Pacific (`UpdateSchedule`), catching up on launch or wake if that passed
+/// while the Mac was off; a downloaded update installs and relaunches as soon
+/// as no dictation is in flight. Sparkle's own interval-based scheduler stays
+/// on as a weekly safety net (SUScheduledCheckInterval). The menu-bar "Check
+/// for Updates…" item drives a manual check.
 ///
 /// Ships in the *notarized DMG* path only — a menu-bar app with a global event
 /// tap can't be sandboxed, so it updates itself via Sparkle rather than the App
@@ -88,6 +109,22 @@ final class UpdaterController: ObservableObject {
     /// status it was meant to refresh is dropped rather than left to go stale.
     private var probeAwaitingResult = false
 
+    /// Asked before an automatic install relaunches the app. Set by the app at
+    /// launch to "a dictation is in progress"; a relaunch mid-take would lose
+    /// the take, so the install waits for a quiet moment instead.
+    var isBusy: () -> Bool = { false }
+
+    /// The install handler Sparkle handed over for a downloaded, verified
+    /// update, held until `isBusy` clears. Sparkle allows calling it more than
+    /// once, but one relaunch is all that is wanted, so it is cleared on use.
+    private var pendingInstall: (() -> Void)?
+    private var pendingInstallRetry: Timer?
+
+    /// Fires at the next 3 PM Pacific deadline (UpdateSchedule).
+    private var scheduledCheck: Timer?
+    private var wakeObserver: NSObjectProtocol?
+    private static let lastScheduledCheckKey = "OVFLastScheduledUpdateCheck"
+
     private init() {
         let probe = UpdaterProbe()
         self.probe = probe
@@ -119,6 +156,13 @@ final class UpdaterController: ObservableObject {
             self.probeAwaitingResult = false
             self.clearVerifiedStatus()
         }
+        probe.onReadyToInstall = { [weak self] item, install in
+            guard let self else { return }
+            self.updateAvailable = true
+            self.availableVersion = item.displayVersionString
+            self.pendingInstall = install
+            self.installPendingUpdateWhenIdle()
+        }
         // Honor the user's saved preference for automatic updates.
         apply(automatic: Settings.load().automaticUpdates)
         // Keep the published flag in sync with Sparkle's KVO-observable state.
@@ -132,6 +176,67 @@ final class UpdaterController: ObservableObject {
         // Sparkle explicitly allows a check on the runloop cycle that starts
         // the updater, so the sidebar label is honest from the first window.
         refreshUpdateStatus()
+        // Daily deadline: check now if 3 PM Pacific has passed since the last
+        // scheduled check (a launch at 4 PM catches up), then arm the timer for
+        // the next one. Re-evaluated on wake, since a Timer that slept through
+        // its fire date is not guaranteed to fire promptly.
+        runScheduledCheckIfDue()
+        wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.runScheduledCheckIfDue() }
+        }
+    }
+
+    // MARK: Daily schedule
+
+    /// Runs the background check when a deadline has passed unmet, and always
+    /// (re)arms the timer for the next deadline. Safe to call repeatedly.
+    func runScheduledCheckIfDue(now: Date = Date()) {
+        defer { armScheduledCheck(after: now) }
+        guard controller.updater.automaticallyChecksForUpdates else { return }
+        let last = UserDefaults.standard.object(forKey: Self.lastScheduledCheckKey) as? Date
+        guard UpdateSchedule.isCheckDue(now: now, lastCheck: last) else { return }
+        // Sparkle drops a background check while a session is running (for
+        // instance the launch probe above). The deadline stays unmet, so the
+        // next timer tick or wake retries rather than skipping the day.
+        guard !controller.updater.sessionInProgress else { return }
+        UserDefaults.standard.set(now, forKey: Self.lastScheduledCheckKey)
+        // The background driver, not the probe: with automatic downloads on
+        // this is the path that fetches, verifies and stages the update, and
+        // it ends in `willInstallUpdateOnQuit` above.
+        controller.updater.checkForUpdatesInBackground()
+    }
+
+    private func armScheduledCheck(after now: Date) {
+        scheduledCheck?.invalidate()
+        // A minute past the deadline, so the timer never lands a hair early and
+        // computes "not due yet".
+        let fireAt = UpdateSchedule.nextDeadline(after: now).addingTimeInterval(60)
+        let timer = Timer(fire: fireAt, interval: 0, repeats: false) { [weak self] _ in
+            Task { @MainActor in self?.runScheduledCheckIfDue() }
+        }
+        timer.tolerance = 300
+        RunLoop.main.add(timer, forMode: .common)
+        scheduledCheck = timer
+    }
+
+    // MARK: Automatic install
+
+    /// Installs the staged update the moment nothing would be lost by a
+    /// relaunch; while a dictation is in flight, polls until it is not.
+    private func installPendingUpdateWhenIdle() {
+        pendingInstallRetry?.invalidate()
+        pendingInstallRetry = nil
+        guard let install = pendingInstall else { return }
+        guard !isBusy() else {
+            pendingInstallRetry = Timer.scheduledTimer(withTimeInterval: 15, repeats: false) { [weak self] _ in
+                Task { @MainActor in self?.installPendingUpdateWhenIdle() }
+            }
+            return
+        }
+        pendingInstall = nil
+        install()
     }
 
     /// The running app's marketing version (e.g. "0.4.2"), read from the bundle
@@ -168,7 +273,14 @@ final class UpdaterController: ObservableObject {
         apply(automatic: enabled)
         if enabled {
             refreshUpdateStatus()
+            runScheduledCheckIfDue()
         } else {
+            // Sparkle still installs anything already staged when the app
+            // quits — that is its floor, not ours to lower — but it will not be
+            // relaunched out from under someone who just turned this off.
+            pendingInstall = nil
+            pendingInstallRetry?.invalidate()
+            pendingInstallRetry = nil
             // The status was learned from a check the user has now opted out
             // of; stop asserting it rather than letting it go stale.
             probeAwaitingResult = false

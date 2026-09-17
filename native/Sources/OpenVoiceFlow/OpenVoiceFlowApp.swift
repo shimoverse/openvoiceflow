@@ -69,7 +69,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // auto-presenting that window. Settings ▸ Show in Dock flips it back.
         if controller.settings.showInDock { NSApp.setActivationPolicy(.regular) }
         // Start Sparkle at launch so background appcast checks run on schedule.
-        _ = UpdaterController.shared
+        // An automatic install relaunches the app; never do that mid-take.
+        UpdaterController.shared.isBusy = { [weak controller] in
+            guard let controller else { return false }
+            return controller.isRecording || controller.isWorking
+        }
         #if DEBUG
         let forceOnboarding = ProcessInfo.processInfo.arguments.contains("-ovf-force-onboarding")
         #else

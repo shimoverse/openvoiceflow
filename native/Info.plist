@@ -25,13 +25,16 @@
     <!-- Sparkle in-app updates. The appcast is served from the website root. -->
     <key>SUFeedURL</key><string>https://openvoiceflow.com/appcast.xml</string>
     <key>SUEnableInstallerLauncherService</key><false/>
-    <!-- Keep-me-updated by default: check on launch + once a day, and download
-         AND install new signed builds automatically (applied on the next
-         relaunch) so the user never hunts for a DMG. Sparkle still verifies each
-         build's EdDSA signature + Developer-ID notarization before installing.
-         The user can turn this off in Settings ▸ Automatic updates. -->
+    <!-- Keep-me-updated by default: download AND install new signed builds
+         automatically so the user never hunts for a DMG. The daily check is the
+         app's own (UpdateSchedule: 3 PM Pacific, catching up on launch/wake),
+         and a staged update installs and relaunches as soon as no dictation is
+         in flight (UpdaterController). Sparkle's interval scheduler is kept as
+         a weekly safety net only. Sparkle still verifies each build's EdDSA
+         signature + Developer-ID notarization before installing. The user can
+         turn this off in Settings ▸ Automatic updates. -->
     <key>SUAutomaticallyUpdate</key><true/>
-    <key>SUScheduledCheckInterval</key><integer>86400</integer>
+    <key>SUScheduledCheckInterval</key><integer>604800</integer>
     <!--
       SUPublicEDKey: the EdDSA public key that verifies appcast signatures.
       This is LIVE — the keypair was generated, the private half is the repo

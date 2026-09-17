@@ -53,6 +53,36 @@ struct Runner {
     assert run_result.returncode == 0, run_result.stderr
 
 
+def test_fresh_identity_is_persisted_before_first_sync() -> None:
+    """One install must be one leaderboard row.
+
+    Swift property observers don't run inside init, so an identity generated
+    there is not written by the `didSet`. Until the user renamed themselves the
+    device ID lived only in memory, and every launch minted a new one — the
+    same lifetime totals then appeared under several names with identical
+    "time back". The init has to save unconditionally, after both branches.
+    """
+    analytics = (NATIVE_SOURCES / "AnalyticsStore.swift").read_text(encoding="utf-8")
+    store = analytics.split("final class AnalyticsIdentityStore", 1)[1].split(
+        "private static func makeIdentity()", 1
+    )[0]
+    init_body = store.split("init() {", 1)[1]
+    code = "\n".join(
+        line for line in init_body.splitlines() if not line.lstrip().startswith("//")
+    )
+
+    generated = code.index("identity = AnalyticsIdentityStore.makeIdentity()")
+    saved = code.index("AppSupport.save(identity, to: AnalyticsIdentityStore.fileName)")
+    assert generated < saved, "the generated identity must be written to disk"
+    # The save sits at the init's indentation, i.e. outside the if/else, so it
+    # runs whether the identity was loaded or freshly generated.
+    save_line = next(
+        line for line in code.splitlines()
+        if "AppSupport.save(identity, to: AnalyticsIdentityStore.fileName)" in line
+    )
+    assert len(save_line) - len(save_line.lstrip()) == 8
+
+
 def test_nickname_commit_syncs_once_and_failures_are_retryable() -> None:
     """The field must not upload keystrokes or hide a failed leaderboard request."""
     dashboard = (NATIVE_SOURCES / "DashboardView.swift").read_text(encoding="utf-8")

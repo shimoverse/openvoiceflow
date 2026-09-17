@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Share OpenVoiceFlow.** A new Share sheet builds a referral link out of your existing anonymous leaderboard identity and offers the standard macOS share sheet (Mail, Messages, AirDrop, Copy Link) to send it. Opening the link and installing afterward are counted toward that link's stats, shown back in the same sheet — link opens and installs, nothing else. Rides the existing "Share anonymous usage & leaderboard rank" toggle: off, no link and no tracking. See [`PRIVACY.md`](PRIVACY.md) §7.
 
+### Fixed
+- **One install, one leaderboard row.** A freshly generated leaderboard identity was never written to disk until you renamed yourself, so every launch minted a new anonymous device ID and re-uploaded the same lifetime totals as a brand-new entry — which is why the board could show two random names with exactly the same time back. The identity is now saved the moment it is created, next to your history, so a reinstall that finds your existing data also finds your existing entry. The leaderboard itself now hides repeat snapshots of one install, and rows left behind by earlier builds are cleaned up server-side.
+
 ## [0.5.25] — 2026-09-12
 
 ### Added

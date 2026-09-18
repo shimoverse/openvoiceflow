@@ -10,6 +10,8 @@ import Foundation
 /// change — plus aggregate counters for which panes and features get used
 /// (`UsageCounters`: a fixed set of names and totals, no text, no timestamps).
 /// Never dictation text, snippets, dictionary entries, or the Know-Me profile.
+/// The one free-text field this file ever sends is the comment box on the
+/// satisfaction card (`submitCsat`), and only when the person presses Send.
 /// See the Analytics & leaderboard section of the privacy docs for the exact
 /// wire format.
 
@@ -156,6 +158,39 @@ final class AnalyticsClient: ObservableObject {
             return true
         } catch {
             syncError = "Couldn’t update the leaderboard. Check your connection and try again."
+            return false
+        }
+    }
+
+    /// Sends one satisfaction rating from the CsatView card. Unlike the usage
+    /// sync this is an explicit action — the person pressed Send — so it does
+    /// not ride the sharing toggle; that toggle only decides whether the
+    /// anonymous device ID goes along so the rating can be read next to this
+    /// install's row. `responseId` is minted by the caller and reused on a
+    /// retry, so a dropped connection cannot count a rating twice.
+    func submitCsat(
+        responseId: UUID, rating: Int, comment: String, controller: AppController
+    ) async -> Bool {
+        var body: [String: Any] = [
+            "responseId": responseId.uuidString,
+            "rating": rating,
+            "appVersion": UpdaterController.shared.appVersion,
+        ]
+        let trimmed = comment.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty { body["comment"] = String(trimmed.prefix(CsatView.maxCommentLength)) }
+        if controller.settings.shareAnalytics {
+            body["deviceId"] = controller.analyticsIdentity.identity.deviceId
+        }
+        var req = URLRequest(url: baseURL.appending(path: "api/analytics/csat"))
+        req.httpMethod = "POST"
+        req.timeoutInterval = 10
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        do {
+            let (_, response) = try await URLSession.shared.data(for: req)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return false }
+            return true
+        } catch {
             return false
         }
     }

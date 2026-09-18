@@ -55,6 +55,9 @@ final class UsageCounters: ObservableObject {
         case onboardingCompleted = "action.onboarding_completed"
         case shareOpened = "action.share_opened"
         case referralLinkShared = "action.referral_link_shared"
+        case csatShown = "action.csat_shown"
+        case csatDismissed = "action.csat_dismissed"
+        case csatSubmitted = "action.csat_submitted"
     }
 
     private static let fileName = "usage_counters.json"

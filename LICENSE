@@ -72,6 +72,16 @@ includes, without limitation:
 Commercial or organizational rights require separate written permission or a
 separate written license from Shimoverse Studios. Contact `contact@openvoiceflow.com`.
 
+### 4.1 Grace period while permission is requested
+
+If you begin a commercial or organizational use in good faith and send a written
+request to `contact@openvoiceflow.com`, you may continue that use for thirty days
+after sending the request, or until Shimoverse Studios responds, whichever is
+later. This grace period applies once per organization, not once per person, and
+does not waive the attribution and source-sharing conditions in Section 5. If
+permission is declined, you must stop the commercial or organizational use
+within thirty days of that response.
+
 ## 5. Attribution and source-sharing conditions
 
 If you create a Covered Work or Integration—including a fork, derivative, or

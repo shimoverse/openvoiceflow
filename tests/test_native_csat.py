@@ -36,20 +36,24 @@ struct Runner {
         let day = 86_400.0
         let tenDaysIn = now.addingTimeInterval(-10 * day)
 
+        func show(_ at: Date, first: Date?, takes: Int, next: Date?) -> Bool {
+            CsatPrompt.shouldShow(now: at, firstUseDate: first, dictationsCompleted: takes, nextPromptAt: next)
+        }
+
         // Enough use, never shown → show.
-        precondition(CsatPrompt.shouldShow(now: now, firstUseDate: tenDaysIn, dictationsCompleted: 10, nextPromptAt: nil))
+        precondition(show(now, first: tenDaysIn, takes: 10, next: nil))
         // Too few takes, or too new, or never dictated → no.
-        precondition(!CsatPrompt.shouldShow(now: now, firstUseDate: tenDaysIn, dictationsCompleted: 9, nextPromptAt: nil))
-        precondition(!CsatPrompt.shouldShow(now: now, firstUseDate: now.addingTimeInterval(-2 * day), dictationsCompleted: 50, nextPromptAt: nil))
-        precondition(!CsatPrompt.shouldShow(now: now, firstUseDate: nil, dictationsCompleted: 50, nextPromptAt: nil))
+        precondition(!show(now, first: tenDaysIn, takes: 9, next: nil))
+        precondition(!show(now, first: now.addingTimeInterval(-2 * day), takes: 50, next: nil))
+        precondition(!show(now, first: nil, takes: 50, next: nil))
         // Exactly three days is enough.
-        precondition(CsatPrompt.shouldShow(now: now, firstUseDate: now.addingTimeInterval(-3 * day), dictationsCompleted: 10, nextPromptAt: nil))
+        precondition(show(now, first: now.addingTimeInterval(-3 * day), takes: 10, next: nil))
 
         // Snoozed → no until the date passes.
         let dismissed = CsatPrompt.nextPrompt(afterDismissAt: now)
         precondition(dismissed.timeIntervalSince(now) == 30 * day)
-        precondition(!CsatPrompt.shouldShow(now: now.addingTimeInterval(29 * day), firstUseDate: tenDaysIn, dictationsCompleted: 99, nextPromptAt: dismissed))
-        precondition(CsatPrompt.shouldShow(now: now.addingTimeInterval(30 * day), firstUseDate: tenDaysIn, dictationsCompleted: 99, nextPromptAt: dismissed))
+        precondition(!show(now.addingTimeInterval(29 * day), first: tenDaysIn, takes: 99, next: dismissed))
+        precondition(show(now.addingTimeInterval(30 * day), first: tenDaysIn, takes: 99, next: dismissed))
         // Sending snoozes longer than dismissing.
         let submitted = CsatPrompt.nextPrompt(afterSubmitAt: now)
         precondition(submitted > dismissed)
@@ -61,8 +65,13 @@ struct Runner {
     )
     binary = tmp_path / "csat-contract"
     result = subprocess.run(
-        ["xcrun", "swiftc", "-parse-as-library", str(NATIVE_SOURCES / "CsatPrompt.swift"), str(harness), "-o", str(binary)],
-        text=True, capture_output=True, check=False,
+        [
+            "xcrun", "swiftc", "-parse-as-library",
+            str(NATIVE_SOURCES / "CsatPrompt.swift"), str(harness), "-o", str(binary),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     run_result = subprocess.run([str(binary)], text=True, capture_output=True, check=False)
@@ -120,5 +129,7 @@ def test_celebration_respects_reduce_motion() -> None:
 def test_privacy_policy_documents_the_rating_card() -> None:
     privacy = (ROOT / "PRIVACY.md").read_text(encoding="utf-8")
     section = privacy.split("**Rating the app", 1)[1].split("**Sharing OpenVoiceFlow.**", 1)[0]
-    for phrase in ("press **Send**", "1,000 characters", "device ID", "never shown publicly", "Delete my leaderboard data"):
+    for phrase in (
+        "press **Send**", "1,000 characters", "device ID", "never shown publicly", "Delete my leaderboard data",
+    ):
         assert phrase in section, phrase

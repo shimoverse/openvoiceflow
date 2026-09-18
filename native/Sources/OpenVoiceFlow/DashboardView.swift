@@ -40,7 +40,13 @@ struct DashboardView: View {
     @State private var permissionWatch: Task<Void, Never>?
     /// Checked when Home appears; drives the squeezed-out-icon banner.
     @State private var menuBarIconVisible = true
+    /// The satisfaction card (CsatView) in the bottom-right corner, and the
+    /// window-wide confetti a five-star pick triggers. Eligibility is decided
+    /// once, when the window appears — see CsatPrompt.
+    @State private var showCsat = false
+    @State private var confettiStartedAt: Date?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(controller: AppController) {
         self.controller = controller
@@ -106,10 +112,31 @@ struct DashboardView: View {
                 .background(dark ? DT.winDark : DT.winLight)
         }
         .frame(minWidth: 1000, minHeight: 768)
+        .overlay(alignment: .bottomTrailing) {
+            if showCsat {
+                CsatView(controller: controller) {
+                    withAnimation(reduceMotion ? nil : DT.snap) { showCsat = false }
+                }
+                .padding(20)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .overlay {
+            if let confettiStartedAt {
+                ConfettiBurst(startedAt: confettiStartedAt)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .csatCelebrate)) { _ in
+            // Celebration is not worth a motion trigger.
+            guard !reduceMotion else { return }
+            confettiStartedAt = Date()
+            DispatchQueue.main.asyncAfter(deadline: .now() + ConfettiBurst.duration) { confettiStartedAt = nil }
+        }
         // Re-probe the appcast whenever the window comes back, so the footer
         // reflects a release published since the app launched.
         .onAppear {
             updater.refreshUpdateStatus()
+            offerCsatIfDue()
             // The window opens on Home without a selection change, so count
             // that visit here or Home would look like the least-used pane.
             usageCounters.record(DashboardView.event(for: pane))
@@ -148,6 +175,31 @@ struct DashboardView: View {
         case .settings: return .paneSettings
         case .leaderboard: return .paneLeaderboard
         }
+    }
+
+    /// Show the satisfaction card when CsatPrompt says the person has used
+    /// the app enough to have an opinion, and never over a take in progress.
+    /// The snooze is stamped the moment the card appears, so closing the
+    /// window without touching it still counts as "not now" for a month.
+    private func offerCsatIfDue() {
+        #if DEBUG
+        let forced = ProcessInfo.processInfo.arguments.contains("-ovf-force-csat")
+        #else
+        let forced = false
+        #endif
+        guard forced || CsatPrompt.shouldShow(
+            now: Date(),
+            firstUseDate: controller.settings.firstUseDate,
+            dictationsCompleted: usageCounters.counts[UsageCounters.Event.dictationCompleted.rawValue] ?? 0,
+            nextPromptAt: controller.settings.csatNextPromptAt
+        ) else { return }
+        guard !controller.isRecording, !controller.isWorking else { return }
+        if !forced {
+            controller.settings.csatNextPromptAt = CsatPrompt.nextPrompt(afterDismissAt: Date())
+            controller.settings.save()
+        }
+        usageCounters.record(.csatShown)
+        withAnimation(reduceMotion ? nil : DT.snap) { showCsat = true }
     }
 
     static func event(for tab: PersonalizeTab) -> UsageCounters.Event {

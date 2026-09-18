@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **A quiet way to tell us how it's going.** After a couple of weeks of real use, a small card appears in the corner of the dashboard: one to five stars and an optional comment. Nothing is sent until you press **Send**; "not now" snoozes it for a month, sending for a season. Five stars earns a shower of confetti (skipped under Reduce Motion), and a low rating asks what would make it better — the answer we most want to read. Ratings go to the same server as the anonymous usage summary and, while sharing is on, carry the same device ID so we can read them next to that install's version and tenure; see [`PRIVACY.md`](PRIVACY.md) §7.
+
 ## [0.5.26] — 2026-09-16
 
 ### Added

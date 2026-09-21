@@ -2,10 +2,10 @@
 
 # OpenVoiceFlow
 
-**Free for personal use only: source-available voice dictation for macOS. Hold a key, talk, release — polished text lands in whatever app you're in. Your audio never leaves your Mac.**
+**Free and open source voice dictation for macOS. Hold a key, talk, release — polished text lands in whatever app you're in. Your audio never leaves your Mac.**
 
 [![macOS 14+](https://img.shields.io/badge/macOS-14%2B-black)](https://openvoiceflow.com/download.html)
-[![License](https://img.shields.io/badge/license-Personal%20%26%20Reciprocal%201.0-amber.svg)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/shimoverse/openvoiceflow?filter=native-v*&label=release)](https://github.com/shimoverse/openvoiceflow/releases)
 
 People speak at roughly 150 words a minute and type at roughly 40. OpenVoiceFlow exists because closing that gap shouldn't cost $144 a year or require streaming your voice to someone's cloud. We think voice input should eventually be a default feature of every operating system; until it is, this is our contribution — and contributions are welcome.
@@ -68,22 +68,24 @@ The one-page version: audio on-device always; text to a cloud only if you enable
 
 ## License
 
-OpenVoiceFlow is source-available under the **[OpenVoiceFlow Personal and
-Reciprocal Source License 1.0](LICENSE)**. Personal use only is free under those
-terms. Every integration, fork, derivative, or modified version must visibly
-credit OpenVoiceFlow and link to the original source code. If you distribute a
-derivative or let others use a modified version over a network, you must publish
-its complete source under the same license; the free license does not allow
-closed-source derivatives. Commercial or organizational use requires separate
-written permission or a separate written license from Shimoverse Studios even when the
-source is published. Contact **contact@openvoiceflow.com** before commercial or organizational
-use.
+OpenVoiceFlow is free and open source software under the
+**[GNU Affero General Public License v3.0](LICENSE)** (AGPL-3.0).
 
-Copyright © 2025–2026 **Shimoverse Studios**. Keep the required notices with every
-copy. The source license does not grant rights to the OpenVoiceFlow name or
-logo; derivative distributions and integrations must rebrand where applicable
-and state **"Based on OpenVoiceFlow by Shimoverse Studios"** with a working link
-to the [original source code](https://github.com/shimoverse/openvoiceflow).
-See [LICENSING.md](LICENSING.md), [TRADEMARKS.md](TRADEMARKS.md),
+Use it for anything, including at work, with no permission to ask for and
+nothing to pay. If you convey a modified version, or let people use one over a
+network, the AGPL asks you to publish that version's complete corresponding
+source under the same license. Keep the notices, state **"Based on
+OpenVoiceFlow by Shimoverse Studios"** with a link to the
+[original source](https://github.com/shimoverse/openvoiceflow), and rename your
+fork — the license grants no rights in the OpenVoiceFlow name or logo. Those
+two conditions are additional terms under AGPL Section 7, recorded in
+[NOTICE](NOTICE).
+
+There is no second license and nothing to buy. If you build something on
+OpenVoiceFlow we would like to hear about it at **contact@openvoiceflow.com** —
+a request, not a condition of the license.
+
+Copyright © 2025–2026 **Shimoverse Studios**. See [LICENSING.md](LICENSING.md),
+[TRADEMARKS.md](TRADEMARKS.md),
 [legal/LEGACY_MIT_PORTIONS.md](legal/LEGACY_MIT_PORTIONS.md), and
 [legal/THIRD_PARTY_NOTICES.md](legal/THIRD_PARTY_NOTICES.md).

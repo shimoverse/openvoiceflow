@@ -1,0 +1,82 @@
+OpenVoiceFlow
+Copyright (C) 2025-2026 Shimoverse Studios
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License
+for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program, in the file LICENSE. If not, see
+<https://www.gnu.org/licenses/>.
+
+
+================================================================================
+ADDITIONAL TERMS UNDER SECTION 7 OF THE GNU AGPL VERSION 3
+================================================================================
+
+The following additional terms apply to this program. They are permitted by
+Section 7 of the GNU AGPL version 3 and do not restrict any freedom the
+license grants. If you convey this program, you may remove these terms from
+your own copy, but Section 7 requires that the relevant notices survive where
+the license itself requires their preservation.
+
+1. Attribution (AGPL-3.0 Section 7(b) and 7(c))
+
+   A modified version, a work based on this program, or a distribution of it
+   must preserve the copyright notice above and must state, in a place a user
+   of the work can see:
+
+       Based on OpenVoiceFlow by Shimoverse Studios
+
+   with a working link to the original source code at
+   <https://github.com/shimoverse/openvoiceflow>.
+
+   This is a notice-preservation requirement. It does not restrict use,
+   modification, or redistribution.
+
+2. Trademarks (AGPL-3.0 Section 7(e))
+
+   This license grants no rights in the OpenVoiceFlow name, logo, or visual
+   identity. Those marks are governed separately by TRADEMARKS.md. You may
+   make truthful nominative references to OpenVoiceFlow at any time. You may
+   not name a fork, derivative, or modified build "OpenVoiceFlow", ship one
+   under the OpenVoiceFlow logo, or otherwise imply endorsement or
+   affiliation that does not exist. Rename your fork and use the credit line
+   in term 1 instead.
+
+   Removing or replacing the marks is expressly permitted, and is the
+   intended path for any derivative.
+
+
+================================================================================
+USING OPENVOICEFLOW
+================================================================================
+
+You do not need permission, and there is nothing to buy. The AGPL-3.0 above
+grants everyone -- individuals and organizations alike -- the right to use,
+study, modify and share this program at no cost. Its one substantial
+condition is reciprocal: if you convey a modified version, or make one
+available to users over a network, you must offer those users the complete
+corresponding source under the AGPL-3.0.
+
+If you build something on OpenVoiceFlow, we would genuinely like to hear
+about it at contact@openvoiceflow.com. That is a request and not a condition
+of the license: nothing obliges you to make contact, and choosing not to
+costs you nothing.
+
+
+================================================================================
+EARLIER RELEASES AND THIRD-PARTY MATERIAL
+================================================================================
+
+Versions previously released under other terms remain available under the
+terms that accompanied those copies; those grants cannot be withdrawn. Check
+the LICENSE file in the exact version you use. See legal/LEGACY_MIT_PORTIONS.md
+for preserved MIT provenance, and legal/THIRD_PARTY_NOTICES.md for the
+licenses of third-party components, which are governed by their own terms.

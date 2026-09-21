@@ -7,10 +7,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "openvoiceflow"
 version = "0.3.6"
-description = "Private, local voice dictation for macOS — free for personal use only"
+description = "Private, local voice dictation for macOS — free and open source (AGPL-3.0)"
 readme = "README.md"
-license = "LicenseRef-OpenVoiceFlow-Personal-Reciprocal-1.0"
-license-files = ["LICENSE", "legal/LEGACY_MIT_PORTIONS.md"]
+license = "AGPL-3.0-only"
+license-files = ["LICENSE", "NOTICE", "legal/LEGACY_MIT_PORTIONS.md"]
 authors = [{name = "Shimoverse Studios"}]
 requires-python = ">=3.9"
 keywords = ["voice", "dictation", "speech-to-text", "whisper", "macos", "openvoiceflow"]

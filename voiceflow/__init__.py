@@ -1,4 +1,4 @@
-"""OpenVoiceFlow — source-available dictation, free for personal use only."""
+"""OpenVoiceFlow — free and open source dictation (AGPL-3.0)."""
 
 from __future__ import annotations
 

@@ -1,6 +1,5 @@
-"""Contracts that keep the source-available licensing change coherent."""
+"""Contracts that keep the AGPL-3.0 licensing coherent across every surface."""
 import os
-import re
 from pathlib import Path
 
 import pytest
@@ -29,112 +28,170 @@ def one_line(text: str) -> str:
     return " ".join(text.split())
 
 
-def test_root_license_is_personal_only_reciprocal_and_names_permission_path():
-    license_text = one_line(read(ROOT / "LICENSE"))
-    assert "# OpenVoiceFlow Personal and Reciprocal Source License 1.0" in license_text
-    assert "## 4. Commercial and organizational use are not granted" in license_text
-    assert "## 5. Attribution and source-sharing conditions" in license_text
-    assert "### 5.1 Distribution" in license_text
-    assert "### 5.2 Network use" in license_text
-    assert "license the entire Covered Work" in license_text
-    assert "complete Corresponding Source" in license_text
-    assert "Only personal use as defined in this section is permitted" in license_text
-    assert '"Organization" means' in license_text
-    assert '"Integration" means any software' in license_text
-    assert "If you create a Covered Work or Integration" in license_text
-    assert '"Based on OpenVoiceFlow by Shimoverse Studios"' in license_text
-    assert "https://github.com/shimoverse/openvoiceflow" in license_text
-    assert "or the Integration is a Covered" in license_text
-    assert (
-        "Commercial or organizational rights require separate written permission or a "
-        "separate written license from Shimoverse Studios."
-    ) in license_text
-    assert (
-        "It does not apply to independent works that are not Covered Works, except that "
-        "every Integration remains subject to the attribution requirements in Section 5."
-    ) in license_text
-    assert "contact@openvoiceflow.com" in license_text
+AGPL_TITLE = "GNU AFFERO GENERAL PUBLIC LICENSE"
 
 
-def test_permission_path_uses_exact_binding_text_on_primary_license_surfaces():
-    binding = "separate written permission or a separate written license"
+def test_root_license_is_verbatim_agpl3():
+    """LICENSE must be the unmodified FSF text. Editing it is not permitted."""
+    text = read(ROOT / "LICENSE")
+    assert AGPL_TITLE in text
+    assert "Version 3, 19 November 2007" in text
+    # Section 13 is what makes this the Affero variant rather than plain GPL.
+    assert "13. Remote Network Interaction" in text
+    assert "Copyright (C) 2007 Free Software Foundation" in text
+    # No project-specific text may be spliced into the license document.
+    assert "OpenVoiceFlow" not in text, "LICENSE must stay verbatim AGPL-3.0"
+    assert "Shimoverse" not in text, "LICENSE must stay verbatim AGPL-3.0"
+
+
+def test_notice_carries_section_7_terms_and_commercial_path():
+    notice = one_line(read(ROOT / "NOTICE"))
+    assert "Copyright (C) 2025-2026 Shimoverse Studios" in notice
+    assert "GNU Affero General Public License" in notice
+    # The two additional terms must be present and labelled with their
+    # authorising subsection, so a reader can check they are permitted.
+    assert "Section 7(b) and 7(c)" in notice
+    assert "Section 7(e)" in notice
+    assert "Based on OpenVoiceFlow by Shimoverse Studios" in notice
+    assert "https://github.com/shimoverse/openvoiceflow" in notice
+    assert "contact@openvoiceflow.com" in notice
+    # Getting in touch is a request. Requiring it would be an additional
+    # restriction AGPL Section 7 does not permit, and would stop this being
+    # open source at all -- the same trap as the old personal-use clause.
+    assert "a request and not a condition" in notice
+    assert "nothing to buy" in notice
+
+
+def test_license_surfaces_name_agpl():
+    for rel in ["README.md", "LICENSING.md", "PRIVACY.md", "SECURITY.md", "SUPPORT.md"]:
+        text = one_line(read(ROOT / rel))
+        # Either prose spelling is fine; what must not drift is which license.
+        assert "GNU Affero General Public License" in text, rel
+
+
+def test_no_surface_offers_a_paid_or_separate_license():
+    """There is one license. Any surface implying a second one, or implying
+    that money or permission can change the terms, contradicts it."""
     surfaces = [
         ROOT / rel
         for rel in [
-            "LICENSE",
-            "LICENSING.md",
-            "README.md",
-            "PRIVACY.md",
-            "SECURITY.md",
-            "SUPPORT.md",
-            "TRADEMARKS.md",
-            "CHANGELOG.md",
-            "COMPLIANCE.md",
-            "legal/DPA-template.md",
-            "native/Info.plist",
+            "README.md", "PRIVACY.md", "SECURITY.md", "SUPPORT.md", "TRADEMARKS.md",
+            "COMPLIANCE.md", "CONTRIBUTING.md", "PRD.md", "NOTICE",
+            "native/Info.plist", "legal/DPA-template.md", "legal/THIRD_PARTY_NOTICES.md",
+        ]
+    ]
+    forbidden = [
+        "commercial license",
+        "separate written license",
+        "dual-licensed",
+        "dual licensed",
+        "closed-source or unpublished-source use",
+    ]
+    for surface in surfaces:
+        text = one_line(read(surface)).casefold()
+        for phrase in forbidden:
+            assert phrase not in text, f"{surface}: implies a second license ({phrase!r})"
+
+
+# Release notes record what the license said at the time of each release.
+# Rewriting them would falsify the changelog, so they are exempt from the
+# stale-copy guards below. docs/release-notes/ is excluded by not being
+# globbed; releases.html aggregates the same history and is named here.
+HISTORICAL_PAGES = {"releases.html"}
+
+
+def test_no_surface_claims_organizational_use_needs_permission():
+    """The whole point of the relicense: organizational use is now granted.
+
+    Any surviving copy that tells a reader they must ask permission, or pay,
+    to use OpenVoiceFlow at work contradicts the AGPL-3.0 grant.
+    """
+    surfaces = [
+        ROOT / rel
+        for rel in [
+            "README.md", "LICENSING.md", "PRIVACY.md", "SECURITY.md", "SUPPORT.md",
+            "TRADEMARKS.md", "COMPLIANCE.md", "CONTRIBUTING.md", "PRD.md",
+            "pyproject.toml", "NOTICE", "native/Info.plist",
+            "legal/DPA-template.md", "legal/THIRD_PARTY_NOTICES.md",
+            "voiceflow/__init__.py", "voiceflow/__main__.py", "voiceflow/onboarding.py",
         ]
     ]
     if SITE_AVAILABLE:
         surfaces += [
             DOCS / "llms.txt",
             WEB_ROOT / "scripts" / "docs_content.py",
-            DOCS / "docs" / "faq.html",
+            *(DOCS / "docs").glob("*.html"),
+            *(page for page in DOCS.glob("*.html") if page.name not in HISTORICAL_PAGES),
         ]
+    forbidden = [
+        "personal use only",
+        "free for personal use",
+        "personal-use-only",
+        "commercial or organizational use requires",
+        "organizational use requires separate",
+        "commercial use requires",
+        "commercial license required",
+        "separate written permission or a separate written license",
+        "not an open-source license",
+        "not an open source license",
+        "personal and reciprocal source license",
+    ]
+    # LICENSING.md must name the superseded licenses to explain that their
+    # grants survive; that historical mention is required, not stale.
+    historical_ok = {"personal and reciprocal source license"}
     for surface in surfaces:
-        assert binding in one_line(read(surface)), surface
+        text = one_line(read(surface)).casefold()
+        for phrase in forbidden:
+            if surface == ROOT / "LICENSING.md" and phrase in historical_ok:
+                continue
+            assert phrase not in text, f"{surface}: stale pre-AGPL phrase {phrase!r}"
 
 
-def test_dpa_template_does_not_imply_personal_license_authorizes_organizations():
-    template = one_line(read(ROOT / "legal" / "DPA-template.md"))
-    assert (
-        "the public personal-use-only license does not authorize organizational use"
-        in template
-    )
-
-
-def test_plain_language_licensing_guide_covers_boundaries():
+def test_plain_language_guide_explains_agpl_obligations_and_limits():
     guide = one_line(read(ROOT / "LICENSING.md"))
     for phrase in [
-        "not an open-source license",
-        "Commercial or organizational use requires separate written permission or a separate written license",
-        "Closed-source derivatives are not permitted",
-        "Covered Work is distributed or offered over a network",
-        "sole proprietorship",
-        "paid product",
-        "Earlier releases",
-        "remain available under the MIT terms",
+        "free and open source",
+        "OSI-approved",
+        "AGPL-3.0",
+        "Section 13",
+        "complete corresponding source",
+        "Based on OpenVoiceFlow by Shimoverse Studios",
+        "TRADEMARKS.md",
         "LEGACY_MIT_PORTIONS.md",
         "THIRD_PARTY_NOTICES.md",
-        "TRADEMARKS.md",
-        "even if it stays private",
-        "independent Integration must still carry the required OpenVoiceFlow credit",
+        "cannot be withdrawn",
     ]:
-        assert phrase in guide
+        assert phrase in guide, phrase
+    # The guide must say plainly that there is nothing to buy, since that is
+    # the single most likely thing for a reader to get wrong.
+    assert "nothing to buy" in guide.casefold()
+    assert "no permission to ask for" in guide.casefold()
 
 
-def test_primary_policy_surfaces_name_personal_and_permission_paths():
-    for rel in ["README.md", "PRIVACY.md", "SECURITY.md", "SUPPORT.md"]:
-        text = one_line(read(ROOT / rel))
-        assert "OpenVoiceFlow Personal and Reciprocal Source License 1.0" in text, rel
-        assert "personal use only" in text.lower(), rel
-        assert "commercial" in text.lower(), rel
-        assert "organizational" in text.lower(), rel
-        assert "contact@openvoiceflow.com" in text, rel
+def test_package_metadata_declares_agpl():
+    pyproject = read(ROOT / "pyproject.toml")
+    assert 'license = "AGPL-3.0-only"' in pyproject
+    # PEP 639: the SPDX expression replaces the classifier, and setuptools>=77
+    # refuses to build a project that declares both.
+    assert "License :: OSI Approved" not in pyproject
+    assert "Personal-Reciprocal" not in pyproject
+    assert '"NOTICE"' in pyproject, "NOTICE must ship in the wheel's license-files"
 
 
-def test_primary_surfaces_explain_reciprocal_source_requirement():
-    surfaces = [
-        ROOT / "README.md",
-        ROOT / "PRIVACY.md",
-        ROOT / "SECURITY.md",
-        ROOT / "SUPPORT.md",
-        ROOT / "CONTRIBUTING.md",
-    ]
-    for surface in surfaces:
-        text = one_line(read(surface)).lower()
-        assert "modified" in text, surface
-        assert "source" in text, surface
-        assert "same license" in text, surface
+def test_contributing_is_inbound_equals_outbound_with_no_cla():
+    """Contributors give exactly what every user gets -- nothing more.
+
+    The previous asymmetric grant existed only to feed a commercial license.
+    With no commercial license there is nothing to justify it, so the absence
+    is pinned here rather than left to drift back in.
+    """
+    text = one_line(read(ROOT / "CONTRIBUTING.md"))
+    assert "inbound = outbound" in text
+    assert "You keep the copyright in your contribution" in text
+    assert "no contributor licence agreement" in text.casefold()
+    # The old grant's operative verbs must not reappear.
+    for phrase in ["relicense that contribution", "sublicense,", "perpetual, worldwide"]:
+        assert phrase not in text, f"asymmetric grant wording is back: {phrase!r}"
 
 
 def test_compliance_copy_matches_native_analytics_posture():
@@ -153,105 +210,31 @@ def test_compliance_copy_matches_native_analytics_posture():
 
 
 @requires_site
-def test_current_public_pages_do_not_claim_mit_or_open_source():
-    current_pages = [
-        DOCS / "index.html",
-        DOCS / "mission.html",
-        DOCS / "download.html",
-        DOCS / "install.html",
-        DOCS / "privacy.html",
-        DOCS / "blog" / "index.html",
-        DOCS / "docs" / "index.html",
-        DOCS / "docs" / "faq.html",
-        DOCS / "docs" / "privacy-architecture.html",
+def test_public_pages_do_not_make_stale_or_unqualified_claims():
+    pages = [
+        *(p for p in DOCS.glob("*.html") if p.name not in HISTORICAL_PAGES),
+        *((DOCS / "docs").glob("*.html")),
+        *((DOCS / "blog").glob("*.html")),
     ]
-    forbidden = ["MIT-licensed", "MIT open source", "free for any use", "free for everyone"]
-    for page in current_pages:
-        text = read(page)
+    forbidden = ["MIT-licensed", "MIT open source", "personal use only"]
+    for page in pages:
+        text = read(page).casefold()
         for phrase in forbidden:
-            assert phrase.lower() not in text.lower(), f"{page}: stale {phrase!r}"
+            assert phrase.lower() not in text, f"{page}: stale {phrase!r}"
 
 
-def test_current_product_copy_uses_personal_use_only_scope():
-    current_copy = [
-        ROOT / "README.md",
-        ROOT / "PRD.md",
-        ROOT / "LICENSING.md",
-        ROOT / "PRIVACY.md",
-        ROOT / "SECURITY.md",
-        ROOT / "SUPPORT.md",
-        ROOT / "TRADEMARKS.md",
-        ROOT / "pyproject.toml",
-        ROOT / "COMPLIANCE.md",
-        ROOT / "voiceflow" / "__init__.py",
-        ROOT / "voiceflow" / "__main__.py",
-        ROOT / "voiceflow" / "onboarding.py",
-    ]
-    if SITE_AVAILABLE:
-        current_copy += [
-            DOCS / "llms.txt",
-            WEB_ROOT / "scripts" / "docs_content.py",
-            *(page for page in DOCS.glob("*.html") if page.name != "index.html"),
-            *(DOCS / "blog").glob("*.html"),
-            *(DOCS / "docs").glob("*.html"),
-        ]
-    forbidden_phrases = [
-        "personal and noncommercial use",
-        "personal and other noncommercial use",
-        "personal/noncommercial",
-        "free for noncommercial use",
-        "qualifying noncommercial",
-        "business use requires",
-        "commercial use requires",
-        "commercial license required",
-    ]
-    for surface in current_copy:
-        text = read(surface).casefold()
-        for phrase in forbidden_phrases:
-            assert phrase not in text, f"{surface}: stale license phrase {phrase!r}"
-        assert "free forever" not in text, f"{surface}: unqualified forever claim"
-        assert re.search(r"\$0\s*[/,]?\s*forever", text) is None, (
-            f"{surface}: unqualified forever-cost claim"
-        )
-        for match in re.finditer(r"personal use", text):
-            nearby = text[max(0, match.start() - 24) : match.end() + 24]
-            assert "only" in nearby, (
-                f"{surface}: personal use appears without the required only boundary"
-            )
-
-
-def test_package_and_cli_metadata_qualify_free_use():
-    pyproject = read(ROOT / "pyproject.toml")
-    cli = read(ROOT / "voiceflow" / "__main__.py")
-
-    assert "free for personal use only" in pyproject.lower()
-    assert "free for personal use only" in cli.lower()
-    assert 'description = "Free voice dictation' not in pyproject
-    assert "— Free voice dictation" not in cli
-
-
-@requires_site
-def test_homepage_uses_free_forever_message_while_faq_preserves_license_boundaries():
-    home = read(DOCS / "index.html")
-    faq = read(DOCS / "docs" / "faq.html")
-    assert "FREE FOREVER" in home
-    assert "personal use only" not in home.casefold()
-    assert "personal purposes only" not in home.casefold()
-    assert "commercial or organizational use requires" not in home.casefold()
-    assert "The project license sets the terms for reuse and redistribution" in home
-    assert "OpenVoiceFlow Personal and Reciprocal Source License 1.0" in faq
-    assert (
-        "Workplace or other organizational use requires separate written permission or a separate written license"
-        in faq
-    )
-    assert "Based on OpenVoiceFlow by Shimoverse Studios" in faq
-    assert "https://github.com/shimoverse/openvoiceflow" in faq
-    assert "even if it stays private" in faq
-    assert "merely connects through a documented interface" in faq
-
-
-def test_primary_attribution_surfaces_require_visible_credit_and_original_link():
-    for rel in ["LICENSE", "LICENSING.md", "README.md", "TRADEMARKS.md"]:
+def test_attribution_surfaces_require_visible_credit_and_original_link():
+    for rel in ["NOTICE", "LICENSING.md", "README.md", "TRADEMARKS.md"]:
         text = one_line(read(ROOT / rel))
         assert "Based on OpenVoiceFlow by Shimoverse Studios" in text, rel
         assert "https://github.com/shimoverse/openvoiceflow" in text, rel
+
+
+def test_legacy_grants_are_preserved_not_rewritten():
+    """Relicensing is prospective. Old grants cannot be withdrawn, and the
+    docs must keep saying so."""
+    guide = one_line(read(ROOT / "LICENSING.md"))
+    assert "cannot be withdrawn" in guide
+    assert "not retroactive" in guide
+    legacy = one_line(read(ROOT / "legal" / "LEGACY_MIT_PORTIONS.md"))
+    assert "MIT" in legacy

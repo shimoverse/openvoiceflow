@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **OpenVoiceFlow is now free and open source software under the GNU Affero General Public License v3.0.** The previous OpenVoiceFlow Personal and Reciprocal Source License 1.0 permitted personal use only and required separate written permission for any commercial or organizational use, which meant the project was source-available but not open source. The AGPL-3.0 is an OSI-approved open-source license, so **anyone — including companies — may now use, modify and distribute OpenVoiceFlow at no cost, with no permission to ask for and nothing to buy.** There is one license and no paid tier.
+
+  The reciprocal condition that mattered is preserved and in one respect strengthened: if you convey a modified version, or make one available to users over a network, you must offer those users the complete corresponding source under the same license (AGPL section 13 is what extends this to network use). Nobody can take OpenVoiceFlow closed.
+
+  Attribution and the fork-rebranding rule survive as additional terms under AGPL section 7(b)–(c) and 7(e), recorded in the new [`NOTICE`](NOTICE) file: a derivative must visibly state "Based on OpenVoiceFlow by Shimoverse Studios" with a link to the original source, and must rebrand. AGPL section 7 expressly permits both, and neither restricts a freedom the license grants.
+
+  **Contributions are now inbound = outbound.** The previous contributor grant let Shimoverse Studios relicense contributions on other terms; it existed to support a commercial license that no longer exists, so it is gone. Contributors keep copyright in their work and license it under the AGPL-3.0 — the same terms every user gets. There is no contributor licence agreement.
+
+  **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
+
 ## [0.5.27] — 2026-09-17
 
 ### Added

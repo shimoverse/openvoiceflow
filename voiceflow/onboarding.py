@@ -217,7 +217,7 @@ class OnboardingWizard:
 
         self._title("OpenVoiceFlow")
         self._subtitle(
-            "Free for personal use only on macOS.\n"
+            "Free and open source (AGPL-3.0) on macOS.\n"
             "Hold a key → speak → release → clean text appears at your cursor."
         )
 

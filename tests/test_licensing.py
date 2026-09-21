@@ -70,6 +70,13 @@ def test_license_surfaces_name_agpl_and_the_optional_commercial_path():
         assert "contact@openvoiceflow.com" in text, rel
 
 
+# Release notes record what the license said at the time of each release.
+# Rewriting them would falsify the changelog, so they are exempt from the
+# stale-copy guards below. docs/release-notes/ is excluded by not being
+# globbed; releases.html aggregates the same history and is named here.
+HISTORICAL_PAGES = {"releases.html"}
+
+
 def test_no_surface_claims_organizational_use_needs_permission():
     """The whole point of the relicense: organizational use is now granted.
 
@@ -91,7 +98,7 @@ def test_no_surface_claims_organizational_use_needs_permission():
             DOCS / "llms.txt",
             WEB_ROOT / "scripts" / "docs_content.py",
             *(DOCS / "docs").glob("*.html"),
-            *(page for page in DOCS.glob("*.html")),
+            *(page for page in DOCS.glob("*.html") if page.name not in HISTORICAL_PAGES),
         ]
     forbidden = [
         "personal use only",
@@ -174,7 +181,7 @@ def test_compliance_copy_matches_native_analytics_posture():
 @requires_site
 def test_public_pages_do_not_make_stale_or_unqualified_claims():
     pages = [
-        *(DOCS.glob("*.html")),
+        *(p for p in DOCS.glob("*.html") if p.name not in HISTORICAL_PAGES),
         *((DOCS / "docs").glob("*.html")),
         *((DOCS / "blog").glob("*.html")),
     ]

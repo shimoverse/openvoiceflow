@@ -81,12 +81,9 @@ fork — the license grants no rights in the OpenVoiceFlow name or logo. Those
 two conditions are additional terms under AGPL Section 7, recorded in
 [NOTICE](NOTICE).
 
-A separate **commercial license** is available from Shimoverse Studios for the
-cases the AGPL-3.0 does not cover — shipping a closed-source product built on
-OpenVoiceFlow, or running a modified version as a network service without
-publishing source. Ordinary use, personal or organizational, needs nothing
-beyond the AGPL-3.0. Contact **contact@openvoiceflow.com** only if you need
-those terms.
+There is no second license and nothing to buy. If you build something on
+OpenVoiceFlow we would like to hear about it at **contact@openvoiceflow.com** —
+a request, not a condition of the license.
 
 Copyright © 2025–2026 **Shimoverse Studios**. See [LICENSING.md](LICENSING.md),
 [TRADEMARKS.md](TRADEMARKS.md),

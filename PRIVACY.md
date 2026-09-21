@@ -7,10 +7,8 @@ This policy applies to the native OpenVoiceFlow macOS app (`v0.4.0` and later, i
 Privacy behavior and licensing are separate. OpenVoiceFlow is free and open
 source under the [GNU Affero General Public License v3.0](LICENSE), for any
 use including organizational use. Distributed derivatives and modified network
-versions must publish complete corresponding source under the same license. A
-separate commercial license from Shimoverse Studios covers closed-source or
-unpublished-source use; contact **contact@openvoiceflow.com** only if you need
-those terms. See [LICENSING.md](LICENSING.md).
+versions must publish complete corresponding source under the same license.
+See [LICENSING.md](LICENSING.md).
 
 ---
 

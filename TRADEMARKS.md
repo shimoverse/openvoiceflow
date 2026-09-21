@@ -2,9 +2,7 @@
 
 The OpenVoiceFlow **code** is free and open source under the
 [GNU Affero General Public License v3.0](LICENSE), for any use including
-organizational use. A separate commercial license is available from Shimoverse
-Studios for closed-source or unpublished-source use; see
-[LICENSING.md](LICENSING.md) or contact contact@openvoiceflow.com.
+organizational use. See [LICENSING.md](LICENSING.md).
 
 Distributed derivatives and modified network versions must publish complete
 corresponding source under the same software license. That source-sharing rule

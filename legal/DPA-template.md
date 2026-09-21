@@ -20,7 +20,7 @@ Treat this as your record, not ours. Replace each italicized placeholder, then k
 | **End users** (whose dictation flows through the tool) | *e.g. Acme employees on macOS workstations* |
 | **Chosen LLM provider** (data processor for cleaned transcripts) | *e.g. Anthropic / OpenAI / Google / Groq / Ollama (local) / none* |
 | **Region of LLM-provider processing** | *e.g. US / EU / on-device* |
-| **Tool** | OpenVoiceFlow `<version>` (used under the AGPL-3.0, or record the separate commercial license if one applies; the project is not a data-processing counterparty) |
+| **Tool** | OpenVoiceFlow `<version>` (used under the AGPL-3.0; the project is not a data-processing counterparty) |
 | **Date of this record** | *YYYY-MM-DD* |
 | **Owner of this record** | *Name, role* |
 

@@ -5,9 +5,7 @@ This file enumerates the third-party software OpenVoiceFlow depends on at runtim
 OpenVoiceFlow itself is free and open source under the GNU Affero General
 Public License v3.0; a modified version that is distributed or offered over a
 network must publish complete corresponding source under the same license, while
-the required attribution notice must be retained. A separate commercial
-license from Shimoverse Studios is available for closed-source or
-unpublished-source use. Every third-party component listed below is
+the required attribution notice must be retained. Every third-party component listed below is
 license-compatible with the AGPL-3.0. See [`LICENSE`](../LICENSE),
 [`NOTICE`](../NOTICE) and [`LICENSING.md`](../LICENSING.md). Third-party
 components remain governed by their own licenses below.
@@ -116,7 +114,7 @@ For completeness — these appear in `[project.optional-dependencies].dev` and n
 
 The runtime-shipped license set is:
 
-- **GNU Affero General Public License v3.0** — current OpenVoiceFlow material owned or licensable by Shimoverse Studios; reciprocal source sharing applies to distributed and network-offered modified versions. A separate commercial license from Shimoverse Studios is available for closed-source or unpublished-source use.
+- **GNU Affero General Public License v3.0** — current OpenVoiceFlow material owned or licensable by Shimoverse Studios; reciprocal source sharing applies to distributed and network-offered modified versions.
 - **MIT (legacy contributor portions)** — material identified in [`LEGACY_MIT_PORTIONS.md`](LEGACY_MIT_PORTIONS.md), accepted before the license change.
 - **MIT** — `sounddevice`, `pyobjc-framework-Cocoa` (+ all pyobjc-* siblings), `pyobjc-core`, `cffi`, `whisper.cpp`, `whisper-stream`, `ggml-*` model files, **WhisperKit**, and **Sparkle**.
 - **BSD-3-Clause** — `numpy`, `rumps`, `pycparser`.

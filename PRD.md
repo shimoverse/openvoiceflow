@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-OpenVoiceFlow is a free and open source (AGPL-3.0) voice dictation app for macOS, competing against Wispr Flow ($144/yr), Superwhisper ($85/yr), and VoiceInk. A separate commercial license from Shimoverse Studios covers closed-source or unpublished-source use. Current state: functional push-to-talk with whisper.cpp STT, LLM cleanup (6 backends), floating overlay, personal dictionary, snippets, multi-language, style modes, stats, auto-update, launch-at-login, tkinter onboarding wizard, and menu bar app.
+OpenVoiceFlow is a free and open source (AGPL-3.0) voice dictation app for macOS, competing against Wispr Flow ($144/yr), Superwhisper ($85/yr), and VoiceInk. Current state: functional push-to-talk with whisper.cpp STT, LLM cleanup (6 backends), floating overlay, personal dictionary, snippets, multi-language, style modes, stats, auto-update, launch-at-login, tkinter onboarding wizard, and menu bar app.
 
 This PRD defines 7 features that close competitive gaps and establish OpenVoiceFlow as an open source leader in macOS voice dictation. The features are ordered by priority and dependency chain.
 
@@ -562,7 +562,7 @@ As a potential user visiting the GitHub repo, I want to see a short demo of Open
 6. **Speaker diarization** — "Speaker 1 said X, Speaker 2 said Y" is interesting but not a dictation feature. Future consideration.
 7. **In-app settings GUI** — the menu bar app + CLI is sufficient. A full preferences window adds complexity for marginal UX gain. The tkinter onboarding wizard handles first-run. Config.json handles the rest.
 8. **Plugin/extension system** — premature abstraction. The codebase is small enough that contributors can modify directly.
-9. **Consumer premium tier** — the AGPL-3.0 build remains free for everyone; revenue comes from the separate commercial license.
+9. **Consumer premium tier** — not pursued. The AGPL-3.0 build is free for everyone and there is no paid tier.
 10. **Audio recording/playback** — we're a dictation tool, not a voice recorder. Logs are text-only (JSONL).
 
 ---

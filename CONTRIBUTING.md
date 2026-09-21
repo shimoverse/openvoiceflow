@@ -137,25 +137,16 @@ Security issues: **don't** open a public issue — see [SECURITY.md](SECURITY.md
 ## License
 
 The project is free and open source under the
-[GNU Affero General Public License v3.0](LICENSE), with a separate commercial
-license available from Shimoverse Studios. Distributed derivatives and modified
-network versions must publish complete corresponding source under the same
-license. See [LICENSING.md](LICENSING.md).
+[GNU Affero General Public License v3.0](LICENSE). Distributed derivatives and
+modified network versions must publish complete corresponding source under the
+same license. See [LICENSING.md](LICENSING.md).
 
-By submitting a contribution, you represent that you have the right to do so
-and grant Shimoverse Studios a perpetual, worldwide, non-exclusive,
-royalty-free, irrevocable copyright and patent license to use, reproduce,
-modify, distribute, sublicense, and relicense that contribution, including as
-part of separate commercial licenses. You also agree that the contribution may
-be distributed under the project's current or future public license. This grant
-does not transfer your copyright ownership.
+**Contributions are inbound = outbound.** By submitting a contribution you
+represent that you have the right to do so, and you license it under the
+AGPL-3.0 — the same license you received the project under, and the same one
+every user gets. Nothing more is asked.
 
-**Why this grant is asked for, plainly.** Your contribution reaches everyone
-under the AGPL-3.0, the same license you received the project under. The grant
-additionally lets Shimoverse Studios include it in the separate commercial
-license that funds the project. That asymmetry is real and worth understanding
-before you contribute: you give slightly more than you get back. It is the
-standard arrangement for dual-licensed projects, and it is what makes the
-AGPL-3.0 side sustainable. If you would rather your contribution be AGPL-only,
-say so in the pull request and we will discuss it rather than quietly assume
-otherwise.
+You keep the copyright in your contribution. There is no contributor licence
+agreement, no rights assignment, and no grant allowing anyone to relicense
+your work on different terms. What you give the project is what the project
+gives everyone.

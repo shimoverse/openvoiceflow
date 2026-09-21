@@ -1,4 +1,4 @@
-"""Contracts that keep the AGPL-3.0 + commercial dual-licensing coherent."""
+"""Contracts that keep the AGPL-3.0 licensing coherent across every surface."""
 import os
 from pathlib import Path
 
@@ -55,19 +55,42 @@ def test_notice_carries_section_7_terms_and_commercial_path():
     assert "Based on OpenVoiceFlow by Shimoverse Studios" in notice
     assert "https://github.com/shimoverse/openvoiceflow" in notice
     assert "contact@openvoiceflow.com" in notice
-    assert "dual-licensed" in notice
-    # The commercial license must be described as optional, never as a
-    # precondition for ordinary or organizational use.
-    assert "Buying a commercial license is optional" in notice
+    # Getting in touch is a request. Requiring it would be an additional
+    # restriction AGPL Section 7 does not permit, and would stop this being
+    # open source at all -- the same trap as the old personal-use clause.
+    assert "a request and not a condition" in notice
+    assert "nothing to buy" in notice
 
 
-def test_license_surfaces_name_agpl_and_the_optional_commercial_path():
+def test_license_surfaces_name_agpl():
     for rel in ["README.md", "LICENSING.md", "PRIVACY.md", "SECURITY.md", "SUPPORT.md"]:
         text = one_line(read(ROOT / rel))
         # Either prose spelling is fine; what must not drift is which license.
         assert "GNU Affero General Public License" in text, rel
-        assert "commercial license" in text.casefold(), rel
-        assert "contact@openvoiceflow.com" in text, rel
+
+
+def test_no_surface_offers_a_paid_or_separate_license():
+    """There is one license. Any surface implying a second one, or implying
+    that money or permission can change the terms, contradicts it."""
+    surfaces = [
+        ROOT / rel
+        for rel in [
+            "README.md", "PRIVACY.md", "SECURITY.md", "SUPPORT.md", "TRADEMARKS.md",
+            "COMPLIANCE.md", "CONTRIBUTING.md", "PRD.md", "NOTICE",
+            "native/Info.plist", "legal/DPA-template.md", "legal/THIRD_PARTY_NOTICES.md",
+        ]
+    ]
+    forbidden = [
+        "commercial license",
+        "separate written license",
+        "dual-licensed",
+        "dual licensed",
+        "closed-source or unpublished-source use",
+    ]
+    for surface in surfaces:
+        text = one_line(read(surface)).casefold()
+        for phrase in forbidden:
+            assert phrase not in text, f"{surface}: implies a second license ({phrase!r})"
 
 
 # Release notes record what the license said at the time of each release.
@@ -130,7 +153,6 @@ def test_plain_language_guide_explains_agpl_obligations_and_limits():
         "free and open source",
         "OSI-approved",
         "AGPL-3.0",
-        "dual-licensed",
         "Section 13",
         "complete corresponding source",
         "Based on OpenVoiceFlow by Shimoverse Studios",
@@ -140,9 +162,10 @@ def test_plain_language_guide_explains_agpl_obligations_and_limits():
         "cannot be withdrawn",
     ]:
         assert phrase in guide, phrase
-    # The guide must say plainly that working use needs no purchase, since
-    # that is the single most likely thing for a reader to get wrong.
-    assert "you do not need it" in guide.casefold()
+    # The guide must say plainly that there is nothing to buy, since that is
+    # the single most likely thing for a reader to get wrong.
+    assert "nothing to buy" in guide.casefold()
+    assert "no permission to ask for" in guide.casefold()
 
 
 def test_package_metadata_declares_agpl():
@@ -155,12 +178,20 @@ def test_package_metadata_declares_agpl():
     assert '"NOTICE"' in pyproject, "NOTICE must ship in the wheel's license-files"
 
 
-def test_contributing_discloses_the_dual_license_asymmetry():
-    """The CLA is what enables commercial relicensing; say so, don't bury it."""
+def test_contributing_is_inbound_equals_outbound_with_no_cla():
+    """Contributors give exactly what every user gets -- nothing more.
+
+    The previous asymmetric grant existed only to feed a commercial license.
+    With no commercial license there is nothing to justify it, so the absence
+    is pinned here rather than left to drift back in.
+    """
     text = one_line(read(ROOT / "CONTRIBUTING.md"))
-    assert "relicense that contribution" in text
-    assert "separate commercial licenses" in text
-    assert "you give slightly more than you get back" in text
+    assert "inbound = outbound" in text
+    assert "You keep the copyright in your contribution" in text
+    assert "no contributor licence agreement" in text.casefold()
+    # The old grant's operative verbs must not reappear.
+    for phrase in ["relicense that contribution", "sublicense,", "perpetual, worldwide"]:
+        assert phrase not in text, f"asymmetric grant wording is back: {phrase!r}"
 
 
 def test_compliance_copy_matches_native_analytics_posture():

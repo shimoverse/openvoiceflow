@@ -2,11 +2,8 @@
 
 OpenVoiceFlow is a free and open source macOS voice-dictation app under the
 [GNU Affero General Public License v3.0](LICENSE), for any use including
-organizational use. A separate commercial license from Shimoverse Studios
-covers closed-source or unpublished-source use; contact
-**contact@openvoiceflow.com** only if you need those terms. This document
-explains which versions get security fixes, how to report a vulnerability, what
-to expect from us, and what is in scope.
+organizational use. This document explains which versions get security fixes,
+how to report a vulnerability, what to expect from us, and what is in scope.
 
 Distributed derivatives and modified network versions must publish complete
 corresponding source under the same license. Security reporting and licensing
@@ -189,7 +186,7 @@ GitHub Security Advisory on the repo.
 
 ## Notes for reviewers
 
-- The project is licensed under the GNU Affero General Public License v3.0, with a separate commercial license available; the maintainer is Shimoverse Studios (see `LICENSE`, `NOTICE`, and `LICENSING.md`).
+- The project is licensed under the GNU Affero General Public License v3.0; the maintainer is Shimoverse Studios (see `LICENSE`, `NOTICE`, and `LICENSING.md`).
 - The repo lives at `github.com/shimoverse/openvoiceflow` today and may move to a
   personal account before public release. URLs in this file will be updated if so.
 - This document is part of the v0.3 readiness bundle. Pair reading:

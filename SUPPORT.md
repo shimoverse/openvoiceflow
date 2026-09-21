@@ -5,9 +5,7 @@ OpenVoiceFlow is a single-maintainer open source project. Response time is best-
 The project is free and open source under the
 [GNU Affero General Public License v3.0](LICENSE), for any use including
 organizational use. Distributed derivatives and modified network versions must
-publish their complete source under the same license. A separate commercial
-license covers closed-source or unpublished-source use; contact
-**contact@openvoiceflow.com** only if you need those terms. See
+publish their complete source under the same license. See
 [LICENSING.md](LICENSING.md).
 
 ## Found a bug?

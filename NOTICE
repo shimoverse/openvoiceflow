@@ -55,28 +55,20 @@ the license itself requires their preservation.
 
 
 ================================================================================
-COMMERCIAL LICENSING
+USING OPENVOICEFLOW
 ================================================================================
 
-OpenVoiceFlow is dual-licensed.
-
-The AGPL-3.0 above is available to everyone at no cost, including companies
-and other organizations, with no separate permission required. Its principal
-obligation is reciprocal: if you convey a modified version, or make one
+You do not need permission, and there is nothing to buy. The AGPL-3.0 above
+grants everyone -- individuals and organizations alike -- the right to use,
+study, modify and share this program at no cost. Its one substantial
+condition is reciprocal: if you convey a modified version, or make one
 available to users over a network, you must offer those users the complete
 corresponding source under the AGPL-3.0.
 
-If you want to use OpenVoiceFlow in a way the AGPL-3.0 does not allow --
-typically, shipping a closed-source product built on it, or offering a
-modified version as a network service without publishing source -- a separate
-commercial license is available from Shimoverse Studios. It removes the
-reciprocal source obligation on negotiated terms.
-
-Contact: contact@openvoiceflow.com
-
-Buying a commercial license is optional. Ordinary use of OpenVoiceFlow --
-personal or organizational, at home or at work, without modification or
-without conveying modifications -- needs nothing beyond the AGPL-3.0.
+If you build something on OpenVoiceFlow, we would genuinely like to hear
+about it at contact@openvoiceflow.com. That is a request and not a condition
+of the license: nothing obliges you to make contact, and choosing not to
+costs you nothing.
 
 
 ================================================================================

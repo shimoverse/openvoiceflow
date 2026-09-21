@@ -1,13 +1,14 @@
 name: Create release tag
 
-# Remote Claude Code sessions can merge release PRs but cannot push tags — the
-# session git proxy drops tag pushes and its API token can't write refs. This
-# is the sanctioned route: Actions' own token carries contents:write, so a
-# dispatch here plants the tag, and a second dispatch of release-native.yml
-# with the same tag builds it. (The tag-push event this creates does NOT fire
-# release-native by itself: GitHub suppresses workflows triggered by events
-# the Actions token created, which is why the second dispatch is required,
-# and also why this can never recurse.)
+# Some automated and remote development environments can merge release PRs
+# but cannot push tags — their git proxy drops tag pushes and the API token
+# they carry can't write refs. This is the sanctioned route: Actions' own
+# token carries contents:write, so a dispatch here plants the tag, and a
+# second dispatch of release-native.yml with the same tag builds it. (The
+# tag-push event this creates does NOT fire release-native by itself: GitHub
+# suppresses workflows triggered by events the Actions token created, which
+# is why the second dispatch is required, and also why this can never
+# recurse.)
 #
 #   1. Actions ▸ Create release tag ▸ Run  (tag: native-vX.Y.Z, sha: <merge commit>)
 #   2. Actions ▸ Release (native app) ▸ Run  (release_tag: native-vX.Y.Z)

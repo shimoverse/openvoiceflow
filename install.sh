@@ -1,7 +1,18 @@
 #!/bin/bash
-# OpenVoiceFlow Installer
-# Run: curl -fsSL https://raw.githubusercontent.com/shimoverse/openvoiceflow/main/install.sh | bash
-#   OR: bash install.sh
+# OpenVoiceFlow Installer - LEGACY PYTHON APP (<= 0.3.6), END OF LIFE.
+#
+# This installs the retired Python CLI, NOT the shipping product. It receives
+# no security fixes (see SECURITY.md) and its defaults predate current privacy
+# policy. It is kept only for the macOS 12-13 fallback.
+#
+# On macOS 14 (Sonoma) or newer, stop and download the native app instead:
+#     https://openvoiceflow.com/download.html
+#
+# Piping this to a shell runs whatever `main` holds at that moment, from a
+# branch that is not a release artifact. If you use it anyway, read it first
+# and pin to a tag rather than `main`.
+#
+# Run: bash install.sh
 
 set -euo pipefail
 
@@ -14,6 +25,11 @@ echo ""
 echo "================================================"
 echo "🎙️  OpenVoiceFlow Installer"
 echo "================================================"
+echo ""
+echo -e "${YELLOW}⚠️  This is the LEGACY Python app (<= 0.3.6), end of life.${NC}"
+echo -e "${YELLOW}   It gets no security fixes and is kept only for macOS 12-13.${NC}"
+echo -e "${YELLOW}   On macOS 14+, install the native app instead:${NC}"
+echo -e "${YELLOW}   https://openvoiceflow.com/download.html${NC}"
 echo ""
 
 # --- Check macOS ---

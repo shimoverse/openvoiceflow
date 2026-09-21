@@ -73,7 +73,7 @@ set -e
 if [[ $BUILD_STATUS -ne 0 ]]; then
   fail "The build failed. The compiler errors are above — the lines that
   matter look like  SomeFile.swift:123:4: error: ...
-  Copy those back to Claude and it can fix them."
+  Those lines are what to search for, or to quote in a bug report."
 fi
 
 APP="$DERIVED/Build/Products/Debug/OpenVoiceFlow.app"

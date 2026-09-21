@@ -60,7 +60,7 @@ The repo also contains the **legacy Python app** (`voiceflow/`, ≤ 0.3.6) that 
 
 ## Contributing
 
-Start with [CONTRIBUTING.md](CONTRIBUTING.md). The short version: pull requests are welcome, CI compiles the Swift app and runs the website tests on every PR, and the maintainer reviews everything. Good first contributions: try the app and file honest bug reports, add an XCTest target (we want one), improve accuracy for your language.
+Start with [CONTRIBUTING.md](CONTRIBUTING.md). The short version: pull requests are welcome, CI compiles the Swift app and runs the Python test suite on every PR (the website tests live in the separate site repo), and the maintainer reviews everything. Good first contributions: try the app and file honest bug reports, add an XCTest target (we want one), improve accuracy for your language.
 
 ## Privacy and security
 

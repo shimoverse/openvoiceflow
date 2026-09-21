@@ -5,7 +5,7 @@ out of date, that itself is a bug — please open an issue.
 
 ## What this project is, briefly
 
-OpenVoiceFlow is a macOS-only voice-dictation app, free for personal use only:
+OpenVoiceFlow is a macOS-only voice-dictation app, free and open source:
 hold a hotkey, speak, and text appears at your
 cursor. The **shipping app is native Swift** and lives in
 `native/`. The repo also carries the legacy Python app (`voiceflow/`, ≤ 0.3.6)
@@ -13,7 +13,7 @@ it replaced — end-of-life, no security fixes, kept for reference and the
 macOS 12–13 fallback build. New work belongs in `native/` unless you're fixing
 something in the website or docs.
 
-This is a **single-maintainer source-available project**. Issues and PRs get
+This is a **single-maintainer open source project**. Issues and PRs get
 best-effort responses on a human schedule. There is no SLA. If you build on
 this code in your own project, follow the reciprocal-source and rebranding
 requirements in [LICENSE](LICENSE). You are welcome to tell us about it at
@@ -136,16 +136,26 @@ Security issues: **don't** open a public issue — see [SECURITY.md](SECURITY.md
 
 ## License
 
-The project is source-available under the [OpenVoiceFlow Personal and Reciprocal
-Source License 1.0](LICENSE), with separate commercial and organizational licenses available from
-Shimoverse Studios. Distributed derivatives and modified network versions must
-publish complete corresponding source under the same license. See
-[LICENSING.md](LICENSING.md).
+The project is free and open source under the
+[GNU Affero General Public License v3.0](LICENSE), with a separate commercial
+license available from Shimoverse Studios. Distributed derivatives and modified
+network versions must publish complete corresponding source under the same
+license. See [LICENSING.md](LICENSING.md).
 
 By submitting a contribution, you represent that you have the right to do so
 and grant Shimoverse Studios a perpetual, worldwide, non-exclusive,
 royalty-free, irrevocable copyright and patent license to use, reproduce,
 modify, distribute, sublicense, and relicense that contribution, including as
-part of commercial and organizational licenses. You also agree that the contribution may be
-distributed under the project's current or future public license. This grant
+part of separate commercial licenses. You also agree that the contribution may
+be distributed under the project's current or future public license. This grant
 does not transfer your copyright ownership.
+
+**Why this grant is asked for, plainly.** Your contribution reaches everyone
+under the AGPL-3.0, the same license you received the project under. The grant
+additionally lets Shimoverse Studios include it in the separate commercial
+license that funds the project. That asymmetry is real and worth understanding
+before you contribute: you give slightly more than you get back. It is the
+standard arrangement for dual-licensed projects, and it is what makes the
+AGPL-3.0 side sustainable. If you would rather your contribution be AGPL-only,
+say so in the pull request and we will discuss it rather than quietly assume
+otherwise.

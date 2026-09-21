@@ -17,14 +17,24 @@ def test_github_actions_use_node_24_compatible_major_versions():
     assert "actions/setup-python@v5" not in combined
 
 
-def test_pyproject_packages_current_and_legacy_license_files_without_osi_classifier():
+def test_pyproject_packages_agpl_with_notice_and_legacy_license_files():
     pyproject = read(ROOT / "pyproject.toml")
 
-    assert 'license = "LicenseRef-OpenVoiceFlow-Personal-Reciprocal-1.0"' in pyproject
-    assert 'license-files = ["LICENSE", "legal/LEGACY_MIT_PORTIONS.md"]' in pyproject
+    # SPDX id, not a LicenseRef: the project is on a standard OSI license now.
+    assert 'license = "AGPL-3.0-only"' in pyproject
+    # PEP 639 forbids License:: classifiers alongside an SPDX expression --
+    # setuptools>=77 refuses to build if one is present. Keep them out.
+    assert "License :: OSI Approved" not in pyproject
+    # NOTICE carries the Section 7 additional terms, so it must ship in the
+    # wheel alongside LICENSE; LEGACY_MIT_PORTIONS keeps the MIT provenance.
+    assert (
+        'license-files = ["LICENSE", "NOTICE", "legal/LEGACY_MIT_PORTIONS.md"]'
+        in pyproject
+    )
     assert 'license = {file = "LICENSE"}' not in pyproject
     assert 'license = "MIT"' not in pyproject
     assert "License :: OSI Approved :: MIT License" not in pyproject
+    assert "LicenseRef-OpenVoiceFlow-Personal-Reciprocal" not in pyproject
 
 
 def test_dmg_build_declares_icon_and_optional_apple_signing_pipeline():

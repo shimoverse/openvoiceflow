@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **OpenVoiceFlow is now free and open source software under the GNU Affero General Public License v3.0.** The previous OpenVoiceFlow Personal and Reciprocal Source License 1.0 permitted personal use only and required separate written permission for any commercial or organizational use, which meant the project was source-available but not open source. The AGPL-3.0 is an OSI-approved open-source license, so the project can now accurately be described as open source, and **anyone — including companies — may use, modify and distribute it at no cost with no permission to ask for**. The reciprocal obligations that mattered are preserved and in some respects strengthened: a modified version that is distributed, or made available to users over a network, must publish its complete corresponding source under the same license (AGPL section 13 is what extends this to network use). Attribution and the fork-rebranding rule survive as additional terms under AGPL section 7(b)–(c) and 7(e), recorded in the new [`NOTICE`](NOTICE) file; AGPL section 7 expressly permits both, and neither restricts a freedom the license grants.
+
+  The project is **dual-licensed**: a separate commercial license remains available from Shimoverse Studios for the cases the AGPL-3.0 does not cover — shipping a closed-source product built on OpenVoiceFlow, or running a modified version as a network service without publishing source. Ordinary use, personal or organizational, needs nothing beyond the AGPL-3.0 and costs nothing.
+
+  **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
+
 ## [0.5.27] — 2026-09-17
 
 ### Added

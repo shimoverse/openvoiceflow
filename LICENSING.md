@@ -1,98 +1,106 @@
 # Licensing OpenVoiceFlow
 
-OpenVoiceFlow uses a **source-available, personal-use-only, reciprocal license**. It
-is not an open-source license as that term is defined by the Open Source
-Initiative, because the free license permits personal use only.
+OpenVoiceFlow is **free and open source software**, licensed under the
+[GNU Affero General Public License, version 3](LICENSE) (AGPL-3.0) — an
+OSI-approved open-source license and an FSF-approved free software license.
 
-## Free personal use only
+It is also **dual-licensed**: a separate commercial license is available from
+Shimoverse Studios for anyone who needs terms the AGPL-3.0 does not offer. You
+choose which license you take it under. Most people never need the second one.
 
-The current source and downloads are available under the
-[OpenVoiceFlow Personal and Reciprocal Source License 1.0](LICENSE). It permits
-use by a natural person solely for that person's own personal purposes, subject
-to its terms.
+## What the AGPL-3.0 gives you, at no cost
 
-Local use of an unchanged official build does not require you to publish
-anything. Every integration, fork, derivative, or modified version must preserve
-the required notices and visibly state **"Based on OpenVoiceFlow by Shimoverse
-Studios"** with a working link to the
-[original OpenVoiceFlow source code](https://github.com/shimoverse/openvoiceflow),
-even if it stays private. If a Covered Work is distributed or offered over a
-network, you must also publish its complete corresponding source at no charge
-under the same license, identify changes, and rebrand derivative releases. An
-independent Integration that only communicates with an unmodified build through
-a documented interface is not automatically source-shared. The license text
-controls if this summary differs from it.
+- **Use it for anything.** Personal use, hobby projects, study, and work.
+  There is no restriction on commercial or organizational use, and no
+  permission to ask for. A company may install it, run it, and rely on it
+  without contacting us or paying anything.
+- **Read, modify, and share it.** Fork it, patch it, build your own version,
+  and distribute the result.
+- **No account, no seat count, no usage limit.**
 
-## Closed-source derivatives are not permitted by the free license
+## What the AGPL-3.0 asks in return
 
-A Covered Work cannot be distributed or offered as a network service under the
-free license while keeping its source private. The source-sharing condition
-covers the modified OpenVoiceFlow code and the work that incorporates or links
-to it. It does not automatically cover a separate program that merely
-communicates with an unchanged OpenVoiceFlow build through a documented system
-or network interface, but that independent Integration must still carry the
-required OpenVoiceFlow credit and original-source link.
+The AGPL is a strong copyleft license. Its obligations attach when you pass
+the software on to someone else, not when you use it yourself:
 
-## Commercial or organizational use requires separate written permission or a separate written license
+- **If you convey a modified version**, you must license the whole of it under
+  the AGPL-3.0 and make the complete corresponding source available to the
+  people you gave it to.
+- **If you let users interact with a modified version over a network**, AGPL
+  Section 13 requires you to offer those users the complete corresponding
+  source of your modified version. This is the clause that distinguishes the
+  AGPL from the ordinary GPL.
+- **Keep the notices.** Preserve the copyright and license notices, and state
+  **"Based on OpenVoiceFlow by Shimoverse Studios"** with a working link to the
+  [original source code](https://github.com/shimoverse/openvoiceflow). This is
+  an additional term under AGPL Section 7(b)–(c), recorded in [NOTICE](NOTICE).
+- **Rename your fork.** The license does not grant rights in the OpenVoiceFlow
+  name or logo. See [TRADEMARKS.md](TRADEMARKS.md). This is an additional term
+  under AGPL Section 7(e).
 
-The free license does **not** grant commercial or organizational use, even if
-the user publishes its modifications or no money changes hands. Nonprofits,
-schools, charities, government bodies, associations, employers, clients,
-businesses, institutions, and other organized groups need separate written
-permission or a separate written license from Shimoverse Studios. Contact
-**contact@openvoiceflow.com** before using OpenVoiceFlow:
+Using an unmodified official build, privately or at work, triggers none of
+this. You only owe source when you hand a modified version to someone else or
+serve one over a network.
 
-- for work on behalf of a business, employer, client, sole proprietorship, or
-  other commercial organization;
-- in a paid product, service, hosted offering, monetized workflow,
-  advertising-supported activity, or revenue-generating activity;
-- by selling, sublicensing, bundling, or otherwise commercially distributing
-  OpenVoiceFlow or a derivative; or
-- where procurement, support, warranty, indemnity, or other commercial terms are
-  required.
+## When you need the commercial license
 
-Shimoverse Studios can provide separate commercial or organizational terms,
-including negotiated closed-source rights where appropriate. Receiving the
-source, downloading a build, publishing modifications, or making a contribution
-does not itself grant commercial or organizational rights.
+The commercial license exists for cases the AGPL-3.0 genuinely does not cover:
+
+- shipping a **closed-source product** that incorporates OpenVoiceFlow;
+- offering a **modified version as a network service** without publishing its
+  source;
+- needing **procurement, warranty, indemnity, or support terms** that a public
+  license does not provide.
+
+If none of those describe you, you do not need it. Contact
+**contact@openvoiceflow.com** if they do.
+
+Note what is *not* on that list: using OpenVoiceFlow at a company, deploying it
+across a team, or building an internal tool on it that you do not distribute.
+The AGPL-3.0 covers all of that at no charge.
+
+## Integrations
+
+A separate program that merely communicates with an unmodified OpenVoiceFlow
+build through a documented operating-system or network interface is an
+independent work. The AGPL's reciprocal condition does not reach it, and it
+does not need a commercial license.
 
 ## Earlier releases and existing MIT portions
 
-Versions and source snapshots previously released under the MIT License remain
-available under the MIT terms that accompanied those copies. Those grants
-cannot be withdrawn. Check the `LICENSE` file in the exact version you use.
+Versions and source snapshots previously released under other terms — the MIT
+License, and later the OpenVoiceFlow Personal and Reciprocal Source License 1.0
+— remain available under the terms that accompanied those copies. Those grants
+cannot be withdrawn, and the move to the AGPL-3.0 is not retroactive. Check the
+`LICENSE` file in the exact version you use.
 
-A historical third-party contribution included in the current tree was accepted
-when the project used MIT terms. Rights in that contributor's material remain
-available under MIT; the current reciprocal license governs Shimoverse Studios'
-new and modified material. The provenance and preserved MIT notice are in
-[legal/LEGACY_MIT_PORTIONS.md](legal/LEGACY_MIT_PORTIONS.md). This
-means the reciprocal condition cannot be imposed retroactively on that
-contributor's pre-existing copyright. It does apply to new contributions made
-under the current contribution terms.
+A historical third-party contribution in the current tree was accepted under
+MIT terms. Rights in that contributor's material remain available under MIT;
+its provenance and preserved notice are in
+[legal/LEGACY_MIT_PORTIONS.md](legal/LEGACY_MIT_PORTIONS.md). MIT is compatible
+with the AGPL-3.0, so that material ships unchanged inside the AGPL-licensed
+whole.
 
-## Contributions
+## How dual-licensing is possible
 
-Current contribution terms are in [CONTRIBUTING.md](CONTRIBUTING.md). A new
-contributor keeps copyright in their contribution while granting Shimoverse
-Studios the rights needed to distribute it under the public reciprocal license
-and separate commercial and organizational licenses.
+Shimoverse Studios holds or has been granted the rights to the project's code.
+Contributors keep copyright in their contributions and grant Shimoverse Studios
+the rights needed to distribute them under the public license and under
+separate commercial licenses — see [CONTRIBUTING.md](CONTRIBUTING.md). That
+grant is what makes a commercial license possible alongside the AGPL-3.0; it is
+the same arrangement used by other dual-licensed projects.
 
 ## Third-party software and brand
 
 Third-party components are governed by their own licenses, listed in
-[legal/THIRD_PARTY_NOTICES.md](legal/THIRD_PARTY_NOTICES.md). The
-OpenVoiceFlow name and logo are governed separately by
-[TRADEMARKS.md](TRADEMARKS.md); derivatives must rebrand and state **"Based on OpenVoiceFlow by Shimoverse
-Studios"** with a working link to the
-[original source code](https://github.com/shimoverse/openvoiceflow).
+[legal/THIRD_PARTY_NOTICES.md](legal/THIRD_PARTY_NOTICES.md). All of them are
+compatible with the AGPL-3.0. The OpenVoiceFlow name and logo are governed
+separately by [TRADEMARKS.md](TRADEMARKS.md); derivatives must rebrand and
+state **"Based on OpenVoiceFlow by Shimoverse Studios"** with a working link to
+the [original source code](https://github.com/shimoverse/openvoiceflow).
 
-## Legal review
+## Not legal advice
 
-This is a custom software license because widely used standard licenses do not
-cleanly combine the project's requirements: personal use only, separate
-permission for commercial or organizational use, required attribution to the
-original code, and AGPL-style reciprocal source publication. It should be reviewed by a
-qualified software-licensing attorney before relying on it for a dispute or a
-high-value commercial agreement. This page is a practical summary, not legal
-advice; the applicable license texts control.
+This page is a practical summary. Where it differs from the
+[license text](LICENSE), the license text controls. The AGPL-3.0 is a standard,
+widely analysed license, which is much of why it was chosen over a custom one.

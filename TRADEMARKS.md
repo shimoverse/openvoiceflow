@@ -1,13 +1,17 @@
 # Brand and trademark policy
 
-The OpenVoiceFlow **code** is source-available for personal use only under the
-[project license](LICENSE). Commercial or organizational use requires separate
-written permission or a separate written license from Shimoverse Studios; see
+The OpenVoiceFlow **code** is free and open source under the
+[GNU Affero General Public License v3.0](LICENSE), for any use including
+organizational use. A separate commercial license is available from Shimoverse
+Studios for closed-source or unpublished-source use; see
 [LICENSING.md](LICENSING.md) or contact contact@openvoiceflow.com.
 
 Distributed derivatives and modified network versions must publish complete
 corresponding source under the same software license. That source-sharing rule
-does not grant permission to use OpenVoiceFlow branding on a derivative.
+does not grant permission to use OpenVoiceFlow branding on a derivative. This
+brand policy is an additional term under AGPL-3.0 Section 7(e), recorded in
+[NOTICE](NOTICE); the AGPL expressly permits it and it restricts no freedom the
+license grants.
 
 The OpenVoiceFlow **name, logo, and visual identity** are separate. They identify
 this project, built and maintained by Shimoverse Studios, and this policy governs
@@ -24,9 +28,8 @@ symbol does not waive our rights.
   release (for example, a mirror) as long as it is clearly the unmodified
   official build and all required license notices travel with it.
 
-These permissions concern the brand only. They do not expand the software-use
-rights in `LICENSE`; commercial or organizational redistribution still needs
-separate written permission or a separate written license.
+These permissions concern the brand only. They neither expand nor narrow the
+software-use rights in `LICENSE`.
 
 ## You may not
 

@@ -46,7 +46,11 @@ def test_unsupported_language_error_is_user_visible():
 
 
 def test_unsupported_whistle_settings_choice_is_not_called_a_download_failure_or_retried():
-    status = (ROOT / 'AppController.swift').read_text().split('final class ModelPreparationStatus:', 1)[1].split('/// Orchestrates', 1)[0]
+    status = (
+        (ROOT / 'AppController.swift').read_text()
+        .split('final class ModelPreparationStatus:', 1)[1]
+        .split('/// Orchestrates', 1)[0]
+    )
     dashboard = (ROOT / 'DashboardView.swift').read_text()
     assert 'catch WhistleError.unsupportedArchitecture' in status
     assert 'catch WhistleError.unsupportedLanguage' in status
@@ -109,7 +113,11 @@ def test_whistle_progress_waits_for_both_downloads():
     engine = (ROOT / "WhistleEngine.swift").read_text()
     assert 'progress(500, 1000)' in engine
     assert 'progress(1000, 1000)' in engine
-    assert engine.index('progress(500, 1000)') < engine.index('fetcher(Self.weightsURL') < engine.index('progress(1000, 1000)')
+    assert (
+        engine.index('progress(500, 1000)')
+        < engine.index('fetcher(Self.weightsURL')
+        < engine.index('progress(1000, 1000)')
+    )
 
 
 def test_overlapping_model_selections_do_not_restore_stale_engine():

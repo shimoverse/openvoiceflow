@@ -1,4 +1,5 @@
 """Regression contracts for controller take replacement and Whistle selection on Intel."""
+
 from pathlib import Path
 
 
@@ -22,7 +23,10 @@ def test_selecting_whistle_on_intel_rejects_before_changing_or_saving_model():
     architecture = selection.index("#if !arch(arm64)")
     assert selection.index("if name == WhistleEngine.modelID") < architecture
     assert architecture < selection.index("throw WhistleError.unsupportedArchitecture")
-    assert selection.index("throw WhistleError.unsupportedArchitecture") < selection.index("settings.whisperModel = name")
+    assert (
+        selection.index("throw WhistleError.unsupportedArchitecture")
+        < selection.index("settings.whisperModel = name")
+    )
     assert selection.index("throw WhistleError.unsupportedArchitecture") < selection.index("settings.save()")
 
 

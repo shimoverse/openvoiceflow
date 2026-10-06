@@ -3,6 +3,78 @@ import Combine
 import Foundation
 import os
 
+/// Dashboard Settings preparation status, scoped to the current selection.
+@MainActor
+final class ModelPreparationStatus: ObservableObject {
+    @Published private(set) var message: String?
+    @Published private(set) var errorDetail: String?
+    @Published private(set) var canRetry = false
+    private var generation = 0
+    private var target: String?
+    private var task: Task<Void, Never>?
+
+    func selectionChanged(to model: String) {
+        guard target != model else { return }
+        generation += 1
+        task?.cancel()
+        task = nil
+        target = nil
+        message = nil
+        errorDetail = nil
+        canRetry = false
+    }
+
+    func choose(_ model: String, controller: AppController) {
+        generation += 1
+        let current = generation
+        task?.cancel()
+        target = model
+        message = "Downloading…"
+        errorDetail = nil
+        canRetry = false
+        task = Task {
+            do {
+                let selection = try await controller.selectModel(model)
+                guard !Task.isCancelled, current == generation else { return }
+                if !(await controller.isModelReady(model, generation: selection)) {
+                    try await controller.prepareModelForOnboarding(model, generation: selection) { received, expected in
+                        Task { @MainActor in
+                            guard current == self.generation else { return }
+                            if expected > 0, received >= expected {
+                                self.message = "Preparing model…"
+                            } else if expected > 0 {
+                                self.message = "Downloading \(Int(min(100, max(0, Double(received) / Double(expected) * 100))))%"
+                            }
+                        }
+                    }
+                }
+                guard !Task.isCancelled, current == generation else { return }
+                guard await controller.isModelReady(model, generation: selection) else { throw WhistleError.notDownloaded }
+                message = "Ready to transcribe"
+            } catch is CancellationError {
+                if current == generation {
+                    message = "Download stopped"
+                    errorDetail = "Try again to prepare this model."
+                    canRetry = true
+                }
+            } catch WhistleError.unsupportedArchitecture {
+                guard current == generation else { return }
+                message = "Model unavailable"
+                errorDetail = WhistleError.unsupportedArchitecture.localizedDescription
+            } catch WhistleError.unsupportedLanguage {
+                guard current == generation else { return }
+                message = "Model unavailable"
+                errorDetail = WhistleError.unsupportedLanguage.localizedDescription
+            } catch {
+                guard current == generation else { return }
+                message = "Download failed"
+                errorDetail = error.localizedDescription
+                canRetry = true
+            }
+        }
+    }
+}
+
 /// Orchestrates the dictation loop and owns app state. The single source of
 /// truth wired into the menu bar, HUD, and dashboard.
 ///
@@ -30,6 +102,7 @@ final class AppController: ObservableObject {
     /// normal dictation path has no use for it (the HUD shows a coil, not text).
     var streamPartials = false
     @Published var settings: Settings
+    let modelPreparation = ModelPreparationStatus()
 
     // Ported feature stores (dictionary, snippets, styles, profile, history).
     let profileStore = ProfileStore()
@@ -59,9 +132,32 @@ final class AppController: ObservableObject {
     private let minSpeakSeconds: Double = 0.5
     private var maxRecordTask: Task<Void, Never>?
     private var partialTask: Task<Void, Never>?
+    private var dictationTask: Task<Void, Never>?
     private var resumeTask: Task<Void, Never>?
     private var pressTime = Date.distantPast
     private var lastSamples: [Float] = []
+    private(set) var modelSelectionGeneration = 0
+    private var dictationGeneration = 0
+
+    private func invalidateDictation() {
+        dictationGeneration += 1
+        maxRecordTask?.cancel()
+        partialTask?.cancel()
+        partialTask = nil
+        dictationTask?.cancel()
+        dictationTask = nil
+        lastSamples = [] // Do not retry audio captured under a previous model.
+        if isRecording { _ = audio.stop(); isRecording = false }
+        isWorking = false
+        partialTranscript = nil
+        hud.hide() // A hot swap is a cancellation, not a failed transcription.
+    }
+
+    private func validateSelection(_ model: String, generation: Int) throws {
+        guard settings.whisperModel == model, modelSelectionGeneration == generation else {
+            throw CancellationError()
+        }
+    }
 
     /// Menu-bar icon state derived from the controller state (design 02).
     var iconState: StatusIconState {
@@ -96,25 +192,48 @@ final class AppController: ObservableObject {
 
     /// Prepares the local speech engine for onboarding, forwarding WhisperKit's
     /// real byte counts so the view can show size, rate and ETA.
-    func prepareModelForOnboarding(
+    func prepareModelForOnboarding(_ model: String, generation: Int,
         progress: @escaping Transcriber.DownloadProgressObserver
     ) async throws {
-        try await transcriber.warmUp(progress: progress)
+        try validateSelection(model, generation: generation)
+        try await transcriber.downloadSelectedModel(model, progress: progress)
+        try validateSelection(model, generation: generation)
     }
 
     /// Onboarding's engine choice. Unlike `updateModel` this awaits the swap,
     /// so the download the caller starts next fetches the chosen model instead
     /// of racing the transcriber's async set.
-    func selectModel(_ name: String) async {
-        guard name != settings.whisperModel else { return }
+    @discardableResult
+    func selectModel(_ name: String) async throws -> Int {
+        try Task.checkCancellation()
+        if name == WhistleEngine.modelID {
+            #if !arch(arm64)
+            throw WhistleError.unsupportedArchitecture
+            #endif
+            if !WhistleEngine.supports(language: settings.language) {
+                throw WhistleError.unsupportedLanguage
+            }
+        }
+        guard name != settings.whisperModel else { return modelSelectionGeneration }
+        modelSelectionGeneration += 1
+        let generation = modelSelectionGeneration
+        invalidateDictation()
         settings.whisperModel = name
         settings.save()
-        await transcriber.setModel(name)
+        lastError = nil
+        modelPreparation.selectionChanged(to: name)
+        await transcriber.setModel(name, generation: generation)
+        try validateSelection(name, generation: generation)
+        return generation
     }
 
     /// Whether the speech model is already resident — lets onboarding skip the
     /// download card on a reinstall.
-    func isModelReady() async -> Bool { await transcriber.isReady }
+    func isModelReady(_ model: String, generation: Int) async -> Bool {
+        guard (try? validateSelection(model, generation: generation)) != nil else { return false }
+        let ready = await transcriber.isReady(for: model)
+        return ready && (try? validateSelection(model, generation: generation)) != nil
+    }
 
     /// Begin listening for the hotkey. Returns false if the tap couldn't start
     /// (missing Accessibility/Input Monitoring) so the UI can surface it.
@@ -169,17 +288,39 @@ final class AppController: ObservableObject {
     /// model and reloads the new one off the hot path.
     func updateModel(_ name: String) {
         guard name != settings.whisperModel else { return }
+        if name == WhistleEngine.modelID {
+            #if !arch(arm64)
+            lastError = WhistleError.unsupportedArchitecture.localizedDescription
+            return
+            #endif
+        }
+        guard name != WhistleEngine.modelID || WhistleEngine.supports(language: settings.language) else {
+            lastError = WhistleError.unsupportedLanguage.localizedDescription
+            return
+        }
+        modelSelectionGeneration += 1
+        let generation = modelSelectionGeneration
+        invalidateDictation()
         settings.whisperModel = name
         settings.save()
+        lastError = nil
+        modelPreparation.selectionChanged(to: name)
         // setModel no longer loads (onboarding needs the swap and the download
         // decoupled); the Settings path still wants the hot-swap immediately.
-        Task { await transcriber.setModel(name); try? await transcriber.warmUp() }
+        Task {
+            await transcriber.setModel(name, generation: generation)
+            guard (try? validateSelection(name, generation: generation)) != nil else { return }
+            try? await transcriber.warmUp()
+        }
     }
 
     // MARK: dictation loop
 
     private func startRecording() {
         guard !isRecording, pausedUntil == nil else { return }
+        dictationTask?.cancel()
+        dictationTask = nil
+        dictationGeneration += 1
         pressTime = Date()
         do {
             try audio.start()
@@ -216,7 +357,9 @@ final class AppController: ObservableObject {
         }
         lastSamples = samples
         hud.show(.transcribing)
-        Task { await process(samples) }
+        let generation = dictationGeneration
+        let selection = modelSelectionGeneration
+        dictationTask = Task { await process(samples, generation: generation, selection: selection) }
     }
 
     /// Re-transcribe the growing buffer on a 300 ms beat so the ink fill has
@@ -248,17 +391,26 @@ final class AppController: ObservableObject {
 
     private func retryLastTranscription() {
         guard !lastSamples.isEmpty else { return }
+        dictationGeneration += 1
         hud.show(.transcribing)
-        Task { await process(lastSamples) }
+        let generation = dictationGeneration
+        let selection = modelSelectionGeneration
+        dictationTask?.cancel()
+        dictationTask = Task { await process(lastSamples, generation: generation, selection: selection) }
     }
 
-    private func process(_ samples: [Float]) async {
+    private func process(_ samples: [Float], generation: Int, selection: Int) async {
+        guard generation == dictationGeneration, selection == modelSelectionGeneration else { return }
+        // Cancellation prevents subsequent paste/history; it cannot retract
+        // data already sent to a remote cleanup provider before the swap.
         isWorking = true
-        defer { isWorking = false }
+        defer { if generation == dictationGeneration { isWorking = false } }
+        let selectedModel = settings.whisperModel
         // The app the user dictated into — for per-app style + history.
         let frontApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "Unknown"
         do {
             let raw = try await transcriber.transcribe(samples, language: settings.language)
+            try validateDictation(selectedModel, selection: selection, generation: generation)
             guard !raw.isEmpty else {
                 // Whisper heard nothing usable (very short/quiet) — a nudge, not an error.
                 hud.show(.tooShort)
@@ -280,12 +432,23 @@ final class AppController: ObservableObject {
                 + snippetHints()
             let provider = CleanupFactory.make(settings)
             let cleaned = (try? await provider.cleanup(raw, style: style, context: context)) ?? raw
+            try validateDictation(selectedModel, selection: selection, generation: generation)
             deliver(cleaned, app: frontApp)
+        } catch is CancellationError {
+            if generation == dictationGeneration { hud.hide() }
+        } catch WhistleError.cancelled {
+            if generation == dictationGeneration { hud.hide() }
         } catch {
+            guard generation == dictationGeneration, selection == modelSelectionGeneration else { return }
             log.error("dictation failed: \(error.localizedDescription)")
-            lastError = "Dictation failed"
+            lastError = error is WhistleError ? error.localizedDescription : "Dictation failed"
             hud.show(.error(.timeout))
         }
+    }
+
+    private func validateDictation(_ model: String, selection: Int, generation: Int) throws {
+        try validateSelection(model, generation: selection)
+        guard generation == dictationGeneration else { throw CancellationError() }
     }
 
     /// Paste, log to history, bump stats, and flash the success HUD.

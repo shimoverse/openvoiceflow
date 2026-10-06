@@ -45,9 +45,8 @@ struct OBPalette {
 ///
 /// Five steps, one idea each: welcome ("I live up there") → three permissions
 /// granted in sequence → Know-Me while the speech engine downloads → say
-/// anything → the payoff. No model names, hostnames, checksums or file paths
-/// outside the failure disclosure; the user should feel taken care of, not
-/// informed.
+/// anything → the payoff. Model names stay in the explicit engine picker;
+/// failure details expose the actual error rather than guessing its cause.
 struct OnboardingView: View {
     @ObservedObject var controller: AppController
     @State private var step = 0
@@ -202,8 +201,11 @@ struct OnboardingView: View {
         switch step {
         case 0: welcome
         case 1: permissions
-        case 2: KnowMeDownloadStep(controller: controller, done: $downloadDone,
+        case 2:
+            ScrollView {
+                KnowMeDownloadStep(controller: controller, done: $downloadDone,
                                    percent: $downloadPercent, fraction: $downloadFraction, palette: p)
+            }
         case 3: tryItStep
         default: payoffStep
         }
@@ -758,7 +760,7 @@ private struct KnowMeDownloadStep: View {
     private var p: OBPalette { palette }
 
     /// The engines on offer — size and benefit up front, decision theirs.
-    /// Same ids the dashboard and menu speak.
+    /// First-run Whisper choices; beta models are offered in Dashboard Settings.
     private static let engines: [(id: String, name: String, size: String, benefit: String)] = [
         ("tiny", "Tiny", "39 MB", "Fastest. Fine for quick notes."),
         ("small", "Small", "466 MB", "Everyday dictation on any Mac."),
@@ -798,11 +800,13 @@ private struct KnowMeDownloadStep: View {
                 .foregroundStyle(p.ink)
             Text(skipProgress
                  ? "One answer, and your name comes out spelled right the first time."
-                 : "Each one runs on this Mac, offline. Bigger hears better — your call.")
+                 : "Whisper models run offline on this Mac.")
                 .font(.system(size: 13)).foregroundStyle(p.ink2)
                 .padding(.top, 6)
 
-            if !skipProgress { engineCard.padding(.top, 16) }
+            if !skipProgress {
+                engineCard.padding(.top, 16)
+            }
             interviewCard.padding(.top, 14)
             if selected != nil && !skipProgress {
                 progressCard.padding(.top, 14)
@@ -982,10 +986,13 @@ private struct KnowMeDownloadStep: View {
         // start from the engine recommended for this Mac rather than an
         // empty picker — a tap on any other row still overrides it freely.
         Task {
-            if await controller.isModelReady() {
+            let model = controller.settings.whisperModel
+            let selection = controller.modelSelectionGeneration
+            if await controller.isModelReady(model, generation: selection) {
+                guard selected == nil, controller.modelSelectionGeneration == selection else { return }
                 skipProgress = true
                 done = true
-            } else if selected == nil {
+            } else if selected == nil, controller.modelSelectionGeneration == selection {
                 choose(Self.recommendedEngineID)
             }
         }
@@ -1024,29 +1031,32 @@ private struct KnowMeDownloadStep: View {
     }
 
     private func download(engine: String, gen: Int) async {
-        await controller.selectModel(engine)
-        guard gen == generation else { return }
-        // Switching back to an engine that already finished downloading:
-        // land the bar, no second transfer.
-        if await controller.isModelReady() {
-            guard gen == generation else { return }
-            meter.complete()
-            done = true
-            return
-        }
         do {
-            try await controller.prepareModelForOnboarding { received, expected in
+            let selection = try await controller.selectModel(engine)
+            guard gen == generation, !Task.isCancelled else { return }
+            // Readiness belongs to this exact selection, not just its model name.
+            if await controller.isModelReady(engine, generation: selection) {
+                guard gen == generation, !Task.isCancelled else { return }
+                meter.complete()
+                done = true
+                return
+            }
+            try await controller.prepareModelForOnboarding(engine, generation: selection) { received, expected in
                 Task { @MainActor in
-                    guard gen == generation else { return }
+                    guard gen == generation, !done else { return }
                     meter.update(received: received, expected: expected)
                     // The last progress callback is the transfer ending, not
                     // the model being ready — the compile that follows has no
                     // progress of its own, so hand the bar over here.
-                    if expected > 0 && received >= expected { meter.beginOptimizing() }
+                    if expected > 0 && received >= expected {
+                        // Reserve 100% for confirmed model readiness.
+                        meter.beginOptimizing()
+                    }
                     percent = meter.percentText
                 }
             }
-            guard gen == generation else { return }
+            guard gen == generation, !Task.isCancelled,
+                  await controller.isModelReady(engine, generation: selection) else { return }
             meter.complete()
             done = true
         } catch is CancellationError {

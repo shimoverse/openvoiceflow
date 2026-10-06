@@ -5,10 +5,11 @@ This file enumerates the third-party software OpenVoiceFlow depends on at runtim
 OpenVoiceFlow itself is free and open source under the GNU Affero General
 Public License v3.0; a modified version that is distributed or offered over a
 network must publish complete corresponding source under the same license, while
-the required attribution notice must be retained. Every third-party component listed below is
-license-compatible with the AGPL-3.0. See [`LICENSE`](../LICENSE),
-[`NOTICE`](../NOTICE) and [`LICENSING.md`](../LICENSING.md). Third-party
-components remain governed by their own licenses below.
+the required attribution notice must be retained. Bundled third-party components
+listed below are license-compatible with the AGPL-3.0. Separately downloaded
+executables are not bundled or linked and retain their own upstream terms.
+See [`LICENSE`](../LICENSE), [`NOTICE`](../NOTICE) and
+[`LICENSING.md`](../LICENSING.md).
 
 Repository: <https://github.com/shimoverse/openvoiceflow>
 Sources of truth for runtime dependencies: [`pyproject.toml`](../pyproject.toml) and [`Package.swift`](../native/Package.swift). (The website's npm dependencies are not distributed with the app and live in the private site repo.)
@@ -75,6 +76,10 @@ The notarized universal DMG ships a native macOS app built with Swift. The follo
 
 WhisperKit downloads its Core ML model weights on first run from the upstream model repository on `huggingface.co`; the weights are cached on disk after the initial download.
 
+### Optional Whistle (Beta) — separately downloaded, not bundled
+
+Only after a user explicitly selects Whistle in Dashboard → Settings does the app fetch Cactus-Compute's Apple Silicon `needle` CLI from [`needle3` revision `2ae11323`](https://huggingface.co/Cactus-Compute/needle3/tree/2ae11323dc000f5e70c49f7403efa6af12ba9e67) and `whistle.cact` weights from [`whistle` revision `b358ddad`](https://huggingface.co/Cactus-Compute/whistle/tree/b358ddadd89b7a713b5aa131f23032d3cca1b251). SHA-256 values are pinned in `WhistleEngine.swift` (CLI `342fa2c6f140e702354a99c4201c9057535ec908eed35c7382e911a19d1d2724`; weights `b6e02f048568ac5d01a2042556c658061e699acbc0aa2a1439f52f3d461dffeb`). Both upstream artifact repositories publish an Apache-2.0 LICENSE. The executable is **not** compiled, linked, or packaged into OpenVoiceFlow's DMG, and its native engine source/build provenance is not public; the upstream license metadata is not a source audit. We run this external program through a network-denied macOS sandbox using a local audio FIFO. No Python Needle package is installed, so its Python telemetry code is not part of the app. Users remain free to choose WhisperKit instead.
+
 The native app supersedes the legacy Homebrew `whisper.cpp` speech path described in §3, which applied to the retired Python CLI (v0.3.x and earlier).
 
 ## 5. LLM provider SDKs — none bundled
@@ -119,6 +124,7 @@ The runtime-shipped license set is:
 - **MIT** — `sounddevice`, `pyobjc-framework-Cocoa` (+ all pyobjc-* siblings), `pyobjc-core`, `cffi`, `whisper.cpp`, `whisper-stream`, `ggml-*` model files, **WhisperKit**, and **Sparkle**.
 - **BSD-3-Clause** — `numpy`, `rumps`, `pycparser`.
 - **Apache-2.0** — **swift-crypto** (bundled in the native macOS app), `@neondatabase/serverless` (website API runtime).
+- **Optional external Apache-2.0-labelled artifacts** — Whistle/Needle CLI and weights, fetched from upstream only after a Settings opt-in; not bundled or linked. Their native source/build provenance is unpublished, as noted above.
 - **CC0-1.0 / MIT / vendor-provided marks** — bundled app-identification fallbacks, itemized in `native/Resources/BrandIcons/README.md`.
 - **LGPL-3.0** — `pynput` (dynamically loaded; see §1 note).
 

@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 CONTROLLER = (Path(__file__).resolve().parents[1] / "native/Sources/OpenVoiceFlow/AppController.swift")
 
 

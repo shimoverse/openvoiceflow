@@ -170,6 +170,11 @@ private struct MenuContent: View {
     let showOnboarding: () -> Void
     @Environment(\.openWindow) private var openWindow
 
+    init(controller: AppController, showOnboarding: @escaping () -> Void) {
+        self.controller = controller
+        self.showOnboarding = showOnboarding
+    }
+
     /// The models the design's picker offers (WhisperKit names + sizes).
     private static let models: [(id: String, label: String)] = [
         ("tiny", "tiny — 39 MB"),
@@ -211,11 +216,10 @@ private struct MenuContent: View {
         }
 
         // 7. Model picker.
-        Menu("Model — \(controller.settings.whisperModel)") {
+        Menu("Model — \(Self.models.first(where: { $0.id == controller.settings.whisperModel })?.id ?? "Manage in Settings")") {
             ForEach(Self.models, id: \.id) { model in
                 Button {
-                    controller.settings.whisperModel = model.id
-                    controller.settings.save()
+                    controller.modelPreparation.choose(model.id, controller: controller)
                 } label: {
                     if controller.settings.whisperModel == model.id {
                         Label(model.label, systemImage: "checkmark")
@@ -224,8 +228,6 @@ private struct MenuContent: View {
                     }
                 }
             }
-            Divider()
-            Text("Runs on this Mac — downloads once")
         }
 
         // 8. Cleanup picker (design order: on-device first).
@@ -273,10 +275,15 @@ private struct MenuContent: View {
     }
 
     private var headerSubtitle: String {
-        if controller.lastError != nil { return "Pick an input in Sound settings" }
+        if controller.lastError == "Microphone unavailable" { return "Pick an input in Sound settings" }
+        if controller.lastError != nil {
+            return "Review the error above or open Dashboard Settings"
+        }
         if controller.isPaused { return "Hotkey ignored while paused" }
         if controller.isRecording { return "Release to transcribe" }
-        if controller.isWorking { return "On-device Whisper" }
+        if controller.isWorking {
+            return "On-device transcription"
+        }
         if !controller.isListening { return "Check Setup & Permissions below" }
         return "Hold \(controller.settings.hotkey.glyph) to dictate"
     }

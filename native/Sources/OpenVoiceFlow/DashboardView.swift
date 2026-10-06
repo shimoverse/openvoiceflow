@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 
+
 /// The dashboard window — design phase 03 (design sources in git history).
 ///
 /// Fixed 212 pt sidebar (text + selection tint, no icons — by design) and a
@@ -26,6 +27,7 @@ struct DashboardView: View {
     @State private var showInterview = false
     @State private var showFeedback = false
     @State private var showShare = false
+    @ObservedObject private var modelPreparation: ModelPreparationStatus
     @State private var apiKeyDraft = ""       // mirrors the Keychain key for the selected backend
     @State private var showDeleteHistory = false
     @State private var leaderboardNameDraft: String
@@ -50,6 +52,7 @@ struct DashboardView: View {
 
     init(controller: AppController) {
         self.controller = controller
+        self.modelPreparation = controller.modelPreparation
         self.history = controller.historyStore
         self.dictionary = controller.dictionaryStore
         self.snippets = controller.snippetStore
@@ -1153,6 +1156,7 @@ struct DashboardView: View {
         ("small", "Small — 466 MB"),
         ("medium", "Medium — 1.5 GB"),
         ("large-v3-v20240930", "Large v3 turbo — 1.6 GB"),
+        ("whistle", "Whistle (Beta)"),
     ]
     // Whisper's standard 99-language multilingual set — shared by tiny, small,
     // medium, and large-v3-turbo, since all four ship the same tokenizer's
@@ -1220,11 +1224,31 @@ struct DashboardView: View {
             }
 
             settingsCard("TRANSCRIPTION — ON THIS MAC") {
-                settingsRow("Whisper model") {
+                settingsRow("Speech engine") {
                     Picker("", selection: whisperModelBinding) {
                         ForEach(whisperModelOptions, id: \.0) { Text($0.1).tag($0.0) }
                     }
-                    .labelsHidden().pickerStyle(.menu).frame(width: 210)
+                    .labelsHidden().pickerStyle(.menu).frame(width: 290)
+                }
+                if controller.settings.whisperModel == "whistle" {
+                    settingsRow("Beta · Apple Silicon only · separate download; English, French, German, Spanish, Italian, Dutch, Polish") { EmptyView() }
+                }
+                if let message = modelPreparation.message {
+                    settingsRow("Model status") {
+                        Text(message)
+                            .foregroundStyle(modelPreparation.errorDetail == nil ? ink2 : DT.destructive)
+                        if modelPreparation.canRetry {
+                            Button("Try again") {
+                                modelPreparation.choose(controller.settings.whisperModel, controller: controller)
+                            }
+                            .buttonStyle(.plain).foregroundStyle(DT.emberLight)
+                        }
+                    }
+                    if let detail = modelPreparation.errorDetail {
+                        settingsRow("Details") {
+                            Text(detail).foregroundStyle(ink2).textSelection(.enabled)
+                        }
+                    }
                 }
                 settingsRow("Language") {
                     Picker("", selection: bind(\.language)) {
@@ -1412,9 +1436,14 @@ struct DashboardView: View {
         return opts
     }
     private var languageOptions: [(String, String)] {
-        var opts = Self.languages
+        var opts = controller.settings.whisperModel == WhistleEngine.modelID
+            ? Self.languages.filter { WhistleEngine.supports(language: $0.0) }
+            : Self.languages
         let current = controller.settings.language
-        if !opts.contains(where: { $0.0 == current }) { opts.insert((current, current), at: 0) }
+        if !opts.contains(where: { $0.0 == current }) {
+            let label = Self.languages.first(where: { $0.0 == current })?.1 ?? current
+            opts.insert((current, "\(label) (unsupported — choose another)"), at: 0)
+        }
         return opts
     }
 
@@ -1464,10 +1493,10 @@ struct DashboardView: View {
         )
     }
 
-    /// Whisper model swaps the live transcriber, so it goes through the controller
-    /// (a plain `bind` would only persist the value, not reload the model).
+    /// Await the swap and preparation so failures and progress reach the UI.
     private var whisperModelBinding: Binding<String> {
-        Binding(get: { controller.settings.whisperModel }, set: { controller.updateModel($0) })
+        Binding(get: { controller.settings.whisperModel },
+                set: { modelPreparation.choose($0, controller: controller) })
     }
 
     /// Cleanup on/off: off ⇒ `.none` (local raw), on ⇒ Anthropic by default.

@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
 
+## [0.5.28] — 2026-10-06
+
+### Added
+- **Whistle (Beta) is an optional speech engine in Dashboard → Settings.** WhisperKit and every existing model, including Large Turbo, remain available; the default stays `base.en`. On Apple Silicon with a supported language, selecting Whistle downloads the vendor's small executable and model from pinned, SHA-256-verified upstream files. Dictation audio reaches it through a local FIFO in a network-denied macOS sandbox. No Whistle executable or weights are bundled with the app; see [`PRIVACY.md`](PRIVACY.md) and [`legal/THIRD_PARTY_NOTICES.md`](legal/THIRD_PARTY_NOTICES.md) for the beta's limits and provenance.
+
+### Fixed
+- The menu-bar Whisper model picker now switches the active engine rather than merely saving a preference.
+
 ## [0.5.27] — 2026-09-17
 
 ### Added

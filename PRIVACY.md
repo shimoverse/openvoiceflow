@@ -14,7 +14,7 @@ See [LICENSING.md](LICENSING.md).
 
 ## 1. TL;DR
 
-- **Your audio never leaves your Mac.** Transcription happens on-device via **WhisperKit**. The recording is discarded the moment the transcript exists. There is no audio upload, ever.
+- **Your audio never leaves your Mac.** WhisperKit remains the default speech engine. If you explicitly select **Whistle (Beta)** in Settings, the app separately downloads Cactus's executable and model, then passes audio through a local FIFO to the executable in a network-denied macOS sandbox. No dictation audio is uploaded. Audio can remain briefly in memory for the app's Retry action; it is not saved as a recording.
 - **Cleanup is Off by default.** Out of the box, OpenVoiceFlow pastes the raw on-device transcript with no LLM step and no network call. You have to turn cleanup on yourself.
 - **Cloud cleanup is opt-in and bring-your-own-key.** If you enable **OpenRouter** cleanup, only the transcript text (plus your personal context — see below) is sent, under your own key, to a provider you contract with directly. You can instead run **Ollama** locally, or leave cleanup **Off**.
 - **No accounts, no cloud sync, no crash reporting.** OpenVoiceFlow has no sign-up and doesn't sync your settings or profile anywhere. It checks for updates through Sparkle (see §3).
@@ -29,8 +29,9 @@ Everything OpenVoiceFlow knows about you lives in one of the rows below.
 
 | Artifact | Where it lives | What it contains | Default state | Goes off the Mac? |
 |---|---|---|---|---|
-| **Audio buffers** | RAM only, while you hold the hotkey | Your raw microphone audio | Always on (it's how dictation works) | **No.** Transcribed on-device by WhisperKit, then discarded. Never written to a network. |
-| **Cleaned transcripts (Off)** | Nowhere new | The WhisperKit output is pasted directly with no LLM cleanup | **Default** | **No.** No cleanup call is made at all. |
+| **Audio buffers** | RAM while recording, transcribing, or retrying | Your raw microphone audio | Always on (it's how dictation works) | **No.** WhisperKit transcribes in-process; opt-in Whistle (Beta) reads from a local FIFO in a network-denied sandbox. No audio recording file or audio upload. |
+| **Whistle (Beta) executable and model** | App Application Support, after explicit selection in Settings | A separately downloaded vendor executable and model weights; no dictated audio | Off until selected | **Download only:** the app contacts Hugging Face/CDN for the two files. The sandboxed executable cannot access the network during transcription. The download service sees the request/IP under its own terms. |
+| **Cleaned transcripts (Off)** | Nowhere new | The selected local engine's output is pasted directly with no LLM cleanup | **Default** | **No.** No cleanup call is made at all. |
 | **Cleaned transcripts (Ollama)** | In transit to `http://localhost:11434` | The transcribed text + your profile / dictionary / snippet context | If you enable Ollama cleanup | **No.** Stays on the Mac (or wherever you point Ollama). |
 | **Cleaned transcripts (OpenRouter)** | In transit to `openrouter.ai` | The transcribed text + your profile / dictionary / snippet context | If you enable OpenRouter cleanup | **Yes** — to OpenRouter, under your own key. You contract directly with OpenRouter under its terms. |
 | **API keys** | macOS **Keychain** | Your OpenRouter key (if you set one) | Empty until you enable cloud cleanup | **No.** Stored by the system Keychain, not in a settings file. |
@@ -45,7 +46,8 @@ Everything OpenVoiceFlow knows about you lives in one of the rows below.
 ### Data flow for a single dictation
 
 ```
-  mic audio  ──►  WhisperKit (on-device)  ──►  raw transcript (RAM)
+  mic audio  ──►  WhisperKit (default) OR Whistle (Beta, Settings opt-in)  ──►  raw transcript (RAM)
+                  on-device             local FIFO + network-denied vendor CLI
                                                      │
                                                      ▼
                                      voice-command replacement (local)
@@ -62,7 +64,7 @@ Everything OpenVoiceFlow knows about you lives in one of the rows below.
                                           cleaned text  ──►  paste at cursor
 ```
 
-With cleanup **Off** (the default) or set to **Ollama**, no byte of your dictation crosses the machine boundary. Baseline network egress consists of the Sparkle update check and, while the privacy toggle remains on, the anonymous aggregate usage summary described in §7.
+With cleanup **Off** (the default) or set to **Ollama**, no byte of your dictation crosses the machine boundary. Baseline network egress consists of the Sparkle update check and, while the privacy toggle remains on, the anonymous aggregate usage summary described in §7. Explicitly choosing Whistle (Beta) also downloads its executable and weights once; the model-download request contains no dictation audio or transcript. The Whistle CLI runs without network permission.
 
 ---
 
@@ -75,8 +77,9 @@ The third parties your install can talk to:
 - **OpenRouter** (`openrouter.ai`) — the recommended cloud gateway. **Only if** you enable OpenRouter cleanup, it receives your transcript plus your profile / dictionary / snippet context every time you dictate. One OpenRouter key reaches any model it hosts (you pick the model in the app). Governed by OpenRouter's terms.
 - **Other cloud providers** — some builds also let you point cleanup directly at Anthropic, OpenAI, or Groq instead of OpenRouter. Whichever provider you select is the one that receives your transcript + context, under your own API key. OpenRouter is the recommended path.
 - **Ollama** (`http://localhost:11434` by default) — runs on your machine. No third party.
-- **Off** — no cleanup call. The raw WhisperKit output is pasted without cleanup.
-- **WhisperKit model download** (`huggingface.co`) — used **once**, during first-run onboarding, to download the on-device speech model. No account required, no PII sent. After that, the model is on disk and never re-fetched unless you change models.
+- **Off** — no cleanup call. The raw transcript from your selected local engine is pasted without cleanup.
+- **WhisperKit model download** (`huggingface.co`) — used during first-run onboarding or when you switch WhisperKit models. No account required; the request does not include dictated content.
+- **Whistle (Beta) executable and weights download** (`huggingface.co` and its CDN) — only after you explicitly select Whistle in Settings. The app pins and verifies both files before running the vendor CLI. The download request exposes your IP address to the download host, but carries no dictated audio/text or app account. During transcription the CLI runs in a macOS sandbox that denies network, file writes, and unrelated user-file reads; the vendor's normal telemetry cannot send while confined. The native engine source is not public, so this sandbox and local tests are behavioral protections, not a full source audit.
 - **Sparkle updates** — the app checks a signed appcast for newer builds and can download and install them in place. The request is anonymous (no auth, no key, no user ID); updates are Developer-ID-signed and verified before install.
 - **OpenVoiceFlow's own analytics API** (`openvoiceflow.com/api/...`) — **only if** "Share anonymous usage & leaderboard rank" is on (Settings ▸ Privacy, on by default since v0.5.7). Receives a device ID, a display name you choose, and aggregate counters — see §7 for the exact fields and how to turn it off.
 
@@ -100,18 +103,19 @@ Every privacy-relevant default is a toggle in the app's menu-bar settings. There
 
 | Setting | Default | What it controls |
 |---|---|---|
+| **Speech engine** | **WhisperKit (`base.en`)** | Select a WhisperKit model, or explicitly download and use Whistle (Beta) on a supported Apple Silicon Mac and language. Switching back to WhisperKit remains available. |
 | **Cleanup backend** | **Off** | Whether — and how — your transcript is cleaned up. Off = raw local transcript; Ollama = local model; OpenRouter (or OpenAI / Anthropic / Groq) = cloud cleanup with your key. |
 | **Auto-learn** | **off** | Reads the focused text field briefly post-paste to learn corrections. |
 | **Voice commands** | on | Replaces spoken punctuation phrases ("new line", "comma") locally, before any cleanup call. |
 | **Update check (Sparkle)** | on | Checks the signed appcast for a newer build. |
 
-Because cleanup ships **Off**, a fresh install sends no dictation content over the network. The baseline runtime requests are the Sparkle update check and, while the privacy toggle remains on, the anonymous aggregate usage summary in §7; audio and dictated text stay on the Mac regardless.
+Because cleanup ships **Off**, a fresh install sends no dictation content over the network. The baseline runtime requests are the Sparkle update check and, while the privacy toggle remains on, the anonymous aggregate usage summary in §7. Choosing Whistle (Beta) in Settings adds a one-time executable/model download request; it never carries audio or transcript. If you enable a cloud cleanup provider, transcript text and context are sent to that provider under your own key.
 
 ---
 
 ## 6. What the app doesn't do
 
-- **No dictation content ever leaves the Mac, sharing on or off.** Not your words, not your audio. The anonymous usage summary (§7) is aggregate counts only, and it's a real, disclosed exception to the rest of this list — not something folded in quietly.
+- **No dictation audio leaves the Mac, sharing on or off.** Text also stays local unless you explicitly enable a cloud cleanup provider; in that case the provider receives transcript and context as described in §3. The anonymous usage summary (§7) contains aggregate counts only.
 - **No crash reports from the app.** macOS may keep a system-level crash log under `~/Library/Logs/DiagnosticReports/`; that's Apple's, not ours.
 - **No shared keys.** OpenVoiceFlow ships with no embedded API keys. You bring your own, and it lives in your Keychain.
 - **No cloud sync of settings or profile.** Those stay local regardless of the usage-sharing toggle.

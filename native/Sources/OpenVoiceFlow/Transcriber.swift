@@ -12,7 +12,17 @@ actor Transcriber {
     typealias DownloadProgressObserver = @Sendable (_ received: Int64, _ expected: Int64) -> Void
 
     private var kit: WhisperKit?
+    private let whistle = WhistleEngine()
     private var modelName: String
+    /// Monotonic selection identity: model names alone cannot distinguish A→B→A.
+    private var selectionGeneration = 0
+    /// Controller selection order, not actor arrival order, wins overlapping
+    /// menu/onboarding tasks that reach this actor in a different order.
+    private var controllerGeneration = 0
+
+    private func validate(_ model: String, generation: Int) throws {
+        guard model == modelName, generation == selectionGeneration else { throw CancellationError() }
+    }
     /// The one in-flight download+load. Single-flight is the whole point:
     /// onboarding's engine chooser can fire warmUp while another warmUp is
     /// mid-download (actor re-entrancy at the awaits), and two concurrent
@@ -33,17 +43,47 @@ actor Transcriber {
     /// callers decide when the download starts (onboarding debounces it; the
     /// Settings path warms up immediately). Note the shipped default `base.en`
     /// is English-only; a non-English language needs a multilingual model.
-    func setModel(_ name: String) async {
-        guard name != modelName else { return }
+    func setModel(_ name: String, generation: Int) async {
+        guard generation > controllerGeneration else { return }
+        controllerGeneration = generation
+        // Even if a delayed A→B→A arrives while A is still resident, a new
+        // selection must invalidate that A's in-flight result.
+        selectionGeneration += 1
         modelName = name
         kit = nil
         loadTask?.cancel()
         loadTask = nil
+        // Publish the replacement before suspending to cancel the old process:
+        // overlapping picker actions must never restore a stale model.
+        await whistle.cancel()
     }
 
     /// True once the model is loaded in memory — lets onboarding skip the
     /// progress card entirely on a reinstall.
-    var isReady: Bool { kit != nil }
+    func isReady(for requestedModel: String) async -> Bool {
+        guard requestedModel == modelName else { return false }
+        let model = modelName
+        let generation = selectionGeneration
+        if model == WhistleEngine.modelID {
+            let ready = await whistle.isReady()
+            return ready && model == modelName && generation == selectionGeneration
+        }
+        return kit != nil
+    }
+
+    /// Only the user's selection/prepare action may start a Whistle download.
+    func downloadSelectedModel(_ requestedModel: String,
+                               progress observer: @escaping DownloadProgressObserver) async throws {
+        guard requestedModel == modelName else { throw CancellationError() }
+        let model = modelName
+        let generation = selectionGeneration
+        if model == WhistleEngine.modelID {
+            try await whistle.download(progress: observer)
+        } else {
+            try await warmUp(progress: observer)
+        }
+        try validate(model, generation: generation)
+    }
 
     /// Load the model once (lazily). The observer receives only actual
     /// WhisperKit transfer progress, as raw byte counts.
@@ -52,6 +92,15 @@ actor Transcriber {
     /// On the first load failure, remove that cached variant and retry with a
     /// fresh download; a second failure is returned to the caller.
     func warmUp(progress observer: @escaping DownloadProgressObserver = { _, _ in }) async throws {
+        let model = modelName
+        let generation = selectionGeneration
+        if model == WhistleEngine.modelID {
+            let ready = await whistle.isReady()
+            try validate(model, generation: generation)
+            guard ready else { throw WhistleError.notDownloaded }
+            observer(1, 1)
+            return
+        }
         guard kit == nil else {
             observer(1, 1)  // already resident — report complete
             return
@@ -61,25 +110,30 @@ actor Transcriber {
         // joiner gets no byte progress (rare path — e.g. transcribe racing
         // onboarding); correctness over cosmetics.
         if let inFlight = loadTask {
-            kit = try await inFlight.value
+            let loaded = try await inFlight.value
+            try validate(model, generation: generation)
+            kit = loaded
             observer(1, 1)
             return
         }
 
-        let model = modelName
         let task = Task { () throws -> WhisperKit in
             do {
                 return try await self.downloadAndLoad(model: model, progress: observer)
             } catch is CancellationError {
                 throw CancellationError()
             } catch {
+                try self.validate(model, generation: generation)
+                try Task.checkCancellation()
                 // The first failure must leave a trace: without it, a machine
                 // that fails twice presents only the second error, and the
                 // truncated-download recovery path is invisible in the log.
                 self.log.error("model \(model, privacy: .public) load failed, purging and retrying: \(error.localizedDescription, privacy: .public)")
                 self.purgeDownloadedModel(matching: model)
                 try Task.checkCancellation()
-                return try await self.downloadAndLoad(model: model, progress: observer)
+                let loaded = try await self.downloadAndLoad(model: model, progress: observer)
+                try self.validate(model, generation: generation)
+                return loaded
             }
         }
         let token = UUID()
@@ -93,7 +147,7 @@ actor Transcriber {
         // A setModel that raced this load already cancelled the task; this
         // guard covers the narrow window where the swap lands between the
         // last await and here — a stale model must never become `kit`.
-        guard model == modelName else { throw CancellationError() }
+        try validate(model, generation: generation)
         kit = loaded
         // No synthetic final callback: tracking the running total in a captured
         // var races WhisperKit's progress thread (a hard error under Swift 6).
@@ -138,13 +192,22 @@ actor Transcriber {
     /// buffer is too short to say anything: a partial is a nicety, and it must
     /// never delay or fail the real transcription that follows.
     func partial(_ samples: [Float], language: String = "en") async -> String? {
+        if modelName == WhistleEngine.modelID { return nil }
         guard kit != nil, samples.count > 16_000 / 2 else { return nil }
         return try? await transcribe(samples, language: language)
     }
 
     /// Transcribe 16 kHz mono float samples to text. Returns "" for silence.
     func transcribe(_ samples: [Float], language: String = "en") async throws -> String {
+        let model = modelName
+        let generation = selectionGeneration
+        if model == WhistleEngine.modelID {
+            let result = try await whistle.transcribe(samples, language: language)
+            try validate(model, generation: generation)
+            return result
+        }
         try await warmUp()
+        try validate(model, generation: generation)
         guard let kit else { return "" }
         let options = DecodingOptions(
             language: language == "auto" ? nil : language,
@@ -152,6 +215,7 @@ actor Transcriber {
             withoutTimestamps: true
         )
         let results = try await kit.transcribe(audioArray: samples, decodeOptions: options)
+        try validate(model, generation: generation)
         let text = results.map { $0.text }.joined(separator: " ")
         return text
             .replacingOccurrences(of: "[BLANK_AUDIO]", with: "")

@@ -29,7 +29,9 @@ final class ModelPreparationStatus: ObservableObject {
         let current = generation
         task?.cancel()
         target = model
-        message = "Downloading…"
+        // A model switch first checks the cache and (re)loads Core ML; it is
+        // not necessarily a transfer. Only progress callbacks label a download.
+        message = "Preparing model…"
         errorDetail = nil
         canRetry = false
         task = Task {

@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
 
+## [0.5.29] — 2026-10-06
+
+### Fixed
+- Switching back to an already downloaded WhisperKit model now says **Preparing model…** while loading it into memory, rather than incorrectly claiming to download it again. The cached model is reused; an actual transfer still shows download progress.
+
 ## [0.5.28] — 2026-10-06
 
 ### Added

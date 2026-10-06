@@ -28,6 +28,20 @@ def test_switching_model_from_menu_uses_controller_hotswap():
     assert 'controller.modelPreparation' in (ROOT / "DashboardView.swift").read_text()
 
 
+def test_cached_whisper_switch_starts_as_preparing_not_downloading():
+    """A cached Turbo reselect must not claim it is being downloaded again."""
+    status = (
+        (ROOT / "AppController.swift").read_text()
+        .split("final class ModelPreparationStatus:", 1)[1]
+        .split("/// Orchestrates", 1)[0]
+    )
+    start = status.split("func choose(", 1)[1].split("task = Task {", 1)[0]
+    assert 'message = "Preparing model…"' in start
+    assert 'message = "Downloading…"' not in start
+    assert 'self.message = "Downloading \\(Int(min(100,' in status
+    assert 'message = "Ready to transcribe"' in status
+
+
 def test_stale_results_cannot_paste_after_aba_model_swap():
     transcriber = (ROOT / "Transcriber.swift").read_text()
     controller = (ROOT / "AppController.swift").read_text()

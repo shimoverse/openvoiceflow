@@ -46,9 +46,11 @@ struct Settings: Codable, Equatable {
     /// Settings ▸ Privacy and the Analytics & leaderboard privacy-docs
     /// section for the exact fields sent.
     var shareAnalytics: Bool = true
-    /// Earliest the satisfaction card (CsatView) may appear again — nil until
-    /// it has been shown once. Set a month out on dismiss, a season on send.
+    /// Earliest automatic satisfaction card display: 24 hours after display
+    /// or 15 days after an explicit dismissal.
     var csatNextPromptAt: Date?
+    /// Accepted submission permanently stops automatic prompts; manual feedback remains.
+    var csatSubmittedAt: Date?
 
     enum Style: String, Codable, CaseIterable { case `default`, casual, formal, code, email }
 
@@ -78,6 +80,7 @@ struct Settings: Codable, Equatable {
         firstUseDate = try c.decodeIfPresent(Date.self, forKey: .firstUseDate)
         shareAnalytics = try c.decodeIfPresent(Bool.self, forKey: .shareAnalytics) ?? true
         csatNextPromptAt = try c.decodeIfPresent(Date.self, forKey: .csatNextPromptAt)
+        csatSubmittedAt = try c.decodeIfPresent(Date.self, forKey: .csatSubmittedAt)
     }
 
     private static var url: URL {

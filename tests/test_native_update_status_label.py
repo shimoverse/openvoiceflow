@@ -94,5 +94,7 @@ def test_dashboard_refreshes_update_status_when_it_appears() -> None:
     dashboard = source("DashboardView.swift")
 
     body = dashboard.split("var body: some View", 1)[1]
-    on_appear = body.split(".onAppear {", 1)[1].split("}", 1)[0]
+    # The CSAT overlay also has an appearance hook; find the dashboard's
+    # lifecycle hook rather than assuming the first nested hook belongs to it.
+    on_appear = body.split("\n        .onAppear {", 1)[1].split("\n        }", 1)[0]
     assert "updater.refreshUpdateStatus()" in on_appear

@@ -58,6 +58,12 @@ final class UsageCounters: ObservableObject {
         case csatShown = "action.csat_shown"
         case csatDismissed = "action.csat_dismissed"
         case csatSubmitted = "action.csat_submitted"
+        // Aggregate lifecycle counts only; no rating, comment or timestamp.
+        case csatPromptShown = "csat_prompt_shown"
+        case csatPromptDismissed = "csat_prompt_dismissed"
+        case csatSubmitAttempted = "csat_submit_attempted"
+        case csatSubmitSucceeded = "csat_submit_succeeded"
+        case csatSubmitFailed = "csat_submit_failed"
     }
 
     private static let fileName = "usage_counters.json"

@@ -116,8 +116,8 @@ final class MeetingRecorder {
 
     /// Returns no more than maxFrames, never loads the full take. A new reader
     /// sees the latest CAF length while the writer remains open.
-    func readAvailable(maxFrames: Int) throws -> [Float] {
-        precondition(maxFrames > 0 && maxFrames <= 5 * 16_000)
+    func readAvailable(maxFrames: Int, minFrames: Int = 1) throws -> [Float] {
+        precondition(maxFrames > 0 && maxFrames <= 5 * 16_000 && minFrames > 0 && minFrames <= maxFrames)
         lock.lock()
         let failure = captureError
         let url = destination
@@ -126,7 +126,7 @@ final class MeetingRecorder {
         if let failure { throw failure }
         guard let url else { return [] }
         let reader = try AVAudioFile(forReading: url)
-        guard position < reader.length else { return [] }
+        guard reader.length - position >= minFrames else { return [] }
         reader.framePosition = position
         let count = AVAudioFrameCount(min(Int64(maxFrames), reader.length - position))
         guard let buffer = AVAudioPCMBuffer(pcmFormat: reader.processingFormat, frameCapacity: count) else {

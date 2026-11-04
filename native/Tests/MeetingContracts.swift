@@ -119,7 +119,7 @@ import AVFoundation
         buffer.frameLength = 16_000
         for i in 0..<16_000 { buffer.floatChannelData![0][i] = 0.1 }
         try await store.startRecording(using: { _ in throw FixtureError.transcriptionFailed }, feeding: format)
-        try recorder.append(buffer)
+        for _ in 0..<5 { try recorder.append(buffer) }
         for _ in 0..<30 where store.isTranscribing { try await Task.sleep(for: .milliseconds(100)) }
         check(store.isRecording && store.transcriptionStatus?.contains("failed") == true,
               "model failure did not leave capture active with visible failure")
@@ -152,7 +152,37 @@ import AVFoundation
               "later session wrote to failed take")
     }
 
+    @MainActor private static func minimumLiveWindow(in root: URL) async throws {
+        let recorder = MeetingRecorder()
+        let store = MeetingStore(directory: root.appendingPathComponent("paced-library"), recorder: recorder)
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        var liveCalls = 0
+        var tailFrames = 0
+        try await store.startRecording(using: { samples in
+            if store.isRecording {
+                check(samples.count >= 4 * 16_000, "live inference received less than four seconds of context")
+                liveCalls += 1
+            } else { tailFrames += samples.count }
+            return "paced speech"
+        }, feeding: format)
+        let small = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1_600)!
+        small.frameLength = 1_600
+        for i in 0..<1_600 { small.floatChannelData![0][i] = 0.1 }
+        for _ in 0..<10 {
+            try recorder.append(small)
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        check(liveCalls == 0 && store.meetings[0].transcript.isEmpty, "tiny microphone buffers triggered live inference")
+        for _ in 0..<40 { try recorder.append(small) }
+        for _ in 0..<30 where liveCalls == 0 { try await Task.sleep(for: .milliseconds(100)) }
+        check(liveCalls > 0 && store.isRecording, "sufficient live context was not decoded before Stop")
+        try recorder.append(small)
+        await store.stopRecording()
+        check(tailFrames > 0 && tailFrames < 4 * 16_000, "short final tail did not drain exactly after Stop")
+    }
+
     @MainActor private static func run(in root: URL) async throws {
+        try await minimumLiveWindow(in: root)
         try await failureAndRestart(in: root)
         try await silentCapture(in: root)
         try await liveStore(in: root)

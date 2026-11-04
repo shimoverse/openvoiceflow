@@ -32,7 +32,7 @@ struct MeetingsView: View {
     private var accent: Color { dark ? DT.emberDark : DT.emberLight }
     private var busy: Bool { controller.isRecording || controller.isWorking || controller.meetingOperation || store.isRecording || store.isTranscribing }
     private var selected: MeetingRecord? { store.meetings.first { $0.id == selectedID } }
-    private var canEdit: Bool { selected != nil && !busy }
+    private var canEdit: Bool { selected != nil }
 
     var body: some View {
         HStack(spacing: 0) {

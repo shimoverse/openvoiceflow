@@ -214,7 +214,10 @@ private final class MeetingAudioChunks: @unchecked Sendable {
                 // A slow model call simply causes subsequent reads to catch up;
                 // neither queued tasks nor in-memory sample history accumulates.
                 let start = recorder.readFramePosition
-                let samples = try recorder.readAvailable(maxFrames: 5 * 16_000)
+                // Keep context on disk until four seconds are available. Only Stop
+                // may drain a shorter tail; mic callbacks must not cause tiny decodes.
+                let samples = try recorder.readAvailable(maxFrames: 5 * 16_000,
+                                                        minFrames: isRecording ? 4 * 16_000 : 1)
                 if !samples.isEmpty {
                     // Muted/zero-input captures can cause speech models to invent
                     // words. Keep the audio, but do not decode near-silence.
@@ -238,7 +241,7 @@ private final class MeetingAudioChunks: @unchecked Sendable {
                     break
                 } else {
                     transcriptionStatus = "Listening — transcript updates every few seconds"
-                    try await Task.sleep(for: .seconds(2))
+                    try await Task.sleep(for: .milliseconds(500))
                 }
             }
             if liveGeneration == generation { transcriptionStatus = nil }

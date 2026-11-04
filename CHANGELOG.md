@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Meeting words now appear while you record**, in short on-device batches rather than waiting for Stop. The active meeting opens automatically, its transcript stays visible during processing, and recording can always be stopped while the model works.
-- Live transcription reads bounded chunks from saved audio and finishes the remaining tail after Stop. Status explains when the model is preparing, listening, catching up, or unable to transcribe. Audio remains available for retry after a transcription failure.
+- Live transcription reads bounded chunks from saved audio and finishes the remaining tail after Stop. Status explains when the model is listening, transcribing, catching up, or unable to transcribe. Audio remains available for retry after a transcription failure.
 - Speech-model changes are blocked during a meeting operation so they cannot silently cancel its transcription. Existing recordings and notes are retained.
 
 ## [0.6.0] — 2026-11-03

@@ -123,5 +123,7 @@ jobs:
             -destination 'generic/platform=macOS' \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             build
+      - name: Meeting persistence and audio contracts
+        run: bash native/scripts/test-meeting-contracts.sh
       - name: Whistle native contracts (non-network, no vendor download)
         run: bash native/scripts/test-whistle-contracts.sh

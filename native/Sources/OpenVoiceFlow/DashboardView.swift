@@ -67,6 +67,7 @@ struct DashboardView: View {
     enum Pane: String, CaseIterable {
         case home = "Home"
         case history = "History"
+        case meetings = "Meetings"
         /// Dictionary, Snippets, and Styles used to be three sidebar rows for
         /// one job — teach the app something once. Now they're tabs inside
         /// this single pane.
@@ -173,7 +174,7 @@ struct DashboardView: View {
     static func event(for pane: Pane) -> UsageCounters.Event {
         switch pane {
         case .home: return .paneHome
-        case .history: return .paneHistory
+        case .history, .meetings: return .paneHistory
         case .personalize: return .panePersonalize
         case .settings: return .paneSettings
         case .leaderboard: return .paneLeaderboard
@@ -360,6 +361,7 @@ struct DashboardView: View {
                 switch pane {
                 case .home: home
                 case .history: historyPane
+                case .meetings: MeetingsView(controller: controller, store: controller.meetingStore).frame(minHeight: 660)
                 case .personalize: personalizePane
                 case .settings: settingsPane
                 case .leaderboard: leaderboardPane

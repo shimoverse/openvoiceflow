@@ -2,7 +2,7 @@
 
 OpenVoiceFlow is a native macOS app that runs on your Mac. We wrote this document to be readable in one sitting: no legalese, no "we may collect" clauses that turn out to mean everything. If anything below is unclear or wrong, open a GitHub Discussion and we'll fix it.
 
-This policy applies to the native OpenVoiceFlow macOS app (`v0.4.0` and later, including the current `v0.5.x` line). For the older Python CLI (`v0.3.x` and earlier), check `git log PRIVACY.md` or the corresponding tagged release.
+This policy applies to the native OpenVoiceFlow macOS app (`v0.4.0` and later, including the current `v0.6.x` line). For the older Python CLI (`v0.3.x` and earlier), check `git log PRIVACY.md` or the corresponding tagged release.
 
 Privacy behavior and licensing are separate. OpenVoiceFlow is free and open
 source under the [GNU Affero General Public License v3.0](LICENSE), for any
@@ -22,6 +22,12 @@ See [LICENSING.md](LICENSING.md).
 - **Your keys are in the Keychain; your data is on your disk.** API keys are stored in the macOS **Keychain**. Settings, history, and your personal context live locally in the app's **Application Support** folder.
 
 ---
+
+## Meetings (v0.6.0)
+
+Meetings are different from ephemeral dictation: choosing Record or Import explicitly saves audio, transcripts and your notes under `~/Library/Application Support/OpenVoiceFlow/Meetings`. These files remain until you delete the meeting; exports are independent copies you control. The private library directory uses mode 0700 and files use mode 0600. They are not additionally encrypted by this app; macOS account security and FileVault apply.
+
+Recording uses the microphone, not system audio, and requires participant agreement. Remote voices heard only through headphones are not captured. Transcription runs after recording using the selected local engine, in bounded chunks. Meeting content never enters cloud cleanup, history, or the anonymous usage payload. Model preparation may download weights as described below. Playback, editable personal notes, copy/export, and deletion are explicit user actions. Automatic summaries and speaker identification are not included.
 
 ## 2. Data inventory
 

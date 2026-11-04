@@ -72,7 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // An automatic install relaunches the app; never do that mid-take.
         UpdaterController.shared.isBusy = { [weak controller] in
             guard let controller else { return false }
-            return controller.isRecording || controller.isWorking
+            return controller.isRecording || controller.isWorking || controller.meetingOperation || controller.meetingStore.isRecording || controller.meetingStore.isTranscribing
         }
         #if DEBUG
         let forceOnboarding = ProcessInfo.processInfo.arguments.contains("-ovf-force-onboarding")

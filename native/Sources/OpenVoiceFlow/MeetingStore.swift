@@ -104,19 +104,23 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     @Published private(set) var meetings: [MeetingRecord] = []
     @Published private(set) var isRecording = false
     @Published private(set) var isTranscribing = false
+    @Published private(set) var activeMeetingID: UUID?
+    @Published private(set) var transcriptionStatus: String?
     @Published private(set) var errorMessage: String?
 
     private let directory: URL
-    private let recorder = MeetingRecorder()
-    private var activeID: UUID?
+    private let recorder: MeetingRecorder
+    private var liveTask: Task<Void, Never>?
+    private var liveGeneration: UUID?
     private var deadlineTask: Task<Void, Never>?
     private var loadFailure = false
     private var operationBusy = false
     private let files = FileManager.default
 
     init(directory: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("OpenVoiceFlow/Meetings", isDirectory: true)) {
+        .appendingPathComponent("OpenVoiceFlow/Meetings", isDirectory: true), recorder: MeetingRecorder = MeetingRecorder()) {
         self.directory = directory
+        self.recorder = recorder
         do {
             try files.createDirectory(at: directory, withIntermediateDirectories: true,
                                       attributes: [.posixPermissions: 0o700])
@@ -125,8 +129,8 @@ private final class MeetingAudioChunks: @unchecked Sendable {
             if files.fileExists(atPath: index.path) {
                 meetings = try JSONDecoder().decode([MeetingRecord].self, from: Data(contentsOf: index))
             }
-            // An interrupted take may leave an unfinalized WAV header; retain the
-            // audio and its index entry so the user can still recover either file.
+            // An interrupted CAF take may retain a partially written tail;
+            // keep its audio and index entry for recovery or later retry.
         } catch {
             loadFailure = true
             errorMessage = "Meeting library could not be loaded: \(error.localizedDescription)"
@@ -139,60 +143,135 @@ private final class MeetingAudioChunks: @unchecked Sendable {
         return directory.appendingPathComponent(safe)
     }
 
-    func startRecording() async {
-        guard !isRecording, !operationBusy, !isTranscribing else {
+    /// Existing callers can start an audio-only take and transcribe later.
+    func startRecording() async { await beginRecording(using: nil, feeding: nil) }
+
+    /// A single serial task decodes bounded five-second windows as the disk file grows.
+    func startRecording(using model: @escaping ([Float]) async throws -> String) async {
+        await beginRecording(using: model, feeding: nil)
+    }
+
+    /// The explicit PCM source uses the identical capture path as the microphone tap.
+    func startRecording(using model: @escaping ([Float]) async throws -> String,
+                        feeding inputFormat: AVAudioFormat) async throws {
+        await beginRecording(using: model, feeding: inputFormat)
+        if !isRecording { throw MeetingError.invalidAudio }
+    }
+
+    private func beginRecording(using model: (([Float]) async throws -> String)?,
+                                feeding inputFormat: AVAudioFormat?) async {
+        guard !isRecording, !operationBusy, !isTranscribing, activeMeetingID == nil else {
             errorMessage = MeetingError.busy.localizedDescription; return
         }
         operationBusy = true
         defer { operationBusy = false }
         guard !loadFailure else { errorMessage = MeetingError.damagedLibrary.localizedDescription; return }
-        guard await MeetingRecorder.requestPermission() else {
-            errorMessage = MeetingRecorder.RecordingError.microphoneAccessDenied.localizedDescription
-            return
+        if inputFormat == nil {
+            guard await MeetingRecorder.requestPermission() else {
+                errorMessage = MeetingRecorder.RecordingError.microphoneAccessDenied.localizedDescription
+                return
+            }
         }
         let id = UUID()
         let entry = MeetingRecord(id: id, title: "Meeting \(Date().formatted(date: .abbreviated, time: .shortened))",
                                   createdAt: Date(), duration: 0, transcript: "", notes: "",
-                                  audioFilename: "\(id.uuidString).wav")
+                                  audioFilename: "\(id.uuidString).caf")
         do {
-            // The index precedes the take, so a crash does not orphan its audio.
             try save(meetings + [entry])
-            try recorder.start(at: audioURL(for: entry))
-            activeID = id
+            if let inputFormat { try recorder.start(at: audioURL(for: entry), feeding: inputFormat) }
+            else { try recorder.start(at: audioURL(for: entry)) }
+            activeMeetingID = id
             isRecording = true
             errorMessage = nil
+            transcriptionStatus = model == nil ? nil : "Listening — transcript updates every few seconds"
+            if let model {
+                let generation = UUID()
+                liveGeneration = generation
+                isTranscribing = true
+                liveTask = Task { [weak self] in
+                    await self?.runLive(id: id, generation: generation, using: model)
+                }
+            }
             deadlineTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(2 * 60 * 60))
                 guard !Task.isCancelled else { return }
                 await self?.stopRecording()
             }
         } catch {
-            // A start error never removes an existing audio file; keep the entry
-            // if any file was created so the user can inspect/retry extraction.
             if !files.fileExists(atPath: audioURL(for: entry).path) {
                 try? save(meetings.filter { $0.id != id })
             }
             errorMessage = error.localizedDescription
+            transcriptionStatus = "Recording failed: \(error.localizedDescription)"
         }
     }
 
+    private func runLive(id: UUID, generation: UUID,
+                         using model: @escaping ([Float]) async throws -> String) async {
+        do {
+            while liveGeneration == generation {
+                // CAF readers snapshot file length, so each read opens anew.
+                // A slow model call simply causes subsequent reads to catch up;
+                // neither queued tasks nor in-memory sample history accumulates.
+                let start = recorder.readFramePosition
+                let samples = try recorder.readAvailable(maxFrames: 5 * 16_000)
+                if !samples.isEmpty {
+                    // Muted/zero-input captures can cause speech models to invent
+                    // words. Keep the audio, but do not decode near-silence.
+                    let meanSquare = samples.reduce(0.0) { $0 + Double($1) * Double($1) } / Double(samples.count)
+                    if meanSquare < 0.000_000_25 {
+                        transcriptionStatus = isRecording ? "Listening — microphone audio is quiet" : "Catching up on saved audio"
+                        continue
+                    }
+                    transcriptionStatus = isRecording ? "Transcribing live audio" : "Catching up on saved audio"
+                    let text = try await model(samples).trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard liveGeneration == generation else { return }
+                    if !text.isEmpty {
+                        guard let index = meetings.firstIndex(where: { $0.id == id }) else { throw MeetingError.missing }
+                        let seconds = Int(start / 16_000)
+                        let stamp = String(format: "[%02d:%02d:%02d]", seconds / 3_600, (seconds / 60) % 60, seconds % 60)
+                        var updated = meetings
+                        updated[index].transcript += (updated[index].transcript.isEmpty ? "" : "\n") + "\(stamp) \(text)"
+                        try save(updated)
+                    }
+                } else if !isRecording {
+                    break
+                } else {
+                    transcriptionStatus = "Listening — transcript updates every few seconds"
+                    try await Task.sleep(for: .seconds(2))
+                }
+            }
+            if liveGeneration == generation { transcriptionStatus = nil }
+        } catch {
+            if liveGeneration == generation {
+                transcriptionStatus = "Live transcription failed: \(error.localizedDescription). Audio is saved; retry after stopping."
+                errorMessage = error.localizedDescription
+            }
+        }
+        if liveGeneration == generation { isTranscribing = false }
+    }
+
     func stopRecording() async {
-        guard isRecording, let activeID else { return }
+        guard isRecording, let id = activeMeetingID else { return }
+        // Stop capture immediately, even if inference is still in flight.
+        isRecording = false
         deadlineTask?.cancel()
         deadlineTask = nil
         let duration = recorder.stop()
-        isRecording = false
-        self.activeID = nil
-        guard let index = meetings.firstIndex(where: { $0.id == activeID }) else { return }
-        var updated = meetings
-        updated[index].duration = duration
-        do {
-            try save(updated)
-            errorMessage = nil
-        } catch {
-            // The pre-take index and audio survive a failed duration update.
-            errorMessage = error.localizedDescription
+        if let index = meetings.firstIndex(where: { $0.id == id }) {
+            var updated = meetings
+            updated[index].duration = duration
+            do { try save(updated) }
+            catch { errorMessage = error.localizedDescription }
         }
+        if let liveTask {
+            transcriptionStatus = isTranscribing ? "Catching up on saved audio" : transcriptionStatus
+            await liveTask.value
+        }
+        liveTask = nil
+        liveGeneration = nil
+        activeMeetingID = nil
+        isTranscribing = false
     }
 
     /// Copies source bytes into the private library; never consumes or deletes the original.
@@ -250,20 +329,30 @@ private final class MeetingAudioChunks: @unchecked Sendable {
         defer { isTranscribing = false }
         do {
             let reader = try MeetingAudioChunks(url: audioURL(for: meeting))
-            var first = true
+            var attempt = ""
             while let samples = try reader.next() {
                 try Task.checkCancellation()
                 let start = reader.elapsed - Double(samples.count) / 16_000
                 let text = try await using(samples).trimmingCharacters(in: .whitespacesAndNewlines)
                 try Task.checkCancellation()
                 guard let index = meetings.firstIndex(where: { $0.id == meeting.id }) else { throw MeetingError.missing }
-                var updated = meetings
-                if first { updated[index].transcript = ""; first = false }
                 if !text.isEmpty {
                     let seconds = Int(start)
                     let stamp = String(format: "[%02d:%02d:%02d]", seconds / 3_600, (seconds / 60) % 60, seconds % 60)
-                    updated[index].transcript += (updated[index].transcript.isEmpty ? "" : "\n") + "\(stamp) \(text)"
+                    attempt += (attempt.isEmpty ? "" : "\n") + "\(stamp) \(text)"
                 }
+                // A previous complete transcript survives both failures and
+                // process termination; only an empty row gets partial progress.
+                if previousTranscript.isEmpty {
+                    var updated = meetings
+                    updated[index].transcript = attempt
+                    try save(updated)
+                }
+            }
+            if !previousTranscript.isEmpty {
+                guard let index = meetings.firstIndex(where: { $0.id == meeting.id }) else { throw MeetingError.missing }
+                var updated = meetings
+                updated[index].transcript = attempt
                 try save(updated)
             }
             errorMessage = nil
@@ -282,16 +371,16 @@ private final class MeetingAudioChunks: @unchecked Sendable {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
         guard let index = meetings.firstIndex(where: { $0.id == record.id }),
               meetings[index].audioFilename == record.audioFilename,
-              meetings[index].createdAt == record.createdAt,
-              !isRecording || record.id != activeID else { throw MeetingError.invalidRecord }
+              meetings[index].createdAt == record.createdAt else { throw MeetingError.invalidRecord }
         var updated = meetings
-        updated[index] = record
+        updated[index].title = record.title
+        updated[index].notes = record.notes
         try save(updated)
     }
 
     func delete(_ record: MeetingRecord) throws {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
-        guard meetings.contains(where: { $0.id == record.id }), !isRecording || record.id != activeID,
+        guard meetings.contains(where: { $0.id == record.id }), !isRecording || record.id != activeMeetingID,
               !isTranscribing else { throw MeetingError.busy }
         // Commit removal first: if unlink fails, the recoverable audio is retained
         // on disk rather than pointing the library at a deleted recording.

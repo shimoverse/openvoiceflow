@@ -30,7 +30,133 @@ import AVFoundation
         return data
     }
 
+    private static func liveRecorderVisibility(in root: URL) throws {
+        let url = root.appendingPathComponent("live.caf")
+        let recorder = MeetingRecorder()
+        let source = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 48_000, channels: 2, interleaved: false)!
+        try recorder.start(at: url, feeding: source)
+        let samples = AVAudioPCMBuffer(pcmFormat: source, frameCapacity: 48_000)!
+        samples.frameLength = 48_000
+        samples.floatChannelData![0][0] = 0.5
+        samples.floatChannelData![1][0] = 0.5
+        try recorder.append(samples)
+        let available = try recorder.readAvailable(maxFrames: 16_000)
+        check(available.count > 14_000 && available.count <= 16_000, "captured CAF was not readable while writer was open")
+        check(available[0] > 0.1, "capture conversion did not preserve input sample")
+        check(recorder.readFramePosition > 0, "live reader did not advance")
+        _ = recorder.stop()
+        let finalized = try AVAudioFile(forReading: url)
+        check(finalized.length >= 15_900 && finalized.length <= 16_100,
+              "capture dropped converter tail at stop")
+    }
+
+    @MainActor private static func liveStore(in root: URL) async throws {
+        let recorder = MeetingRecorder()
+        let store = MeetingStore(directory: root.appendingPathComponent("live-library"), recorder: recorder)
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        var calls = 0
+        var totalFrames = 0
+        var outstanding = 0
+        try await store.startRecording(using: { samples in
+            calls += 1
+            totalFrames += samples.count
+            outstanding += 1
+            check(outstanding == 1, "live model calls overlapped")
+            check(samples.count > 0 && samples.count <= 5 * 16_000, "live chunk exceeded five seconds")
+            try await Task.sleep(for: .milliseconds(20))
+            outstanding -= 1
+            return "segment \(calls)"
+        }, feeding: format)
+        check(store.isRecording && store.activeMeetingID != nil, "live recording did not start")
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000)!
+        buffer.frameLength = 16_000
+        for i in 0..<16_000 { buffer.floatChannelData![0][i] = 0.1 }
+        for _ in 0..<6 { try recorder.append(buffer) }
+        for _ in 0..<30 where store.meetings[0].transcript.isEmpty {
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        check(store.isRecording && !store.meetings[0].transcript.isEmpty, "partial transcript did not persist while recording")
+        var stale = store.meetings[0]
+        stale.transcript = "stale editor snapshot"
+        stale.title = "Renamed live meeting"
+        stale.notes = "Edited while recording"
+        try store.update(stale)
+        check(store.meetings[0].transcript.contains("segment") && store.meetings[0].notes == stale.notes,
+              "editing metadata replaced live transcript")
+        let beforeStop = calls
+        try recorder.append(buffer)
+        await store.stopRecording()
+        check(calls > beforeStop, "stop did not drain the final audio tail")
+        let recorded = try AVAudioFile(forReading: store.audioURL(for: store.meetings[0]))
+        check(recorded.processingFormat.sampleRate == 16_000 && recorded.processingFormat.channelCount == 1 &&
+              recorded.processingFormat.commonFormat == .pcmFormatFloat32, "captured file is not decodable 16 kHz mono float")
+        check(totalFrames == recorded.length, "live reader duplicated or missed frames during stop")
+        check(store.activeMeetingID == nil && !store.isTranscribing, "live finalization did not finish")
+        check(MeetingStore(directory: root.appendingPathComponent("live-library")).meetings[0].transcript == store.meetings[0].transcript,
+              "live transcript did not persist")
+    }
+
+    @MainActor private static func silentCapture(in root: URL) async throws {
+        let recorder = MeetingRecorder()
+        let store = MeetingStore(directory: root.appendingPathComponent("silence-library"), recorder: recorder)
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        var calls = 0
+        try await store.startRecording(using: { _ in calls += 1; return "hallucination" }, feeding: format)
+        let silent = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000)!
+        silent.frameLength = 16_000
+        for i in 0..<16_000 { silent.floatChannelData![0][i] = 0.0001 }
+        for _ in 0..<6 { try recorder.append(silent) }
+        await store.stopRecording()
+        check(calls == 0 && store.meetings[0].transcript.isEmpty, "near-silent microphone audio reached speech model")
+        check(FileManager.default.fileExists(atPath: store.audioURL(for: store.meetings[0]).path), "silent take lost audio")
+    }
+
+    @MainActor private static func failureAndRestart(in root: URL) async throws {
+        let recorder = MeetingRecorder()
+        let store = MeetingStore(directory: root.appendingPathComponent("failure-library"), recorder: recorder)
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000)!
+        buffer.frameLength = 16_000
+        for i in 0..<16_000 { buffer.floatChannelData![0][i] = 0.1 }
+        try await store.startRecording(using: { _ in throw FixtureError.transcriptionFailed }, feeding: format)
+        try recorder.append(buffer)
+        for _ in 0..<30 where store.isTranscribing { try await Task.sleep(for: .milliseconds(100)) }
+        check(store.isRecording && store.transcriptionStatus?.contains("failed") == true,
+              "model failure did not leave capture active with visible failure")
+        let failed = store.meetings[0]
+        try recorder.append(buffer)
+        await store.stopRecording()
+        check(store.transcriptionStatus?.contains("failed") == true, "stop erased model failure")
+        check(FileManager.default.fileExists(atPath: store.audioURL(for: failed).path), "failure deleted audio")
+        try await store.transcribe(failed, using: { _ in "retry" })
+        check(store.meetings[0].transcript.contains("retry"), "post-stop retry failed")
+        // A slow in-flight model call cannot be duplicated or write into the next take.
+        try await store.startRecording(using: { _ in
+            try await Task.sleep(for: .milliseconds(200))
+            return "slow"
+        }, feeding: format)
+        let second = store.activeMeetingID!
+        for _ in 0..<6 { try recorder.append(buffer) }
+        let stopping = Task { await store.stopRecording() }
+        await Task.yield()
+        check(store.activeMeetingID == second, "session identity cleared before catch-up")
+        do {
+            try await store.startRecording(using: { _ in "too soon" }, feeding: format)
+            fatalError("new take started before prior live task drained")
+        } catch { }
+        check(store.meetings.count == 2, "busy start created a spurious meeting")
+        await stopping.value
+        check(store.meetings.first(where: { $0.id == second })?.transcript.contains("slow") == true,
+              "slow decode was lost at stop")
+        check(store.meetings.first(where: { $0.id == failed.id })?.transcript.contains("slow") == false,
+              "later session wrote to failed take")
+    }
+
     @MainActor private static func run(in root: URL) async throws {
+        try await failureAndRestart(in: root)
+        try await silentCapture(in: root)
+        try await liveStore(in: root)
+        try liveRecorderVisibility(in: root)
         let source = root.appendingPathComponent("source.wav")
         let bytes = wav(seconds: 65)
         try bytes.write(to: source)

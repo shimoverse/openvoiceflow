@@ -61,6 +61,12 @@ struct MeetingsView: View {
             loadDrafts()
         }
         .onChange(of: store.meetings) { _, _ in reconcileSelection() }
+        .onChange(of: store.activeMeetingID) { _, active in
+            if let active {
+                persistDrafts()
+                selectedID = active
+            }
+        }
         .onChange(of: store.isRecording) { _, recording in
             if recording {
                 stopPlayback()
@@ -128,7 +134,6 @@ struct MeetingsView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(DT.destructive)
-                    .disabled(controller.isWorking || controller.isRecording || store.isTranscribing)
                     recordingStatus
                 } else {
                     Button { persistDrafts(); stopPlayback(); showConsent = true } label: {
@@ -145,6 +150,13 @@ struct MeetingsView: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(busy)
+                if let status = store.transcriptionStatus {
+                    Text(status)
+                        .font(.system(size: 11))
+                        .foregroundStyle(secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityLabel("Transcription status: \(status)")
+                }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 20)
@@ -281,9 +293,10 @@ struct MeetingsView: View {
                         else { play(meeting) }
                     } label: {
                         Label(playingID == meeting.id ? "Stop audio" : "Play audio",
-                              systemImage: playingID == meeting.id ? "pause.fill" : "play.fill")
+                              systemImage: playingID == meeting.id ? "stop.fill" : "play.fill")
                     }
                     .buttonStyle(.bordered)
+                    .disabled(store.isRecording)
                     Button("Reveal audio", systemImage: "folder") {
                         let url = store.audioURL(for: meeting)
                         guard FileManager.default.fileExists(atPath: url.path) else {
@@ -300,30 +313,6 @@ struct MeetingsView: View {
                 }
                 .controlSize(.small)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        sectionTitle("YOUR NOTES")
-                        Spacer()
-                        if hasChanges(meeting) && canEdit {
-                            Text("Unsaved changes")
-                                .font(.system(size: 11))
-                                .foregroundStyle(secondary)
-                        }
-                    }
-                    TextEditor(text: $notesDraft)
-                        .font(.system(size: 13))
-                        .scrollContentBackground(.hidden)
-                        .padding(9)
-                        .frame(minHeight: 130)
-                        .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
-                        .overlay(RoundedRectangle(cornerRadius: DT.rCard).stroke(secondary.opacity(0.2)))
-                        .disabled(!canEdit)
-                        .accessibilityLabel("Personal meeting notes")
-                    Text("Your notes are yours to write. No automatic summary is generated.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(secondary)
-                }
-
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         sectionTitle("TRANSCRIPT")
@@ -338,11 +327,20 @@ struct MeetingsView: View {
                     }
                     .buttonStyle(.borderless)
                     .font(.system(size: 11))
-                    if store.isTranscribing {
-                        Label("Transcribing locally…", systemImage: "waveform")
+                    if store.activeMeetingID == meeting.id, let status = store.transcriptionStatus {
+                        Label(status, systemImage: "waveform")
                             .font(.system(size: 12))
                             .foregroundStyle(secondary)
-                            .padding(16)
+                        if store.isRecording {
+                            Text("Words appear in short batches, usually every few seconds. Your audio stays saved if transcription falls behind.")
+                                .font(.system(size: 11))
+                                .foregroundStyle(secondary)
+                        }
+                    }
+                    if meeting.transcript.isEmpty && store.activeMeetingID == meeting.id && (store.isRecording || store.isTranscribing) {
+                        Text("Listening for speech…")
+                            .foregroundStyle(secondary)
+                            .padding(18)
                     } else if meeting.transcript.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("No transcript yet. Transcribe this audio on your Mac, or keep it as a recording.")
@@ -371,6 +369,30 @@ struct MeetingsView: View {
                             .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
                     }
                 }
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        sectionTitle("YOUR NOTES")
+                        Spacer()
+                        if hasChanges(meeting) && canEdit {
+                            Text("Unsaved changes")
+                                .font(.system(size: 11))
+                                .foregroundStyle(secondary)
+                        }
+                    }
+                    TextEditor(text: $notesDraft)
+                        .font(.system(size: 13))
+                        .scrollContentBackground(.hidden)
+                        .padding(9)
+                        .frame(minHeight: 130)
+                        .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
+                        .overlay(RoundedRectangle(cornerRadius: DT.rCard).stroke(secondary.opacity(0.2)))
+                        .disabled(!canEdit)
+                        .accessibilityLabel("Personal meeting notes")
+                    Text("Your notes are yours to write. No automatic summary is generated.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(secondary)
+                }
+
             }
             .padding(30)
             .frame(maxWidth: 760, alignment: .leading)
@@ -391,6 +413,11 @@ struct MeetingsView: View {
     }
 
     private func reconcileSelection() {
+        if let active = store.activeMeetingID, selectedID == nil {
+            selectedID = active
+            loadDrafts()
+            return
+        }
         if let selectedID, store.meetings.contains(where: { $0.id == selectedID }) { return }
         self.selectedID = store.meetings.first?.id
         loadDrafts()

@@ -109,15 +109,19 @@ final class AppController: ObservableObject {
     @Published private(set) var meetingOperation = false
 
     func startMeetingRecording() async {
-        guard !isRecording, !isWorking, !meetingOperation else { return }
+        guard !isRecording, !isWorking, !meetingOperation,
+              !meetingStore.isRecording, !meetingStore.isTranscribing else { return }
         meetingOperation = true
         defer { meetingOperation = false }
-        await meetingStore.startRecording()
+        lastError = nil
+        let language = settings.language
+        await meetingStore.startRecording { [transcriber] samples in
+            try await transcriber.transcribe(samples, language: language)
+        }
     }
 
     func stopMeetingRecording() async {
         await meetingStore.stopRecording()
-        if let meeting = meetingStore.meetings.last { await transcribeMeeting(meeting) }
     }
 
     func importMeetingAudio(_ url: URL) async {
@@ -246,6 +250,10 @@ final class AppController: ObservableObject {
     /// of racing the transcriber's async set.
     @discardableResult
     func selectModel(_ name: String) async throws -> Int {
+        guard !meetingOperation, !meetingStore.isRecording, !meetingStore.isTranscribing else {
+            throw NSError(domain: "OpenVoiceFlow", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "Finish the meeting transcription before changing speech models."])
+        }
         try Task.checkCancellation()
         if name == WhistleEngine.modelID {
             #if !arch(arm64)

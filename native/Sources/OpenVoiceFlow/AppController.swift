@@ -105,6 +105,45 @@ final class AppController: ObservableObject {
     var streamPartials = false
     @Published var settings: Settings
     let modelPreparation = ModelPreparationStatus()
+    let meetingStore = MeetingStore()
+    @Published private(set) var meetingOperation = false
+
+    func startMeetingRecording() async {
+        guard !isRecording, !isWorking, !meetingOperation else { return }
+        meetingOperation = true
+        defer { meetingOperation = false }
+        await meetingStore.startRecording()
+    }
+
+    func stopMeetingRecording() async {
+        await meetingStore.stopRecording()
+        if let meeting = meetingStore.meetings.last { await transcribeMeeting(meeting) }
+    }
+
+    func importMeetingAudio(_ url: URL) async {
+        guard !isRecording, !isWorking, !meetingOperation, !meetingStore.isRecording else { return }
+        meetingOperation = true
+        defer { meetingOperation = false }
+        do {
+            let meeting = try await meetingStore.importAudio(url)
+            let language = settings.language
+            try await meetingStore.transcribe(meeting) { [transcriber] samples in
+                try await transcriber.transcribe(samples, language: language)
+            }
+        } catch { lastError = error.localizedDescription }
+    }
+
+    func transcribeMeeting(_ meeting: MeetingRecord) async {
+        guard !isRecording, !isWorking, !meetingOperation, !meetingStore.isRecording else { return }
+        meetingOperation = true
+        defer { meetingOperation = false }
+        let language = settings.language
+        do {
+            try await meetingStore.transcribe(meeting) { [transcriber] samples in
+                try await transcriber.transcribe(samples, language: language)
+            }
+        } catch { lastError = error.localizedDescription }
+    }
 
     // Ported feature stores (dictionary, snippets, styles, profile, history).
     let profileStore = ProfileStore()
@@ -319,7 +358,7 @@ final class AppController: ObservableObject {
     // MARK: dictation loop
 
     private func startRecording() {
-        guard !isRecording, pausedUntil == nil else { return }
+        guard !isRecording, pausedUntil == nil, !meetingOperation, !meetingStore.isRecording, !meetingStore.isTranscribing else { return }
         dictationTask?.cancel()
         dictationTask = nil
         dictationGeneration += 1

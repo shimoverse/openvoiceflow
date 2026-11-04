@@ -58,7 +58,8 @@ struct Runner {
         precondition(show(now.addingTimeInterval(day), first: tenDaysIn, takes: 99, next: shown))
         // An ignored card recurs at the next opportunity, even across relaunches.
         struct Persisted: Codable { var nextPromptAt: Date? }
-        let restored = try! JSONDecoder().decode(Persisted.self, from: JSONEncoder().encode(Persisted(nextPromptAt: shown)))
+        let data = try! JSONEncoder().encode(Persisted(nextPromptAt: shown))
+        let restored = try! JSONDecoder().decode(Persisted.self, from: data)
         precondition(!show(now, first: tenDaysIn, takes: 99, next: restored.nextPromptAt))
         precondition(show(now.addingTimeInterval(day), first: tenDaysIn, takes: 99, next: restored.nextPromptAt))
 
@@ -126,7 +127,7 @@ def test_card_is_offered_only_in_active_dashboard_and_never_mid_take() -> None:
     assert "record(.csatPromptShown)" in card
     assert "csatSubmittedAt" in offer
     # Called from window appearance and app reactivation, not a timer that fronts it.
-    on_appear = dashboard.split(".onAppear {\n            updater.refreshUpdateStatus()", 1)[1].split("\n        }\n", 1)[0]
+    on_appear = dashboard.split("\n        .onAppear {", 1)[1].split("\n        }\n", 1)[0]
     assert "offerCsatIfDue()" in on_appear
     assert "NSApplication.didBecomeActiveNotification" in dashboard
     assert "NSWindow.didBecomeKeyNotification" in dashboard

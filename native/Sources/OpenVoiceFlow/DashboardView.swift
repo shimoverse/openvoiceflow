@@ -44,8 +44,9 @@ struct DashboardView: View {
     @State private var menuBarIconVisible = true
     /// The satisfaction card (CsatView) in the bottom-right corner, and the
     /// window-wide confetti a five-star pick triggers. Eligibility is decided
-    /// once, when the window appears — see CsatPrompt.
+    /// on window appearance or app reactivation — see CsatPrompt.
     @State private var showCsat = false
+    @State private var csatImpressionRecorded = false
     @State private var confettiStartedAt: Date?
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -121,6 +122,16 @@ struct DashboardView: View {
                 CsatView(controller: controller) {
                     withAnimation(reduceMotion ? nil : DT.snap) { showCsat = false }
                 }
+                .onAppear {
+                    // Eligibility checks never move the clock. Count/stamp only
+                    // when the card actually joins the visible window.
+                    guard !csatImpressionRecorded else { return }
+                    csatImpressionRecorded = true
+                    controller.settings.csatNextPromptAt = CsatPrompt.nextPrompt(afterShownAt: Date())
+                    controller.settings.save()
+                    usageCounters.record(.csatPromptShown)
+                    usageCounters.record(.csatShown)
+                }
                 .padding(20)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -147,6 +158,12 @@ struct DashboardView: View {
             if pane == .personalize {
                 usageCounters.record(DashboardView.event(for: personalizeTab))
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            offerCsatIfDue()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
+            offerCsatIfDue()
         }
         // Counted on change rather than on render: a pane's body re-runs for
         // any state it reads, and a visit is a navigation, not a redraw.
@@ -183,9 +200,23 @@ struct DashboardView: View {
 
     /// Show the satisfaction card when CsatPrompt says the person has used
     /// the app enough to have an opinion, and never over a take in progress.
-    /// The snooze is stamped the moment the card appears, so closing the
-    /// window without touching it still counts as "not now" for a month.
+    /// Only a visible, active dashboard is an opportunity; never open it
+    /// automatically or restart the clock merely because eligibility was checked.
     private func offerCsatIfDue() {
+        guard !showCsat, NSApp.isActive,
+              NSApp.keyWindow?.isVisible == true,
+              NSApp.keyWindow?.title == "OpenVoiceFlow" else { return }
+        // The old aggregate count proves an accepted response; an old
+        // next-prompt date alone could be a dismissal. Persist migration once.
+        if controller.settings.csatSubmittedAt == nil,
+           let migrated = CsatPrompt.confirmedSubmissionAt(
+               submittedAt: nil,
+               legacySubmitCount: usageCounters.counts[UsageCounters.Event.csatSubmitted.rawValue] ?? 0,
+               legacyNextPromptAt: controller.settings.csatNextPromptAt
+           ) {
+            controller.settings.csatSubmittedAt = migrated
+            controller.settings.save()
+        }
         #if DEBUG
         let forced = ProcessInfo.processInfo.arguments.contains("-ovf-force-csat")
         #else
@@ -195,14 +226,11 @@ struct DashboardView: View {
             now: Date(),
             firstUseDate: controller.settings.firstUseDate,
             dictationsCompleted: usageCounters.counts[UsageCounters.Event.dictationCompleted.rawValue] ?? 0,
-            nextPromptAt: controller.settings.csatNextPromptAt
+            nextPromptAt: controller.settings.csatNextPromptAt,
+            submittedAt: controller.settings.csatSubmittedAt
         ) else { return }
         guard !controller.isRecording, !controller.isWorking else { return }
-        if !forced {
-            controller.settings.csatNextPromptAt = CsatPrompt.nextPrompt(afterDismissAt: Date())
-            controller.settings.save()
-        }
-        usageCounters.record(.csatShown)
+        csatImpressionRecorded = false
         withAnimation(reduceMotion ? nil : DT.snap) { showCsat = true }
     }
 

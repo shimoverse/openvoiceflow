@@ -6,7 +6,8 @@ import SwiftUI
 ///
 /// It is deliberately quiet. It shows only when `CsatPrompt` says the person
 /// has used the app enough for an opinion, sits below the content rather than
-/// over it, and goes away for a month on dismiss or a season on send. The
+/// over it, and goes away for 15 days on explicit dismiss or permanently after
+/// an accepted send. The
 /// only network call is `AnalyticsClient.submitCsat`, made when Send is
 /// pressed; hovering and picking a star send nothing.
 ///
@@ -84,7 +85,12 @@ struct CsatView: View {
                 .font(.system(size: 13, weight: .semibold)).foregroundStyle(ink)
             Spacer()
             Button {
-                if stage != .thanks { controller.usageCounters.record(.csatDismissed) }
+                if stage != .thanks {
+                    controller.settings.csatNextPromptAt = CsatPrompt.nextPrompt(afterDismissAt: Date())
+                    controller.settings.save()
+                    controller.usageCounters.record(.csatPromptDismissed)
+                    controller.usageCounters.record(.csatDismissed)
+                }
                 onClose()
             } label: {
                 Image(systemName: "xmark")
@@ -193,15 +199,21 @@ struct CsatView: View {
     }
 
     private func send() async {
-        guard rating > 0 else { return }
+        guard rating > 0, stage == .comment || stage == .failed else { return }
         stage = .sending
+        controller.usageCounters.record(.csatSubmitAttempted)
         let ok = await controller.analyticsClient.submitCsat(
             responseId: responseId, rating: rating, comment: comment, controller: controller
         )
-        guard ok else { stage = .failed; return }
-        controller.usageCounters.record(.csatSubmitted)
-        controller.settings.csatNextPromptAt = CsatPrompt.nextPrompt(afterSubmitAt: Date())
+        guard let submittedAt = CsatPrompt.submissionDate(accepted: ok, at: Date()) else {
+            controller.usageCounters.record(.csatSubmitFailed)
+            stage = .failed
+            return
+        }
+        controller.settings.csatSubmittedAt = submittedAt
         controller.settings.save()
+        controller.usageCounters.record(.csatSubmitSucceeded)
+        controller.usageCounters.record(.csatSubmitted)
         stage = .thanks
         try? await Task.sleep(for: .seconds(2.4))
         onClose()

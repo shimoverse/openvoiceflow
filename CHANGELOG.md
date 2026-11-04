@@ -19,12 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
 
-## [0.6.1] — 2026-11-04
+## [0.6.2] — 2026-11-04
 
 ### Fixed
 - **Meeting words now appear while you record**, in short on-device batches rather than waiting for Stop. The active meeting opens automatically, its transcript stays visible during processing, and recording can always be stopped while the model works.
 - Live transcription reads bounded chunks from saved audio and finishes the remaining tail after Stop. Status explains when the model is listening, transcribing, catching up, or unable to transcribe. Audio remains available for retry after a transcription failure.
-- Speech-model changes are blocked during a meeting operation so they cannot silently cancel its transcription. Existing recordings and notes are retained.
+- Speech-model changes are blocked during a meeting operation so they cannot silently cancel its transcription. Existing recordings and notes are retained; personal notes can be edited while recording.
+
+## [0.6.1] — 2026-11-04
+
+### Changed
+- The dashboard's satisfaction card appears after three days and ten dictations, then can return after 24 hours if left unanswered. Dismissing it pauses prompts for 15 days; a successfully sent response stops automatic prompts permanently. Manual Feedback remains available.
+- Anonymous usage sharing now includes aggregate counts of prompt displays, dismissals, and submission attempts, successes and failures. The existing **Share anonymous usage & leaderboard rank** switch controls whether these counts sync; ratings and comments are not included in the counts.
 
 ## [0.6.0] — 2026-11-03
 

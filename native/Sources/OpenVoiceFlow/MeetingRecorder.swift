@@ -133,7 +133,10 @@ final class MeetingRecorder {
             throw RecordingError.captureFailed
         }
         try reader.read(into: buffer, frameCount: count)
-        guard let channel = buffer.floatChannelData?[0], buffer.frameLength > 0 else { return [] }
+        // A concurrent CAF writer can advertise more frames than a reader returns.
+        // Leave the cursor unchanged until the actual read meets the live minimum.
+        guard buffer.frameLength >= minFrames,
+              let channel = buffer.floatChannelData?[0] else { return [] }
         let samples = Array(UnsafeBufferPointer(start: channel, count: Int(buffer.frameLength)))
         lock.lock()
         readFramePosition += AVAudioFramePosition(buffer.frameLength)

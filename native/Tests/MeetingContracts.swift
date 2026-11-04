@@ -181,7 +181,35 @@ import AVFoundation
         check(tailFrames > 0 && tailFrames < 4 * 16_000, "short final tail did not drain exactly after Stop")
     }
 
+    private static func shortCAFReads(in root: URL) throws {
+        let url = root.appendingPathComponent("packetized.caf")
+        let recorder = MeetingRecorder()
+        let source = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 22_050, channels: 1, interleaved: false)!
+        try recorder.start(at: url, feeding: source)
+        let buffer = AVAudioPCMBuffer(pcmFormat: source, frameCapacity: 11_025)!
+        buffer.frameLength = 11_025
+        for i in 0..<11_025 { buffer.floatChannelData![0][i] = 0.1 }
+        var consumed = 0
+        for _ in 0..<20 {
+            try recorder.append(buffer)
+            let before = recorder.readFramePosition
+            let samples = try recorder.readAvailable(maxFrames: 80_000, minFrames: 64_000)
+            check(samples.isEmpty || samples.count >= 64_000, "CAF short read bypassed minimum context")
+            check(!samples.isEmpty || recorder.readFramePosition == before, "rejected CAF read consumed audio")
+            consumed += samples.count
+        }
+        _ = recorder.stop()
+        while true {
+            let tail = try recorder.readAvailable(maxFrames: 80_000)
+            if tail.isEmpty { break }
+            consumed += tail.count
+        }
+        let saved = try AVAudioFile(forReading: url)
+        check(consumed == saved.length, "CAF minimum read lost or duplicated frames")
+    }
+
     @MainActor private static func run(in root: URL) async throws {
+        try shortCAFReads(in: root)
         try await minimumLiveWindow(in: root)
         try await failureAndRestart(in: root)
         try await silentCapture(in: root)

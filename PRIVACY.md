@@ -27,7 +27,7 @@ See [LICENSING.md](LICENSING.md).
 
 Meetings are different from ephemeral dictation: choosing Record or Import explicitly saves audio, transcripts and your notes under `~/Library/Application Support/OpenVoiceFlow/Meetings`. These files remain until you delete the meeting; exports are independent copies you control. The private library directory uses mode 0700 and files use mode 0600. They are not additionally encrypted by this app; macOS account security and FileVault apply.
 
-Recording uses the microphone, not system audio, and requires participant agreement. Remote voices heard only through headphones are not captured. Transcription runs after recording using the selected local engine, in bounded chunks. Meeting content never enters cloud cleanup, history, or the anonymous usage payload. Model preparation may download weights as described below. Playback, editable personal notes, copy/export, and deletion are explicit user actions. Automatic summaries and speaker identification are not included.
+Recording uses the microphone, not system audio, and requires participant agreement. Remote voices heard only through headphones are not captured. Transcription runs during recording using the selected local engine in bounded, disk-backed chunks, then finishes any remaining audio after Stop. Words appear in short batches; a slower model can lag behind recording. Meeting content never enters cloud cleanup, history, or the anonymous usage payload. Model preparation may download weights as described below. Playback, editable personal notes, copy/export, and deletion are explicit user actions. Automatic summaries and speaker identification are not included.
 
 ## 2. Data inventory
 

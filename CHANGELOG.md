@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
 
+## [0.6.4] — 2026-11-06
+
+### Added
+- **Check for updates** is always available in the dashboard sidebar, including when automatic updates are off. When a newer release is available, **Update** opens the existing signed-update flow.
+- A subtle **Last checked** date and time shows the last successful update check and survives relaunches. Checking, failed checks, and unverified versions have distinct status labels.
+
+### Fixed
+- An update waits for recording and transcription to finish before relaunching the app.
+
 ## [0.6.3] — 2026-11-06
 
 ### Added

@@ -2,9 +2,9 @@
 
 The footer used to read "v0.5.20 · auto-updating" whether or not the running
 build was actually the latest one — a status that told the user nothing they
-could act on. It now has three states: an "Update" button when the appcast
-offers a newer version, plain "Up to date" when it doesn't, and the bare
-version before any check has finished.
+could act on. The footer now distinguishes verified current, available,
+checking, failed and unverified results, with a manual CTA in every state.
+The executable Swift lifecycle contract owns the result transitions.
 """
 
 from pathlib import Path
@@ -27,15 +27,16 @@ def test_updater_probes_the_appcast_for_the_latest_version() -> None:
     # Sparkle reports the result through its delegate.
     assert "SPUUpdaterDelegate" in updater
     assert "didFindValidUpdate item: SUAppcastItem" in updater
-    assert "func updaterDidNotFindUpdate(_ updater: SPUUpdater)" in updater
+    assert "func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error)" in updater
 
 
 def test_updater_publishes_the_state_the_footer_renders() -> None:
     updater = source("Updater.swift")
 
-    assert "@Published private(set) var updateAvailable = false" in updater
-    assert "@Published private(set) var hasCheckedForUpdates = false" in updater
-    assert "@Published private(set) var availableVersion: String?" in updater
+    assert "@Published private(set) var status = UpdateCheckStatus(" in updater
+    assert "var updateAvailable: Bool" in updater
+    assert "var hasCheckedForUpdates: Bool" in updater
+    assert "var availableVersion: String?" in updater
     assert "func installAvailableUpdate()" in updater
 
 
@@ -46,14 +47,11 @@ def test_a_failed_probe_drops_the_status_it_could_not_verify() -> None:
     # Sparkle reports a check that ended badly through didAbortWithError —
     # neither didFindValidUpdate nor updaterDidNotFindUpdate runs.
     assert "func updater(_ updater: SPUUpdater, didAbortWithError error: any Error)" in updater
-    assert "private var probeAwaitingResult = false" in updater
-    assert "private func clearVerifiedStatus()" in updater
-
-    aborted = updater.split("probe.onAborted = {", 1)[1].split("\n        }", 1)[0]
-    # Only an abort with no result in hand clears — the abort that trails
-    # "no update found" must leave the verified status alone.
-    assert "self.probeAwaitingResult else { return }" in aborted
-    assert "self.clearVerifiedStatus()" in aborted
+    assert "self?.status.aborted(expectedNoUpdate: expectedNoUpdate, userCanceled: userCanceled)" in updater
+    assert "self?.status.finished(errorOccurred: errorOccurred)" in updater
+    # Swift executable tests prove that an abort before any result fails and
+    # the normal no-update abort retains an actual successful result.
+    assert "status.begin()" in updater
 
 
 def test_probe_respects_the_automatic_updates_opt_out() -> None:
@@ -70,20 +68,22 @@ def test_footer_offers_update_only_when_one_is_available() -> None:
     assert "auto-updating" not in dashboard
     assert "private var versionFooter: some View" in dashboard
     assert "if updater.updateAvailable {" in dashboard
-    assert 'Button { updater.installAvailableUpdate() } label: {' in dashboard
-    assert 'Text("Update")' in dashboard
+    assert 'Button("Update") { updater.installAvailableUpdate() }' in dashboard
+    assert '.disabled(!updater.canCheckForUpdates || updater.isBusy())' in dashboard
 
 
-def test_footer_states_up_to_date_without_a_call_to_action() -> None:
+def test_footer_keeps_check_action_in_every_state_and_reserves_current_label() -> None:
     dashboard = source("DashboardView.swift")
 
-    footer = dashboard.split("private var versionFooter: some View", 1)[1]
-    up_to_date = footer.split("} else if updater.hasCheckedForUpdates {", 1)[1]
-    up_to_date = up_to_date.split("} else {", 1)[0]
-
-    assert "Up to date" in up_to_date
-    # The "already current" state is a statement, never a button.
-    assert "Button" not in up_to_date
+    footer = dashboard.split("private var versionFooter: some View", 1)[1].split("private var updateStatusLabel", 1)[0]
+    assert 'Button("Check for updates")' in footer
+    assert 'updater.checkForUpdates()' in footer
+    assert 'Last checked ' in footer
+    assert 'Never checked' in footer
+    labels = dashboard.split("private var updateStatusLabel", 1)[1].split("// MARK: content router", 1)[0]
+    assert 'case .current: return "Up to date"' in labels
+    assert 'case .failed: return "Check failed"' in labels
+    assert 'case .unverified: return "Not verified"' in labels
 
 
 def test_dashboard_refreshes_update_status_when_it_appears() -> None:

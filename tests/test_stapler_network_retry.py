@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "native/scripts/stapler-with-network-retry.sh"
 NETWORK_LOST = "Error Domain=NSURLErrorDomain Code=-1005 'network connection lost'"
@@ -85,7 +84,10 @@ def test_network_exhaustion_fails_closed_after_three_attempts(run_mock):
     assert sleeps == ["1", "2"]
 
 
-@pytest.mark.parametrize("output", ["Invalid ticket", "NSURLErrorDomain Code=-1004", "Code=-1005", "NSURLErrorDomain: Code=-1005"])
+@pytest.mark.parametrize(
+    "output",
+    ["Invalid ticket", "NSURLErrorDomain Code=-1004", "Code=-1005", "NSURLErrorDomain: Code=-1005"],
+)
 def test_exit_68_without_exact_network_signature_does_not_retry(run_mock, output):
     result, calls, sleeps = run_mock([(68, output)])
     assert result.returncode == 68

@@ -26,9 +26,10 @@ struct UpdateCheckStatus {
         result = .unverified
     }
 
-    mutating func found(version: String, at date: Date) {
+    mutating func found(version: String, verifiedAt date: Date?) {
         result = .available(version)
-        successfulCheck(at: date)
+        if let date { successfulCheck(at: date) }
+        else { receivedResult = true; isChecking = false }
     }
 
     mutating func notFound(isCurrent: Bool, at date: Date) {

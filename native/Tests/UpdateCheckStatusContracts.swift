@@ -31,12 +31,17 @@ import Foundation
         precondition(state.result == .noCompatibleUpdate && state.lastSuccessfulCheckAt == first)
 
         state.begin()
-        state.found(version: "0.6.4", at: second)
+        state.found(version: "0.6.4", verifiedAt: second)
         state.finished()
         precondition(state.result == .available("0.6.4") && state.lastSuccessfulCheckAt == second)
 
         state.begin()
-        state.found(version: "0.6.5", at: second)
+        state.found(version: "0.6.4", verifiedAt: nil) // Resumed cached update, no new appcast.
+        state.finished()
+        precondition(state.result == .available("0.6.4") && state.lastSuccessfulCheckAt == second)
+
+        state.begin()
+        state.found(version: "0.6.5", verifiedAt: second)
         state.aborted() // An actual download or verification error after discovery.
         state.finished(errorOccurred: true)
         precondition(state.result == .failed && state.lastSuccessfulCheckAt == second)

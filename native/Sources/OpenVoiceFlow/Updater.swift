@@ -27,6 +27,7 @@ enum ReleaseNotes {
 @MainActor
 private final class UpdaterProbe: NSObject, SPUUpdaterDelegate {
     var onFound: ((SUAppcastItem) -> Void)?
+    var onAppcastLoaded: (() -> Void)?
     var onNotFound: ((Bool) -> Void)?
     var onAborted: ((Bool, Bool) -> Void)?
     var onFinished: ((Bool) -> Void)?
@@ -40,6 +41,10 @@ private final class UpdaterProbe: NSObject, SPUUpdaterDelegate {
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
         onFound?(item)
+    }
+
+    func updater(_ updater: SPUUpdater, didFinishLoading appcast: SUAppcast) {
+        onAppcastLoaded?()
     }
 
     func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
@@ -115,6 +120,7 @@ final class UpdaterController: ObservableObject {
     @Published private(set) var status = UpdateCheckStatus(
         lastSuccessfulCheckAt: UserDefaults.standard.object(forKey: lastSuccessfulCheckKey) as? Date
     )
+    private var loadedFreshAppcast = false
     var updateAvailable: Bool {
         if case .available = status.result { return true }
         return false
@@ -152,10 +158,14 @@ final class UpdaterController: ObservableObject {
             updaterDelegate: probe,
             userDriverDelegate: nil
         )
+        probe.onAppcastLoaded = { [weak self] in self?.loadedFreshAppcast = true }
         probe.onFound = { [weak self] item in
             guard let self else { return }
-            self.status.found(version: item.displayVersionString, at: Date())
-            self.saveSuccessfulCheck()
+            // Sparkle can resume a cached download and emit didFindValidUpdate
+            // without an appcast request. Do not misdate that as a fresh check.
+            self.status.found(version: item.displayVersionString,
+                              verifiedAt: self.loadedFreshAppcast ? Date() : nil)
+            if self.loadedFreshAppcast { self.saveSuccessfulCheck() }
         }
         probe.onNotFound = { [weak self] isCurrent in
             guard let self else { return }
@@ -165,7 +175,10 @@ final class UpdaterController: ObservableObject {
         probe.onAborted = { [weak self] expectedNoUpdate, userCanceled in
             self?.status.aborted(expectedNoUpdate: expectedNoUpdate, userCanceled: userCanceled)
         }
-        probe.onFinished = { [weak self] errorOccurred in self?.status.finished(errorOccurred: errorOccurred) }
+        probe.onFinished = { [weak self] errorOccurred in
+            self?.status.finished(errorOccurred: errorOccurred)
+            self?.loadedFreshAppcast = false
+        }
         probe.onReadyToInstall = { [weak self] item, install in
             guard let self else { return }
             self.pendingInstall = install
@@ -219,6 +232,7 @@ final class UpdaterController: ObservableObject {
         // The background driver, not the probe: with automatic downloads on
         // this is the path that fetches, verifies and stages the update, and
         // it ends in `willInstallUpdateOnQuit` above.
+        loadedFreshAppcast = false
         status.begin()
         controller.updater.checkForUpdatesInBackground()
     }
@@ -286,6 +300,7 @@ final class UpdaterController: ObservableObject {
     func refreshUpdateStatus() {
         guard controller.updater.automaticallyChecksForUpdates,
               !controller.updater.sessionInProgress else { return }
+        loadedFreshAppcast = false
         status.begin()
         controller.updater.checkForUpdateInformation()
     }
@@ -300,6 +315,7 @@ final class UpdaterController: ObservableObject {
             controller.checkForUpdates(nil)
             return
         }
+        loadedFreshAppcast = false
         status.begin()
         controller.checkForUpdates(nil)
     }

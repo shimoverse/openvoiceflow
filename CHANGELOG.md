@@ -19,6 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
 
+## [0.6.3] — 2026-11-06
+
+### Added
+- **Automatic local meeting notes and topic titles** after recording stops or imported audio finishes transcribing. Generated notes have their own section, separate from personal notes; manually edited titles and notes are preserved. On supported Macs with Apple Intelligence available, notes use the on-device model. Otherwise, short transcript excerpts are provided without uploading meeting content.
+- **Pause and resume** within one recording. Paused audio is not saved and paused time is excluded from the recording duration. Stop works while paused.
+- A **Do not show again** checkbox on the recording reminder, with options to reopen or reset it. Participants must still agree to recording; macOS microphone permission is unchanged.
+
+### Fixed
+- Automatic Stop at the recording limit completes note generation without cancelling itself. Failed live transcription remains visible after pause/resume, rather than presenting an incomplete transcript as a finished meeting.
+- Notes generation preserves existing text on failure or cancellation and can be retried. A model runtime error falls back to local transcript excerpts.
+
 ## [0.6.2] — 2026-11-04
 
 ### Fixed

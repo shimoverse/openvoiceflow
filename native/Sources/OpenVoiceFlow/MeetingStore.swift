@@ -135,6 +135,7 @@ private final class MeetingAudioChunks: @unchecked Sendable {
 
     private let directory: URL
     private let recorder: MeetingRecorder
+    private let recordingLimit: Duration
     private var liveTask: Task<Void, Never>?
     private var liveGeneration: UUID?
     private var liveTranscriptionFailed = false
@@ -144,9 +145,11 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     private let files = FileManager.default
 
     init(directory: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("OpenVoiceFlow/Meetings", isDirectory: true), recorder: MeetingRecorder = MeetingRecorder()) {
+        .appendingPathComponent("OpenVoiceFlow/Meetings", isDirectory: true), recorder: MeetingRecorder = MeetingRecorder(),
+         recordingLimit: Duration = .seconds(2 * 60 * 60)) {
         self.directory = directory
         self.recorder = recorder
+        self.recordingLimit = recordingLimit
         do {
             try files.createDirectory(at: directory, withIntermediateDirectories: true,
                                       attributes: [.posixPermissions: 0o700])
@@ -221,8 +224,11 @@ private final class MeetingAudioChunks: @unchecked Sendable {
                 }
             }
             deadlineTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(2 * 60 * 60))
+                guard let limit = self?.recordingLimit else { return }
+                try? await Task.sleep(for: limit)
                 guard !Task.isCancelled else { return }
+                // Automatic Stop must not cancel its own finalization task.
+                self?.deadlineTask = nil
                 await self?.stopRecording()
             }
         } catch {

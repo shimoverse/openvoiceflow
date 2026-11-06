@@ -196,6 +196,25 @@ import AVFoundation
               "stop while paused did not finalize only captured time")
     }
 
+    @MainActor private static func automaticStop(in root: URL) async throws {
+        let recorder = MeetingRecorder()
+        let store = MeetingStore(directory: root.appendingPathComponent("deadline-library"), recorder: recorder,
+                                 recordingLimit: .milliseconds(50))
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000)!
+        buffer.frameLength = 16_000
+        for i in 0..<16_000 { buffer.floatChannelData![0][i] = 0.1 }
+        try await store.startRecording(using: { _ in "Cedar garden irrigation planning will continue on Friday." }, feeding: format)
+        try recorder.append(buffer)
+        for _ in 0..<300 where store.activeMeetingID != nil {
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        check(store.activeMeetingID == nil && !store.isRecording && !store.isFinalizing,
+              "automatic Stop did not finish")
+        check(!store.meetings[0].generatedNotes.isEmpty && store.notesError == nil,
+              "automatic Stop cancelled its own notes job")
+    }
+
     @MainActor private static func liveStore(in root: URL) async throws {
         let recorder = MeetingRecorder()
         let store = MeetingStore(directory: root.appendingPathComponent("live-library"), recorder: recorder)
@@ -377,6 +396,7 @@ import AVFoundation
 
     @MainActor private static func run(in root: URL) async throws {
         try pauseAndResume(in: root)
+        try await automaticStop(in: root)
         try await pausedStore(in: root)
         try await notesContracts(in: root)
         try shortCAFReads(in: root)

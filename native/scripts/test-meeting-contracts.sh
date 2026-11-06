@@ -8,6 +8,7 @@ trap 'rm -rf "$scratch"' EXIT
 
 swiftc -o "$scratch/meeting-contracts" \
   "$native_dir/Sources/OpenVoiceFlow/MeetingRecorder.swift" \
+  "$native_dir/Sources/OpenVoiceFlow/MeetingSummarizer.swift" \
   "$native_dir/Sources/OpenVoiceFlow/MeetingStore.swift" \
   "$native_dir/Tests/MeetingContracts.swift"
 "$scratch/meeting-contracts"

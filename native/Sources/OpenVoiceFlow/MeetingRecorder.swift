@@ -25,6 +25,8 @@ final class MeetingRecorder {
     private var engine: AVAudioEngine?
     private var writer: AVAudioFile?
     private var converter: AVAudioConverter?
+    private var sourceFormat: AVAudioFormat?
+    private var paused = false
     private var destination: URL?
     private var framesWritten: AVAudioFramePosition = 0
     private(set) var readFramePosition: AVAudioFramePosition = 0
@@ -32,6 +34,7 @@ final class MeetingRecorder {
 
     var isRecording: Bool { lock.lock(); defer { lock.unlock() }; return writer != nil }
     var duration: Double { lock.lock(); defer { lock.unlock() }; return Double(framesWritten) / 16_000 }
+    var isPaused: Bool { lock.lock(); defer { lock.unlock() }; return paused }
 
     static func requestPermission() async -> Bool {
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
@@ -85,6 +88,8 @@ final class MeetingRecorder {
         catch { try? FileManager.default.removeItem(at: url); throw error }
         writer = file
         converter = conversion
+        sourceFormat = inputFormat
+        paused = false
         destination = url
         framesWritten = 0
         readFramePosition = 0
@@ -93,6 +98,7 @@ final class MeetingRecorder {
 
     func append(_ input: AVAudioPCMBuffer) throws {
         lock.lock(); defer { lock.unlock() }
+        if paused { return } // The tap stays installed; paused speech is never written.
         guard let writer, let converter else { throw RecordingError.couldNotStart }
         guard let output = AVAudioPCMBuffer(pcmFormat: outputFormat,
                 frameCapacity: AVAudioFrameCount(ceil(Double(input.frameLength) * 16_000 / input.format.sampleRate) + 256)) else {
@@ -149,6 +155,22 @@ final class MeetingRecorder {
         if captureError == nil { captureError = error }
     }
 
+    func pause() {
+        lock.lock(); defer { lock.unlock() }
+        guard writer != nil else { return }
+        paused = true
+        converter = nil // Drop converter latency; never flush private speech.
+    }
+
+    func resume() throws {
+        lock.lock(); defer { lock.unlock() }
+        guard writer != nil, let sourceFormat else { throw RecordingError.couldNotStart }
+        guard paused else { return }
+        guard let fresh = AVAudioConverter(from: sourceFormat, to: outputFormat) else { throw RecordingError.couldNotStart }
+        converter = fresh
+        paused = false
+    }
+
     @discardableResult func stop() -> Double {
         // Detach the callback before dropping the writer. append and reads share
         // a lock, so closing cannot interleave with a file write.
@@ -158,7 +180,7 @@ final class MeetingRecorder {
             self.engine = nil
         }
         lock.lock(); defer { lock.unlock() }
-        if let converter, let writer {
+        if !paused, let converter, let writer {
             for _ in 0..<8 {
                 guard let tail = AVAudioPCMBuffer(pcmFormat: outputFormat, frameCapacity: 4_096) else { break }
                 var conversionError: NSError?
@@ -178,6 +200,8 @@ final class MeetingRecorder {
         let seconds = Double(framesWritten) / 16_000
         writer = nil
         converter = nil
+        sourceFormat = nil
+        paused = false
         return seconds
     }
 

@@ -110,7 +110,7 @@ final class AppController: ObservableObject {
 
     func startMeetingRecording() async {
         guard !isRecording, !isWorking, !meetingOperation,
-              !meetingStore.isRecording, !meetingStore.isTranscribing else { return }
+              !meetingStore.isRecording, !meetingStore.isTranscribing, !meetingStore.isFinalizing else { return }
         meetingOperation = true
         defer { meetingOperation = false }
         lastError = nil
@@ -124,8 +124,20 @@ final class AppController: ObservableObject {
         await meetingStore.stopRecording()
     }
 
+    func pauseMeetingRecording() { meetingStore.pauseRecording() }
+    func resumeMeetingRecording() { try? meetingStore.resumeRecording() }
+
+    func retryMeetingNotes(_ meeting: MeetingRecord) async {
+        guard !isRecording, !isWorking, !meetingOperation, !meetingStore.isRecording,
+              !meetingStore.isTranscribing, !meetingStore.isFinalizing else { return }
+        meetingOperation = true
+        defer { meetingOperation = false }
+        do { try await meetingStore.generateNotes(for: meeting) }
+        catch { lastError = error.localizedDescription }
+    }
+
     func importMeetingAudio(_ url: URL) async {
-        guard !isRecording, !isWorking, !meetingOperation, !meetingStore.isRecording else { return }
+        guard !isRecording, !isWorking, !meetingOperation, !meetingStore.isRecording, !meetingStore.isFinalizing else { return }
         meetingOperation = true
         defer { meetingOperation = false }
         do {
@@ -138,7 +150,7 @@ final class AppController: ObservableObject {
     }
 
     func transcribeMeeting(_ meeting: MeetingRecord) async {
-        guard !isRecording, !isWorking, !meetingOperation, !meetingStore.isRecording else { return }
+        guard !isRecording, !isWorking, !meetingOperation, !meetingStore.isRecording, !meetingStore.isFinalizing else { return }
         meetingOperation = true
         defer { meetingOperation = false }
         let language = settings.language
@@ -250,7 +262,7 @@ final class AppController: ObservableObject {
     /// of racing the transcriber's async set.
     @discardableResult
     func selectModel(_ name: String) async throws -> Int {
-        guard !meetingOperation, !meetingStore.isRecording, !meetingStore.isTranscribing else {
+        guard !meetingOperation, !meetingStore.isRecording, !meetingStore.isTranscribing, !meetingStore.isFinalizing else {
             throw NSError(domain: "OpenVoiceFlow", code: 1,
                           userInfo: [NSLocalizedDescriptionKey: "Finish the meeting transcription before changing speech models."])
         }
@@ -366,7 +378,7 @@ final class AppController: ObservableObject {
     // MARK: dictation loop
 
     private func startRecording() {
-        guard !isRecording, pausedUntil == nil, !meetingOperation, !meetingStore.isRecording, !meetingStore.isTranscribing else { return }
+        guard !isRecording, pausedUntil == nil, !meetingOperation, !meetingStore.isRecording, !meetingStore.isTranscribing, !meetingStore.isFinalizing else { return }
         dictationTask?.cancel()
         dictationTask = nil
         dictationGeneration += 1

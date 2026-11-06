@@ -103,12 +103,12 @@ if [[ "$NOTARIZE" == "1" ]]; then
   xcrun notarytool submit "$BUILD_DIR/OpenVoiceFlow.zip" \
     --key "$OVF_NOTARY_KEY" --key-id "$OVF_NOTARY_KEY_ID" --issuer "$OVF_NOTARY_ISSUER_ID" \
     --wait
-  xcrun stapler staple "$APP"
+  "$HERE/scripts/stapler-with-network-retry.sh" staple "$APP"
   # The DMG caption promises the user an "Open" button. Gatekeeper only offers
   # one for a notarized, stapled build — an un-notarized app gets a dead-end
   # "Move to Trash" instead, which would make that caption a lie. Assert it
   # rather than trusting the submit above to have succeeded.
-  xcrun stapler validate "$APP" \
+  "$HERE/scripts/stapler-with-network-retry.sh" validate "$APP" \
     || { echo "::error::app is not stapled — Gatekeeper would show no Open button"; exit 1; }
 fi
 
@@ -248,11 +248,11 @@ if [[ "$NOTARIZE" == "1" ]]; then
   xcrun notarytool submit "$DMG" \
     --key "$OVF_NOTARY_KEY" --key-id "$OVF_NOTARY_KEY_ID" --issuer "$OVF_NOTARY_ISSUER_ID" \
     --wait
-  xcrun stapler staple "$DMG"
+  "$HERE/scripts/stapler-with-network-retry.sh" staple "$DMG"
   # Blocking, not advisory: this used to end in `|| true`, so a lapsed
   # notarization shipped silently. Both checks must pass or the release stops.
   echo "▸ Verifying Gatekeeper acceptance"
-  xcrun stapler validate "$DMG" \
+  "$HERE/scripts/stapler-with-network-retry.sh" validate "$DMG" \
     || { echo "::error::DMG is not stapled — Gatekeeper cannot verify it offline"; exit 1; }
   spctl -a -vvv -t install "$DMG" \
     || { echo "::error::Gatekeeper rejected the DMG; it would not offer an Open button"; exit 1; }

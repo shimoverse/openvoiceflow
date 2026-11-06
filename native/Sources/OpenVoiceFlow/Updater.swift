@@ -27,16 +27,24 @@ enum ReleaseNotes {
 @MainActor
 private final class UpdaterProbe: NSObject, SPUUpdaterDelegate {
     var onFound: ((SUAppcastItem) -> Void)?
-    var onNotFound: (() -> Void)?
-    var onAborted: (() -> Void)?
+    var onNotFound: ((Bool) -> Void)?
+    var onAborted: ((Bool, Bool) -> Void)?
+    var onFinished: ((Bool) -> Void)?
     var onReadyToInstall: ((SUAppcastItem, @escaping () -> Void) -> Void)?
+    var onPostponeRelaunch: ((@escaping () -> Void) -> Bool)?
+
+    // Sparkle 2.9.4 SUErrors.h: the ObjC enum cases are not exported as
+    // top-level Swift symbols. Keep these pinned to the framework version.
+    private let noUpdateCode = 1001
+    private let userCanceledInstallationCode = 4007
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
         onFound?(item)
     }
 
-    func updaterDidNotFindUpdate(_ updater: SPUUpdater) {
-        onNotFound?()
+    func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
+        let reason = (error as NSError).userInfo[SPUNoUpdateFoundReasonKey] as? NSNumber
+        onNotFound?((reason?.intValue ?? -1) == SPUNoUpdateFoundReason.onLatestVersion.rawValue)
     }
 
     /// Every ended check lands here, including the ones that ended badly — an
@@ -45,7 +53,17 @@ private final class UpdaterProbe: NSObject, SPUUpdaterDelegate {
     /// "No update found" aborts through here too; the controller tells the
     /// cases apart by whether a result already arrived.
     func updater(_ updater: SPUUpdater, didAbortWithError error: any Error) {
-        onAborted?()
+        let code = (error as NSError).code
+        onAborted?(code == noUpdateCode, code == userCanceledInstallationCode)
+    }
+
+    func updater(_ updater: SPUUpdater, didFinishUpdateCycleFor updateCheck: SPUUpdateCheck, error: Error?) {
+        let code = (error as NSError?)?.code
+        onFinished?(error != nil && code != noUpdateCode && code != userCanceledInstallationCode)
+    }
+
+    func updater(_ updater: SPUUpdater, shouldPostponeRelaunchForUpdate item: SUAppcastItem, untilInvokingBlock installHandler: @escaping () -> Void) -> Bool {
+        onPostponeRelaunch?(installHandler) ?? false
     }
 
     /// Sparkle has downloaded and verified an update and would, by default,
@@ -93,21 +111,19 @@ final class UpdaterController: ObservableObject {
     /// the view happened to reload.
     @Published private(set) var canCheckForUpdates = false
 
-    /// True once the appcast has offered a version newer than the running one.
-    /// Drives the sidebar's "Update" call to action.
-    @Published private(set) var updateAvailable = false
-
-    /// The version waiting to be installed, when one is (e.g. "0.5.21").
-    @Published private(set) var availableVersion: String?
-
-    /// False until a check has actually finished. The sidebar stays quiet
-    /// rather than claiming "Up to date" on a version it has not verified.
-    @Published private(set) var hasCheckedForUpdates = false
-
-    /// True from the moment a silent probe starts until the appcast answers
-    /// it. A probe that aborts while this is set answered nothing, so the
-    /// status it was meant to refresh is dropped rather than left to go stale.
-    private var probeAwaitingResult = false
+    private static let lastSuccessfulCheckKey = "OVFLastSuccessfulUpdateCheck"
+    @Published private(set) var status = UpdateCheckStatus(
+        lastSuccessfulCheckAt: UserDefaults.standard.object(forKey: lastSuccessfulCheckKey) as? Date
+    )
+    var updateAvailable: Bool {
+        if case .available = status.result { return true }
+        return false
+    }
+    var availableVersion: String? {
+        if case .available(let version) = status.result { return version }
+        return nil
+    }
+    var hasCheckedForUpdates: Bool { status.result == .current }
 
     /// Asked before an automatic install relaunches the app. Set by the app at
     /// launch to "a dictation is in progress"; a relaunch mid-take would lose
@@ -119,6 +135,8 @@ final class UpdaterController: ObservableObject {
     /// once, but one relaunch is all that is wanted, so it is cleared on use.
     private var pendingInstall: (() -> Void)?
     private var pendingInstallRetry: Timer?
+    private var postponedRelaunch: (() -> Void)?
+    private var postponedRelaunchRetry: Timer?
 
     /// Fires at the next 3 PM Pacific deadline (UpdateSchedule).
     private var scheduledCheck: Timer?
@@ -136,32 +154,28 @@ final class UpdaterController: ObservableObject {
         )
         probe.onFound = { [weak self] item in
             guard let self else { return }
-            self.probeAwaitingResult = false
-            self.hasCheckedForUpdates = true
-            self.updateAvailable = true
-            self.availableVersion = item.displayVersionString
+            self.status.found(version: item.displayVersionString, at: Date())
+            self.saveSuccessfulCheck()
         }
-        probe.onNotFound = { [weak self] in
+        probe.onNotFound = { [weak self] isCurrent in
             guard let self else { return }
-            self.probeAwaitingResult = false
-            self.hasCheckedForUpdates = true
-            self.updateAvailable = false
-            self.availableVersion = nil
+            self.status.notFound(isCurrent: isCurrent, at: Date())
+            self.saveSuccessfulCheck()
         }
-        probe.onAborted = { [weak self] in
-            // A result already in hand means this is the abort that follows
-            // "no update found" — the status stands. Otherwise the check
-            // failed, and an unverified status is worse than none.
-            guard let self, self.probeAwaitingResult else { return }
-            self.probeAwaitingResult = false
-            self.clearVerifiedStatus()
+        probe.onAborted = { [weak self] expectedNoUpdate, userCanceled in
+            self?.status.aborted(expectedNoUpdate: expectedNoUpdate, userCanceled: userCanceled)
         }
+        probe.onFinished = { [weak self] errorOccurred in self?.status.finished(errorOccurred: errorOccurred) }
         probe.onReadyToInstall = { [weak self] item, install in
             guard let self else { return }
-            self.updateAvailable = true
-            self.availableVersion = item.displayVersionString
             self.pendingInstall = install
             self.installPendingUpdateWhenIdle()
+        }
+        probe.onPostponeRelaunch = { [weak self] continueInstall in
+            guard let self, self.isBusy() else { return false }
+            self.postponedRelaunch = continueInstall
+            self.resumeRelaunchWhenIdle()
+            return true
         }
         // Honor the user's saved preference for automatic updates.
         apply(automatic: Settings.load().automaticUpdates)
@@ -205,6 +219,7 @@ final class UpdaterController: ObservableObject {
         // The background driver, not the probe: with automatic downloads on
         // this is the path that fetches, verifies and stages the update, and
         // it ends in `willInstallUpdateOnQuit` above.
+        status.begin()
         controller.updater.checkForUpdatesInBackground()
     }
 
@@ -239,6 +254,23 @@ final class UpdaterController: ObservableObject {
         install()
     }
 
+    /// The same idle gate covers a user-confirmed install that became unsafe
+    /// after the update sheet opened; changing auto-update preferences does not
+    /// cancel this user-initiated relaunch.
+    private func resumeRelaunchWhenIdle() {
+        postponedRelaunchRetry?.invalidate()
+        postponedRelaunchRetry = nil
+        guard let resume = postponedRelaunch else { return }
+        guard !isBusy() else {
+            postponedRelaunchRetry = Timer.scheduledTimer(withTimeInterval: 15, repeats: false) { [weak self] _ in
+                Task { @MainActor in self?.resumeRelaunchWhenIdle() }
+            }
+            return
+        }
+        postponedRelaunch = nil
+        resume()
+    }
+
     /// The running app's marketing version (e.g. "0.4.2"), read from the bundle
     /// so the UI never hardcodes it.
     var appVersion: String {
@@ -254,18 +286,31 @@ final class UpdaterController: ObservableObject {
     func refreshUpdateStatus() {
         guard controller.updater.automaticallyChecksForUpdates,
               !controller.updater.sessionInProgress else { return }
-        probeAwaitingResult = true
+        status.begin()
         controller.updater.checkForUpdateInformation()
     }
 
     /// Manual "Check for Updates…" / "Check for updates now" — shows Sparkle's
     /// standard UI so an on-demand check always has clear feedback.
-    func checkForUpdates() { controller.checkForUpdates(nil) }
+    func checkForUpdates() {
+        guard canCheckForUpdates else { return }
+        // Sparkle focuses an existing update dialog instead of launching a
+        // second session. Do not discard a result already received by it.
+        if controller.updater.sessionInProgress {
+            controller.checkForUpdates(nil)
+            return
+        }
+        status.begin()
+        controller.checkForUpdates(nil)
+    }
 
     /// The sidebar's "Update" action. Sparkle owns the download, signature and
     /// notarization checks, and the relaunch, so this hands the user straight
     /// to that flow for the version the probe already found.
-    func installAvailableUpdate() { checkForUpdates() }
+    func installAvailableUpdate() {
+        guard updateAvailable, !isBusy() else { return }
+        checkForUpdates()
+    }
 
     /// Toggle automatic updates (Settings ▸ Automatic updates): both the daily
     /// scheduled check and the silent background download+install.
@@ -275,25 +320,20 @@ final class UpdaterController: ObservableObject {
             refreshUpdateStatus()
             runScheduledCheckIfDue()
         } else {
-            // Sparkle still installs anything already staged when the app
-            // quits — that is its floor, not ours to lower — but it will not be
-            // relaunched out from under someone who just turned this off.
-            pendingInstall = nil
-            pendingInstallRetry?.invalidate()
-            pendingInstallRetry = nil
+            // A staged update whose immediate-install handler we already
+            // accepted must finish: Sparkle stalls its cycle until called.
+            // Turning off automatic checks prevents future checks/downloads,
+            // not the already-accepted installation (also installed on quit).
             // The status was learned from a check the user has now opted out
             // of; stop asserting it rather than letting it go stale.
-            probeAwaitingResult = false
-            clearVerifiedStatus()
+            status.invalidate()
         }
     }
 
     /// Drop what the last check established, so the footer falls back to the
     /// bare version instead of vouching for a build nothing verified.
-    private func clearVerifiedStatus() {
-        hasCheckedForUpdates = false
-        updateAvailable = false
-        availableVersion = nil
+    private func saveSuccessfulCheck() {
+        UserDefaults.standard.set(status.lastSuccessfulCheckAt, forKey: Self.lastSuccessfulCheckKey)
     }
 
     /// "Automatic" means check on the schedule AND download+install in the

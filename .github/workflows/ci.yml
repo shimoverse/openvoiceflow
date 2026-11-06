@@ -127,3 +127,5 @@ jobs:
         run: bash native/scripts/test-meeting-contracts.sh
       - name: Whistle native contracts (non-network, no vendor download)
         run: bash native/scripts/test-whistle-contracts.sh
+      - name: Update-check lifecycle contracts
+        run: bash native/scripts/test-update-check-status.sh

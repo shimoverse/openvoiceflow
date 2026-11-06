@@ -348,36 +348,51 @@ struct DashboardView: View {
 
     // MARK: sidebar footer (version + update state)
     //
-    // Three states, and only one of them is clickable: a new version to
-    // install offers "Update"; a verified-current build says "Up to date" and
-    // asks nothing of the user; before any check has finished (or with
-    // automatic checks off) the version stands alone rather than claiming a
-    // freshness nobody confirmed.
+    // A check is always one click away, including with automatic checks off.
+    // Only a completed appcast result can claim the running version is current.
 
     @ViewBuilder private var versionFooter: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(updater.updateAvailable ? accent : DT.moss)
-                .frame(width: 6, height: 6)
-            if updater.updateAvailable {
-                Text("v\(updater.appVersion) ·")
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(updater.updateAvailable ? accent : updater.hasCheckedForUpdates ? DT.moss : ink2.opacity(0.5))
+                    .frame(width: 6, height: 6)
+                Text("v\(updater.appVersion) · \(updateStatusLabel)")
                     .font(.system(size: 11)).foregroundStyle(ink2)
-                Button { updater.installAvailableUpdate() } label: {
-                    Text("Update")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(dark ? DT.emberDark : DT.emberLight)
-                }
-                .buttonStyle(.plain)
-                .disabled(!updater.canCheckForUpdates)
-                .help(updater.availableVersion.map { "Update to v\($0)" } ?? "Update")
-            } else if updater.hasCheckedForUpdates {
-                Text("v\(updater.appVersion) · Up to date")
-                    .font(.system(size: 11)).foregroundStyle(ink2)
-            } else {
-                Text("v\(updater.appVersion)")
-                    .font(.system(size: 11)).foregroundStyle(ink2)
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
+            HStack(spacing: 8) {
+                Button("Check for updates") {
+                    usageCounters.record(.updateChecked)
+                    updater.checkForUpdates()
+                }
+                .disabled(!updater.canCheckForUpdates || updater.status.isChecking)
+                if updater.updateAvailable {
+                    Button("Update") { updater.installAvailableUpdate() }
+                        .disabled(!updater.canCheckForUpdates || updater.isBusy())
+                        .help(updater.availableVersion.map { "Update to v\($0)" } ?? "Update")
+                }
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(dark ? DT.emberDark : DT.emberLight)
+            Text(updater.status.lastSuccessfulCheckAt.map {
+                "Last checked \($0.formatted(date: .abbreviated, time: .shortened))"
+            } ?? "Never checked")
+                .font(.system(size: 10))
+                .foregroundStyle(ink2)
+        }
+        .padding(.horizontal, 10)
+    }
+
+    private var updateStatusLabel: String {
+        if updater.status.isChecking { return "Checking…" }
+        switch updater.status.result {
+        case .available: return "Update available"
+        case .current: return "Up to date"
+        case .noCompatibleUpdate: return "No compatible update"
+        case .failed: return "Check failed"
+        case .unverified: return "Not verified"
         }
     }
 

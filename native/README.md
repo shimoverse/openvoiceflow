@@ -29,6 +29,7 @@ signed, notarized, stapled release pipeline — and why each step exists — rea
 | `HotkeyEngine.swift` | CGEvent tap for the push-to-talk key |
 | `AudioCapture.swift` | 16 kHz mono capture + level metering |
 | `Transcriber.swift` | WhisperKit lifecycle, model downloads, live partials |
+| `MeetingRecorder.swift`, `MeetingStore.swift`, `MeetingSummarizer.swift` | private CAF meeting capture/pause, disk library, bounded local note generation |
 | `CleanupProvider.swift` | optional LLM cleanup (5 backends, one protocol) |
 | `Paster.swift` | ⌘V synthesis with clipboard restore |
 | `HUDController.swift` | floating waveform HUD |
@@ -45,3 +46,12 @@ signed, notarized, stapled release pipeline — and why each step exists — rea
 
 Design provenance for the UI lives in git history (phase-06 redesign);
 `BUILD_RUNBOOK.md` covers release mechanics.
+
+Meetings keep generated notes separate from editable personal notes. Stop drains
+the entire transcript before bounded-window note generation and a topic title;
+manual titles are preserved. On macOS 26 with an available on-device Apple model,
+notes are concise model summaries; elsewhere they are labeled extractive
+transcript excerpts, not generative summaries. Failures retain audio/transcript
+and offer retry. Paused audio is not written or counted in the saved duration;
+Stop also works while paused. Recording consent can be dismissed only on Start
+and reopened or reset in Meetings; macOS microphone permission is unchanged.

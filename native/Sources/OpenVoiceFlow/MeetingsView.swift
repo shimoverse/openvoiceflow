@@ -13,10 +13,14 @@ struct MeetingsView: View {
     @State private var selectedID: UUID?
     @State private var titleDraft = ""
     @State private var notesDraft = ""
+    @State private var titleBaseline = ""
+    @State private var notesBaseline = ""
+    @AppStorage("meetingConsentDismissed") private var consentDismissed = false
+    @State private var skipFutureConsent = false
     @State private var showConsent = false
     @State private var showDelete = false
     @State private var alertMessage: String?
-    @State private var recordingStartedAt: Date?
+
     @State private var player: AVAudioPlayer?
     @State private var playingID: UUID?
 
@@ -30,7 +34,7 @@ struct MeetingsView: View {
     private var secondary: Color { dark ? DT.ink2Dark : DT.ink2Light }
     private var surface: Color { dark ? DT.cardDark : DT.cardLight }
     private var accent: Color { dark ? DT.emberDark : DT.emberLight }
-    private var busy: Bool { controller.isRecording || controller.isWorking || controller.meetingOperation || store.isRecording || store.isTranscribing }
+    private var busy: Bool { controller.isRecording || controller.isWorking || controller.meetingOperation || store.isRecording || store.isTranscribing || store.isFinalizing }
     private var selected: MeetingRecord? { store.meetings.first { $0.id == selectedID } }
     private var canEdit: Bool { selected != nil }
 
@@ -60,21 +64,22 @@ struct MeetingsView: View {
             stopPlayback()
             loadDrafts()
         }
-        .onChange(of: store.meetings) { _, _ in reconcileSelection() }
+        .onChange(of: store.meetings) { _, new in
+            if let id = selectedID, let current = new.first(where: { $0.id == id }) {
+                if titleDraft == titleBaseline { titleDraft = current.title }
+                if notesDraft == notesBaseline { notesDraft = current.notes }
+                titleBaseline = current.title
+                notesBaseline = current.notes
+            }
+            reconcileSelection()
+        }
         .onChange(of: store.activeMeetingID) { _, active in
             if let active {
                 persistDrafts()
                 selectedID = active
             }
         }
-        .onChange(of: store.isRecording) { _, recording in
-            if recording {
-                stopPlayback()
-                if recordingStartedAt == nil { recordingStartedAt = Date() }
-            } else {
-                recordingStartedAt = nil
-            }
-        }
+        .onChange(of: store.isRecording) { _, recording in if recording { stopPlayback() } }
         .onChange(of: store.isTranscribing) { _, transcribing in
             if !transcribing, let meeting = selected, !hasChanges(meeting) { loadDrafts() }
         }
@@ -89,14 +94,23 @@ struct MeetingsView: View {
         } message: {
             Text(alertMessage ?? "")
         }
-        .confirmationDialog("Before recording", isPresented: $showConsent, titleVisibility: .visible) {
-            Button("Everyone agrees — Start recording") {
-                recordingStartedAt = Date()
-                Task { await controller.startMeetingRecording() }
+        .sheet(isPresented: $showConsent) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Before recording").font(.title2.bold())
+                Text("Make sure everyone agrees before recording. The microphone captures sound in your room and from speakers, but not remote participants heard only through headphones. Audio, transcripts, and notes stay on this Mac.")
+                Toggle("Do not show again", isOn: $skipFutureConsent)
+                HStack {
+                    Button("Cancel") { showConsent = false }
+                    Spacer()
+                    Button("Everyone agrees — Start recording") {
+                        consentDismissed = skipFutureConsent
+                        showConsent = false
+                        Task { await controller.startMeetingRecording() }
+                    }.buttonStyle(.borderedProminent).disabled(busy)
+                }
             }
-            Button("Cancel", role: .cancel) { }
-        } message: {
-            Text("Make sure everyone agrees before recording. The microphone captures sound in your room and from speakers, but not remote participants heard only through headphones. Audio and notes stay on this Mac.")
+            .padding(24)
+            .frame(width: 450)
         }
         .confirmationDialog("Delete this meeting?", isPresented: $showDelete, titleVisibility: .visible) {
             Button("Delete meeting and audio", role: .destructive) {
@@ -134,9 +148,21 @@ struct MeetingsView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(DT.destructive)
+                    Button {
+                        if store.isPaused { controller.resumeMeetingRecording() }
+                        else { controller.pauseMeetingRecording() }
+                    } label: {
+                        Label(store.isPaused ? "Resume recording" : "Pause recording",
+                              systemImage: store.isPaused ? "play.fill" : "pause.fill")
+                            .frame(maxWidth: .infinity)
+                    }.buttonStyle(.bordered)
                     recordingStatus
                 } else {
-                    Button { persistDrafts(); stopPlayback(); showConsent = true } label: {
+                    Button {
+                        persistDrafts(); stopPlayback()
+                        if consentDismissed { Task { await controller.startMeetingRecording() } }
+                        else { skipFutureConsent = false; showConsent = true }
+                    } label: {
                         Label("Record meeting", systemImage: "record.circle")
                             .frame(maxWidth: .infinity)
                     }
@@ -150,6 +176,12 @@ struct MeetingsView: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(busy)
+                Button("Recording disclaimer…") { skipFutureConsent = consentDismissed; showConsent = true }
+                    .buttonStyle(.link)
+                if consentDismissed {
+                    Button("Reset recording disclaimer") { consentDismissed = false }
+                        .buttonStyle(.link)
+                }
                 if let status = store.transcriptionStatus {
                     Text(status)
                         .font(.system(size: 11))
@@ -226,13 +258,13 @@ struct MeetingsView: View {
     private var recordingStatus: some View {
         HStack(spacing: 7) {
             Circle().fill(DT.destructive).frame(width: 7, height: 7)
-            if let start = recordingStartedAt {
-                TimelineView(.periodic(from: start, by: 1)) { context in
-                    Text("Recording · \(duration(context.date.timeIntervalSince(start)))")
+            if store.isPaused {
+                Text("Paused · \(duration(store.recordedDuration))")
+            } else {
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    Text("Recording · \(duration(store.recordedDuration))")
                         .monospacedDigit()
                 }
-            } else {
-                Text("Recording")
             }
             Spacer()
         }
@@ -371,6 +403,34 @@ struct MeetingsView: View {
                 }
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
+                        sectionTitle("GENERATED NOTES")
+                        Spacer()
+                        if !meeting.transcript.isEmpty && store.activeMeetingID != meeting.id {
+                            Button(meeting.generatedNotes.isEmpty ? "Create / Retry" : "Regenerate") {
+                                Task { await controller.retryMeetingNotes(meeting) }
+                            }.disabled(busy)
+                        }
+                    }
+                    if store.isFinalizing && store.activeMeetingID == meeting.id {
+                        ProgressView("Creating local meeting notes…")
+                    } else if meeting.generatedNotes.isEmpty {
+                        Text("No generated notes yet. A transcript is needed to create them.")
+                            .foregroundStyle(secondary)
+                    } else {
+                        Text(meeting.generatedNotes)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(18)
+                            .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
+                    }
+                    if let error = store.notesError, store.notesFailureID == meeting.id {
+                        Text(error).foregroundStyle(DT.destructive)
+                    }
+                    Text("On-device summaries where supported; otherwise short excerpts from the transcript.")
+                        .font(.system(size: 11)).foregroundStyle(secondary)
+                }
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
                         sectionTitle("YOUR NOTES")
                         Spacer()
                         if hasChanges(meeting) && canEdit {
@@ -388,7 +448,7 @@ struct MeetingsView: View {
                         .overlay(RoundedRectangle(cornerRadius: DT.rCard).stroke(secondary.opacity(0.2)))
                         .disabled(!canEdit)
                         .accessibilityLabel("Personal meeting notes")
-                    Text("Your notes are yours to write. No automatic summary is generated.")
+                    Text("Your notes stay separate from generated notes.")
                         .font(.system(size: 11))
                         .foregroundStyle(secondary)
                 }
@@ -426,19 +486,23 @@ struct MeetingsView: View {
     private func loadDrafts() {
         titleDraft = selected?.title ?? ""
         notesDraft = selected?.notes ?? ""
+        titleBaseline = titleDraft
+        notesBaseline = notesDraft
     }
 
     private func hasChanges(_ meeting: MeetingRecord) -> Bool {
-        titleDraft != meeting.title || notesDraft != meeting.notes
+        titleDraft != titleBaseline || notesDraft != notesBaseline
     }
 
     private func saveEdits(_ meeting: MeetingRecord) {
         guard var current = store.meetings.first(where: { $0.id == meeting.id }) else { return }
-        current.title = titleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        current.notes = notesDraft
+        if titleDraft != titleBaseline { current.title = titleDraft.trimmingCharacters(in: .whitespacesAndNewlines) }
+        if notesDraft != notesBaseline { current.notes = notesDraft }
         do {
             try store.update(current)
             titleDraft = current.title
+            titleBaseline = current.title
+            notesBaseline = current.notes
         } catch {
             alertMessage = error.localizedDescription
         }
@@ -488,7 +552,7 @@ struct MeetingsView: View {
         panel.nameFieldStringValue = "\(meeting.title.isEmpty ? "Meeting" : meeting.title).txt"
         panel.allowedContentTypes = [.plainText]
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        let text = "\(meeting.title)\n\(meeting.createdAt.formatted(date: .complete, time: .shortened))\n\nNotes\n\(meeting.notes)\n\nTranscript\n\(meeting.transcript)\n"
+        let text = "\(meeting.title)\n\(meeting.createdAt.formatted(date: .complete, time: .shortened))\n\nGenerated notes\n\(meeting.generatedNotes)\n\nYour notes\n\(meeting.notes)\n\nTranscript\n\(meeting.transcript)\n"
         do { try text.write(to: url, atomically: true, encoding: .utf8) }
         catch { alertMessage = error.localizedDescription }
     }

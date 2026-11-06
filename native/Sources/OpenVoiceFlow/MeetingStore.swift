@@ -11,6 +11,27 @@ struct MeetingRecord: Identifiable, Codable, Equatable {
     var transcript: String
     var notes: String
     var audioFilename: String
+    var generatedNotes: String = ""
+    var titleWasEdited: Bool = false
+
+    enum CodingKeys: String, CodingKey { case id, title, createdAt, duration, transcript, notes, audioFilename, generatedNotes, titleWasEdited }
+    init(id: UUID, title: String, createdAt: Date, duration: Double, transcript: String, notes: String, audioFilename: String) {
+        self.id = id; self.title = title; self.createdAt = createdAt; self.duration = duration
+        self.transcript = transcript; self.notes = notes; self.audioFilename = audioFilename
+    }
+    init(from decoder: Decoder) throws {
+        let box = try decoder.container(keyedBy: CodingKeys.self)
+        id = try box.decode(UUID.self, forKey: .id)
+        title = try box.decode(String.self, forKey: .title)
+        createdAt = try box.decode(Date.self, forKey: .createdAt)
+        duration = try box.decode(Double.self, forKey: .duration)
+        transcript = try box.decode(String.self, forKey: .transcript)
+        notes = try box.decode(String.self, forKey: .notes)
+        audioFilename = try box.decode(String.self, forKey: .audioFilename)
+        generatedNotes = try box.decodeIfPresent(String.self, forKey: .generatedNotes) ?? ""
+        // Legacy records may already carry a user title; treat them as owned.
+        titleWasEdited = try box.decodeIfPresent(Bool.self, forKey: .titleWasEdited) ?? true
+    }
 }
 
 private enum MeetingError: LocalizedError {
@@ -104,23 +125,31 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     @Published private(set) var meetings: [MeetingRecord] = []
     @Published private(set) var isRecording = false
     @Published private(set) var isTranscribing = false
+    @Published private(set) var isPaused = false
+    @Published private(set) var isFinalizing = false
+    @Published private(set) var notesError: String?
+    @Published private(set) var notesFailureID: UUID?
     @Published private(set) var activeMeetingID: UUID?
     @Published private(set) var transcriptionStatus: String?
     @Published private(set) var errorMessage: String?
 
     private let directory: URL
     private let recorder: MeetingRecorder
+    private let recordingLimit: Duration
     private var liveTask: Task<Void, Never>?
     private var liveGeneration: UUID?
+    private var liveTranscriptionFailed = false
     private var deadlineTask: Task<Void, Never>?
     private var loadFailure = false
     private var operationBusy = false
     private let files = FileManager.default
 
     init(directory: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("OpenVoiceFlow/Meetings", isDirectory: true), recorder: MeetingRecorder = MeetingRecorder()) {
+        .appendingPathComponent("OpenVoiceFlow/Meetings", isDirectory: true), recorder: MeetingRecorder = MeetingRecorder(),
+         recordingLimit: Duration = .seconds(2 * 60 * 60)) {
         self.directory = directory
         self.recorder = recorder
+        self.recordingLimit = recordingLimit
         do {
             try files.createDirectory(at: directory, withIntermediateDirectories: true,
                                       attributes: [.posixPermissions: 0o700])
@@ -160,7 +189,7 @@ private final class MeetingAudioChunks: @unchecked Sendable {
 
     private func beginRecording(using model: (([Float]) async throws -> String)?,
                                 feeding inputFormat: AVAudioFormat?) async {
-        guard !isRecording, !operationBusy, !isTranscribing, activeMeetingID == nil else {
+        guard !isRecording, !operationBusy, !isTranscribing, !isFinalizing, activeMeetingID == nil else {
             errorMessage = MeetingError.busy.localizedDescription; return
         }
         operationBusy = true
@@ -182,6 +211,8 @@ private final class MeetingAudioChunks: @unchecked Sendable {
             else { try recorder.start(at: audioURL(for: entry)) }
             activeMeetingID = id
             isRecording = true
+            isPaused = false
+            liveTranscriptionFailed = false
             errorMessage = nil
             transcriptionStatus = model == nil ? nil : "Listening — transcript updates every few seconds"
             if let model {
@@ -193,8 +224,11 @@ private final class MeetingAudioChunks: @unchecked Sendable {
                 }
             }
             deadlineTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(2 * 60 * 60))
+                guard let limit = self?.recordingLimit else { return }
+                try? await Task.sleep(for: limit)
                 guard !Task.isCancelled else { return }
+                // Automatic Stop must not cancel its own finalization task.
+                self?.deadlineTask = nil
                 await self?.stopRecording()
             }
         } catch {
@@ -247,6 +281,7 @@ private final class MeetingAudioChunks: @unchecked Sendable {
             if liveGeneration == generation { transcriptionStatus = nil }
         } catch {
             if liveGeneration == generation {
+                liveTranscriptionFailed = true
                 transcriptionStatus = "Live transcription failed: \(error.localizedDescription). Audio is saved; retry after stopping."
                 errorMessage = error.localizedDescription
             }
@@ -255,9 +290,11 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     }
 
     func stopRecording() async {
-        guard isRecording, let id = activeMeetingID else { return }
+        guard isRecording, !isFinalizing, let id = activeMeetingID else { return }
         // Stop capture immediately, even if inference is still in flight.
+        isFinalizing = true
         isRecording = false
+        isPaused = false
         deadlineTask?.cancel()
         deadlineTask = nil
         let duration = recorder.stop()
@@ -273,14 +310,69 @@ private final class MeetingAudioChunks: @unchecked Sendable {
         }
         liveTask = nil
         liveGeneration = nil
+        if let meeting = meetings.first(where: { $0.id == id }), !meeting.transcript.isEmpty,
+           !liveTranscriptionFailed {
+            do { try await generateNotes(for: meeting, duringFinalization: true) }
+            catch {
+                notesFailureID = id
+                notesError = "Notes failed: \(error.localizedDescription). Retry notes below."
+            }
+        }
         activeMeetingID = nil
         isTranscribing = false
+        isFinalizing = false
+    }
+
+    func pauseRecording() {
+        guard isRecording, !isPaused else { return }
+        recorder.pause()
+        isPaused = true
+        if !liveTranscriptionFailed { transcriptionStatus = "Paused — microphone audio is not saved" }
+    }
+
+    func resumeRecording() throws {
+        guard isRecording, isPaused else { return }
+        do {
+            try recorder.resume()
+            isPaused = false
+            if !liveTranscriptionFailed { transcriptionStatus = "Listening — transcript updates every few seconds" }
+        } catch { errorMessage = error.localizedDescription; throw error }
+    }
+
+    var recordedDuration: Double { recorder.duration }
+
+    func generateNotes(for meeting: MeetingRecord, condense: MeetingSummarizer.Condense? = nil,
+                       duringFinalization: Bool = false) async throws {
+        guard !loadFailure else { throw MeetingError.damagedLibrary }
+        guard !isRecording, !operationBusy, !isTranscribing,
+              (duringFinalization ? isFinalizing && (activeMeetingID == nil || meeting.id == activeMeetingID) : !isFinalizing) else { throw MeetingError.busy }
+        guard let current = meetings.first(where: { $0.id == meeting.id }) else { throw MeetingError.missing }
+        let transcript = current.transcript
+        guard !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        if !duringFinalization { isFinalizing = true }
+        defer { if !duringFinalization { isFinalizing = false } }
+        do {
+            let generated = try await MeetingSummarizer.generate(transcript, condense: condense)
+            try Task.checkCancellation()
+            guard let index = meetings.firstIndex(where: { $0.id == meeting.id }),
+                  meetings[index].transcript == transcript else { throw MeetingError.busy }
+            var updated = meetings
+            updated[index].generatedNotes = generated.notes
+            if !updated[index].titleWasEdited, let title = generated.title { updated[index].title = title }
+            try save(updated)
+            notesError = nil
+            notesFailureID = nil
+        } catch {
+            notesFailureID = meeting.id
+            notesError = "Notes failed: \(error.localizedDescription). Retry notes below."
+            throw error
+        }
     }
 
     /// Copies source bytes into the private library; never consumes or deletes the original.
     @discardableResult func importAudio(_ url: URL) async throws -> MeetingRecord {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
-        guard !operationBusy, !isRecording, !isTranscribing else { throw MeetingError.busy }
+        guard !operationBusy, !isRecording, !isTranscribing, !isFinalizing else { throw MeetingError.busy }
         operationBusy = true
         defer { operationBusy = false }
         let scoped = url.startAccessingSecurityScopedResource()
@@ -325,11 +417,11 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     /// call leaves audio and the last committed text available for retry.
     func transcribe(_ meeting: MeetingRecord, using: @escaping ([Float]) async throws -> String) async throws {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
-        guard !operationBusy, !isRecording, !isTranscribing else { throw MeetingError.busy }
+        guard !operationBusy, !isRecording, !isTranscribing, !isFinalizing else { throw MeetingError.busy }
         guard meetings.contains(where: { $0.id == meeting.id }) else { throw MeetingError.missing }
         let previousTranscript = meetings.first(where: { $0.id == meeting.id })?.transcript ?? ""
         isTranscribing = true
-        defer { isTranscribing = false }
+        defer { isTranscribing = false; isFinalizing = false }
         do {
             let reader = try MeetingAudioChunks(url: audioURL(for: meeting))
             var attempt = ""
@@ -356,6 +448,7 @@ private final class MeetingAudioChunks: @unchecked Sendable {
                 guard let index = meetings.firstIndex(where: { $0.id == meeting.id }) else { throw MeetingError.missing }
                 var updated = meetings
                 updated[index].transcript = attempt
+                if attempt != previousTranscript { updated[index].generatedNotes = "" }
                 try save(updated)
             }
             errorMessage = nil
@@ -368,6 +461,9 @@ private final class MeetingAudioChunks: @unchecked Sendable {
             errorMessage = error.localizedDescription
             throw error
         }
+        isFinalizing = true
+        isTranscribing = false
+        try await generateNotes(for: meeting, duringFinalization: true)
     }
 
     func update(_ record: MeetingRecord) throws {
@@ -378,13 +474,14 @@ private final class MeetingAudioChunks: @unchecked Sendable {
         var updated = meetings
         updated[index].title = record.title
         updated[index].notes = record.notes
+        if record.title != meetings[index].title { updated[index].titleWasEdited = true }
         try save(updated)
     }
 
     func delete(_ record: MeetingRecord) throws {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
         guard meetings.contains(where: { $0.id == record.id }), !isRecording || record.id != activeMeetingID,
-              !isTranscribing else { throw MeetingError.busy }
+              !isTranscribing, !isFinalizing else { throw MeetingError.busy }
         // Commit removal first: if unlink fails, the recoverable audio is retained
         // on disk rather than pointing the library at a deleted recording.
         try save(meetings.filter { $0.id != record.id })

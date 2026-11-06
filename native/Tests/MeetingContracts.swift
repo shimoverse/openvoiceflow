@@ -50,6 +50,171 @@ import AVFoundation
               "capture dropped converter tail at stop")
     }
 
+    private static func pauseAndResume(in root: URL) throws {
+        let recorder = MeetingRecorder()
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000)!
+        buffer.frameLength = 16_000
+        let url = root.appendingPathComponent("paused.caf")
+        try recorder.start(at: url, feeding: format)
+        for i in 0..<16_000 { buffer.floatChannelData![0][i] = 0.25 }
+        try recorder.append(buffer)
+        recorder.pause()
+        let before = recorder.duration
+        for i in 0..<16_000 { buffer.floatChannelData![0][i] = -0.75 }
+        for _ in 0..<10 { try recorder.append(buffer) }
+        check(recorder.isPaused && recorder.duration == before, "paused input changed duration")
+        try recorder.resume()
+        for i in 0..<16_000 { buffer.floatChannelData![0][i] = 0.5 }
+        try recorder.append(buffer)
+        let duration = recorder.stop()
+        let saved = try AVAudioFile(forReading: url)
+        let read = AVAudioPCMBuffer(pcmFormat: saved.processingFormat, frameCapacity: AVAudioFrameCount(saved.length))!
+        try saved.read(into: read)
+        let samples = Array(UnsafeBufferPointer(start: read.floatChannelData![0], count: Int(read.frameLength)))
+        check(duration >= 1.9 && duration < 2.1, "pause interval counted in duration")
+        check(!samples.contains(where: { $0 < -0.2 }), "paused speech leaked into waveform")
+        check(samples.contains(where: { $0 > 0.2 && $0 < 0.3 }) && samples.contains(where: { $0 > 0.4 }),
+              "resume lost a recording segment")
+        try recorder.start(at: root.appendingPathComponent("stop-paused.caf"), feeding: format)
+        try recorder.append(buffer)
+        recorder.pause()
+        try recorder.append(buffer)
+        check(recorder.stop() >= 0.9 && !recorder.isRecording, "stop while paused failed")
+    }
+
+    @MainActor private static func notesContracts(in root: URL) async throws {
+        let fallbackText = "The cedar garden irrigation schedule will be reviewed on Friday."
+        let fallback = try await MeetingSummarizer.withExtractiveFallback(fallbackText) { _ in
+            throw FixtureError.transcriptionFailed
+        }
+        check(fallback == MeetingSummarizer.extract(fallbackText), "runtime model error did not produce grounded excerpts")
+        do {
+            _ = try await MeetingSummarizer.withExtractiveFallback(fallbackText) { _ in throw CancellationError() }
+            fatalError("cancellation became fallback work")
+        } catch is CancellationError { }
+        let library = root.appendingPathComponent("notes-library")
+        let source = root.appendingPathComponent("notes.wav")
+        try wav(seconds: 1).write(to: source)
+        let store = MeetingStore(directory: library)
+        let record = try await store.importAudio(source)
+        try await store.generateNotes(for: record)
+        check(store.meetings[0].generatedNotes.isEmpty, "empty transcript generated notes")
+        try await store.transcribe(record, using: { _ in "Planning the cedar garden irrigation schedule and cedar garden watering." })
+        check(!store.meetings[0].generatedNotes.isEmpty && store.meetings[0].title != record.title,
+              "transcript did not produce notes and topic title")
+        check(MeetingSummarizer.title(from: "Cedar garden watering. Cedar garden irrigation.")?.contains("Cedar") == true,
+              "fallback topic title did not use transcript evidence")
+        let evidence = MeetingSummarizer.extract("Hello everybody and thanks for attending. Cedar irrigation planning covers the cedar garden watering schedule. Cedar garden watering needs review.")
+        check(evidence.contains("Cedar irrigation"), "extractive notes picked an empty greeting instead of topical evidence")
+        var manual = store.meetings[0]
+        manual.title = "My own title"
+        manual.notes = "Personal, untouched"
+        try store.update(manual)
+        let existing = store.meetings[0].generatedNotes
+        let cancelled = Task {
+            try await store.generateNotes(for: manual, condense: { _ in
+                withUnsafeCurrentTask { $0?.cancel() }
+                return "A cancelled model call returned normally."
+            })
+        }
+        do {
+            try await cancelled.value
+            fatalError("cancelled notes job committed a normally-returned response")
+        } catch is CancellationError { }
+        check(store.meetings[0].generatedNotes == existing && !store.isFinalizing,
+              "cancelled notes job replaced notes or retained operation lock")
+        do {
+            try await store.generateNotes(for: manual, condense: { _ in throw FixtureError.transcriptionFailed })
+            fatalError("summary failure did not throw")
+        } catch FixtureError.transcriptionFailed { }
+        check(store.meetings[0].generatedNotes == existing && store.meetings[0].transcript.contains("cedar") &&
+              store.notesError != nil, "summary failure lost data or hid retry")
+        try await store.generateNotes(for: manual, condense: { _ in "Cedar garden watering is planned." })
+        check(store.meetings[0].title == "My own title" && store.meetings[0].notes == "Personal, untouched" &&
+              store.notesError == nil, "retry overwrote manual fields")
+        let pending = Task {
+            try await store.generateNotes(for: manual, condense: { _ in
+                try await Task.sleep(for: .milliseconds(100))
+                return "Cedar irrigation meeting"
+            })
+        }
+        await Task.yield()
+        check(store.isFinalizing, "notes job did not hold finalization guard")
+        do {
+            try await store.generateNotes(for: manual)
+            fatalError("overlapping note jobs were allowed")
+        } catch { }
+        var during = store.meetings[0]
+        during.title = "Edited during summarization"
+        during.notes = "New personal note"
+        try store.update(during)
+        try await pending.value
+        check(store.meetings[0].title == during.title && store.meetings[0].notes == during.notes,
+              "in-flight notes job overwrote user edits")
+        let reopened = MeetingStore(directory: library)
+        check(reopened.meetings[0].generatedNotes == store.meetings[0].generatedNotes && reopened.meetings[0].titleWasEdited,
+              "generated fields did not survive restart")
+        let legacy = root.appendingPathComponent("legacy-library")
+        try FileManager.default.createDirectory(at: legacy, withIntermediateDirectories: true)
+        var encoded = try JSONSerialization.jsonObject(with: JSONEncoder().encode([record])) as! [[String: Any]]
+        encoded[0].removeValue(forKey: "generatedNotes")
+        encoded[0].removeValue(forKey: "titleWasEdited")
+        try JSONSerialization.data(withJSONObject: encoded).write(to: legacy.appendingPathComponent("meetings.json"))
+        let old = MeetingStore(directory: legacy)
+        check(old.meetings.count == 1 && old.meetings[0].generatedNotes.isEmpty && old.meetings[0].titleWasEdited,
+              "legacy library did not decode")
+        let long = (0..<4).map { "[00:00:00] Segment\($0) " + String(repeating: "garden ", count: 380) }.joined(separator: "\n")
+        var seen: [String] = []
+        let result = try await MeetingSummarizer.generate(long, condense: { chunk in
+            seen.append(chunk)
+            return "Coverage \(seen.count)"
+        })
+        check(seen.count >= 4 && seen.joined().contains("Segment3"), "summary missed transcript tail")
+        check(result.notes.contains("Coverage 1") && result.notes.contains("Coverage \(seen.count)"),
+              "summary lost a bounded chunk")
+    }
+
+    @MainActor private static func pausedStore(in root: URL) async throws {
+        let recorder = MeetingRecorder()
+        let store = MeetingStore(directory: root.appendingPathComponent("paused-library"), recorder: recorder)
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000)!
+        buffer.frameLength = 16_000
+        for i in 0..<16_000 { buffer.floatChannelData![0][i] = 0.1 }
+        try await store.startRecording(using: { _ in "garden discussion" }, feeding: format)
+        try recorder.append(buffer)
+        store.pauseRecording()
+        check(store.isRecording && store.isPaused && store.activeMeetingID != nil,
+              "pause released meeting capture guard")
+        let before = store.recordedDuration
+        for _ in 0..<10 { try recorder.append(buffer) }
+        check(store.recordedDuration == before, "paused store appended private audio")
+        await store.stopRecording()
+        check(!store.isRecording && !store.isPaused && store.activeMeetingID == nil &&
+              store.meetings[0].duration >= 0.9 && store.meetings[0].duration < 1.1,
+              "stop while paused did not finalize only captured time")
+    }
+
+    @MainActor private static func automaticStop(in root: URL) async throws {
+        let recorder = MeetingRecorder()
+        let store = MeetingStore(directory: root.appendingPathComponent("deadline-library"), recorder: recorder,
+                                 recordingLimit: .milliseconds(50))
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000)!
+        buffer.frameLength = 16_000
+        for i in 0..<16_000 { buffer.floatChannelData![0][i] = 0.1 }
+        try await store.startRecording(using: { _ in "Cedar garden irrigation planning will continue on Friday." }, feeding: format)
+        try recorder.append(buffer)
+        for _ in 0..<300 where store.activeMeetingID != nil {
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        check(store.activeMeetingID == nil && !store.isRecording && !store.isFinalizing,
+              "automatic Stop did not finish")
+        check(!store.meetings[0].generatedNotes.isEmpty && store.notesError == nil,
+              "automatic Stop cancelled its own notes job")
+    }
+
     @MainActor private static func liveStore(in root: URL) async throws {
         let recorder = MeetingRecorder()
         let store = MeetingStore(directory: root.appendingPathComponent("live-library"), recorder: recorder)
@@ -108,6 +273,7 @@ import AVFoundation
         for _ in 0..<6 { try recorder.append(silent) }
         await store.stopRecording()
         check(calls == 0 && store.meetings[0].transcript.isEmpty, "near-silent microphone audio reached speech model")
+        check(store.meetings[0].generatedNotes.isEmpty, "silent take produced invented notes")
         check(FileManager.default.fileExists(atPath: store.audioURL(for: store.meetings[0]).path), "silent take lost audio")
     }
 
@@ -150,6 +316,26 @@ import AVFoundation
               "slow decode was lost at stop")
         check(store.meetings.first(where: { $0.id == failed.id })?.transcript.contains("slow") == false,
               "later session wrote to failed take")
+
+        // A partial transcript is not a completed meeting. Pausing must not
+        // erase the underlying model failure or summarize the partial text.
+        var partialCalls = 0
+        try await store.startRecording(using: { _ in
+            partialCalls += 1
+            if partialCalls > 1 { throw FixtureError.transcriptionFailed }
+            return "Cedar garden budget review before the decoder failed."
+        }, feeding: format)
+        for _ in 0..<12 { try recorder.append(buffer) }
+        for _ in 0..<30 where store.isTranscribing { try await Task.sleep(for: .milliseconds(100)) }
+        check(!store.meetings.last!.transcript.isEmpty && store.transcriptionStatus?.contains("failed") == true,
+              "partial failure fixture did not fail after saving text")
+        store.pauseRecording()
+        try store.resumeRecording()
+        store.pauseRecording()
+        check(store.transcriptionStatus?.contains("failed") == true, "pause/resume hid model failure")
+        await store.stopRecording()
+        check(store.meetings.last!.generatedNotes.isEmpty && store.transcriptionStatus?.contains("failed") == true,
+              "failed partial transcript was presented as a completed summary")
     }
 
     @MainActor private static func minimumLiveWindow(in root: URL) async throws {
@@ -209,6 +395,10 @@ import AVFoundation
     }
 
     @MainActor private static func run(in root: URL) async throws {
+        try pauseAndResume(in: root)
+        try await automaticStop(in: root)
+        try await pausedStore(in: root)
+        try await notesContracts(in: root)
         try shortCAFReads(in: root)
         try await minimumLiveWindow(in: root)
         try await failureAndRestart(in: root)

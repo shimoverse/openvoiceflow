@@ -107,6 +107,8 @@ final class AppController: ObservableObject {
     let modelPreparation = ModelPreparationStatus()
     let meetingStore = MeetingStore()
     @Published private(set) var meetingOperation = false
+    @Published private(set) var notesRequestErrorID: UUID?
+    @Published private(set) var notesRequestError: String?
 
     func startMeetingRecording() async {
         guard !isRecording, !isWorking, !meetingOperation,
@@ -128,12 +130,27 @@ final class AppController: ObservableObject {
     func resumeMeetingRecording() { try? meetingStore.resumeRecording() }
 
     func retryMeetingNotes(_ meeting: MeetingRecord) async {
-        guard !isRecording, !isWorking, !meetingOperation, !meetingStore.isRecording,
-              !meetingStore.isTranscribing, !meetingStore.isFinalizing else { return }
-        meetingOperation = true
-        defer { meetingOperation = false }
+        guard !meetingOperation, !meetingStore.isRecording,
+              !meetingStore.isTranscribing, !meetingStore.isFinalizing,
+              meetingStore.notesGenerationID == nil else {
+            notesRequestErrorID = meeting.id
+            notesRequestError = "Notes could not start while another meeting operation is running. Retry when it finishes."
+            return
+        }
+        notesRequestErrorID = nil
+        notesRequestError = nil
+        // Saved-text generation is independent of dictation; don't claim the
+        // controller's meetingOperation lock or block the Fn recording path.
         do { try await meetingStore.generateNotes(for: meeting) }
-        catch { lastError = error.localizedDescription }
+        catch {
+            lastError = error.localizedDescription
+            // The store owns failures after generation starts; preflight failures
+            // (e.g. damaged library) still need a visible, meeting-scoped result.
+            if meetingStore.notesFailureID != meeting.id {
+                notesRequestErrorID = meeting.id
+                notesRequestError = "Notes failed: \(error.localizedDescription). Try creating the notes again."
+            }
+        }
     }
 
     func importMeetingAudio(_ url: URL) async {

@@ -8,8 +8,8 @@
     <key>CFBundleExecutable</key><string>OpenVoiceFlow</string>
     <key>CFBundleIconFile</key><string>OpenVoiceFlow.icns</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.6.5</string>
-    <key>CFBundleVersion</key><string>40</string>
+    <key>CFBundleShortVersionString</key><string>0.6.6</string>
+    <key>CFBundleVersion</key><string>41</string>
     <key>NSHumanReadableCopyright</key><string>© Shimoverse Studios. Free and open source under the GNU Affero General Public License v3.0.</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <!-- Launch as an accessory so the dashboard Window scene stays dormant (a

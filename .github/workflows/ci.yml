@@ -125,6 +125,8 @@ jobs:
             build
       - name: Meeting persistence and audio contracts
         run: bash native/scripts/test-meeting-contracts.sh
+      - name: Saved-text notes do not block dictation controller path
+        run: python3 native/Tests/meeting_notes_controller_concurrency.py
       - name: Meeting speech integrity, grounded notes and safe-sharing contracts
         run: |
           bash native/scripts/test-meeting-asr-contracts.sh

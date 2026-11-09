@@ -75,6 +75,9 @@ import Foundation
         check(longCalls == 1, "quiet burst in a 30-second import was never decoded")
         check(longStore.meetings.first?.transcript.contains("Thank you. Thank you.") == true,
               "legitimate repeated thank you lost in noisy import")
+        check(longStore.notesFailureID == nil && longStore.notesError == nil &&
+              longStore.meetings.first?.generatedNotes.isEmpty == true,
+              "filler-only transcription was reported as a notes failure")
         check(try Data(contentsOf: longStore.audioURL(for: longRecord)) == longOriginal, "noisy import audio bytes changed")
         let exactMinuteSource = root.appendingPathComponent("exact-minute.wav")
         try wav([Float](repeating: 0.1, count: 60 * 16_000)).write(to: exactMinuteSource)
@@ -95,6 +98,8 @@ import Foundation
         var calls = 0
         try await store.transcribe(empty) { _ in calls += 1; return "Thank you. Thank you." }
         check(calls == 0 && store.meetings[0].transcript.isEmpty, "silent/noise import reached decoder or persisted hallucination")
+        check(store.notesFailureID == nil && store.notesError == nil,
+              "silent import was reported as a notes failure")
         check(try Data(contentsOf: store.audioURL(for: empty)) == original, "import audio bytes changed")
         check(try Data(contentsOf: source) == original, "original audio changed")
 
@@ -127,6 +132,8 @@ import Foundation
         await live.stopRecording()
         check(liveCalls == 1 && live.meetings[1].transcript.contains("Thank you. Thank you."),
               "short final live tail lost or repeated phrase censored")
+        check(live.notesFailureID == nil && live.notesError == nil,
+              "filler-only live finalization was reported as a notes failure")
     }
 
     static func main() async throws {

@@ -168,26 +168,29 @@ enum MeetingSummarizer {
         return (context + significant).map { Item(section: section(for: $0), text: $0, evidence: $0) }
     }
 
-    static func generate(_ transcript: String, condense: Condense? = nil) async throws -> (notes: String, title: String?) {
+    static func generate(_ transcript: String, condense: Condense? = nil,
+                         progress: ((Int, Int) -> Void)? = nil) async throws -> (notes: String, title: String?) {
         let chunks = windows(transcript)
         var items: [Item] = []
-        for chunk in chunks {
+        for (index, chunk) in chunks.enumerated() {
             try Task.checkCancellation()
-            guard !extract(chunk).isEmpty else { continue }
-            let raw: String
-            if let condense { raw = try await condense(chunk) }
-            else { raw = try await onDeviceOrExtract(chunk) }
-            try Task.checkCancellation()
-            let accepted = validatedItems(raw, source: chunk)
-            if accepted.isEmpty { items += fallbackItems(chunk) }
-            else {
-                items += accepted
-                // Keep evidence-backed coverage when a model spends its item
-                // budget elsewhere, including rejected proposals and late tasks.
-                items += fallbackItems(chunk).filter { candidate in
-                    !accepted.contains { normalized($0.evidence).contains(normalized(candidate.evidence)) }
+            if !extract(chunk).isEmpty {
+                let raw: String
+                if let condense { raw = try await condense(chunk) }
+                else { raw = try await onDeviceOrExtract(chunk) }
+                try Task.checkCancellation()
+                let accepted = validatedItems(raw, source: chunk)
+                if accepted.isEmpty { items += fallbackItems(chunk) }
+                else {
+                    items += accepted
+                    // Keep evidence-backed coverage when a model spends its item
+                    // budget elsewhere, including rejected proposals and late tasks.
+                    items += fallbackItems(chunk).filter { candidate in
+                        !accepted.contains { normalized($0.evidence).contains(normalized(candidate.evidence)) }
+                    }
                 }
             }
+            progress?(index + 1, chunks.count)
         }
         var seen = Set<String>()
         items = items.filter { seen.insert(normalized($0.text).trimmingCharacters(in: .punctuationCharacters)).inserted }

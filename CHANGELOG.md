@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
 
+## [0.6.6] — 2026-11-09
+
+### Fixed
+- **Regenerate notes now responds visibly:** immediate progress appears beside the meeting notes, followed by an updated or unchanged result, or an error you can retry. Existing notes remain available while generation runs and after a failed attempt.
+- **Keep dictating while notes regenerate.** Creating notes from a saved conversation no longer blocks regular hold-Fn dictation. Meeting audio recording and transcription retain their microphone and speech-engine safeguards.
+- Empty or filler-only conversations finish automatic transcription without being mislabeled as transcription failures. Manual notes requests explain when there is no meaningful content to summarize.
+
 ## [0.6.5] — 2026-11-09
 
 ### Added

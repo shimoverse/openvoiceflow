@@ -105,8 +105,10 @@ import AVFoundation
         try wav(seconds: 1).write(to: source)
         let store = MeetingStore(directory: library)
         let record = try await store.importAudio(source)
-        try await store.generateNotes(for: record)
-        check(store.meetings[0].generatedNotes.isEmpty, "empty transcript generated notes")
+        do { try await store.generateNotes(for: record); fatalError("empty transcript silently succeeded") }
+        catch { }
+        check(store.meetings[0].generatedNotes.isEmpty && store.notesFailureID == record.id,
+              "empty transcript did not report failure")
         try await store.transcribe(record, using: { _ in "Planning the cedar garden irrigation schedule and cedar garden watering." })
         check(!store.meetings[0].generatedNotes.isEmpty && store.meetings[0].title != record.title,
               "transcript did not produce notes and topic title")
@@ -129,7 +131,7 @@ import AVFoundation
             try await cancelled.value
             fatalError("cancelled notes job committed a normally-returned response")
         } catch is CancellationError { }
-        check(store.meetings[0].generatedNotes == existing && !store.isFinalizing,
+        check(store.meetings[0].generatedNotes == existing && !store.isFinalizing && store.notesGenerationID == nil,
               "cancelled notes job replaced notes or retained operation lock")
         do {
             try await store.generateNotes(for: manual, condense: { _ in throw FixtureError.transcriptionFailed })
@@ -147,7 +149,8 @@ import AVFoundation
             })
         }
         await Task.yield()
-        check(store.isFinalizing, "notes job did not hold finalization guard")
+        check(!store.isFinalizing && store.notesGenerationID == manual.id,
+              "manual notes job did not hold its independent guard")
         do {
             try await store.generateNotes(for: manual)
             fatalError("overlapping note jobs were allowed")
@@ -180,6 +183,127 @@ import AVFoundation
         check(seen.count >= 4 && seen.joined().contains("Segment3"), "summary missed transcript tail")
         check(result.notes.contains("Segment0") && result.notes.contains("Segment3") &&
               !result.notes.contains("Coverage"), "summary lost source evidence or emitted invented callback text")
+    }
+
+    @MainActor private static func regenerationLifecycle(in root: URL) async throws {
+        let library = root.appendingPathComponent("regeneration-library")
+        let source = root.appendingPathComponent("regeneration.wav")
+        try wav(seconds: 1).write(to: source)
+        let store = MeetingStore(directory: library)
+        let record = try await store.importAudio(source)
+        try await store.transcribe(record, using: { _ in "Cedar garden irrigation review is scheduled for Friday." })
+        let previous = store.meetings[0].generatedNotes
+        check(!previous.isEmpty, "regeneration fixture has no prior notes")
+
+        // Hold the injected model at a real suspension point; the store must
+        // expose the target without borrowing the recording's activeMeetingID.
+        var release: CheckedContinuation<String, Never>?
+        let pending = Task {
+            try await store.generateNotes(for: record, condense: { _ in
+                await withCheckedContinuation { release = $0 }
+            })
+        }
+        for _ in 0..<100 where release == nil { await Task.yield() }
+        check(release != nil, "injected notes model never started")
+        check(!store.isFinalizing && store.notesGenerationID == record.id && store.notesGenerationStatus != nil &&
+              store.activeMeetingID == nil && store.notesCompletionID == nil,
+              "suspended regeneration did not publish independent in-progress identity")
+        do {
+            try await store.generateNotes(for: record)
+            fatalError("duplicate regeneration was allowed")
+        } catch { }
+        check(store.notesGenerationID == record.id && !store.isFinalizing && store.notesError == nil,
+              "busy duplicate changed the active regeneration")
+        do {
+            _ = try await store.importAudio(source)
+            fatalError("import was allowed during regeneration")
+        } catch { }
+        do {
+            try await store.transcribe(record, using: { _ in "should not run" })
+            fatalError("meeting transcription was allowed during regeneration")
+        } catch { }
+        do {
+            try store.delete(record)
+            fatalError("meeting deletion was allowed during regeneration")
+        } catch { }
+        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)!
+        do {
+            try await store.startRecording(using: { _ in "should not run" }, feeding: format)
+            fatalError("new meeting recording was allowed during regeneration")
+        } catch { }
+        check(store.meetings.count == 1 && store.notesGenerationID == record.id && !store.isRecording,
+              "busy meeting operations disrupted regeneration")
+        release!.resume(returning: "")
+        try await pending.value
+        check(store.notesGenerationID == nil && store.notesGenerationStatus == nil &&
+              store.notesCompletionID == record.id && store.notesCompletionMessage?.contains("unchanged") == true &&
+              store.meetings[0].generatedNotes == previous,
+              "identical output did not publish an unchanged completion")
+
+        // A save failure must retain the previous in-memory and on-disk notes.
+        // Moving the private library is deterministic even when chmod is ignored.
+        let detached = root.appendingPathComponent("detached-regeneration-library")
+        release = nil
+        let blocked = Task {
+            try await store.generateNotes(for: record, condense: { _ in
+                await withCheckedContinuation { release = $0 }
+            })
+        }
+        for _ in 0..<100 where release == nil { await Task.yield() }
+        check(store.notesCompletionID == nil && store.notesCompletionMessage == nil &&
+              store.notesGenerationID == record.id, "retry left stale completion visible")
+        try FileManager.default.moveItem(at: library, to: detached)
+        release!.resume(returning: "")
+        do { try await blocked.value; fatalError("missing library accepted a save") }
+        catch { }
+        check(store.meetings[0].generatedNotes == previous && store.notesGenerationID == nil &&
+              store.notesFailureID == record.id && store.notesError != nil,
+              "save failure lost prior notes or concealed failure")
+        try FileManager.default.moveItem(at: detached, to: library)
+        check(MeetingStore(directory: library).meetings[0].generatedNotes == previous,
+              "save failure changed persisted prior notes")
+        try await store.generateNotes(for: record, condense: { _ in "" })
+        check(store.notesError == nil && store.notesCompletionID == record.id &&
+              store.notesCompletionMessage?.contains("unchanged") == true,
+              "retry did not clear stale failure and report completion")
+
+        let empty = try await store.importAudio(source)
+        do { try await store.generateNotes(for: empty); fatalError("empty transcript silently succeeded") }
+        catch { }
+        check(store.notesFailureID == empty.id && store.notesError != nil &&
+              store.notesGenerationID == nil && store.meetings.last!.generatedNotes.isEmpty,
+              "empty transcript did not produce an explicit retryable failure")
+        var unproductive = store.meetings
+        unproductive[unproductive.count - 1].transcript = "Hi everyone. Thanks."
+        unproductive[unproductive.count - 1].generatedNotes = "Previously saved notes"
+        try JSONEncoder().encode(unproductive).write(to: library.appendingPathComponent("meetings.json"))
+        let emptyResultStore = MeetingStore(directory: library)
+        do { try await emptyResultStore.generateNotes(for: empty, condense: { _ in "" }); fatalError("empty notes silently succeeded") }
+        catch { }
+        check(emptyResultStore.notesFailureID == empty.id && emptyResultStore.notesError?.contains("No meaningful notes") == true &&
+              emptyResultStore.meetings.last!.generatedNotes == "Previously saved notes",
+              "empty result did not report an error or preserve previous notes")
+
+        let long = (0..<3).map { "Segment\($0) " + String(repeating: "cedar garden watering ", count: 145) }.joined(separator: "\n")
+        // Seed a synthetic persisted transcript with multiple windows without
+        // invoking the on-device model for this progress fixture.
+        let multi = try await store.importAudio(source)
+        var seeded = store.meetings
+        seeded[seeded.count - 1].transcript = long
+        try JSONEncoder().encode(seeded).write(to: library.appendingPathComponent("meetings.json"))
+        let progressStore = MeetingStore(directory: library)
+        let total = MeetingSummarizer.windows(progressStore.meetings.last!.transcript).count
+        check(total > 1, "progress fixture has only one window")
+        var calls = 0
+        try await progressStore.generateNotes(for: multi, condense: { _ in
+            calls += 1
+            check(progressStore.notesGenerationID == multi.id && progressStore.notesGenerationStatus?.contains("\(calls - 1)/\(total)") == true,
+                  "window progress was not published before model invocation")
+            return ""
+        })
+        check(calls == total && progressStore.notesCompletionID == multi.id &&
+              progressStore.notesCompletionMessage?.contains("updated") == true,
+              "multi-window generation did not complete with updated result")
     }
 
     @MainActor private static func pausedStore(in root: URL) async throws {
@@ -406,6 +530,7 @@ import AVFoundation
         try await automaticStop(in: root)
         try await pausedStore(in: root)
         try await notesContracts(in: root)
+        try await regenerationLifecycle(in: root)
         try shortCAFReads(in: root)
         try await minimumLiveWindow(in: root)
         try await failureAndRestart(in: root)

@@ -67,6 +67,22 @@ conversation or private notes by default. Export never sends anything itself.
 - Cancellation preserves previous notes; manual titles/private notes remain
   untouched by regeneration. Existing stored notes are not silently rewritten.
 
+## Regeneration lifecycle and concurrency
+
+- A manual notes request uses the saved conversation text, not the microphone
+  or speech transcriber. Regular hold-Fn dictation remains available while it
+  runs, and notes can be requested while ordinary dictation is running.
+- Keep meeting recording/transcription exclusive from dictation. Do not reuse
+  their audio-operation lock for saved-text notes generation.
+- Acknowledge the click immediately beside the notes heading, show progress,
+  disable duplicate requests, and retain the current notes while generating.
+- Scope running, completed and failed feedback to the requested meeting.
+  Distinguish updated notes from a successful unchanged result.
+- Publish success only after saving. Empty manual results and save failures
+  preserve existing notes and show a retryable error.
+- Progress is per processed part, not a time estimate. A local model response
+  can still stall; do not imply a guaranteed timeout or immediate cancellation.
+
 ## Speech integrity and evidence boundary
 
 A repeated closing phrase is a symptom, not proof of its exact origin. Inspect

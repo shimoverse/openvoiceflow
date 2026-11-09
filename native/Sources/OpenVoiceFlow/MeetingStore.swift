@@ -35,7 +35,7 @@ struct MeetingRecord: Identifiable, Codable, Equatable {
 }
 
 private enum MeetingError: LocalizedError {
-    case busy, missing, invalidAudio, invalidRecord, damagedLibrary
+    case busy, missing, invalidAudio, invalidRecord, damagedLibrary, emptyTranscript, emptyNotes
     var errorDescription: String? {
         switch self {
         case .busy: return "Finish the current meeting operation first."
@@ -43,6 +43,8 @@ private enum MeetingError: LocalizedError {
         case .invalidAudio: return "This audio file could not be opened."
         case .invalidRecord: return "This meeting cannot be changed."
         case .damagedLibrary: return "Meeting library could not be loaded. No changes were made."
+        case .emptyTranscript: return "This meeting has no transcript to summarize."
+        case .emptyNotes: return "No meaningful notes could be generated from this transcript."
         }
     }
 }
@@ -135,6 +137,10 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     @Published private(set) var isFinalizing = false
     @Published private(set) var notesError: String?
     @Published private(set) var notesFailureID: UUID?
+    @Published private(set) var notesGenerationID: UUID?
+    @Published private(set) var notesGenerationStatus: String?
+    @Published private(set) var notesCompletionID: UUID?
+    @Published private(set) var notesCompletionMessage: String?
     @Published private(set) var activeMeetingID: UUID?
     @Published private(set) var transcriptionStatus: String?
     @Published private(set) var errorMessage: String?
@@ -195,7 +201,8 @@ private final class MeetingAudioChunks: @unchecked Sendable {
 
     private func beginRecording(using model: (([Float]) async throws -> String)?,
                                 feeding inputFormat: AVAudioFormat?) async {
-        guard !isRecording, !operationBusy, !isTranscribing, !isFinalizing, activeMeetingID == nil else {
+        guard !isRecording, !operationBusy, !isTranscribing, !isFinalizing,
+              notesGenerationID == nil, activeMeetingID == nil else {
             errorMessage = MeetingError.busy.localizedDescription; return
         }
         operationBusy = true
@@ -320,7 +327,7 @@ private final class MeetingAudioChunks: @unchecked Sendable {
             do { try await generateNotes(for: meeting, duringFinalization: true) }
             catch {
                 notesFailureID = id
-                notesError = "Notes failed: \(error.localizedDescription). Retry notes below."
+                notesError = "Notes failed: \(error.localizedDescription). Try creating the notes again."
             }
         }
         activeMeetingID = nil
@@ -349,27 +356,54 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     func generateNotes(for meeting: MeetingRecord, condense: MeetingSummarizer.Condense? = nil,
                        duringFinalization: Bool = false) async throws {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
-        guard !isRecording, !operationBusy, !isTranscribing,
+        guard !isRecording, !operationBusy, !isTranscribing, notesGenerationID == nil,
               (duringFinalization ? isFinalizing && (activeMeetingID == nil || meeting.id == activeMeetingID) : !isFinalizing) else { throw MeetingError.busy }
         guard let current = meetings.first(where: { $0.id == meeting.id }) else { throw MeetingError.missing }
         let transcript = current.transcript
-        guard !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        if !duringFinalization { isFinalizing = true }
-        defer { if !duringFinalization { isFinalizing = false } }
+        notesError = nil
+        notesFailureID = nil
+        notesCompletionID = nil
+        notesCompletionMessage = nil
+        notesGenerationID = meeting.id
+        let total = MeetingSummarizer.windows(transcript).count
+        notesGenerationStatus = "Generating notes: 0/\(total) parts"
+        defer {
+            notesGenerationID = nil
+            notesGenerationStatus = nil
+        }
         do {
-            let generated = try await MeetingSummarizer.generate(transcript, condense: condense)
+            guard !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                if duringFinalization {
+                    notesCompletionID = meeting.id
+                    notesCompletionMessage = "No conversation text found. Audio is saved."
+                    return
+                }
+                throw MeetingError.emptyTranscript
+            }
+            let generated = try await MeetingSummarizer.generate(transcript, condense: condense) { completed, total in
+                self.notesGenerationStatus = "Generating notes: \(completed)/\(total) parts"
+            }
             try Task.checkCancellation()
+            guard !generated.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                if duringFinalization {
+                    notesCompletionID = meeting.id
+                    notesCompletionMessage = "No meaningful notes found. Transcript and audio are saved."
+                    return
+                }
+                throw MeetingError.emptyNotes
+            }
             guard let index = meetings.firstIndex(where: { $0.id == meeting.id }),
                   meetings[index].transcript == transcript else { throw MeetingError.busy }
             var updated = meetings
             updated[index].generatedNotes = generated.notes
             if !updated[index].titleWasEdited, let title = generated.title { updated[index].title = title }
+            let unchanged = updated[index] == meetings[index]
             try save(updated)
-            notesError = nil
-            notesFailureID = nil
+            notesCompletionID = meeting.id
+            notesCompletionMessage = unchanged ? "Notes unchanged — the existing notes are already up to date." : "Notes updated."
         } catch {
             notesFailureID = meeting.id
-            notesError = "Notes failed: \(error.localizedDescription). Retry notes below."
+            notesError = "Notes failed: \(error.localizedDescription). Try creating the notes again."
             throw error
         }
     }
@@ -377,7 +411,8 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     /// Copies source bytes into the private library; never consumes or deletes the original.
     @discardableResult func importAudio(_ url: URL) async throws -> MeetingRecord {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
-        guard !operationBusy, !isRecording, !isTranscribing, !isFinalizing else { throw MeetingError.busy }
+        guard !operationBusy, !isRecording, !isTranscribing, !isFinalizing,
+              notesGenerationID == nil else { throw MeetingError.busy }
         operationBusy = true
         defer { operationBusy = false }
         let scoped = url.startAccessingSecurityScopedResource()
@@ -422,7 +457,8 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     /// call leaves audio and the last committed text available for retry.
     func transcribe(_ meeting: MeetingRecord, using: @escaping ([Float]) async throws -> String) async throws {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
-        guard !operationBusy, !isRecording, !isTranscribing, !isFinalizing else { throw MeetingError.busy }
+        guard !operationBusy, !isRecording, !isTranscribing, !isFinalizing,
+              notesGenerationID == nil else { throw MeetingError.busy }
         guard meetings.contains(where: { $0.id == meeting.id }) else { throw MeetingError.missing }
         let previousTranscript = meetings.first(where: { $0.id == meeting.id })?.transcript ?? ""
         isTranscribing = true
@@ -489,7 +525,7 @@ private final class MeetingAudioChunks: @unchecked Sendable {
     func delete(_ record: MeetingRecord) throws {
         guard !loadFailure else { throw MeetingError.damagedLibrary }
         guard meetings.contains(where: { $0.id == record.id }), !isRecording || record.id != activeMeetingID,
-              !isTranscribing, !isFinalizing else { throw MeetingError.busy }
+              !isTranscribing, !isFinalizing, notesGenerationID == nil else { throw MeetingError.busy }
         // Commit removal first: if unlink fails, the recoverable audio is retained
         // on disk rather than pointing the library at a deleted recording.
         try save(meetings.filter { $0.id != record.id })

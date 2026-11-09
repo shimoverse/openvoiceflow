@@ -32,4 +32,8 @@ if [[ -z "${CUA_DRIVER_SOCKET:-}" ]]; then
   done
 fi
 swiftc -O -o "$artifacts/meeting-clipboard-guard" "$native_dir/Tests/MeetingClipboardGuard.swift" 2>&1 | tee "$artifacts/clipboard-compile.log"
-MEETING_NOTES_QA_SCRATCH="$scratch" "$artifacts/meeting-clipboard-guard" "$native_dir/Tests/meeting_notes_ui.py" "$artifacts" 2>&1 | tee "$artifacts/run.log"
+swiftc -O -o "$artifacts/meeting-notes-ocr" "$native_dir/Tests/MeetingNotesRenderedOCR.swift" 2>&1 | tee "$artifacts/ocr-compile.log"
+if [[ "${MEETING_NOTES_UI_REGEN_ONLY:-0}" != 1 ]]; then
+  MEETING_NOTES_QA_SCRATCH="$scratch" "$artifacts/meeting-clipboard-guard" "$native_dir/Tests/meeting_notes_ui.py" "$artifacts" 2>&1 | tee "$artifacts/run.log"
+fi
+MEETING_NOTES_QA_SCRATCH="$scratch" "$artifacts/meeting-clipboard-guard" "$native_dir/Tests/meeting_notes_regeneration_ui.py" "$artifacts" 2>&1 | tee "$artifacts/regeneration-run.log"

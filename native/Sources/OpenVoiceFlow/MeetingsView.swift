@@ -25,6 +25,8 @@ struct MeetingsView: View {
     @State private var detailsExpanded = false
     @State private var includePrivateNotes = false
     @State private var expandedSections: Set<Int> = []
+    // Covers the click-to-Task scheduling gap without borrowing recording's activeMeetingID.
+    @State private var pendingNotesID: UUID?
 
     @State private var player: AVAudioPlayer?
     @State private var playingID: UUID?
@@ -39,7 +41,7 @@ struct MeetingsView: View {
     private var secondary: Color { dark ? DT.ink2Dark : DT.ink2Light }
     private var surface: Color { dark ? DT.cardDark : DT.cardLight }
     private var accent: Color { dark ? DT.emberDark : DT.emberLight }
-    private var busy: Bool { controller.isRecording || controller.isWorking || controller.meetingOperation || store.isRecording || store.isTranscribing || store.isFinalizing }
+    private var busy: Bool { controller.isRecording || controller.isWorking || controller.meetingOperation || store.isRecording || store.isTranscribing || store.isFinalizing || store.notesGenerationID != nil }
     private var selected: MeetingRecord? { store.meetings.first { $0.id == selectedID } }
     private var canEdit: Bool { selected != nil }
 
@@ -300,6 +302,7 @@ struct MeetingsView: View {
     private func detail(_ meeting: MeetingRecord) -> some View {
         let notes = MeetingNotesPresentation(meeting.generatedNotes)
         let hasNotes = MeetingNotesPresentation.hasNotes(meeting.generatedNotes)
+        let generatingNotes = pendingNotesID == meeting.id || store.notesGenerationID == meeting.id
         return ScrollView {
             VStack(alignment: .leading, spacing: 25) {
                 VStack(alignment: .leading, spacing: 12) {
@@ -335,7 +338,14 @@ struct MeetingsView: View {
 
                 VStack(alignment: .leading, spacing: 14) {
                     VStack(alignment: .leading, spacing: 12) {
-                        sectionTitle("MEETING NOTES")
+                        HStack(spacing: 10) {
+                            sectionTitle("MEETING NOTES")
+                            if generatingNotes || (store.isFinalizing && store.activeMeetingID == meeting.id) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .accessibilityLabel("Creating local meeting notes")
+                            }
+                        }
                         Text("The essentials, ready to use")
                             .font(.system(size: 17, weight: .medium, design: .rounded))
                         HStack(spacing: 10) {
@@ -350,6 +360,19 @@ struct MeetingsView: View {
                             } label: { Label("Share notes", systemImage: "square.and.arrow.up") }
                                 .disabled(!hasNotes)
                             Spacer(minLength: 0)
+                            if !meeting.transcript.isEmpty && store.activeMeetingID != meeting.id {
+                                Button(generatingNotes ? "Regenerating notes…" :
+                                       (meeting.generatedNotes.isEmpty ? "Create notes" : "Regenerate notes")) {
+                                    guard pendingNotesID == nil, store.notesGenerationID == nil else { return }
+                                    pendingNotesID = meeting.id
+                                    Task {
+                                        await controller.retryMeetingNotes(meeting)
+                                        if pendingNotesID == meeting.id { pendingNotesID = nil }
+                                    }
+                                }
+                                .disabled(controller.meetingOperation || store.isRecording || store.isTranscribing || store.isFinalizing || pendingNotesID != nil || store.notesGenerationID != nil)
+                                .accessibilityIdentifier("meeting-notes-regenerate")
+                            }
                         }
                         if includePrivateNotes {
                             Label("Sharing includes your private notes", systemImage: "exclamationmark.shield")
@@ -357,8 +380,17 @@ struct MeetingsView: View {
                         }
                     }
                     .controlSize(.small)
-                    if store.isFinalizing && store.activeMeetingID == meeting.id {
-                        ProgressView("Creating local meeting notes…")
+                    if generatingNotes || (store.isFinalizing && store.activeMeetingID == meeting.id) {
+                        Text(store.notesGenerationID == meeting.id
+                             ? (store.notesGenerationStatus ?? "Creating local meeting notes…")
+                             : "Creating local meeting notes…")
+                            .font(.system(size: 12))
+                            .foregroundStyle(secondary)
+                            .accessibilityLabel("Notes status: \(store.notesGenerationID == meeting.id ? (store.notesGenerationStatus ?? "Creating local meeting notes…") : "Creating local meeting notes…")")
+                    } else if store.notesCompletionID == meeting.id, let message = store.notesCompletionMessage {
+                        Label(message, systemImage: "checkmark.circle")
+                            .font(.system(size: 12))
+                            .foregroundStyle(dark ? DT.moss : DT.mossLight)
                     }
                     if hasNotes {
                         ForEach(notes.sections) { section in noteCard(section) }
@@ -376,13 +408,9 @@ struct MeetingsView: View {
                         .padding(20)
                         .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
                     }
-                    if !meeting.transcript.isEmpty && store.activeMeetingID != meeting.id {
-                        Button(meeting.generatedNotes.isEmpty ? "Create notes" : "Regenerate notes") {
-                            Task { await controller.retryMeetingNotes(meeting) }
-                        }
-                        .disabled(busy).font(.system(size: 11))
-                    }
                     if let error = store.notesError, store.notesFailureID == meeting.id {
+                        Text(error).foregroundStyle(DT.destructive)
+                    } else if let error = controller.notesRequestError, controller.notesRequestErrorID == meeting.id {
                         Text(error).foregroundStyle(DT.destructive)
                     }
                 }

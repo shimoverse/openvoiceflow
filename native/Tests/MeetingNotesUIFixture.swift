@@ -7,13 +7,43 @@ import SwiftUI
     @Published var isRecording = false
     @Published var isWorking = false
     @Published var meetingOperation = false
+    @Published var notesRequestErrorID: UUID?
+    @Published var notesRequestError: String?
+    private let store: MeetingStore
+    private let control: URL
+    private var attempt = 0
+
+    init(store: MeetingStore, control: URL) { self.store = store; self.control = control }
     func startMeetingRecording() async {}
     func stopMeetingRecording() async {}
     func pauseMeetingRecording() {}
     func resumeMeetingRecording() {}
     func importMeetingAudio(_ url: URL) async {}
     func transcribeMeeting(_ meeting: MeetingRecord) async {}
-    func retryMeetingNotes(_ meeting: MeetingRecord) async {}
+    func retryMeetingNotes(_ meeting: MeetingRecord) async {
+        guard !meetingOperation else { return }
+        meetingOperation = true
+        defer { meetingOperation = false }
+        attempt += 1
+        let number = attempt
+        defer { FileManager.default.createFile(atPath: control.appendingPathComponent("finished-\(number)").path, contents: Data()) }
+        do {
+            try await store.generateNotes(for: meeting, condense: { [control] chunk in
+                let waiting = control.appendingPathComponent("waiting-\(number)")
+                FileManager.default.createFile(atPath: waiting.path, contents: Data(chunk.utf8))
+                let release = control.appendingPathComponent("release-\(number)")
+                while !FileManager.default.fileExists(atPath: release.path) {
+                    try await Task.sleep(for: .milliseconds(40))
+                }
+                if (try String(contentsOf: release, encoding: .utf8)) == "fail" {
+                    throw NSError(domain: "SanitizedFixture", code: 1,
+                                  userInfo: [NSLocalizedDescriptionKey: "Simulated local notes failure"])
+                }
+                let items = [MeetingSummarizer.Item(section: "Overview", text: "The team reviewed the harbor schedule and agreed on a small launch checklist.", evidence: "The team reviewed the harbor schedule and agreed on a small launch checklist.")]
+                return String(data: try JSONEncoder().encode(items), encoding: .utf8)!
+            })
+        } catch { /* MeetingStore publishes the per-meeting failure. */ }
+    }
 }
 
 @MainActor @main struct MeetingNotesUIFixture {
@@ -24,7 +54,9 @@ import SwiftUI
         precondition(root.path.hasPrefix(scratch.path + "/") && scratch.path != "/", "Fixture must use isolated scratch")
         precondition(!FileManager.default.fileExists(atPath: root.path), "Refusing to reuse fixture data")
         let library = root.appendingPathComponent("library", isDirectory: true)
+        let control = root.appendingPathComponent("control", isDirectory: true)
         try FileManager.default.createDirectory(at: library, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        try FileManager.default.createDirectory(at: control, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         let longBullets = (1...16).map { "- [ ] Verify milestone \($0) with the local team and document the final status before the next review." }.joined(separator: "\n")
         let specs: [(String, String, String, String)] = [
             ("Harbor planning review", "PRIVATE-DRAFT sentinel — internal budget thought", "RAW-CONVERSATION sentinel — verbatim unedited discussion", """
@@ -67,10 +99,11 @@ import SwiftUI
         precondition(store.meetings == records)
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
-        let window = NSWindow(contentRect: NSRect(x: 100, y: 100, width: 1000, height: 768),
+        let compact = ProcessInfo.processInfo.environment["MEETING_NOTES_QA_COMPACT"] == "1"
+        let window = NSWindow(contentRect: NSRect(x: 100, y: 100, width: compact ? 900 : 1000, height: compact ? 680 : 768),
             styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         window.title = "Meeting notes fixture"
-        window.contentView = NSHostingView(rootView: MeetingsView(controller: AppController(), store: store))
+        window.contentView = NSHostingView(rootView: MeetingsView(controller: AppController(store: store, control: control), store: store))
         window.makeKeyAndOrderFront(nil)
         app.run()
     }

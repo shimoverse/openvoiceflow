@@ -110,6 +110,12 @@ private final class MeetingAudioChunks: @unchecked Sendable {
             if status == .error { throw MeetingError.invalidAudio }
             if status == .endOfStream || output.frameLength == 0 { exhausted = true }
         } else {
+            // AVAudioFile can throw at an exact chunk-aligned EOF instead of
+            // returning an empty buffer. Check the cursor before asking to read.
+            guard file.framePosition < file.length else {
+                exhausted = true
+                return nil
+            }
             try file.read(into: output, frameCount: limit)
             if output.frameLength < limit { exhausted = true }
         }
@@ -253,10 +259,9 @@ private final class MeetingAudioChunks: @unchecked Sendable {
                 let samples = try recorder.readAvailable(maxFrames: 5 * 16_000,
                                                         minFrames: isRecording ? 4 * 16_000 : 1)
                 if !samples.isEmpty {
-                    // Muted/zero-input captures can cause speech models to invent
-                    // words. Keep the audio, but do not decode near-silence.
-                    let meanSquare = samples.reduce(0.0) { $0 + Double($1) * Double($1) } / Double(samples.count)
-                    if meanSquare < 0.000_000_25 {
+                    // Keep the original audio, but do not decode acoustic
+                    // silence or stationary low-level noise into invented text.
+                    if !MeetingSpeechGate.shouldDecode(samples) {
                         transcriptionStatus = isRecording ? "Listening — microphone audio is quiet" : "Catching up on saved audio"
                         continue
                     }
@@ -428,7 +433,10 @@ private final class MeetingAudioChunks: @unchecked Sendable {
             while let samples = try reader.next() {
                 try Task.checkCancellation()
                 let start = reader.elapsed - Double(samples.count) / 16_000
-                let text = try await using(samples).trimmingCharacters(in: .whitespacesAndNewlines)
+                // Import/retry must use exactly the same speech preflight as
+                // live capture; the saved source remains unchanged.
+                let text = MeetingSpeechGate.shouldDecode(samples)
+                    ? try await using(samples).trimmingCharacters(in: .whitespacesAndNewlines) : ""
                 try Task.checkCancellation()
                 guard let index = meetings.firstIndex(where: { $0.id == meeting.id }) else { throw MeetingError.missing }
                 if !text.isEmpty {

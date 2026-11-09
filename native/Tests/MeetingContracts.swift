@@ -26,7 +26,14 @@ import AVFoundation
         word(16)
         data.append(contentsOf: "data".utf8)
         dword(UInt32(bytes))
-        data.append(Data(repeating: 0, count: bytes))
+        // A voiced-like fixture, not zero PCM: meeting ASR now correctly
+        // skips silent imports before invoking the injected model closure.
+        for frame in 0..<(seconds * sampleRate) {
+            let t = Double(frame) / Double(sampleRate)
+            let envelope = 0.2 + 0.8 * pow(sin(2 * .pi * 1.7 * t), 2)
+            let value = Int16(0.08 * envelope * sin(2 * .pi * 190 * t) * 32767)
+            for _ in 0..<channels { word(UInt16(bitPattern: value)) }
+        }
         return data
     }
 
@@ -171,8 +178,8 @@ import AVFoundation
             return "Coverage \(seen.count)"
         })
         check(seen.count >= 4 && seen.joined().contains("Segment3"), "summary missed transcript tail")
-        check(result.notes.contains("Coverage 1") && result.notes.contains("Coverage \(seen.count)"),
-              "summary lost a bounded chunk")
+        check(result.notes.contains("Segment0") && result.notes.contains("Segment3") &&
+              !result.notes.contains("Coverage"), "summary lost source evidence or emitted invented callback text")
     }
 
     @MainActor private static func pausedStore(in root: URL) async throws {

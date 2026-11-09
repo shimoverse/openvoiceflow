@@ -125,6 +125,11 @@ jobs:
             build
       - name: Meeting persistence and audio contracts
         run: bash native/scripts/test-meeting-contracts.sh
+      - name: Meeting speech integrity, grounded notes and safe-sharing contracts
+        run: |
+          bash native/scripts/test-meeting-asr-contracts.sh
+          bash native/scripts/test-meeting-summary-quality.sh
+          bash native/scripts/test-meeting-notes-presentation.sh
       - name: Whistle native contracts (non-network, no vendor download)
         run: bash native/scripts/test-whistle-contracts.sh
       - name: Update-check lifecycle contracts

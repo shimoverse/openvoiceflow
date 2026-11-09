@@ -19,6 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   **The relicense is not retroactive.** Versions previously released under the MIT License or under the Personal and Reciprocal Source License 1.0 remain available under the terms that accompanied those copies; those grants cannot be withdrawn. Check the `LICENSE` file in the exact version you use. All third-party dependencies were verified license-compatible with the AGPL-3.0 (MIT, BSD-3-Clause, Apache-2.0, CC0). See [`LICENSING.md`](LICENSING.md) for the plain-language guide.
 
+## [0.6.5] — 2026-11-09
+
+### Added
+- **Meeting notes come first**, organized into readable cards for the overview, key points, decisions, action items, and open questions. Longer sections expand on demand; recording details and the full conversation stay available separately.
+- **Copy and export meeting notes** in Markdown or plain text without including the full conversation or private notes. Including private notes is an explicit choice that resets when selecting another meeting.
+
+### Fixed
+- Local notes preserve supporting evidence, numbers, dates, uncertainty, and explicit commitments instead of independently truncating short summaries. Unsupported model output falls back to source-based highlights; no meeting content is uploaded.
+- Speech checks apply to both live recording and imported audio, reducing decoding of silent input while preserving saved audio and genuine repeated phrases. This does not guarantee recognition accuracy in every noisy room.
+- The meeting library and document have independent, bounded scrolling instead of nesting inside the dashboard's outer scroll view.
+
 ## [0.6.4] — 2026-11-06
 
 ### Added

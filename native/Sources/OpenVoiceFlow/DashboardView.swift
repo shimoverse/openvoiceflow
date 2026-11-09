@@ -399,18 +399,27 @@ struct DashboardView: View {
     // MARK: content router
 
     @ViewBuilder private var content: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                switch pane {
-                case .home: home
-                case .history: historyPane
-                case .meetings: MeetingsView(controller: controller, store: controller.meetingStore).frame(minHeight: 660)
-                case .personalize: personalizePane
-                case .settings: settingsPane
-                case .leaderboard: leaderboardPane
+        Group {
+            if pane == .meetings {
+                // Meetings owns its library/detail scroll views. An outer
+                // ScrollView gives them unbounded height and hides navigation.
+                MeetingsView(controller: controller, store: controller.meetingStore)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
+                        switch pane {
+                        case .home: home
+                        case .history: historyPane
+                        case .meetings: EmptyView()
+                        case .personalize: personalizePane
+                        case .settings: settingsPane
+                        case .leaderboard: leaderboardPane
+                        }
+                    }
+                    .padding(.bottom, 30)
                 }
             }
-            .padding(.bottom, 30)
         }
         .sheet(isPresented: $showInterview) {
             KnowMeInterview(controller: controller)

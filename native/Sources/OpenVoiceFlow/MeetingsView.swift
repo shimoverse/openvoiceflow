@@ -15,11 +15,16 @@ struct MeetingsView: View {
     @State private var notesDraft = ""
     @State private var titleBaseline = ""
     @State private var notesBaseline = ""
+    private struct Draft { var title: String; var notes: String }
+    @State private var pendingDrafts: [UUID: Draft] = [:]
     @AppStorage("meetingConsentDismissed") private var consentDismissed = false
     @State private var skipFutureConsent = false
     @State private var showConsent = false
     @State private var showDelete = false
     @State private var alertMessage: String?
+    @State private var detailsExpanded = false
+    @State private var includePrivateNotes = false
+    @State private var expandedSections: Set<Int> = []
 
     @State private var player: AVAudioPlayer?
     @State private var playingID: UUID?
@@ -41,7 +46,7 @@ struct MeetingsView: View {
     var body: some View {
         HStack(spacing: 0) {
             library
-                .frame(width: 254)
+                .frame(width: 220)
                 .background(dark ? DT.sideDark : DT.sideLight)
             Rectangle().fill(secondary.opacity(0.18)).frame(width: 1)
             Group {
@@ -62,6 +67,9 @@ struct MeetingsView: View {
                 saveEdits(record)
             }
             stopPlayback()
+            detailsExpanded = false
+            includePrivateNotes = false
+            expandedSections = []
             loadDrafts()
         }
         .onChange(of: store.meetings) { _, new in
@@ -130,7 +138,7 @@ struct MeetingsView: View {
             VStack(alignment: .leading, spacing: 7) {
                 Text("Meetings")
                     .font(.system(size: 21, weight: .semibold, design: .rounded))
-                Text("Your recordings, transcripts & notes")
+                Text("Recordings & meeting notes")
                     .font(.system(size: 11))
                     .foregroundStyle(secondary)
             }
@@ -219,10 +227,11 @@ struct MeetingsView: View {
                                     Text(meeting.title.isEmpty ? "Untitled meeting" : meeting.title)
                                         .font(.system(size: 13, weight: .medium))
                                         .lineLimit(2)
-                                    Text("\(meeting.createdAt.formatted(date: .abbreviated, time: .shortened))  ·  \(duration(meeting.duration))")
-                                        .font(.system(size: 10))
+                                    Text("\(meeting.createdAt.formatted(.dateTime.month(.abbreviated).day()))  ·  \(duration(meeting.duration))")
+                                        .font(.system(size: 11))
                                         .foregroundStyle(secondary)
                                         .lineLimit(1)
+                                        .help(meeting.createdAt.formatted(date: .complete, time: .shortened))
                                 }
                                 Spacer(minLength: 0)
                             }
@@ -279,7 +288,7 @@ struct MeetingsView: View {
                 .foregroundStyle(accent)
             Text("Every conversation, in one place")
                 .font(.system(size: 20, weight: .medium, design: .rounded))
-            Text("Select a meeting to listen, read the transcript, and write your own notes.")
+            Text("Select a meeting to review the essentials, follow up, or listen again.")
                 .font(.system(size: 13))
                 .foregroundStyle(secondary)
                 .multilineTextAlignment(.center)
@@ -289,157 +298,131 @@ struct MeetingsView: View {
     }
 
     private func detail(_ meeting: MeetingRecord) -> some View {
-        ScrollView {
+        let notes = MeetingNotesPresentation(meeting.generatedNotes)
+        let hasNotes = MeetingNotesPresentation.hasNotes(meeting.generatedNotes)
+        return ScrollView {
             VStack(alignment: .leading, spacing: 25) {
                 VStack(alignment: .leading, spacing: 12) {
-                    HStack(alignment: .center) {
+                    HStack {
                         Label("LOCAL MEETING", systemImage: "lock")
                             .font(.system(size: 10, weight: .semibold))
                             .tracking(1)
                             .foregroundStyle(dark ? DT.moss : DT.mossLight)
                         Spacer()
                         Text(meeting.createdAt.formatted(date: .complete, time: .shortened))
-                            .font(.system(size: 11))
-                            .foregroundStyle(secondary)
+                            .font(.system(size: 12)).foregroundStyle(secondary)
                     }
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        TextField("Meeting title", text: $titleDraft)
+                        TextField("Meeting title", text: Binding(
+                            get: { titleDraft },
+                            set: { value in
+                                titleDraft = value
+                                pendingDrafts[meeting.id] = Draft(title: value, notes: notesDraft)
+                            }
+                        ))
                             .textFieldStyle(.plain)
                             .font(.system(size: 25, weight: .semibold, design: .rounded))
                             .disabled(!canEdit)
                             .accessibilityLabel("Meeting title")
                         if canEdit && hasChanges(meeting) {
                             Button("Save changes") { saveEdits(meeting) }
-                                .buttonStyle(.borderedProminent)
-                                .tint(accent)
+                                .buttonStyle(.borderedProminent).tint(accent)
                         }
                     }
-                    Text("\(duration(meeting.duration)) audio · Local audio recording")
-                        .font(.system(size: 11))
-                        .foregroundStyle(secondary)
+                    Text("\(duration(meeting.duration)) audio · Saved on this Mac")
+                        .font(.system(size: 11)).foregroundStyle(secondary)
                 }
 
-                HStack(spacing: 10) {
-                    Button {
-                        if playingID == meeting.id { stopPlayback() }
-                        else { play(meeting) }
-                    } label: {
-                        Label(playingID == meeting.id ? "Stop audio" : "Play audio",
-                              systemImage: playingID == meeting.id ? "stop.fill" : "play.fill")
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(store.isRecording)
-                    Button("Reveal audio", systemImage: "folder") {
-                        let url = store.audioURL(for: meeting)
-                        guard FileManager.default.fileExists(atPath: url.path) else {
-                            alertMessage = "The audio file could not be found."
-                            return
+                VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        sectionTitle("MEETING NOTES")
+                        Text("The essentials, ready to use")
+                            .font(.system(size: 17, weight: .medium, design: .rounded))
+                        HStack(spacing: 10) {
+                            Button("Copy notes", systemImage: "doc.on.doc") { copyNotes(meeting) }
+                                .disabled(!hasNotes)
+                            Menu {
+                                Toggle("Include my notes", isOn: $includePrivateNotes)
+                                Divider()
+                                Button("Copy notes") { copyNotes(meeting) }
+                                Button("Export Markdown…") { exportNotes(meeting, markdown: true) }
+                                Button("Export plain text…") { exportNotes(meeting, markdown: false) }
+                            } label: { Label("Share notes", systemImage: "square.and.arrow.up") }
+                                .disabled(!hasNotes)
+                            Spacer(minLength: 0)
                         }
-                        NSWorkspace.shared.activateFileViewerSelecting([url])
-                    }
-                    .buttonStyle(.bordered)
-                    Spacer()
-                    Button("Delete", systemImage: "trash", role: .destructive) { showDelete = true }
-                        .buttonStyle(.bordered)
-                        .disabled(busy)
-                }
-                .controlSize(.small)
-
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        sectionTitle("TRANSCRIPT")
-                        Spacer()
-                        if !meeting.transcript.isEmpty {
-                            Button("Copy", systemImage: "doc.on.doc") {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(meeting.transcript, forType: .string)
-                            }
-                            Button("Export…", systemImage: "square.and.arrow.up") { export(meeting) }
+                        if includePrivateNotes {
+                            Label("Sharing includes your private notes", systemImage: "exclamationmark.shield")
+                                .font(.system(size: 11)).foregroundStyle(secondary)
                         }
                     }
-                    .buttonStyle(.borderless)
-                    .font(.system(size: 11))
-                    if store.activeMeetingID == meeting.id, let status = store.transcriptionStatus {
-                        Label(status, systemImage: "waveform")
-                            .font(.system(size: 12))
-                            .foregroundStyle(secondary)
-                        if store.isRecording {
-                            Text("Words appear in short batches, usually every few seconds. Your audio stays saved if transcription falls behind.")
-                                .font(.system(size: 11))
-                                .foregroundStyle(secondary)
-                        }
-                    }
-                    if meeting.transcript.isEmpty && store.activeMeetingID == meeting.id && (store.isRecording || store.isTranscribing) {
-                        Text("Listening for speech…")
-                            .foregroundStyle(secondary)
-                            .padding(18)
-                    } else if meeting.transcript.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("No transcript yet. Transcribe this audio on your Mac, or keep it as a recording.")
-                                .font(.system(size: 13))
-                                .foregroundStyle(secondary)
-                            Button("Transcribe / Retry", systemImage: "text.word.spacing") {
-                                Task { await controller.transcribeMeeting(meeting) }
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(accent)
-                            .disabled(busy)
-                        }
-                        .padding(18)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
-                    } else {
-                        Button("Transcribe again / Retry") {
-                            Task { await controller.transcribeMeeting(meeting) }
-                        }.disabled(busy)
-                        Text(meeting.transcript)
-                            .font(.system(size: 13))
-                            .lineSpacing(5)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(18)
-                            .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
-                    }
-                }
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        sectionTitle("GENERATED NOTES")
-                        Spacer()
-                        if !meeting.transcript.isEmpty && store.activeMeetingID != meeting.id {
-                            Button(meeting.generatedNotes.isEmpty ? "Create / Retry" : "Regenerate") {
-                                Task { await controller.retryMeetingNotes(meeting) }
-                            }.disabled(busy)
-                        }
-                    }
+                    .controlSize(.small)
                     if store.isFinalizing && store.activeMeetingID == meeting.id {
                         ProgressView("Creating local meeting notes…")
-                    } else if meeting.generatedNotes.isEmpty {
-                        Text("No generated notes yet. A transcript is needed to create them.")
-                            .foregroundStyle(secondary)
+                    }
+                    if hasNotes {
+                        ForEach(notes.sections) { section in noteCard(section) }
                     } else {
-                        Text(meeting.generatedNotes)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(18)
-                            .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
+                        VStack(alignment: .leading, spacing: 9) {
+                            Image(systemName: "text.book.closed")
+                                .font(.system(size: 22, weight: .light)).foregroundStyle(accent)
+                            Text("No meeting notes yet").font(.system(size: 15, weight: .medium))
+                            Text(meeting.transcript.isEmpty
+                                 ? "Once there’s a conversation, you can create notes here."
+                                 : "Create notes from this conversation on your Mac.")
+                                .font(.system(size: 12)).foregroundStyle(secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(20)
+                        .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
+                    }
+                    if !meeting.transcript.isEmpty && store.activeMeetingID != meeting.id {
+                        Button(meeting.generatedNotes.isEmpty ? "Create notes" : "Regenerate notes") {
+                            Task { await controller.retryMeetingNotes(meeting) }
+                        }
+                        .disabled(busy).font(.system(size: 11))
                     }
                     if let error = store.notesError, store.notesFailureID == meeting.id {
                         Text(error).foregroundStyle(DT.destructive)
                     }
-                    Text("On-device summaries where supported; otherwise short excerpts from the transcript.")
-                        .font(.system(size: 11)).foregroundStyle(secondary)
                 }
+
+                // Keep live words visible without opening recording details.
+                if store.isRecording && store.activeMeetingID == meeting.id {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Label(store.isPaused ? "PAUSED CONVERSATION" : "LIVE CONVERSATION",
+                                  systemImage: "waveform")
+                                .font(.system(size: 10, weight: .semibold)).tracking(1.2)
+                                .foregroundStyle(accent)
+                            Spacer()
+                            recordingStatus.frame(width: 125)
+                        }
+                        Text(meeting.transcript.isEmpty ? "Listening for speech…" : meeting.transcript)
+                            .font(.system(size: 13)).lineSpacing(5)
+                            .foregroundStyle(meeting.transcript.isEmpty ? secondary : ink)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(18)
+                            .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
+                    }
+                }
+
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        sectionTitle("YOUR NOTES")
+                        sectionTitle("MY NOTES · PRIVATE")
                         Spacer()
                         if hasChanges(meeting) && canEdit {
-                            Text("Unsaved changes")
-                                .font(.system(size: 11))
-                                .foregroundStyle(secondary)
+                            Text("Unsaved changes").font(.system(size: 11)).foregroundStyle(secondary)
                         }
                     }
-                    TextEditor(text: $notesDraft)
+                    TextEditor(text: Binding(
+                        get: { notesDraft },
+                        set: { value in
+                            notesDraft = value
+                            pendingDrafts[meeting.id] = Draft(title: titleDraft, notes: value)
+                        }
+                    ))
                         .font(.system(size: 13))
                         .scrollContentBackground(.hidden)
                         .padding(9)
@@ -448,16 +431,125 @@ struct MeetingsView: View {
                         .overlay(RoundedRectangle(cornerRadius: DT.rCard).stroke(secondary.opacity(0.2)))
                         .disabled(!canEdit)
                         .accessibilityLabel("Personal meeting notes")
-                    Text("Your notes stay separate from generated notes.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(secondary)
+                    Text("Only shared when you explicitly choose Include my notes.")
+                        .font(.system(size: 11)).foregroundStyle(secondary)
                 }
 
+                DisclosureGroup(isExpanded: $detailsExpanded) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        HStack(spacing: 10) {
+                            Button {
+                                if playingID == meeting.id { stopPlayback() }
+                                else { play(meeting) }
+                            } label: {
+                                Label(playingID == meeting.id ? "Stop audio" : "Play audio",
+                                      systemImage: playingID == meeting.id ? "stop.fill" : "play.fill")
+                            }
+                            .disabled(store.isRecording)
+                            Button("Reveal audio", systemImage: "folder") {
+                                let url = store.audioURL(for: meeting)
+                                guard FileManager.default.fileExists(atPath: url.path) else {
+                                    alertMessage = "The audio file could not be found."
+                                    return
+                                }
+                                NSWorkspace.shared.activateFileViewerSelecting([url])
+                            }
+                            Spacer()
+                            Button("Delete", systemImage: "trash", role: .destructive) { showDelete = true }
+                                .disabled(busy)
+                        }
+                        .buttonStyle(.bordered).controlSize(.small)
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                sectionTitle("CONVERSATION")
+                                Spacer()
+                                Button("Copy conversation", systemImage: "doc.on.doc") {
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(meeting.transcript, forType: .string)
+                                }
+                                .disabled(meeting.transcript.isEmpty).font(.system(size: 11))
+                            }
+                            if store.activeMeetingID == meeting.id, let status = store.transcriptionStatus {
+                                Label(status, systemImage: "waveform")
+                                    .font(.system(size: 12)).foregroundStyle(secondary)
+                            }
+                            if meeting.transcript.isEmpty {
+                                Text(store.activeMeetingID == meeting.id && (store.isRecording || store.isTranscribing)
+                                     ? "Listening for speech…"
+                                     : "No conversation text yet. You can transcribe the audio on your Mac.")
+                                    .font(.system(size: 13)).foregroundStyle(secondary)
+                            } else {
+                                Text(meeting.transcript)
+                                    .font(.system(size: 13)).lineSpacing(5).textSelection(.enabled)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(18)
+                                    .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
+                            }
+                            Button(meeting.transcript.isEmpty ? "Transcribe / Retry" : "Transcribe again / Retry",
+                                   systemImage: "text.word.spacing") {
+                                Task { await controller.transcribeMeeting(meeting) }
+                            }
+                            .disabled(busy).font(.system(size: 11))
+                        }
+                    }
+                    .padding(.top, 15)
+                } label: {
+                    Label("Recording details", systemImage: "waveform")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .padding(18)
+                .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
             }
             .padding(30)
             .frame(maxWidth: 760, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .top)
         }
+    }
+
+    private func noteCard(_ section: MeetingNotesPresentation.Section) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
+                Image(systemName: section.symbol)
+                    .font(.system(size: 14, weight: .medium)).foregroundStyle(accent)
+                    .frame(width: 28, height: 28)
+                    .background(accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
+                Text(section.title)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .accessibilityAddTraits(.isHeader)
+            }
+            ForEach(Array(section.blocks.prefix(expandedSections.contains(section.id) ? section.blocks.count : 6).enumerated()), id: \.offset) { _, block in
+                switch block {
+                case .paragraph(let text):
+                    Text(.init(text))
+                        .font(.system(size: 13)).lineSpacing(5).textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                case .bullet(let text, let checked):
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        Image(systemName: checked == nil ? "circle.fill" :
+                              (checked == true ? "checkmark.square.fill" : "square"))
+                            .font(.system(size: checked == nil ? 5 : 13)).foregroundStyle(accent)
+                            .frame(width: 15)
+                            .accessibilityLabel(checked == true ? "Completed action" : "Action item")
+                            .accessibilityHidden(checked == nil)
+                        Text(.init(text))
+                            .font(.system(size: 13)).lineSpacing(5).textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            if section.blocks.count > 6 {
+                Button(expandedSections.contains(section.id) ? "Show less" : "Show all \(section.blocks.count) items") {
+                    if expandedSections.contains(section.id) { expandedSections.remove(section.id) }
+                    else { expandedSections.insert(section.id) }
+                }
+                .buttonStyle(.link)
+                .font(.system(size: 12))
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(surface, in: RoundedRectangle(cornerRadius: DT.rCard))
+        .overlay(RoundedRectangle(cornerRadius: DT.rCard).stroke(secondary.opacity(0.12)))
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -484,10 +576,12 @@ struct MeetingsView: View {
     }
 
     private func loadDrafts() {
-        titleDraft = selected?.title ?? ""
-        notesDraft = selected?.notes ?? ""
-        titleBaseline = titleDraft
-        notesBaseline = notesDraft
+        let record = selected
+        titleBaseline = record?.title ?? ""
+        notesBaseline = record?.notes ?? ""
+        let pending = record.flatMap { pendingDrafts[$0.id] }
+        titleDraft = pending?.title ?? titleBaseline
+        notesDraft = pending?.notes ?? notesBaseline
     }
 
     private func hasChanges(_ meeting: MeetingRecord) -> Bool {
@@ -500,6 +594,7 @@ struct MeetingsView: View {
         if notesDraft != notesBaseline { current.notes = notesDraft }
         do {
             try store.update(current)
+            pendingDrafts.removeValue(forKey: meeting.id)
             titleDraft = current.title
             titleBaseline = current.title
             notesBaseline = current.notes
@@ -546,13 +641,30 @@ struct MeetingsView: View {
         playingID = nil
     }
 
-    private func export(_ meeting: MeetingRecord) {
+    private func sharePayload(_ meeting: MeetingRecord, markdown: Bool) -> String? {
+        MeetingNotesPresentation.shareText(
+            title: titleDraft,
+            date: meeting.createdAt.formatted(date: .complete, time: .shortened),
+            generatedNotes: meeting.generatedNotes,
+            privateNotes: notesDraft,
+            includePrivateNotes: includePrivateNotes,
+            markdown: markdown
+        )
+    }
+
+    private func copyNotes(_ meeting: MeetingRecord) {
+        guard let text = sharePayload(meeting, markdown: true) else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+    }
+
+    private func exportNotes(_ meeting: MeetingRecord, markdown: Bool) {
+        guard let text = sharePayload(meeting, markdown: markdown) else { return }
         let panel = NSSavePanel()
-        panel.title = "Export meeting text"
-        panel.nameFieldStringValue = "\(meeting.title.isEmpty ? "Meeting" : meeting.title).txt"
-        panel.allowedContentTypes = [.plainText]
+        panel.title = "Export meeting notes"
+        panel.nameFieldStringValue = MeetingNotesPresentation.safeFilename(titleDraft) + (markdown ? ".md" : ".txt")
+        panel.allowedContentTypes = markdown ? [UTType(filenameExtension: "md") ?? .plainText] : [.plainText]
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        let text = "\(meeting.title)\n\(meeting.createdAt.formatted(date: .complete, time: .shortened))\n\nGenerated notes\n\(meeting.generatedNotes)\n\nYour notes\n\(meeting.notes)\n\nTranscript\n\(meeting.transcript)\n"
         do { try text.write(to: url, atomically: true, encoding: .utf8) }
         catch { alertMessage = error.localizedDescription }
     }

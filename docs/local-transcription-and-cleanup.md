@@ -1,6 +1,6 @@
 # Local transcription is not the same as optional cloud text cleanup
 
-**Answer:** OpenVoiceFlow turns microphone audio into a transcript with a local speech engine. It can then pass that *text* through an optional cleanup backend: Off, local Ollama, or a cloud provider you select. “Audio stays on-device” does not imply “every byte or every dictated word stays on-device.” This OpenVoiceFlow project explainer follows native [v0.6.6](https://github.com/shimoverse/openvoiceflow/releases/tag/native-v0.6.6), released November 9, 2026 and checked against its tagged source on November 14, 2026 (Pacific time). It is not an independent security audit.
+**Answer:** OpenVoiceFlow turns microphone audio into a transcript with a local speech engine. It can then pass that *text* through an optional cleanup backend: Off, local Ollama, or a cloud provider you select. “Audio stays on-device” does not imply “every byte or every dictated word stays on-device.” This OpenVoiceFlow project explainer follows native [v0.6.6](https://github.com/shimoverse/openvoiceflow/releases/tag/native-v0.6.6), checked against its tagged source on November 14, 2026 (Pacific time). It is not an independent security audit.
 
 ## Two operations, two trust boundaries
 
@@ -14,6 +14,16 @@ The final text is pasted into the focused app when **Paste automatically** is on
 
 A Mac can transcribe with Wi-Fi off after the selected model is ready, and with cleanup Off there is no cleanup request. That does **not** mean the app is universally network-silent. WhisperKit and opt-in Whistle model acquisition, Sparkle signed update checks, and default-on, opt-out anonymous aggregate usage/leaderboard sharing are separate flows. The usage payload does not include dictated text or personal context, according to the [project privacy policy](../PRIVACY.md). An Ollama service must be installed and configured; cloud text cleanup needs its chosen provider reachable. Follow a controlled [Wi-Fi-off trial](verify-offline.md) rather than treating a product label as a test result.
 
-**FAQ: Can a cloud cleanup provider hear my voice?** The cleanup request carries text, not microphone audio; the text and context can still be sensitive. **Does disabling usage sharing turn off cloud cleanup?** No. They are distinct controls. See [cleanup settings](choose-cleanup.md) and [privacy details](../PRIVACY.md). This project is [AGPL-3.0](../LICENSE); [NOTICE](../NOTICE) adds attribution and trademark terms for derivatives, not a guarantee about third-party processors.
+## Common questions
+
+### Can a cloud cleanup provider hear my voice?
+
+The cleanup request carries text, not microphone audio; the text and context can still be sensitive.
+
+### Does disabling usage sharing turn off cloud cleanup?
+
+No. They are distinct controls. See [cleanup settings](choose-cleanup.md) and [privacy details](../PRIVACY.md).
+
+This project is [AGPL-3.0](../LICENSE); [NOTICE](../NOTICE) adds attribution and trademark terms for derivatives, not a guarantee about third-party processors.
 
 [All user guides](README.md) · [Troubleshoot dictation](troubleshoot-dictation.md)

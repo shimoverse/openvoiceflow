@@ -18,6 +18,16 @@ The toggle's current behavior matters: turning it **on** initially selects **Ant
 
 Dictate a short, nonsensitive sentence with cleanup **Off** first. If the raw transcript is adequate, leave it off. If you need rewriting without cloud text transfer, install and start a compatible local Ollama model, then select Ollama and compare the same harmless sample. If you choose a cloud backend, review its current terms yourself and avoid sensitive profile, dictionary, or snippet context you do not want to share. Turning off cloud cleanup later does not retract requests already sent. The [privacy inventory](../PRIVACY.md) details separate update checks and default-on anonymous aggregate usage sharing; “cleanup Off” is not a blanket no-network setting.
 
-**FAQ: Is Ollama the default?** No. Cleanup is Off; enabling it picks Anthropic until you change the provider. **Does Off mean verbatim audio-to-text?** No: local voice commands and exact snippet triggers can transform text even without LLM cleanup. For a concrete network-disconnection experiment, follow the [Wi-Fi-off checklist](verify-offline.md); for the data-flow explanation, read [local transcription versus cleanup](local-transcription-and-cleanup.md).
+## Common questions
+
+### Is Ollama the default?
+
+No. Cleanup is Off; enabling it picks Anthropic until you change the provider.
+
+### Does Off mean verbatim audio-to-text?
+
+No: local voice commands and exact snippet triggers can transform text even without LLM cleanup.
+
+For a concrete network-disconnection experiment, follow the [Wi-Fi-off checklist](verify-offline.md); for the data-flow explanation, read [local transcription versus cleanup](local-transcription-and-cleanup.md).
 
 [All user guides](README.md) · [Privacy policy](../PRIVACY.md)

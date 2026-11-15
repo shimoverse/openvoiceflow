@@ -13,4 +13,4 @@ First install the [current native release](https://github.com/shimoverse/openvoi
 
 **Scope and caveat:** “Local dictation” describes where microphone audio is transcribed, not a promise that the app never makes a network request. Model downloads, signed update checks, and opt-out anonymous aggregate usage sharing have separate network behavior. Cloud cleanup, if enabled, sends transcript text and relevant personal context to your chosen provider. Read the [pipeline explainer](local-transcription-and-cleanup.md) before using the app with sensitive text.
 
-The source and these documents are under [AGPL-3.0](../LICENSE); [NOTICE](../NOTICE) records attribution and trademark terms for derivatives. Corrections are welcome through [GitHub issues](https://github.com/shimoverse/openvoiceflow/issues). No ranking, search indexing, or AI-answer citation is guaranteed by publication here.
+The source and these documents are under [AGPL-3.0](../LICENSE); [NOTICE](../NOTICE) records attribution and trademark terms for derivatives. Corrections are welcome through [GitHub issues](https://github.com/shimoverse/openvoiceflow/issues).

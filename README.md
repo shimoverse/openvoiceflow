@@ -27,6 +27,16 @@ Requires macOS 14 (Sonoma) or newer. On macOS 12–13, the download page offers 
 
 No account or consumer subscription — see [the mission](https://openvoiceflow.com/#mission). Anonymous aggregate usage sharing is on by default and takes one switch to turn off; it never includes dictation text (see [PRIVACY.md](PRIVACY.md) §7).
 
+## Guides & comparisons
+
+Setup guides and product comparisons live on the OpenVoiceFlow website:
+
+- [Free Wispr Flow alternative for Mac](https://openvoiceflow.com/blog/wispr-flow-alternative.html) — free plans, offline use, and privacy tradeoffs.
+- [Offline dictation on Mac](https://openvoiceflow.com/blog/offline-dictation-mac.html) — model setup, local cleanup, and what still needs the internet.
+- [Mac dictation software compared](https://openvoiceflow.com/blog/best-dictation-software-mac.html) — options, pricing models, and local versus cloud transcription.
+
+[Browse all articles →](https://openvoiceflow.com/blog/)
+
 ## Build from source
 
 You need a Mac on macOS 14+ with Xcode 16.4+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).

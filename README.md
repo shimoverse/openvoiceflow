@@ -29,6 +29,8 @@ No account or consumer subscription — see [the mission](https://openvoiceflow.
 
 ## Guides & comparisons
 
+[Native macOS user guides](docs/README.md) — troubleshoot permissions and paste, choose a cleanup mode, verify offline dictation, and understand the local-audio/cloud-text boundary. These GitHub guides complement the website articles below.
+
 Setup guides and product comparisons live on the OpenVoiceFlow website:
 
 - [Free Wispr Flow alternative for Mac](https://openvoiceflow.com/blog/wispr-flow-alternative.html) — free plans, offline use, and privacy tradeoffs.

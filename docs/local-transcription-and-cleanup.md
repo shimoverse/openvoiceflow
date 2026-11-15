@@ -1,0 +1,29 @@
+# Local transcription is not the same as optional cloud text cleanup
+
+**Answer:** OpenVoiceFlow turns microphone audio into a transcript with a local speech engine. It can then pass that *text* through an optional cleanup backend: Off, local Ollama, or a cloud provider you select. “Audio stays on-device” does not imply “every byte or every dictated word stays on-device.” This OpenVoiceFlow project explainer follows native [v0.6.6](https://github.com/shimoverse/openvoiceflow/releases/tag/native-v0.6.6), checked against its tagged source on November 14, 2026 (Pacific time). It is not an independent security audit.
+
+## Two operations, two trust boundaries
+
+First, you hold the configured hotkey and the app captures microphone samples. Its default WhisperKit engine loads a speech model and transcribes on the Mac; an explicitly selected Whistle (Beta) engine instead uses a separately downloaded local executable in a network-denied sandbox. The model or executable may need an initial network download. The [tagged transcriber](https://github.com/shimoverse/openvoiceflow/blob/f41879063e0ed8c8356dbba90c7dcb86d7844de9/native/Sources/OpenVoiceFlow/Transcriber.swift), [controller](https://github.com/shimoverse/openvoiceflow/blob/f41879063e0ed8c8356dbba90c7dcb86d7844de9/native/Sources/OpenVoiceFlow/AppController.swift), and [privacy inventory](../PRIVACY.md) distinguish model acquisition from audio processing. Dictation audio is not the payload of the optional cleanup API. Meetings are different: explicit recording or import saves audio and transcripts locally, rather than treating audio as ephemeral dictation.
+
+Next, the controller receives the raw transcript. An exact snippet trigger can expand locally without an LLM call; otherwise local voice-command replacements and the applicable per-app style feed the cleanup stage. The controller constructs context from the Know-Me profile, personal dictionary, and snippet hints and calls the selected provider. With cleanup **Off**, a passthrough returns the text and makes no cleanup network request. With **Ollama**, the app sends a prompt to a localhost service for local rewriting. With a selected cloud backend, the app makes a network request carrying the transcript and relevant context as text; the [released provider implementation](https://github.com/shimoverse/openvoiceflow/blob/f41879063e0ed8c8356dbba90c7dcb86d7844de9/native/Sources/OpenVoiceFlow/CleanupProvider.swift) builds the prompt and request. Depending on your personal data, names, vocabulary, and snippet triggers can be as revealing as the dictated sentence.
+
+The final text is pasted into the focused app when **Paste automatically** is on. The [tagged controller](https://github.com/shimoverse/openvoiceflow/blob/f41879063e0ed8c8356dbba90c7dcb86d7844de9/native/Sources/OpenVoiceFlow/AppController.swift) uses the provider's output or falls back to raw transcript on failure. A later switch from cloud cleanup to Off cannot retract earlier submissions. The selected provider's own terms govern its handling of requests; this project does not promise zero retention by another service.
+
+## Why “offline” needs a qualifier
+
+A Mac can transcribe with Wi-Fi off after the selected model is ready, and with cleanup Off there is no cleanup request. That does **not** mean the app is universally network-silent. WhisperKit and opt-in Whistle model acquisition, Sparkle signed update checks, and default-on, opt-out anonymous aggregate usage/leaderboard sharing are separate flows. The usage payload does not include dictated text or personal context, according to the [project privacy policy](../PRIVACY.md). An Ollama service must be installed and configured; cloud text cleanup needs its chosen provider reachable. Follow a controlled [Wi-Fi-off trial](verify-offline.md) rather than treating a product label as a test result.
+
+## Common questions
+
+### Can a cloud cleanup provider hear my voice?
+
+The cleanup request carries text, not microphone audio; the text and context can still be sensitive.
+
+### Does disabling usage sharing turn off cloud cleanup?
+
+No. They are distinct controls. See [cleanup settings](choose-cleanup.md) and [privacy details](../PRIVACY.md).
+
+This project is [AGPL-3.0](../LICENSE); [NOTICE](../NOTICE) adds attribution and trademark terms for derivatives, not a guarantee about third-party processors.
+
+[All user guides](README.md) · [Troubleshoot dictation](troubleshoot-dictation.md)

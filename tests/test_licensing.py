@@ -12,7 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 # where only the app half exists.
 WEB_ROOT = Path(os.environ["OVF_WEB_ROOT"]) if os.environ.get("OVF_WEB_ROOT") else ROOT
 DOCS = WEB_ROOT / "docs"
-SITE_AVAILABLE = DOCS.is_dir()
+# This app repo also has GitHub Markdown guides under docs/; the website's
+# llms.txt and generator, not a directory name alone, identify the site tree.
+SITE_AVAILABLE = (DOCS / "llms.txt").is_file() and (WEB_ROOT / "scripts/docs_content.py").is_file()
 requires_site = pytest.mark.skipif(
     not SITE_AVAILABLE,
     reason="site content lives in shimoverse/openvoiceflow-web; set OVF_WEB_ROOT to include it",

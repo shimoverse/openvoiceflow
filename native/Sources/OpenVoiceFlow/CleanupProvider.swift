@@ -37,7 +37,7 @@ enum CleanupFactory {
         case .openrouter: return "google/gemma-4-31b-it"
         case .openai: return "gpt-4o-mini"
         case .groq: return "llama-3.1-8b-instant"
-        case .anthropic: return "claude-3-5-haiku-20241022"
+        case .anthropic: return "claude-haiku-5-5"
         case .ollama: return "llama3.2"
         case .none: return ""
         }
@@ -100,7 +100,7 @@ struct OpenAICompatibleCleanup: CleanupProvider {
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let sys = systemPrompt + styleSuffix(style) + context
-        let body: [String: Any]
+        var body: [String: Any]
         if backend == .anthropic {
             req.setValue(apiKey, forHTTPHeaderField: "x-api-key")
             req.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
@@ -108,6 +108,11 @@ struct OpenAICompatibleCleanup: CleanupProvider {
                 "model": model, "max_tokens": 1024, "system": sys,
                 "messages": [["role": "user", "content": raw]],
             ]
+            if model == "claude-haiku-5-5" {
+                // Adaptive thinking shares the output budget; cleanup needs only light effort.
+                body["output_config"] = ["effort": "low"]
+                body["max_tokens"] = 2048
+            }
         } else {
             req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
             body = [
@@ -134,7 +139,13 @@ struct OpenAICompatibleCleanup: CleanupProvider {
         (((json?["choices"] as? [[String: Any]])?.first?["message"] as? [String: Any])?["content"]) as? String
     }
     private func parseAnthropic(_ json: [String: Any]?) -> String? {
-        ((json?["content"] as? [[String: Any]])?.first?["text"]) as? String
+        guard json?["stop_reason"] as? String == "end_turn",
+              let blocks = json?["content"] as? [[String: Any]] else { return nil }
+        let text = blocks.compactMap { block -> String? in
+            guard block["type"] as? String == "text" else { return nil }
+            return block["text"] as? String
+        }.joined()
+        return text.nilIfEmpty
     }
 }
 
